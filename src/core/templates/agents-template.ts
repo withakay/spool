@@ -4,9 +4,10 @@ Instructions for AI coding assistants using OpenSpec for spec-driven development
 
 ## TL;DR Quick Checklist
 
-- Search existing work: \`openspec spec list --long\`, \`openspec list\` (use \`rg\` only for full-text search)
+- Search existing work: \`openspec spec list --long\`, \`openspec list\`, \`openspec module list\`
 - Decide scope: new capability vs modify existing capability
-- Pick a unique \`change-id\`: kebab-case, verb-led (\`add-\`, \`update-\`, \`remove-\`, \`refactor-\`)
+- For large features (epics): Create a module to group related changes
+- Pick a unique \`change-id\`: For modular changes use \`NNN-CC_name\` format (e.g., \`001-01_init-repo\`)
 - Scaffold: \`proposal.md\`, \`tasks.md\`, \`design.md\` (only if needed), and delta specs per affected capability
 - Write deltas: use \`## ADDED|MODIFIED|REMOVED|RENAMED Requirements\`; include at least one \`#### Scenario:\` per requirement
 - Validate: \`openspec validate [change-id] --strict\` and fix issues
@@ -98,6 +99,12 @@ openspec show [item]           # Display change or spec
 openspec validate [item]       # Validate changes or specs
 openspec archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
 
+# Module commands
+openspec module list           # List all modules
+openspec module new <name>     # Create a new module
+openspec module show <id>      # Show module details
+openspec module validate <id>  # Validate a module
+
 # Project management
 openspec init [path]           # Initialize OpenSpec
 openspec update [path]         # Update instruction files
@@ -109,6 +116,7 @@ openspec validate              # Bulk validation mode
 # Debugging
 openspec show [change] --json --deltas-only
 openspec validate [change] --strict
+openspec validate --modules    # Validate all modules
 \`\`\`
 
 ### Command Flags
@@ -129,16 +137,28 @@ openspec/
 │   └── [capability]/       # Single focused capability
 │       ├── spec.md         # Requirements and scenarios
 │       └── design.md       # Technical patterns
+├── modules/                # Module definitions (epics)
+│   └── [NNN_module-name]/  # e.g., 001_project-setup
+│       └── module.md       # Purpose, scope, changes list
 ├── changes/                # Proposals - what SHOULD change
-│   ├── [change-name]/
+│   ├── [NNN-CC_name]/      # Modular change (e.g., 001-01_init-repo)
 │   │   ├── proposal.md     # Why, what, impact
 │   │   ├── tasks.md        # Implementation checklist
-│   │   ├── design.md       # Technical decisions (optional; see criteria)
+│   │   ├── design.md       # Technical decisions (optional)
 │   │   └── specs/          # Delta changes
 │   │       └── [capability]/
 │   │           └── spec.md # ADDED/MODIFIED/REMOVED
+│   ├── [change-name]/      # Legacy change (no module)
+│   │   └── ...
 │   └── archive/            # Completed changes
 \`\`\`
+
+### Module Naming Convention
+- Module folder: \`NNN_module-name\` (e.g., \`001_project-setup\`)
+- Modular change: \`NNN-CC_change-name\` (e.g., \`001-01_init-repo\`)
+- \`NNN\` = 3-digit module ID
+- \`CC\` = 2-digit change number within module
+- Module \`000\` is reserved for ungrouped/standalone changes
 
 ## Creating Change Proposals
 
@@ -232,6 +252,68 @@ Minimal \`design.md\` skeleton:
 
 ## Open Questions
 - [...]
+\`\`\`
+
+## Working with Modules
+
+Modules group related changes into epics. Use modules for large features that span multiple changes.
+
+### When to Create a Module
+- Feature requires 3+ related changes
+- Epic-level work spanning multiple capabilities
+- Need to track dependencies between changes
+- Want to enforce scope boundaries
+
+### Creating a Module
+
+\`\`\`bash
+openspec module new project-setup
+# Creates: openspec/modules/001_project-setup/module.md
+\`\`\`
+
+### module.md Structure
+
+\`\`\`markdown
+# Project Setup
+
+## Purpose
+Set up the initial project structure and tooling.
+
+## Depends On
+<!-- Optional: modules that must complete first -->
+- 000
+
+## Scope
+<!-- Capabilities this module may create or modify -->
+- project-config
+- dev-environment
+
+## Changes
+<!-- Hybrid: existing changes auto-discovered + planned -->
+- [ ] 001-01_init-repo
+- [ ] 001-02_add-readme (planned)
+- [x] 001-03_setup-eslint
+\`\`\`
+
+### Scope Enforcement
+- Changes in a module can ONLY modify specs listed in \`## Scope\`
+- Use \`*\` for unrestricted scope (not recommended)
+- Scope violations are validation ERRORs
+
+### Creating Modular Changes
+
+\`\`\`bash
+# Change naming: NNN-CC_name
+# NNN = module ID, CC = change number
+mkdir -p openspec/changes/001-01_init-repo/{specs/project-config}
+\`\`\`
+
+### Module Validation
+
+\`\`\`bash
+openspec module validate 001           # Validate module + scope
+openspec module validate 001 --with-changes  # Also validate all changes
+openspec validate --modules            # Validate all modules
 \`\`\`
 
 ## Spec File Format

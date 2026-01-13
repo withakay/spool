@@ -5,6 +5,7 @@
 // Minimum character lengths
 export const MIN_WHY_SECTION_LENGTH = 50;
 export const MIN_PURPOSE_LENGTH = 50;
+export const MIN_MODULE_PURPOSE_LENGTH = 20;
 
 // Maximum character/item limits
 export const MAX_WHY_SECTION_LENGTH = 1000;
@@ -36,6 +37,21 @@ export const VALIDATION_MESSAGES = {
   DELTA_DESCRIPTION_TOO_BRIEF: 'Delta description is too brief',
   DELTA_MISSING_REQUIREMENTS: 'Delta should include requirements',
   
+  // Module validation messages
+  MODULE_NAME_EMPTY: 'Module name cannot be empty',
+  MODULE_NAME_INVALID: 'Module folder must be NNN_kebab-name format (e.g., 001_project-setup)',
+  MODULE_PURPOSE_EMPTY: 'Module must have a Purpose section',
+  MODULE_PURPOSE_TOO_SHORT: `Module purpose must be at least ${MIN_MODULE_PURPOSE_LENGTH} characters`,
+  MODULE_SCOPE_EMPTY: 'Module must have a Scope section with at least one capability (use "*" for unrestricted)',
+  MODULE_DEPENDENCY_INVALID: 'Module dependency must be a valid module ID (3 digits)',
+  MODULE_DEPENDENCY_NOT_FOUND: 'Dependent module does not exist',
+  MODULE_DEPENDENCY_CIRCULAR: 'Circular module dependency detected',
+  MODULE_DEPENDENCY_INCOMPLETE: 'Dependent module has unarchived changes',
+  MODULE_CHANGE_NOT_FOUND: 'Listed change does not exist (and is not marked as planned)',
+  MODULE_CHANGE_PREFIX_MISMATCH: 'Change does not have the correct module prefix',
+  MODULE_ORPHAN_CHANGE: 'Change with module prefix not listed in module',
+  MODULE_SCOPE_VIOLATION: 'Change modifies capability outside module scope',
+
   // Guidance snippets (appended to primary messages for remediation)
   GUIDE_NO_DELTAS:
     'No deltas found. Ensure your change has a specs/ directory with capability folders (e.g. specs/http-server/spec.md) containing .md files that use delta headers (## ADDED/MODIFIED/REMOVED/RENAMED Requirements) and that each requirement includes at least one "#### Scenario:" block. Tip: run "openspec change show <change-id> --json --deltas-only" to inspect parsed deltas.',
@@ -45,4 +61,6 @@ export const VALIDATION_MESSAGES = {
     'Missing required sections. Expected headers: "## Why" and "## What Changes". Ensure deltas are documented in specs/ using delta headers.',
   GUIDE_SCENARIO_FORMAT:
     'Scenarios must use level-4 headers. Convert bullet lists into:\n#### Scenario: Short name\n- **WHEN** ...\n- **THEN** ...\n- **AND** ...',
+  GUIDE_MODULE_SCOPE:
+    'Add the capability to the module\'s ## Scope section, or move the change to a different module.',
 } as const;
