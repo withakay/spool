@@ -2,15 +2,17 @@ import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
 import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
-import { getActiveChangeIds, getSpecIds } from '../utils/item-discovery.js';
+import { getActiveChangeIds, getSpecIds, getModuleInfo } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 
-type ItemType = 'change' | 'spec';
+type ItemType = 'change' | 'spec' | 'module';
 
 interface ExecuteOptions {
   all?: boolean;
   changes?: boolean;
   specs?: boolean;
+  modules?: boolean;
+  module?: string;
   type?: string;
   strict?: boolean;
   json?: boolean;
@@ -32,11 +34,18 @@ export class ValidateCommand {
     const interactive = isInteractive(options);
 
     // Handle bulk flags first
-    if (options.all || options.changes || options.specs) {
+    if (options.all || options.changes || options.specs || options.modules) {
       await this.runBulkValidation({
         changes: !!options.all || !!options.changes,
         specs: !!options.all || !!options.specs,
+        modules: !!options.all || !!options.modules,
       }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: resolveNoInteractive(options) });
+      return;
+    }
+
+    // Handle --module flag for validating a specific module
+    if (options.module) {
+      await this.validateModule(options.module, { strict: !!options.strict, json: !!options.json });
       return;
     }
 
@@ -59,8 +68,47 @@ export class ValidateCommand {
   private normalizeType(value?: string): ItemType | undefined {
     if (!value) return undefined;
     const v = value.toLowerCase();
-    if (v === 'change' || v === 'spec') return v;
+    if (v === 'change' || v === 'spec' || v === 'module') return v;
     return undefined;
+  }
+
+  private async validateModule(moduleId: string, opts: { strict: boolean; json: boolean }): Promise<void> {
+    const modules = await getModuleInfo();
+    const module = modules.find(m => m.id === moduleId || m.fullName === moduleId);
+
+    if (!module) {
+      console.error(`Module not found: ${moduleId}`);
+      const suggestions = nearestMatches(moduleId, modules.map(m => m.fullName));
+      if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const validator = new Validator(opts.strict);
+    const start = Date.now();
+    const report = await validator.validateModule(module.path);
+    const durationMs = Date.now() - start;
+
+    if (opts.json) {
+      const out = {
+        items: [{ id: module.fullName, type: 'module' as const, valid: report.valid, issues: report.issues, durationMs }],
+        summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { module: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } },
+        version: '1.0',
+      };
+      console.log(JSON.stringify(out, null, 2));
+    } else {
+      if (report.valid) {
+        console.log(`Module '${module.fullName}' is valid`);
+      } else {
+        console.error(`Module '${module.fullName}' has issues`);
+        for (const issue of report.issues) {
+          const prefix = issue.level === 'ERROR' ? '✗' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
+          console.error(`${prefix} [${issue.level}] ${issue.path}: ${issue.message}`);
+        }
+      }
+    }
+
+    process.exitCode = report.valid ? 0 : 1;
   }
 
   private async runInteractiveSelector(opts: { strict: boolean; json: boolean; concurrency?: string }): Promise<void> {
@@ -153,10 +201,11 @@ export class ValidateCommand {
       console.log(JSON.stringify(out, null, 2));
       return;
     }
+    const typeLabel = type === 'change' ? 'Change' : type === 'spec' ? 'Specification' : 'Module';
     if (report.valid) {
-      console.log(`${type === 'change' ? 'Change' : 'Specification'} '${id}' is valid`);
+      console.log(`${typeLabel} '${id}' is valid`);
     } else {
-      console.error(`${type === 'change' ? 'Change' : 'Specification'} '${id}' has issues`);
+      console.error(`${typeLabel} '${id}' has issues`);
       for (const issue of report.issues) {
         const label = issue.level === 'ERROR' ? 'ERROR' : issue.level;
         const prefix = issue.level === 'ERROR' ? '✗' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
@@ -172,20 +221,26 @@ export class ValidateCommand {
       bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
       bullets.push('- Debug parsed deltas: openspec change show <id> --json --deltas-only');
-    } else {
+    } else if (type === 'spec') {
       bullets.push('- Ensure spec includes ## Purpose and ## Requirements sections');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
+      bullets.push('- Re-run with --json to see structured report');
+    } else if (type === 'module') {
+      bullets.push('- Ensure module.md includes ## Purpose, ## Scope, and ## Changes sections');
+      bullets.push('- Check that all listed (non-planned) changes exist');
+      bullets.push('- Verify scope includes all capabilities modified by changes');
       bullets.push('- Re-run with --json to see structured report');
     }
     console.error('Next steps:');
     bullets.forEach(b => console.error(`  ${b}`));
   }
 
-  private async runBulkValidation(scope: { changes: boolean; specs: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
+  private async runBulkValidation(scope: { changes: boolean; specs: boolean; modules?: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
     const spinner = !opts.json && !opts.noInteractive ? ora('Validating...').start() : undefined;
-    const [changeIds, specIds] = await Promise.all([
+    const [changeIds, specIds, moduleInfos] = await Promise.all([
       scope.changes ? getActiveChangeIds() : Promise.resolve<string[]>([]),
       scope.specs ? getSpecIds() : Promise.resolve<string[]>([]),
+      scope.modules ? getModuleInfo() : Promise.resolve([]),
     ]);
 
     const DEFAULT_CONCURRENCY = 6;
@@ -212,6 +267,14 @@ export class ValidateCommand {
         return { id, type: 'spec' as const, valid: report.valid, issues: report.issues, durationMs };
       });
     }
+    for (const moduleInfo of moduleInfos) {
+      queue.push(async () => {
+        const start = Date.now();
+        const report = await validator.validateModule(moduleInfo.path);
+        const durationMs = Date.now() - start;
+        return { id: moduleInfo.fullName, type: 'module' as const, valid: report.valid, issues: report.issues, durationMs };
+      });
+    }
 
     if (queue.length === 0) {
       spinner?.stop();
@@ -221,6 +284,7 @@ export class ValidateCommand {
         byType: {
           ...(scope.changes ? { change: { items: 0, passed: 0, failed: 0 } } : {}),
           ...(scope.specs ? { spec: { items: 0, passed: 0, failed: 0 } } : {}),
+          ...(scope.modules ? { module: { items: 0, passed: 0, failed: 0 } } : {}),
         },
       } as const;
 
@@ -277,6 +341,7 @@ export class ValidateCommand {
       byType: {
         ...(scope.changes ? { change: summarizeType(results, 'change') } : {}),
         ...(scope.specs ? { spec: summarizeType(results, 'spec') } : {}),
+        ...(scope.modules ? { module: summarizeType(results, 'module') } : {}),
       },
     } as const;
 

@@ -1,9 +1,19 @@
 import { z, ZodError } from 'zod';
 import { readFileSync, promises as fs } from 'fs';
 import path from 'path';
-import { SpecSchema, ChangeSchema, Spec, Change } from '../schemas/index.js';
+import {
+  SpecSchema,
+  ChangeSchema,
+  ModuleSchema,
+  Spec,
+  Change,
+  Module,
+  parseModularChangeName,
+  MIN_MODULE_PURPOSE_LENGTH,
+} from '../schemas/index.js';
 import { MarkdownParser } from '../parsers/markdown-parser.js';
 import { ChangeParser } from '../parsers/change-parser.js';
+import { ModuleParser } from '../parsers/module-parser.js';
 import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
 import {
   MIN_PURPOSE_LENGTH,
@@ -12,6 +22,11 @@ import {
 } from './constants.js';
 import { parseDeltaSpec, normalizeRequirementName } from '../parsers/requirement-blocks.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
+import {
+  getModuleIds,
+  getActiveChangeIds,
+  getChangesForModule,
+} from '../../utils/item-discovery.js';
 
 export class Validator {
   private strictMode: boolean;
@@ -270,6 +285,236 @@ export class Validator {
     }
 
     return this.createReport(issues);
+  }
+
+  /**
+   * Validate a module directory.
+   * Checks:
+   * - module.md parses correctly
+   * - Schema validation
+   * - Dependencies exist and are not circular
+   * - Listed changes exist (unless marked planned)
+   * - Change prefixes match module ID
+   * - Scope violations (changes modifying specs outside scope)
+   */
+  async validateModule(moduleDir: string, root: string = process.cwd()): Promise<ValidationReport> {
+    const issues: ValidationIssue[] = [];
+    const moduleFolderName = path.basename(moduleDir);
+    const moduleFile = path.join(moduleDir, 'module.md');
+
+    try {
+      const content = await fs.readFile(moduleFile, 'utf-8');
+      const parser = new ModuleParser(content, moduleFolderName);
+      const module = parser.parseModule();
+
+      // Schema validation
+      const result = ModuleSchema.safeParse(module);
+      if (!result.success) {
+        issues.push(...this.convertZodErrors(result.error));
+      }
+
+      // Apply module-specific rules
+      issues.push(...await this.applyModuleRules(module, root));
+
+    } catch (error) {
+      const baseMessage = error instanceof Error ? error.message : 'Unknown error';
+      issues.push({
+        level: 'ERROR',
+        path: 'module.md',
+        message: baseMessage,
+      });
+    }
+
+    return this.createReport(issues);
+  }
+
+  /**
+   * Validate a module and all its changes.
+   */
+  async validateModuleWithChanges(moduleDir: string, root: string = process.cwd()): Promise<{
+    moduleReport: ValidationReport;
+    changeReports: Array<{ changeId: string; report: ValidationReport }>;
+  }> {
+    const moduleReport = await this.validateModule(moduleDir, root);
+    const changeReports: Array<{ changeId: string; report: ValidationReport }> = [];
+
+    const moduleFolderName = path.basename(moduleDir);
+    const parsed = parseModularChangeName(moduleFolderName);
+    if (!parsed) {
+      // Use the module folder name as-is and extract module ID
+      const match = moduleFolderName.match(/^(\d{3})_/);
+      if (match) {
+        const moduleId = match[1];
+        const changes = await getChangesForModule(moduleId, root);
+        const changesDir = path.join(root, 'openspec', 'changes');
+
+        for (const changeId of changes) {
+          const changeDir = path.join(changesDir, changeId);
+          const report = await this.validateChangeDeltaSpecs(changeDir);
+          changeReports.push({ changeId, report });
+        }
+      }
+    }
+
+    return { moduleReport, changeReports };
+  }
+
+  private async applyModuleRules(module: Module, root: string): Promise<ValidationIssue[]> {
+    const issues: ValidationIssue[] = [];
+
+    // Check purpose length
+    if (module.purpose.length < MIN_MODULE_PURPOSE_LENGTH) {
+      issues.push({
+        level: 'WARNING',
+        path: 'purpose',
+        message: VALIDATION_MESSAGES.MODULE_PURPOSE_TOO_SHORT,
+      });
+    }
+
+    // Check dependencies exist
+    const existingModules = await getModuleIds(root);
+    const existingModuleIds = new Set(existingModules.map(m => m.match(/^(\d{3})_/)?.[1]).filter(Boolean));
+
+    for (const dep of module.dependsOn) {
+      if (!existingModuleIds.has(dep)) {
+        issues.push({
+          level: 'ERROR',
+          path: `dependsOn.${dep}`,
+          message: `${VALIDATION_MESSAGES.MODULE_DEPENDENCY_NOT_FOUND}: ${dep}`,
+        });
+      }
+    }
+
+    // Check for circular dependencies
+    const circularDeps = await this.detectCircularDependencies(module.id, module.dependsOn, root, new Set());
+    if (circularDeps) {
+      issues.push({
+        level: 'ERROR',
+        path: 'dependsOn',
+        message: `${VALIDATION_MESSAGES.MODULE_DEPENDENCY_CIRCULAR}: ${circularDeps.join(' -> ')}`,
+      });
+    }
+
+    // Check listed changes
+    const activeChanges = await getActiveChangeIds(root);
+    const activeChangeSet = new Set(activeChanges);
+
+    for (const changeEntry of module.changes) {
+      // Skip planned changes
+      if (changeEntry.planned) continue;
+
+      // Check change exists
+      if (!activeChangeSet.has(changeEntry.id)) {
+        issues.push({
+          level: 'ERROR',
+          path: `changes.${changeEntry.id}`,
+          message: `${VALIDATION_MESSAGES.MODULE_CHANGE_NOT_FOUND}: ${changeEntry.id}`,
+        });
+        continue;
+      }
+
+      // Check change prefix matches module
+      const parsed = parseModularChangeName(changeEntry.id);
+      if (!parsed || parsed.moduleId !== module.id) {
+        issues.push({
+          level: 'ERROR',
+          path: `changes.${changeEntry.id}`,
+          message: `${VALIDATION_MESSAGES.MODULE_CHANGE_PREFIX_MISMATCH}: expected ${module.id}-XX_name`,
+        });
+      }
+    }
+
+    // Check for orphan changes (changes with this module's prefix not listed in module)
+    const listedChangeIds = new Set(module.changes.map(c => c.id));
+    for (const changeId of activeChanges) {
+      const parsed = parseModularChangeName(changeId);
+      if (parsed?.moduleId === module.id && !listedChangeIds.has(changeId)) {
+        issues.push({
+          level: 'WARNING',
+          path: `changes`,
+          message: `${VALIDATION_MESSAGES.MODULE_ORPHAN_CHANGE}: ${changeId}`,
+        });
+      }
+    }
+
+    // Check scope violations
+    if (!module.scope.includes('*')) {
+      const scopeViolations = await this.checkScopeViolations(module, root);
+      issues.push(...scopeViolations);
+    }
+
+    return issues;
+  }
+
+  private async detectCircularDependencies(
+    moduleId: string,
+    dependencies: string[],
+    root: string,
+    visited: Set<string>
+  ): Promise<string[] | null> {
+    if (visited.has(moduleId)) {
+      return [moduleId];
+    }
+
+    visited.add(moduleId);
+
+    for (const dep of dependencies) {
+      // Load the dependent module to get its dependencies
+      const modulesPath = path.join(root, 'openspec', 'modules');
+      const moduleNames = await getModuleIds(root);
+      const depModule = moduleNames.find(m => m.startsWith(`${dep}_`));
+
+      if (depModule) {
+        try {
+          const moduleFile = path.join(modulesPath, depModule, 'module.md');
+          const content = await fs.readFile(moduleFile, 'utf-8');
+          const parser = new ModuleParser(content, depModule);
+          const parsed = parser.parseModule();
+
+          const circular = await this.detectCircularDependencies(dep, parsed.dependsOn, root, new Set(visited));
+          if (circular) {
+            return [moduleId, ...circular];
+          }
+        } catch {
+          // If we can't parse the module, skip circular dependency check for it
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private async checkScopeViolations(module: Module, root: string): Promise<ValidationIssue[]> {
+    const issues: ValidationIssue[] = [];
+    const scopeSet = new Set(module.scope);
+    const changesDir = path.join(root, 'openspec', 'changes');
+
+    // Get changes for this module
+    const changes = await getChangesForModule(module.id, root);
+
+    for (const changeId of changes) {
+      const specsDir = path.join(changesDir, changeId, 'specs');
+
+      try {
+        const entries = await fs.readdir(specsDir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (!entry.isDirectory()) continue;
+          const specName = entry.name;
+
+          if (!scopeSet.has(specName)) {
+            issues.push({
+              level: 'ERROR',
+              path: `changes.${changeId}`,
+              message: `${VALIDATION_MESSAGES.MODULE_SCOPE_VIOLATION}: change "${changeId}" modifies capability "${specName}" which is not in module scope. ${VALIDATION_MESSAGES.GUIDE_MODULE_SCOPE}`,
+            });
+          }
+        }
+      } catch {
+        // specs directory might not exist
+      }
+    }
+
+    return issues;
   }
 
   private convertZodErrors(error: ZodError): ValidationIssue[] {
