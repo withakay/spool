@@ -34,5 +34,5 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           trigger_phrase: "@claude"
-          model: "claude-sonnet-4-20250514"
+          model: "claude-sonnet-4-5-20250514"
           timeout_minutes: 25
