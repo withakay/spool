@@ -5,6 +5,7 @@ import { ArtifactGraph } from './graph.js';
 import { detectCompleted } from './state.js';
 import { resolveSchemaForChange } from '../../utils/change-metadata.js';
 import type { Artifact, CompletedSet } from './types.js';
+import { getChangesPath } from '../project-config.js';
 
 /**
  * Error thrown when loading a template fails.
@@ -160,7 +161,7 @@ export function loadChangeContext(
   changeName: string,
   schemaName?: string
 ): ChangeContext {
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', changeName);
+  const changeDir = path.join(getChangesPath(projectRoot), changeName);
 
   // Resolve schema: explicit > metadata > default
   const resolvedSchemaName = resolveSchemaForChange(changeDir, schemaName);

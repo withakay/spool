@@ -30,6 +30,7 @@ import {
 import { createChange, validateChangeName } from '../utils/change-utils.js';
 import { getExploreSkillTemplate, getNewChangeSkillTemplate, getContinueChangeSkillTemplate, getApplyChangeSkillTemplate, getFfChangeSkillTemplate, getSyncSpecsSkillTemplate, getArchiveChangeSkillTemplate, getOpsxExploreCommandTemplate, getOpsxNewCommandTemplate, getOpsxContinueCommandTemplate, getOpsxApplyCommandTemplate, getOpsxFfCommandTemplate, getOpsxSyncCommandTemplate, getOpsxArchiveCommandTemplate } from '../core/templates/skill-templates.js';
 import { FileSystemUtils } from '../utils/file-system.js';
+import { getChangesPath, getOpenSpecDirName } from '../core/project-config.js';
 
 // -----------------------------------------------------------------------------
 // Types for Apply Instructions
@@ -106,7 +107,7 @@ async function validateChangeExists(
   changeName: string | undefined,
   projectRoot: string
 ): Promise<string> {
-  const changesPath = path.join(projectRoot, 'openspec', 'changes');
+  const changesPath = getChangesPath(projectRoot);
 
   // Get all change directories (not just those with proposal.md)
   const getAvailableChanges = async (): Promise<string[]> => {
@@ -499,7 +500,7 @@ async function generateApplyInstructions(
 ): Promise<ApplyInstructions> {
   // loadChangeContext will auto-detect schema from metadata if not provided
   const context = loadChangeContext(projectRoot, changeName, schemaName);
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', changeName);
+  const changeDir = path.join(getChangesPath(projectRoot), changeName);
 
   // Get the full schema to access the apply phase configuration
   const schema = resolveSchema(context.schemaName);
@@ -762,13 +763,14 @@ async function newChangeCommand(name: string | undefined, options: NewChangeOpti
     // If description provided, create README.md with description
     if (options.description) {
       const { promises: fs } = await import('fs');
-      const changeDir = path.join(projectRoot, 'openspec', 'changes', name);
+      const changeDir = path.join(getChangesPath(projectRoot), name);
       const readmePath = path.join(changeDir, 'README.md');
       await fs.writeFile(readmePath, `# ${name}\n\n${options.description}\n`, 'utf-8');
     }
 
     const schemaUsed = options.schema ?? DEFAULT_SCHEMA;
-    spinner.succeed(`Created change '${name}' at openspec/changes/${name}/ (schema: ${schemaUsed})`);
+    const openspecDir = getOpenSpecDirName(projectRoot);
+    spinner.succeed(`Created change '${name}' at ${openspecDir}/changes/${name}/ (schema: ${schemaUsed})`);
   } catch (error) {
     spinner.fail(`Failed to create change '${name}'`);
     throw error;

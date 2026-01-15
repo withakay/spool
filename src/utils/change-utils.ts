@@ -1,6 +1,7 @@
 import path from 'path';
 import { FileSystemUtils } from './file-system.js';
 import { writeChangeMetadata, validateSchemaName } from './change-metadata.js';
+import { getChangesPath } from '../core/project-config.js';
 
 const DEFAULT_SCHEMA = 'spec-driven';
 
@@ -112,7 +113,7 @@ export async function createChange(
   validateSchemaName(schemaName);
 
   // Build the change directory path
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', name);
+  const changeDir = path.join(getChangesPath(projectRoot), name);
 
   // Check if change already exists
   if (await FileSystemUtils.directoryExists(changeDir)) {

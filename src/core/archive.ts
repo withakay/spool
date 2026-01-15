@@ -9,6 +9,7 @@ import {
   writeUpdatedSpec,
   type SpecUpdate,
 } from './specs-apply.js';
+import { getChangesPath, getSpecsPath, getArchivePath } from './project-config.js';
 
 export class ArchiveCommand {
   async execute(
@@ -16,9 +17,9 @@ export class ArchiveCommand {
     options: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean } = {}
   ): Promise<void> {
     const targetPath = '.';
-    const changesDir = path.join(targetPath, 'openspec', 'changes');
-    const archiveDir = path.join(changesDir, 'archive');
-    const mainSpecsDir = path.join(targetPath, 'openspec', 'specs');
+    const changesDir = getChangesPath(targetPath);
+    const archiveDir = getArchivePath(targetPath);
+    const mainSpecsDir = getSpecsPath(targetPath);
 
     // Check if changes directory exists
     try {

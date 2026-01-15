@@ -10,10 +10,16 @@ export const GLOBAL_DATA_DIR_NAME = 'openspec';
 // TypeScript interfaces
 export interface GlobalConfig {
   featureFlags?: Record<string, boolean>;
+  /**
+   * Default project path for OpenSpec directory.
+   * Can be overridden by repo-level openspec.json.
+   */
+  projectPath?: string;
 }
 
 const DEFAULT_CONFIG: GlobalConfig = {
-  featureFlags: {}
+  featureFlags: {},
+  projectPath: undefined,
 };
 
 /**
