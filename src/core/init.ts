@@ -19,11 +19,11 @@ import { SlashCommandRegistry } from './configurators/slash/registry.js';
 import {
   OpenSpecConfig,
   AI_TOOLS,
-  OPENSPEC_DIR_NAME,
   AIToolOption,
   OPENSPEC_MARKERS,
 } from './config.js';
 import { PALETTE } from './styles/palette.js';
+import { getOpenSpecDirName } from './project-config.js';
 
 const PROGRESS_SPINNER = {
   interval: 80,
@@ -384,7 +384,7 @@ export class InitCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const openspecDir = OPENSPEC_DIR_NAME;
+    const openspecDir = getOpenSpecDirName(projectPath);
     const openspecPath = path.join(projectPath, openspecDir);
 
     // Validation happens silently in the background

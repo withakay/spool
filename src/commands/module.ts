@@ -20,6 +20,7 @@ import {
   UNGROUPED_MODULE_ID,
 } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
+import { getModulesPath } from '../core/project-config.js';
 
 interface ModuleListOptions {
   json?: boolean;
@@ -48,7 +49,7 @@ export class ModuleCommand {
    */
   async new(name: string | undefined, options: ModuleNewOptions = {}): Promise<void> {
     const root = process.cwd();
-    const modulesPath = path.join(root, 'openspec', 'modules');
+    const modulesPath = getModulesPath(root);
 
     // Ensure modules directory exists
     await fs.mkdir(modulesPath, { recursive: true });

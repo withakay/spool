@@ -27,6 +27,7 @@ import {
   getActiveChangeIds,
   getChangesForModule,
 } from '../../utils/item-discovery.js';
+import { getChangesPath, getModulesPath } from '../project-config.js';
 
 export class Validator {
   private strictMode: boolean;
@@ -346,7 +347,7 @@ export class Validator {
       if (match) {
         const moduleId = match[1];
         const changes = await getChangesForModule(moduleId, root);
-        const changesDir = path.join(root, 'openspec', 'changes');
+        const changesDir = getChangesPath(root);
 
         for (const changeId of changes) {
           const changeDir = path.join(changesDir, changeId);
@@ -460,7 +461,7 @@ export class Validator {
 
     for (const dep of dependencies) {
       // Load the dependent module to get its dependencies
-      const modulesPath = path.join(root, 'openspec', 'modules');
+      const modulesPath = getModulesPath(root);
       const moduleNames = await getModuleIds(root);
       const depModule = moduleNames.find(m => m.startsWith(`${dep}_`));
 
@@ -487,7 +488,7 @@ export class Validator {
   private async checkScopeViolations(module: Module, root: string): Promise<ValidationIssue[]> {
     const issues: ValidationIssue[] = [];
     const scopeSet = new Set(module.scope);
-    const changesDir = path.join(root, 'openspec', 'changes');
+    const changesDir = getChangesPath(root);
 
     // Get changes for this module
     const changes = await getChangesForModule(module.id, root);
