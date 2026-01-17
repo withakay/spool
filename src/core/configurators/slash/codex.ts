@@ -1,6 +1,6 @@
 import path from "path";
 import os from "os";
-import { SlashCommandConfigurator } from "./base.js";
+import { SlashCommandConfigurator, EXTENDED_COMMANDS } from "./base.js";
 import { SlashCommandId, TemplateManager } from "../../templates/index.js";
 import { FileSystemUtils } from "../../../utils/file-system.js";
 import { OPENSPEC_MARKERS } from "../../config.js";
@@ -10,11 +10,24 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: ".codex/prompts/openspec-proposal.md",
   apply: ".codex/prompts/openspec-apply.md",
   archive: ".codex/prompts/openspec-archive.md",
+  'research': ".codex/prompts/openspec-research.md",
+  'research-stack': ".codex/prompts/openspec-research-stack.md",
+  'research-features': ".codex/prompts/openspec-research-features.md",
+  'research-architecture': ".codex/prompts/openspec-research-architecture.md",
+  'research-pitfalls': ".codex/prompts/openspec-research-pitfalls.md",
+  'review': ".codex/prompts/openspec-review.md",
+  'review-security': ".codex/prompts/openspec-review-security.md",
+  'review-scale': ".codex/prompts/openspec-review-scale.md",
+  'review-edge': ".codex/prompts/openspec-review-edge.md",
 };
 
 export class CodexSlashCommandConfigurator extends SlashCommandConfigurator {
   readonly toolId = "codex";
   readonly isAvailable = true;
+
+  protected getSupportedCommands(): SlashCommandId[] {
+    return EXTENDED_COMMANDS;
+  }
 
   protected getRelativePath(id: SlashCommandId): string {
     return FILE_PATHS[id];
@@ -38,6 +51,60 @@ argument-hint: change-id
 $ARGUMENTS`,
       archive: `---
 description: Archive a deployed OpenSpec change and update specs.
+argument-hint: change-id
+---
+
+$ARGUMENTS`,
+      'research': `---
+description: Conduct comprehensive domain research (parallel investigations + synthesis).
+argument-hint: topic to research
+---
+
+$ARGUMENTS`,
+      'research-stack': `---
+description: Research technology stack options and recommendations.
+argument-hint: topic to research
+---
+
+$ARGUMENTS`,
+      'research-features': `---
+description: Map feature landscape and prioritize capabilities.
+argument-hint: topic to research
+---
+
+$ARGUMENTS`,
+      'research-architecture': `---
+description: Research architecture patterns and design decisions.
+argument-hint: topic to research
+---
+
+$ARGUMENTS`,
+      'research-pitfalls': `---
+description: Identify common pitfalls and mitigation strategies.
+argument-hint: topic to research
+---
+
+$ARGUMENTS`,
+      'review': `---
+description: Conduct adversarial review (security, scale, edge cases) of a change.
+argument-hint: change-id
+---
+
+$ARGUMENTS`,
+      'review-security': `---
+description: Security review - find vulnerabilities and attack vectors.
+argument-hint: change-id
+---
+
+$ARGUMENTS`,
+      'review-scale': `---
+description: Scale review - identify performance bottlenecks.
+argument-hint: change-id
+---
+
+$ARGUMENTS`,
+      'review-edge': `---
+description: Edge case review - find boundary conditions and failure modes.
 argument-hint: change-id
 ---
 

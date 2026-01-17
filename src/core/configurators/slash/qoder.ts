@@ -1,12 +1,12 @@
 import { SlashCommandConfigurator } from './base.js';
-import { SlashCommandId } from '../../templates/index.js';
+import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 /**
  * File paths for Qoder slash commands
  * Maps each OpenSpec workflow stage to its command file location
  * Commands are stored in .qoder/commands/openspec/ directory
  */
-const FILE_PATHS: Record<SlashCommandId, string> = {
+const FILE_PATHS: Record<CoreSlashCommandId, string> = {
   // Create and validate new change proposals
   proposal: '.qoder/commands/openspec/proposal.md',
   
@@ -22,7 +22,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
  * Defines metadata displayed in Qoder's command palette
  * Each command is categorized and tagged for easy discovery
  */
-const FRONTMATTER: Record<SlashCommandId, string> = {
+const FRONTMATTER: Record<CoreSlashCommandId, string> = {
   proposal: `---
 name: OpenSpec: Proposal
 description: Scaffold a new OpenSpec change and validate strictly.
@@ -66,19 +66,19 @@ export class QoderSlashCommandConfigurator extends SlashCommandConfigurator {
    * @returns {string} Relative path from project root to command file
    */
   protected getRelativePath(id: SlashCommandId): string {
-    return FILE_PATHS[id];
+    return FILE_PATHS[id as CoreSlashCommandId];
   }
 
   /**
    * Get YAML frontmatter for a slash command
-   * 
+   *
    * Frontmatter defines how the command appears in Qoder's UI,
    * including display name, description, and categorization.
-   * 
+   *
    * @param {SlashCommandId} id - Command identifier (proposal, apply, or archive)
    * @returns {string} YAML frontmatter block with command metadata
    */
   protected getFrontmatter(id: SlashCommandId): string {
-    return FRONTMATTER[id];
+    return FRONTMATTER[id as CoreSlashCommandId];
   }
 }

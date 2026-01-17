@@ -13,7 +13,7 @@ import {
 import chalk from 'chalk';
 import ora from 'ora';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { TemplateManager, ProjectContext } from './templates/index.js';
+import { TemplateManager, ProjectContext, PlanningContext } from './templates/index.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
 import {
@@ -711,6 +711,13 @@ export class InitCommand {
       path.join(openspecPath, 'specs'),
       path.join(openspecPath, 'changes'),
       path.join(openspecPath, 'changes', 'archive'),
+      path.join(openspecPath, 'planning'),
+      path.join(openspecPath, 'planning', 'milestones'),
+      path.join(openspecPath, 'research'),
+      path.join(openspecPath, 'research', 'investigations'),
+      path.join(openspecPath, 'workflows'),
+      path.join(openspecPath, 'workflows', '.state'),
+      path.join(openspecPath, 'commands'),
     ];
 
     for (const dir of directories) {
@@ -741,12 +748,19 @@ export class InitCommand {
       // Could be enhanced with prompts for project details
     };
 
-    const templates = TemplateManager.getTemplates(context);
+    const planningContext: PlanningContext = {
+      currentDate: new Date().toISOString().split('T')[0],
+    };
 
+    const templates = [
+      ...TemplateManager.getTemplates(context),
+      ...TemplateManager.getPlanningTemplates(planningContext),
+    ];
+
+    // Write standard templates
     for (const template of templates) {
       const filePath = path.join(openspecPath, template.path);
 
-      // Skip if file exists and we're in skipExisting mode
       if (skipExisting && (await FileSystemUtils.fileExists(filePath))) {
         continue;
       }
@@ -754,6 +768,23 @@ export class InitCommand {
       const content =
         typeof template.content === 'function'
           ? template.content(context)
+          : template.content;
+
+      await FileSystemUtils.writeFile(filePath, content);
+    }
+
+    // Write command templates (separate context type)
+    const commandTemplates = TemplateManager.getCommandTemplates({});
+    for (const template of commandTemplates) {
+      const filePath = path.join(openspecPath, template.path);
+
+      if (skipExisting && (await FileSystemUtils.fileExists(filePath))) {
+        continue;
+      }
+
+      const content =
+        typeof template.content === 'function'
+          ? template.content({})
           : template.content;
 
       await FileSystemUtils.writeFile(filePath, content);

@@ -8,14 +8,34 @@ export interface SlashCommandTarget {
   kind: 'slash';
 }
 
-const ALL_COMMANDS: SlashCommandId[] = ['proposal', 'apply', 'archive'];
+// Core commands that all tools support
+const CORE_COMMANDS: SlashCommandId[] = ['proposal', 'apply', 'archive'];
+
+// Extended commands for tools with research/review support
+export const EXTENDED_COMMANDS: SlashCommandId[] = [
+  ...CORE_COMMANDS,
+  'research',
+  'research-stack',
+  'research-features',
+  'research-architecture',
+  'research-pitfalls',
+  'review',
+  'review-security',
+  'review-scale',
+  'review-edge',
+];
 
 export abstract class SlashCommandConfigurator {
   abstract readonly toolId: string;
   abstract readonly isAvailable: boolean;
 
+  // Override this in subclasses that support extended commands
+  protected getSupportedCommands(): SlashCommandId[] {
+    return CORE_COMMANDS;
+  }
+
   getTargets(): SlashCommandTarget[] {
-    return ALL_COMMANDS.map((id) => ({
+    return this.getSupportedCommands().map((id) => ({
       id,
       path: this.getRelativePath(id),
       kind: 'slash'

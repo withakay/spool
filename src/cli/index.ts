@@ -17,6 +17,11 @@ import { registerConfigCommand } from '../commands/config.js';
 import { registerArtifactWorkflowCommands } from '../commands/artifact-workflow.js';
 import { registerModuleCommand } from '../commands/module.js';
 import { maybeShowTelemetryNotice, trackCommand, shutdown } from '../telemetry/index.js';
+import { StateCommand } from '../commands/state.js';
+import { PlanCommand } from '../commands/plan.js';
+import { TasksCommand } from '../commands/tasks.js';
+import { AgentConfigCommand } from '../commands/agent-config.js';
+import { WorkflowCommand } from '../commands/workflow.js';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -362,5 +367,462 @@ program
 
 // Register artifact workflow commands (experimental)
 registerArtifactWorkflowCommands(program);
+
+// State command for project state management
+const stateCmd = program
+  .command('state')
+  .description('Manage project state (decisions, blockers, notes)');
+
+stateCmd
+  .command('show')
+  .description('Display current project state')
+  .action(() => runCommandAction(async () => {
+    const stateCommand = new StateCommand();
+    await stateCommand.show('.');
+  }));
+  });
+
+stateCmd
+  .command('decision <text>')
+  .description('Record a decision')
+  .action(async (text: string) => {
+    try {
+      const stateCommand = new StateCommand();
+      await stateCommand.addDecision(text, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('blocker <text>')
+  .description('Record a blocker')
+  .action(async (text: string) => {
+    try {
+      const stateCommand = new StateCommand();
+      await stateCommand.addBlocker(text, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('note <text>')
+  .description('Add a session note')
+  .action(async (text: string) => {
+    try {
+      const stateCommand = new StateCommand();
+      await stateCommand.addNote(text, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('focus <text>')
+  .description('Set current focus')
+  .action(async (text: string) => {
+    try {
+      const stateCommand = new StateCommand();
+      await stateCommand.setFocus(text, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('question <text>')
+  .description('Add an open question')
+  .action(async (text: string) => {
+    try {
+      const stateCommand = new StateCommand();
+      await stateCommand.addQuestion(text, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Plan command for roadmap and milestone management
+const planCmd = program
+  .command('plan')
+  .description('Manage project planning (milestones, phases, roadmap)');
+
+planCmd
+  .command('init')
+  .description('Initialize planning structure')
+  .action(async () => {
+    try {
+      const planCommand = new PlanCommand();
+      await planCommand.init('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+planCmd
+  .command('status')
+  .description('Show roadmap progress')
+  .action(async () => {
+    try {
+      const planCommand = new PlanCommand();
+      await planCommand.status('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+planCmd
+  .command('milestone <name>')
+  .description('Add a new milestone')
+  .option('-t, --target <target>', 'Milestone target/goal')
+  .action(async (name: string, options?: { target?: string }) => {
+    try {
+      const planCommand = new PlanCommand();
+      await planCommand.addMilestone(name, options?.target, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+planCmd
+  .command('phase <milestone> <name>')
+  .description('Add a phase to a milestone')
+  .action(async (milestone: string, name: string) => {
+    try {
+      const planCommand = new PlanCommand();
+      await planCommand.addPhase(milestone, name, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Tasks command for enhanced task management
+const tasksCmd = program
+  .command('tasks')
+  .description('Manage tasks with waves, verification, and completion criteria');
+
+tasksCmd
+  .command('init <change-id>')
+  .description('Initialize enhanced tasks.md for a change')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.init(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('status <change-id>')
+  .description('Show task progress for a change')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.status(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('add <change-id> <task-name>')
+  .description('Add a task to a change')
+  .option('-w, --wave <wave>', 'Wave number', '1')
+  .action(async (changeId: string, taskName: string, options?: { wave?: string }) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.add(changeId, taskName, parseInt(options?.wave || '1'), '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('start <change-id> <task-id>')
+  .description('Mark a task as in-progress')
+  .action(async (changeId: string, taskId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.start(changeId, taskId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('complete <change-id> <task-id>')
+  .description('Mark a task as complete')
+  .action(async (changeId: string, taskId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.complete(changeId, taskId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('next <change-id>')
+  .description('Show the next task to work on')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.next(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('show <change-id>')
+  .description('Display the full tasks.md file')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.show(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Agent config command for managing model and context settings
+const agentConfigCmd = program
+  .command('agent-config')
+  .description('Manage agent configuration (models, context budgets, strategies)');
+
+agentConfigCmd
+  .command('init')
+  .description('Initialize config.yaml with default settings')
+  .action(async () => {
+    try {
+      const agentConfigCommand = new AgentConfigCommand();
+      await agentConfigCommand.init('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+agentConfigCmd
+  .command('show')
+  .description('Display current configuration')
+  .action(async () => {
+    try {
+      const agentConfigCommand = new AgentConfigCommand();
+      await agentConfigCommand.show('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+agentConfigCmd
+  .command('get <key>')
+  .description('Get a configuration value (e.g., "tools.opencode.default_model")')
+  .action(async (key: string) => {
+    try {
+      const agentConfigCommand = new AgentConfigCommand();
+      await agentConfigCommand.get(key, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+agentConfigCmd
+  .command('set <key> <value>')
+  .description('Set a configuration value')
+  .action(async (key: string, value: string) => {
+    try {
+      const agentConfigCommand = new AgentConfigCommand();
+      await agentConfigCommand.set(key, value, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+agentConfigCmd
+  .command('model <tool> <agent-type>')
+  .description('Show model configuration for a tool and agent type')
+  .action(async (tool: string, agentType: string) => {
+    try {
+      const agentConfigCommand = new AgentConfigCommand();
+      await agentConfigCommand.showModel(
+        tool as 'opencode' | 'codex' | 'claude-code',
+        agentType as 'research' | 'execution' | 'review' | 'planning',
+        '.'
+      );
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+agentConfigCmd
+  .command('summary')
+  .description('Show a summary of all agent configurations')
+  .action(async () => {
+    try {
+      const agentConfigCommand = new AgentConfigCommand();
+      await agentConfigCommand.summary('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Workflow command for orchestrating multi-agent workflows
+const workflowCmd = program
+  .command('workflow')
+  .description('Orchestrate multi-agent workflows');
+
+workflowCmd
+  .command('init')
+  .description('Initialize workflows directory with examples')
+  .action(async () => {
+    try {
+      const workflowCommand = new WorkflowCommand();
+      await workflowCommand.init('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('list')
+  .description('List available workflows')
+  .action(async () => {
+    try {
+      const workflowCommand = new WorkflowCommand();
+      await workflowCommand.list('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('show <name>')
+  .description('Show workflow details')
+  .action(async (name: string) => {
+    try {
+      const workflowCommand = new WorkflowCommand();
+      await workflowCommand.show(name, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('run <name>')
+  .description('Generate execution instructions for a workflow')
+  .option('-t, --tool <tool>', 'Target tool (opencode, claude-code, codex)', 'opencode')
+  .option('-v, --var <vars...>', 'Variables in key=value format')
+  .action(async (name: string, options: { tool?: string; var?: string[] }) => {
+    try {
+      const workflowCommand = new WorkflowCommand();
+      const tool = (options.tool || 'opencode') as 'opencode' | 'claude-code' | 'codex';
+
+      // Parse variables
+      const variables: Record<string, string> = {};
+      if (options.var) {
+        for (const v of options.var) {
+          const [key, ...rest] = v.split('=');
+          variables[key] = rest.join('=');
+        }
+      }
+
+      await workflowCommand.run(name, tool, '.', variables);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('plan <name>')
+  .description('Generate execution plan (JSON)')
+  .option('-t, --tool <tool>', 'Target tool (opencode, claude-code, codex)', 'opencode')
+  .option('-v, --var <vars...>', 'Variables in key=value format')
+  .action(async (name: string, options: { tool?: string; var?: string[] }) => {
+    try {
+      const workflowCommand = new WorkflowCommand();
+      const tool = (options.tool || 'opencode') as 'opencode' | 'claude-code' | 'codex';
+
+      const variables: Record<string, string> = {};
+      if (options.var) {
+        for (const v of options.var) {
+          const [key, ...rest] = v.split('=');
+          variables[key] = rest.join('=');
+        }
+      }
+
+      await workflowCommand.plan(name, tool, '.', variables);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('status <name>')
+  .description('Check workflow execution status')
+  .action(async (name: string) => {
+    try {
+      const workflowCommand = new WorkflowCommand();
+      await workflowCommand.status(name, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
 
 program.parse();

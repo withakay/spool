@@ -1,7 +1,7 @@
 import { SlashCommandConfigurator } from './base.js';
-import { SlashCommandId } from '../../templates/index.js';
+import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
-const FILE_PATHS: Record<SlashCommandId, string> = {
+const FILE_PATHS: Record<CoreSlashCommandId, string> = {
   proposal: '.continue/prompts/openspec-proposal.prompt',
   apply: '.continue/prompts/openspec-apply.prompt',
   archive: '.continue/prompts/openspec-archive.prompt'
@@ -19,7 +19,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
  * The 'invokable: true' field is required to make the prompt available as a slash command.
  * We use 'openspec-proposal' as the name so the command becomes /openspec-proposal.
  */
-const FRONTMATTER: Record<SlashCommandId, string> = {
+const FRONTMATTER: Record<CoreSlashCommandId, string> = {
   proposal: `---
 name: openspec-proposal
 description: Scaffold a new OpenSpec change and validate strictly.
@@ -42,10 +42,10 @@ export class ContinueSlashCommandConfigurator extends SlashCommandConfigurator {
   readonly isAvailable = true;
 
   protected getRelativePath(id: SlashCommandId): string {
-    return FILE_PATHS[id];
+    return FILE_PATHS[id as CoreSlashCommandId];
   }
 
   protected getFrontmatter(id: SlashCommandId): string {
-    return FRONTMATTER[id];
+    return FRONTMATTER[id as CoreSlashCommandId];
   }
 }
