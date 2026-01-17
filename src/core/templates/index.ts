@@ -120,3 +120,12 @@ export { ProjectContext } from './project-template.js';
 export { PlanningContext } from './planning-templates.js';
 export { ResearchContext } from './research-templates.js';
 export type { SlashCommandId } from './slash-command-templates.js';
+export {
+  enhancedTasksTemplate,
+  taskItemTemplate,
+  parseTasksFile,
+  serializeTasksFile,
+  type TasksContext,
+  type ParsedTask,
+  type ParsedTasksFile,
+} from './tasks-template.js';

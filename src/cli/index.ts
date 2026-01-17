@@ -20,6 +20,7 @@ import { maybeShowTelemetryNotice, trackCommand, shutdown } from '../telemetry/i
 import { StateCommand } from '../commands/state.js';
 import { PlanCommand } from '../commands/plan.js';
 import { ResearchCommand } from '../commands/research.js';
+import { TasksCommand } from '../commands/tasks.js';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -585,6 +586,110 @@ researchCmd
     try {
       const researchCommand = new ResearchCommand();
       await researchCommand.synthesize('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Tasks command for enhanced task management
+const tasksCmd = program
+  .command('tasks')
+  .description('Manage tasks with waves, verification, and completion criteria');
+
+tasksCmd
+  .command('init <change-id>')
+  .description('Initialize enhanced tasks.md for a change')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.init(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('status <change-id>')
+  .description('Show task progress for a change')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.status(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('add <change-id> <task-name>')
+  .description('Add a task to a change')
+  .option('-w, --wave <wave>', 'Wave number', '1')
+  .action(async (changeId: string, taskName: string, options?: { wave?: string }) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.add(changeId, taskName, parseInt(options?.wave || '1'), '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('start <change-id> <task-id>')
+  .description('Mark a task as in-progress')
+  .action(async (changeId: string, taskId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.start(changeId, taskId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('complete <change-id> <task-id>')
+  .description('Mark a task as complete')
+  .action(async (changeId: string, taskId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.complete(changeId, taskId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('next <change-id>')
+  .description('Show the next task to work on')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.next(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('show <change-id>')
+  .description('Display the full tasks.md file')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.show(changeId, '.');
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
