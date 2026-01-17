@@ -1,11 +1,11 @@
-export const OPENSPEC_DIR_NAME = 'openspec';
+export const PROJECTOR_DIR_NAME = 'projector';
 
-export const OPENSPEC_MARKERS = {
-  start: '<!-- OPENSPEC:START -->',
-  end: '<!-- OPENSPEC:END -->'
+export const PROJECTOR_MARKERS = {
+  start: '<!-- PROJECTOR:START -->',
+  end: '<!-- PROJECTOR:END -->'
 };
 
-export interface OpenSpecConfig {
+export interface ProjectorConfig {
   aiTools: string[];
 }
 

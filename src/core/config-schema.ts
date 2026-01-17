@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Zod schema for global OpenSpec configuration.
+ * Zod schema for global Projector configuration.
  * Uses passthrough() to preserve unknown fields for forward compatibility.
  */
 export const GlobalConfigSchema = z
@@ -11,8 +11,8 @@ export const GlobalConfigSchema = z
       .optional()
       .default({}),
     /**
-     * Default project path for OpenSpec directory.
-     * Can be overridden by repo-level openspec.json.
+     * Default project path for Projector directory.
+     * Can be overridden by repo-level projector.json.
      */
     projectPath: z.string().optional(),
   })

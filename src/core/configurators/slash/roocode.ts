@@ -2,9 +2,9 @@ import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 const NEW_FILE_PATHS: Record<CoreSlashCommandId, string> = {
-  proposal: '.roo/commands/openspec-proposal.md',
-  apply: '.roo/commands/openspec-apply.md',
-  archive: '.roo/commands/openspec-archive.md'
+  proposal: '.roo/commands/projector-proposal.md',
+  apply: '.roo/commands/projector-apply.md',
+  archive: '.roo/commands/projector-archive.md'
 };
 
 export class RooCodeSlashCommandConfigurator extends SlashCommandConfigurator {
@@ -17,11 +17,11 @@ export class RooCodeSlashCommandConfigurator extends SlashCommandConfigurator {
 
   protected getFrontmatter(id: SlashCommandId): string | undefined {
     const descriptions: Record<CoreSlashCommandId, string> = {
-      proposal: 'Scaffold a new OpenSpec change and validate strictly.',
-      apply: 'Implement an approved OpenSpec change and keep tasks in sync.',
-      archive: 'Archive a deployed OpenSpec change and update specs.'
+      proposal: 'Scaffold a new Projector change and validate strictly.',
+      apply: 'Implement an approved Projector change and keep tasks in sync.',
+      archive: 'Archive a deployed Projector change and update specs.'
     };
     const description = descriptions[id as CoreSlashCommandId];
-    return `# OpenSpec: ${id.charAt(0).toUpperCase() + id.slice(1)}\n\n${description}`;
+    return `# Projector: ${id.charAt(0).toUpperCase() + id.slice(1)}\n\n${description}`;
   }
 }

@@ -6,7 +6,7 @@
 
 import path from 'path';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getOpenSpecDirName } from '../core/project-config.js';
+import { getProjectorDirName } from '../core/project-config.js';
 import {
   workflowParser,
   workflowOrchestrator,
@@ -19,9 +19,9 @@ export class WorkflowCommand {
    * Initialize workflows directory with example workflows
    */
   async init(projectPath: string = '.'): Promise<void> {
-    const openspecDir = getOpenSpecDirName(projectPath);
-    const workflowsDir = path.join(projectPath, openspecDir, 'workflows');
-    const commandsDir = path.join(projectPath, openspecDir, 'commands');
+    const projectorDir = getProjectorDirName(projectPath);
+    const workflowsDir = path.join(projectPath, projectorDir, 'workflows');
+    const commandsDir = path.join(projectPath, projectorDir, 'commands');
 
     // Create directories
     await FileSystemUtils.createDirectory(workflowsDir);
@@ -54,7 +54,7 @@ export class WorkflowCommand {
     console.log('  - execute.yaml   (task execution)');
     console.log('  - review.yaml    (adversarial review)');
     console.log('');
-    console.log('Prompt templates are installed via `openspec init`.');
+    console.log('Prompt templates are installed via `projector init`.');
   }
 
   /**
@@ -64,7 +64,7 @@ export class WorkflowCommand {
     const workflows = await workflowParser.listWorkflows(projectPath);
 
     if (workflows.length === 0) {
-      console.log('No workflows found. Run `openspec workflow init` to create examples.');
+      console.log('No workflows found. Run `projector workflow init` to create examples.');
       return;
     }
 
@@ -278,7 +278,7 @@ on_complete:
 version: "1.0"
 id: execute
 name: Task Execution
-description: Execute tasks from an OpenSpec change proposal, wave by wave.
+description: Execute tasks from an Projector change proposal, wave by wave.
 
 requires:
   variables:

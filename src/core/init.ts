@@ -17,13 +17,13 @@ import { TemplateManager, ProjectContext, PlanningContext } from './templates/in
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
 import {
-  OpenSpecConfig,
+  ProjectorConfig,
   AI_TOOLS,
   AIToolOption,
-  OPENSPEC_MARKERS,
+  PROJECTOR_MARKERS,
 } from './config.js';
 import { PALETTE } from './styles/palette.js';
-import { getOpenSpecDirName } from './project-config.js';
+import { getProjectorDirName } from './project-config.js';
 
 const PROGRESS_SPINNER = {
   interval: 80,
@@ -295,11 +295,11 @@ const toolSelectionWizard = createPrompt<string[], ToolWizardConfig>(
 
     if (step === 'intro') {
       const introHeadline = config.extendMode
-        ? 'Extend your OpenSpec tooling'
-        : 'Configure your OpenSpec tooling';
+        ? 'Extend your Projector tooling'
+        : 'Configure your Projector tooling';
       const introBody = config.extendMode
         ? 'We detected an existing setup. We will help you refresh or add integrations.'
-        : "Let's get your AI assistants connected so they understand OpenSpec.";
+        : "Let's get your AI assistants connected so they understand Projector.";
 
       lines.push(PALETTE.white(introHeadline));
       lines.push(PALETTE.midGray(introBody));
@@ -384,11 +384,11 @@ export class InitCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const openspecDir = getOpenSpecDirName(projectPath);
-    const openspecPath = path.join(projectPath, openspecDir);
+    const projectorDir = getProjectorDirName(projectPath);
+    const projectorPath = path.join(projectPath, projectorDir);
 
     // Validation happens silently in the background
-    const extendMode = await this.validate(projectPath, openspecPath);
+    const extendMode = await this.validate(projectPath, projectorPath);
     const existingToolStates = await this.getExistingToolStates(projectPath, extendMode);
 
     this.renderBanner(extendMode);
@@ -417,29 +417,29 @@ export class InitCommand {
     // Step 1: Create directory structure
     if (!extendMode) {
       const structureSpinner = this.startSpinner(
-        'Creating OpenSpec structure...'
+        'Creating Projector structure...'
       );
-      await this.createDirectoryStructure(openspecPath);
-      await this.generateFiles(openspecPath, config);
+      await this.createDirectoryStructure(projectorPath);
+      await this.generateFiles(projectorPath, config);
       structureSpinner.stopAndPersist({
         symbol: PALETTE.white('▌'),
-        text: PALETTE.white('OpenSpec structure created'),
+        text: PALETTE.white('Projector structure created'),
       });
     } else {
       ora({ stream: process.stdout }).info(
         PALETTE.midGray(
-          'ℹ OpenSpec already initialized. Checking for missing files...'
+          'ℹ Projector already initialized. Checking for missing files...'
         )
       );
-      await this.createDirectoryStructure(openspecPath);
-      await this.ensureTemplateFiles(openspecPath, config);
+      await this.createDirectoryStructure(projectorPath);
+      await this.ensureTemplateFiles(projectorPath, config);
     }
 
     // Step 2: Configure AI tools
     const toolSpinner = this.startSpinner('Configuring AI tools...');
     const rootStubStatus = await this.configureAITools(
       projectPath,
-      openspecDir,
+      projectorDir,
       config.aiTools
     );
     toolSpinner.stopAndPersist({
@@ -461,9 +461,9 @@ export class InitCommand {
 
   private async validate(
     projectPath: string,
-    _openspecPath: string
+    _projectorPath: string
   ): Promise<boolean> {
-    const extendMode = await FileSystemUtils.directoryExists(_openspecPath);
+    const extendMode = await FileSystemUtils.directoryExists(_projectorPath);
 
     // Check write permissions
     if (!(await FileSystemUtils.ensureWritePermissions(projectPath))) {
@@ -475,7 +475,7 @@ export class InitCommand {
   private async getConfiguration(
     existingTools: Record<string, boolean>,
     extendMode: boolean
-  ): Promise<OpenSpecConfig> {
+  ): Promise<ProjectorConfig> {
     const selectedTools = await this.getSelectedTools(existingTools, extendMode);
     return { aiTools: selectedTools };
   }
@@ -579,7 +579,7 @@ export class InitCommand {
         value: '__heading-native__',
         label: {
           primary:
-            'Natively supported providers (✔ OpenSpec custom slash commands available)',
+            'Natively supported providers (✔ Projector custom slash commands available)',
         },
         selectable: false,
       },
@@ -649,15 +649,15 @@ export class InitCommand {
     projectPath: string,
     toolId: string
   ): Promise<boolean> {
-    // A tool is only considered "configured by OpenSpec" if its files contain OpenSpec markers.
+    // A tool is only considered "configured by Projector" if its files contain Projector markers.
     // For tools with both config files and slash commands, BOTH must have markers.
     // For slash commands, at least one file with markers is sufficient (not all required).
 
-    // Helper to check if a file exists and contains OpenSpec markers
+    // Helper to check if a file exists and contains Projector markers
     const fileHasMarkers = async (absolutePath: string): Promise<boolean> => {
       try {
         const content = await FileSystemUtils.readFile(absolutePath);
-        return content.includes(OPENSPEC_MARKERS.start) && content.includes(OPENSPEC_MARKERS.end);
+        return content.includes(PROJECTOR_MARKERS.start) && content.includes(PROJECTOR_MARKERS.end);
       } catch {
         return false;
       }
@@ -666,14 +666,14 @@ export class InitCommand {
     let hasConfigFile = false;
     let hasSlashCommands = false;
 
-    // Check if the tool has a config file with OpenSpec markers
+    // Check if the tool has a config file with Projector markers
     const configFile = ToolRegistry.get(toolId)?.configFileName;
     if (configFile) {
       const configPath = path.join(projectPath, configFile);
       hasConfigFile = (await FileSystemUtils.fileExists(configPath)) && (await fileHasMarkers(configPath));
     }
 
-    // Check if any slash command file exists with OpenSpec markers
+    // Check if any slash command file exists with Projector markers
     const slashConfigurator = SlashCommandRegistry.get(toolId);
     if (slashConfigurator) {
       for (const target of slashConfigurator.getTargets()) {
@@ -705,19 +705,19 @@ export class InitCommand {
     return false;
   }
 
-  private async createDirectoryStructure(openspecPath: string): Promise<void> {
+  private async createDirectoryStructure(projectorPath: string): Promise<void> {
     const directories = [
-      openspecPath,
-      path.join(openspecPath, 'specs'),
-      path.join(openspecPath, 'changes'),
-      path.join(openspecPath, 'changes', 'archive'),
-      path.join(openspecPath, 'planning'),
-      path.join(openspecPath, 'planning', 'milestones'),
-      path.join(openspecPath, 'research'),
-      path.join(openspecPath, 'research', 'investigations'),
-      path.join(openspecPath, 'workflows'),
-      path.join(openspecPath, 'workflows', '.state'),
-      path.join(openspecPath, 'commands'),
+      projectorPath,
+      path.join(projectorPath, 'specs'),
+      path.join(projectorPath, 'changes'),
+      path.join(projectorPath, 'changes', 'archive'),
+      path.join(projectorPath, 'planning'),
+      path.join(projectorPath, 'planning', 'milestones'),
+      path.join(projectorPath, 'research'),
+      path.join(projectorPath, 'research', 'investigations'),
+      path.join(projectorPath, 'workflows'),
+      path.join(projectorPath, 'workflows', '.state'),
+      path.join(projectorPath, 'commands'),
     ];
 
     for (const dir of directories) {
@@ -726,22 +726,22 @@ export class InitCommand {
   }
 
   private async generateFiles(
-    openspecPath: string,
-    config: OpenSpecConfig
+    projectorPath: string,
+    config: ProjectorConfig
   ): Promise<void> {
-    await this.writeTemplateFiles(openspecPath, config, false);
+    await this.writeTemplateFiles(projectorPath, config, false);
   }
 
   private async ensureTemplateFiles(
-    openspecPath: string,
-    config: OpenSpecConfig
+    projectorPath: string,
+    config: ProjectorConfig
   ): Promise<void> {
-    await this.writeTemplateFiles(openspecPath, config, true);
+    await this.writeTemplateFiles(projectorPath, config, true);
   }
 
   private async writeTemplateFiles(
-    openspecPath: string,
-    config: OpenSpecConfig,
+    projectorPath: string,
+    config: ProjectorConfig,
     skipExisting: boolean
   ): Promise<void> {
     const context: ProjectContext = {
@@ -759,7 +759,7 @@ export class InitCommand {
 
     // Write standard templates
     for (const template of templates) {
-      const filePath = path.join(openspecPath, template.path);
+      const filePath = path.join(projectorPath, template.path);
 
       if (skipExisting && (await FileSystemUtils.fileExists(filePath))) {
         continue;
@@ -776,7 +776,7 @@ export class InitCommand {
     // Write command templates (separate context type)
     const commandTemplates = TemplateManager.getCommandTemplates({});
     for (const template of commandTemplates) {
-      const filePath = path.join(openspecPath, template.path);
+      const filePath = path.join(projectorPath, template.path);
 
       if (skipExisting && (await FileSystemUtils.fileExists(filePath))) {
         continue;
@@ -793,23 +793,23 @@ export class InitCommand {
 
   private async configureAITools(
     projectPath: string,
-    openspecDir: string,
+    projectorDir: string,
     toolIds: string[]
   ): Promise<RootStubStatus> {
     const rootStubStatus = await this.configureRootAgentsStub(
       projectPath,
-      openspecDir
+      projectorDir
     );
 
     for (const toolId of toolIds) {
       const configurator = ToolRegistry.get(toolId);
       if (configurator && configurator.isAvailable) {
-        await configurator.configure(projectPath, openspecDir);
+        await configurator.configure(projectPath, projectorDir);
       }
 
       const slashConfigurator = SlashCommandRegistry.get(toolId);
       if (slashConfigurator && slashConfigurator.isAvailable) {
-        await slashConfigurator.generateAll(projectPath, openspecDir);
+        await slashConfigurator.generateAll(projectPath, projectorDir);
       }
     }
 
@@ -818,7 +818,7 @@ export class InitCommand {
 
   private async configureRootAgentsStub(
     projectPath: string,
-    openspecDir: string
+    projectorDir: string
   ): Promise<RootStubStatus> {
     const configurator = ToolRegistry.get('agents');
     if (!configurator || !configurator.isAvailable) {
@@ -828,7 +828,7 @@ export class InitCommand {
     const stubPath = path.join(projectPath, configurator.configFileName);
     const existed = await FileSystemUtils.fileExists(stubPath);
 
-    await configurator.configure(projectPath, openspecDir);
+    await configurator.configure(projectPath, projectorDir);
 
     return existed ? 'updated' : 'created';
   }
@@ -844,8 +844,8 @@ export class InitCommand {
   ): void {
     console.log(); // Empty line for spacing
     const successHeadline = extendMode
-      ? 'OpenSpec tool configuration updated!'
-      : 'OpenSpec initialized successfully!';
+      ? 'Projector tool configuration updated!'
+      : 'Projector initialized successfully!';
     ora().succeed(PALETTE.white(successHeadline));
 
     console.log();
@@ -889,7 +889,7 @@ export class InitCommand {
     console.log();
     console.log(
       PALETTE.midGray(
-        'Use `openspec update` to refresh shared OpenSpec instructions in the future.'
+        'Use `projector update` to refresh shared Projector instructions in the future.'
       )
     );
 
@@ -904,7 +904,7 @@ export class InitCommand {
       );
       console.log(
         PALETTE.midGray(
-          'to ensure the new /openspec commands appear in your command palette.'
+          'to ensure the new /projector commands appear in your command palette.'
         )
       );
     }
@@ -920,7 +920,7 @@ export class InitCommand {
     console.log(PALETTE.white('1. Populate your project context:'));
     console.log(
       PALETTE.lightGray(
-        '   "Please read openspec/project.md and help me fill it out'
+        '   "Please read projector/project.md and help me fill it out'
       )
     );
     console.log(
@@ -935,12 +935,12 @@ export class InitCommand {
       )
     );
     console.log(
-      PALETTE.lightGray('    OpenSpec change proposal for this feature"\n')
+      PALETTE.lightGray('    Projector change proposal for this feature"\n')
     );
-    console.log(PALETTE.white('3. Learn the OpenSpec workflow:'));
+    console.log(PALETTE.white('3. Learn the Projector workflow:'));
     console.log(
       PALETTE.lightGray(
-        '   "Please explain the OpenSpec workflow from openspec/AGENTS.md'
+        '   "Please explain the Projector workflow from projector/AGENTS.md'
       )
     );
     console.log(
@@ -982,7 +982,7 @@ export class InitCommand {
 
   private renderBanner(_extendMode: boolean): void {
     const rows = ['', '', '', '', ''];
-    for (const char of 'OPENSPEC') {
+    for (const char of 'PROJECTOR') {
       const glyph = LETTER_MAP[char] ?? LETTER_MAP[' '];
       for (let i = 0; i < rows.length; i += 1) {
         rows[i] += `${glyph[i]}  `;
@@ -1002,7 +1002,7 @@ export class InitCommand {
       console.log(rowStyles[index](row.replace(/\s+$/u, '')));
     });
     console.log();
-    console.log(PALETTE.white('Welcome to OpenSpec!'));
+    console.log(PALETTE.white('Welcome to Projector!'));
     console.log();
   }
 

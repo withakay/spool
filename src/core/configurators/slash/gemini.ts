@@ -2,15 +2,15 @@ import { TomlSlashCommandConfigurator } from './toml-base.js';
 import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<CoreSlashCommandId, string> = {
-  proposal: '.gemini/commands/openspec/proposal.toml',
-  apply: '.gemini/commands/openspec/apply.toml',
-  archive: '.gemini/commands/openspec/archive.toml'
+  proposal: '.gemini/commands/projector/proposal.toml',
+  apply: '.gemini/commands/projector/apply.toml',
+  archive: '.gemini/commands/projector/archive.toml'
 };
 
 const DESCRIPTIONS: Record<CoreSlashCommandId, string> = {
-  proposal: 'Scaffold a new OpenSpec change and validate strictly.',
-  apply: 'Implement an approved OpenSpec change and keep tasks in sync.',
-  archive: 'Archive a deployed OpenSpec change and update specs.'
+  proposal: 'Scaffold a new Projector change and validate strictly.',
+  apply: 'Implement an approved Projector change and keep tasks in sync.',
+  archive: 'Archive a deployed Projector change and update specs.'
 };
 
 export class GeminiSlashCommandConfigurator extends TomlSlashCommandConfigurator {

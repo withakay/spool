@@ -1,10 +1,10 @@
-# OpenSpec Agent Architecture Proposal
+# Projector Agent Architecture Proposal
 
 > Tool-agnostic agent system with configurable models, context sizes, and prompts
 
 ## Overview
 
-This proposal defines an agent architecture for OpenSpec that:
+This proposal defines an agent architecture for Projector that:
 - Works across **OpenCode**, **Codex CLI**, **Claude Code**, and other AI tools
 - Uses **file-based configuration** for models, context sizes, and prompts
 - Supports **any AI model** (Claude, GPT, Gemini, Llama, etc.)
@@ -30,10 +30,10 @@ All coordination happens through files, not tool-specific APIs.
 
 ### Master Configuration File
 
-**`openspec/config.yaml`** (or `config.json`)
+**`projector/config.yaml`** (or `config.json`)
 
 ```yaml
-# OpenSpec Agent Configuration
+# Projector Agent Configuration
 # Configures models, context sizes, and behavior for different AI tools
 
 version: "1.0"
@@ -126,13 +126,13 @@ context_strategy:
 
   # Files always loaded (if they exist)
   always_include:
-    - "openspec/planning/STATE.md"
-    - "openspec/planning/PROJECT.md"
+    - "projector/planning/STATE.md"
+    - "projector/planning/PROJECT.md"
 
   # Files to prioritize when space is limited
   priority_files:
-    - "openspec/planning/ROADMAP.md"
-    - "openspec/research/SUMMARY.md"
+    - "projector/planning/ROADMAP.md"
+    - "projector/research/SUMMARY.md"
 ```
 
 ### Environment-Based Overrides
@@ -141,13 +141,13 @@ Support environment variables for CI/CD and different setups:
 
 ```bash
 # Override model for all agents
-export OPENSPEC_MODEL="gpt-4o"
+export PROJECTOR_MODEL="gpt-4o"
 
 # Override context budget
-export OPENSPEC_CONTEXT_BUDGET=32000
+export PROJECTOR_CONTEXT_BUDGET=32000
 
 # Force specific tool behavior
-export OPENSPEC_TOOL="opencode"
+export PROJECTOR_TOOL="opencode"
 ```
 
 ---
@@ -159,7 +159,7 @@ Agents are defined as markdown prompt files with YAML frontmatter for configurat
 ### Agent File Structure
 
 ```
-openspec/
+projector/
 ├── agents/                      # Agent prompt definitions
 │   ├── research/
 │   │   ├── stack-researcher.md
@@ -183,7 +183,7 @@ openspec/
 
 ### Agent Prompt Format
 
-**`openspec/agents/research/stack-researcher.md`**
+**`projector/agents/research/stack-researcher.md`**
 
 ```markdown
 ---
@@ -202,14 +202,14 @@ requires:
 # Input files (loaded into context)
 inputs:
   required:
-    - "openspec/planning/PROJECT.md"
+    - "projector/planning/PROJECT.md"
   optional:
-    - "openspec/planning/STATE.md"
-    - "openspec/research/SUMMARY.md"
+    - "projector/planning/STATE.md"
+    - "projector/research/SUMMARY.md"
 
 # Output specification
 outputs:
-  file: "openspec/research/investigations/stack-analysis.md"
+  file: "projector/research/investigations/stack-analysis.md"
   append: false
 ---
 
@@ -285,7 +285,7 @@ Rationale: [Why this is the best fit]
 
 ### Agent with Model Override
 
-**`openspec/agents/review/security-adversary.md`**
+**`projector/agents/review/security-adversary.md`**
 
 ```markdown
 ---
@@ -300,13 +300,13 @@ requires:
 
 inputs:
   required:
-    - "openspec/changes/{change_id}/proposal.md"
-    - "openspec/changes/{change_id}/specs/**/*.md"
+    - "projector/changes/{change_id}/proposal.md"
+    - "projector/changes/{change_id}/specs/**/*.md"
   optional:
-    - "openspec/specs/**/*.md"  # Existing specs for context
+    - "projector/specs/**/*.md"  # Existing specs for context
 
 outputs:
-  file: "openspec/changes/{change_id}/REVIEW.md"
+  file: "projector/changes/{change_id}/REVIEW.md"
   append: true                   # Multiple reviewers append to same file
   section: "## Security Review"
 ---
@@ -529,7 +529,7 @@ steps:
 
 Workflows orchestrate multiple agents:
 
-**`openspec/workflows/research.yaml`**
+**`projector/workflows/research.yaml`**
 
 ```yaml
 name: research
@@ -553,21 +553,21 @@ waves:
       - synthesizer
     inputs:
       # Explicitly pass outputs from wave 1
-      - "openspec/research/investigations/*.md"
+      - "projector/research/investigations/*.md"
 
 outputs:
-  - "openspec/research/SUMMARY.md"
+  - "projector/research/SUMMARY.md"
 
 on_complete:
-  - update: "openspec/planning/STATE.md"
+  - update: "projector/planning/STATE.md"
     action: append
     content: |
       ### Research Complete
       - Completed: {date}
-      - See: openspec/research/SUMMARY.md
+      - See: projector/research/SUMMARY.md
 ```
 
-**`openspec/workflows/review.yaml`**
+**`projector/workflows/review.yaml`**
 
 ```yaml
 name: adversarial-review
@@ -592,7 +592,7 @@ waves:
       - review-synthesizer
 
 outputs:
-  - "openspec/changes/{change_id}/REVIEW.md"
+  - "projector/changes/{change_id}/REVIEW.md"
 
 # Gate: block implementation if high severity issues
 gate:
@@ -608,13 +608,13 @@ gate:
 
 ```bash
 # Copy agents to OpenCode commands directory
-cp -r openspec/agents .opencode/commands/openspec-agents
+cp -r projector/agents .opencode/commands/projector-agents
 
 # Copy workflows
-cp -r openspec/workflows .opencode/workflows
+cp -r projector/workflows .opencode/workflows
 
 # Run a workflow
-/openspec-agents/research/stack-researcher "authentication"
+/projector-agents/research/stack-researcher "authentication"
 
 # Or run full workflow
 /workflows/research
@@ -625,7 +625,7 @@ OpenCode config (`.opencode/config.yaml`):
 commands:
   directories:
     - .opencode/commands
-    - openspec/agents          # Direct access to agents
+    - projector/agents          # Direct access to agents
 
 # Model configuration
 models:
@@ -640,31 +640,31 @@ models:
 
 ```bash
 # Load agent as context
-codex --context @openspec/agents/research/stack-researcher.md \
+codex --context @projector/agents/research/stack-researcher.md \
       "Research authentication stack options"
 
 # Or use the prompt directly
-codex "$(cat openspec/agents/research/stack-researcher.md)"
+codex "$(cat projector/agents/research/stack-researcher.md)"
 ```
 
 ### Claude Code Integration
 
 ```bash
 # Use as slash command
-/openspec:research stack
+/projector:research stack
 
 # Or reference in conversation
-"Follow the agent prompt in openspec/agents/research/stack-researcher.md"
+"Follow the agent prompt in projector/agents/research/stack-researcher.md"
 ```
 
 CLAUDE.md integration:
 ```markdown
 ## Custom Commands
 
-### /openspec:research [type]
+### /projector:research [type]
 Execute research agent. Types: stack, features, architecture, pitfalls, all
 
-### /openspec:review [change-id]
+### /projector:review [change-id]
 Run adversarial review on change proposal.
 ```
 
@@ -672,28 +672,28 @@ Run adversarial review on change proposal.
 
 ## CLI Commands
 
-The `openspec` CLI manages configuration and workflows:
+The `projector` CLI manages configuration and workflows:
 
 ```bash
 # Configuration
-openspec config show                    # Display current config
-openspec config set defaults.model gpt-4o
-openspec config set agents.research.context_budget 40000
+projector config show                    # Display current config
+projector config set defaults.model gpt-4o
+projector config set agents.research.context_budget 40000
 
 # Agent management
-openspec agent list                     # List available agents
-openspec agent show security-adversary  # View agent details
-openspec agent run stack-researcher     # Run single agent
-openspec agent run stack-researcher --model gpt-4o  # Override model
+projector agent list                     # List available agents
+projector agent show security-adversary  # View agent details
+projector agent run stack-researcher     # Run single agent
+projector agent run stack-researcher --model gpt-4o  # Override model
 
 # Workflow execution
-openspec workflow list                  # List workflows
-openspec workflow run research          # Run research workflow
-openspec workflow run review --change-id add-auth  # With parameters
+projector workflow list                  # List workflows
+projector workflow run research          # Run research workflow
+projector workflow run review --change-id add-auth  # With parameters
 
 # Context analysis
-openspec context estimate research      # Estimate context usage
-openspec context check stack-researcher # Verify fits in budget
+projector context estimate research      # Estimate context usage
+projector context check stack-researcher # Verify fits in budget
 ```
 
 ---
@@ -703,7 +703,7 @@ openspec context check stack-researcher # Verify fits in budget
 ### Minimal Setup (Defaults)
 
 ```yaml
-# openspec/config.yaml
+# projector/config.yaml
 version: "1.0"
 defaults:
   model: "auto"

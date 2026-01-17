@@ -53,7 +53,7 @@ export const ModuleSchema = z.object({
   // Metadata
   metadata: z.object({
     version: z.string().default('1.0.0'),
-    format: z.literal('openspec-module'),
+    format: z.literal('projector-module'),
     sourcePath: z.string().optional(),
   }).optional(),
 });

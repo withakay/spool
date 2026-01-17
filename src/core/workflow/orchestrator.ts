@@ -7,7 +7,7 @@
 
 import path from 'path';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import { getOpenSpecDirName } from '../project-config.js';
+import { getProjectorDirName } from '../project-config.js';
 import { agentConfigManager } from '../agent-config.js';
 import { workflowParser } from './parser.js';
 import {
@@ -30,7 +30,7 @@ export class WorkflowOrchestrator {
   ): Promise<ExecutionPlan> {
     const workflow = await workflowParser.parseByName(workflowName, projectPath);
     const config = await agentConfigManager.load(projectPath);
-    const openspecDir = getOpenSpecDirName(projectPath);
+    const projectorDir = getProjectorDirName(projectPath);
 
     const plan: ExecutionPlan = {
       workflow,
@@ -51,7 +51,7 @@ export class WorkflowOrchestrator {
         const contextBudget = agentConfigManager.getContextBudget(config, tool, task.agent);
 
         // Load prompt template
-        const promptPath = path.join(projectPath, openspecDir, task.prompt);
+        const promptPath = path.join(projectPath, projectorDir, task.prompt);
         let promptContent = '';
         if (await FileSystemUtils.fileExists(promptPath)) {
           promptContent = await FileSystemUtils.readFile(promptPath);
@@ -140,10 +140,10 @@ export class WorkflowOrchestrator {
     execution: WorkflowExecution,
     projectPath: string
   ): Promise<void> {
-    const openspecDir = getOpenSpecDirName(projectPath);
+    const projectorDir = getProjectorDirName(projectPath);
     const statePath = path.join(
       projectPath,
-      openspecDir,
+      projectorDir,
       'workflows',
       '.state',
       `${execution.workflow.id}.json`
@@ -160,10 +160,10 @@ export class WorkflowOrchestrator {
     workflowId: string,
     projectPath: string
   ): Promise<WorkflowExecution | null> {
-    const openspecDir = getOpenSpecDirName(projectPath);
+    const projectorDir = getProjectorDirName(projectPath);
     const statePath = path.join(
       projectPath,
-      openspecDir,
+      projectorDir,
       'workflows',
       '.state',
       `${workflowId}.json`
@@ -251,10 +251,10 @@ export class WorkflowOrchestrator {
     lines.push('');
     lines.push('After all waves complete:');
     if (plan.workflow.on_complete?.update_state) {
-      lines.push('- Update `openspec/planning/STATE.md` with session notes');
+      lines.push('- Update `projector/planning/STATE.md` with session notes');
     }
     if (plan.workflow.on_complete?.update_roadmap) {
-      lines.push('- Update `openspec/planning/ROADMAP.md` progress');
+      lines.push('- Update `projector/planning/ROADMAP.md` progress');
     }
 
     return lines.join('\n');

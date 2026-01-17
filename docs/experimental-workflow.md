@@ -6,11 +6,11 @@
 
 ## What Is It?
 
-OPSX is a **fluid, iterative workflow** for OpenSpec changes. No more rigid phases — just actions you can take anytime.
+OPSX is a **fluid, iterative workflow** for Projector changes. No more rigid phases — just actions you can take anytime.
 
 ## Why This Exists
 
-The standard OpenSpec workflow works, but it's **locked down**:
+The standard Projector workflow works, but it's **locked down**:
 
 - **Instructions are hardcoded** — buried in TypeScript, you can't change them
 - **All-or-nothing** — one big command creates everything, can't test individual pieces
@@ -39,7 +39,7 @@ Standard workflow:                    OPSX:
 **This is for everyone:**
 - **Teams** — create workflows that match how you actually work
 - **Power users** — tweak prompts to get better AI outputs for your codebase
-- **OpenSpec contributors** — experiment with new approaches without releases
+- **Projector contributors** — experiment with new approaches without releases
 
 We're all still learning what works best. OPSX lets us learn together.
 
@@ -69,11 +69,11 @@ You can always go back:
 ## Setup
 
 ```bash
-# 1. Make sure you have openspec installed and initialized
-openspec init
+# 1. Make sure you have projector installed and initialized
+projector init
 
 # 2. Generate the experimental skills
-openspec artifact-experimental-setup
+projector artifact-experimental-setup
 ```
 
 This creates skills in `.claude/skills/` that Claude Code auto-detects.
@@ -215,7 +215,7 @@ Think of it like git branches:
 
 ## What's Different?
 
-| | Standard (`/openspec:proposal`) | Experimental (`/opsx:*`) |
+| | Standard (`/projector:proposal`) | Experimental (`/opsx:*`) |
 |---|---|---|
 | **Structure** | One big proposal document | Discrete artifacts with dependencies |
 | **Workflow** | Linear phases: plan → implement → archive | Fluid actions — do anything anytime |
@@ -242,7 +242,7 @@ This section explains how OPSX works under the hood and how it compares to the s
 │   └──────────────┘      └──────────────┘      └──────────────┘             │
 │         │                     │                     │                       │
 │         ▼                     ▼                     ▼                       │
-│   /openspec:proposal   /openspec:apply      /openspec:archive              │
+│   /projector:proposal   /projector:apply      /projector:archive              │
 │                                                                             │
 │   • Creates ALL artifacts at once                                          │
 │   • Can't go back to update specs during implementation                    │
@@ -287,7 +287,7 @@ This section explains how OPSX works under the hood and how it compares to the s
 │   Configurators (18+ classes, one per editor)                               │
 │                    │                                                        │
 │                    ▼                                                        │
-│   Generated Command Files (.claude/commands/openspec/*.md)                  │
+│   Generated Command Files (.claude/commands/projector/*.md)                  │
 │                                                                             │
 │   • Fixed structure, no artifact awareness                                  │
 │   • Change requires code modification + rebuild                             │
@@ -323,7 +323,7 @@ This section explains how OPSX works under the hood and how it compares to the s
 │   └─────────────────────────────────────────────────────────────────────┘   │
 │                    │                                                        │
 │                    ▼                                                        │
-│   Skill Files (.claude/skills/openspec-*/SKILL.md)                          │
+│   Skill Files (.claude/skills/projector-*/SKILL.md)                          │
 │                                                                             │
 │   • Cross-editor compatible (Claude Code, Cursor, Windsurf)                 │
 │   • Skills query CLI for structured data                                    │
@@ -376,7 +376,7 @@ Artifacts form a directed acyclic graph (DAG). Dependencies are **enablers**, no
 **Standard workflow** — agent receives static instructions:
 
 ```
-  User: "/openspec:proposal"
+  User: "/projector:proposal"
            │
            ▼
   ┌─────────────────────────────────────────┐
@@ -403,7 +403,7 @@ Artifacts form a directed acyclic graph (DAG). Dependencies are **enablers**, no
   ┌──────────────────────────────────────────────────────────────────────────┐
   │  Step 1: Query current state                                             │
   │  ┌────────────────────────────────────────────────────────────────────┐  │
-  │  │  $ openspec status --change "add-auth" --json                      │  │
+  │  │  $ projector status --change "add-auth" --json                      │  │
   │  │                                                                    │  │
   │  │  {                                                                 │  │
   │  │    "artifacts": [                                                  │  │
@@ -417,7 +417,7 @@ Artifacts form a directed acyclic graph (DAG). Dependencies are **enablers**, no
   │                                                                          │
   │  Step 2: Get rich instructions for ready artifact                        │
   │  ┌────────────────────────────────────────────────────────────────────┐  │
-  │  │  $ openspec instructions specs --change "add-auth" --json          │  │
+  │  │  $ projector instructions specs --change "add-auth" --json          │  │
   │  │                                                                    │  │
   │  │  {                                                                 │  │
   │  │    "template": "# Specification\n\n## ADDED Requirements...",      │  │
@@ -473,10 +473,10 @@ Artifacts form a directed acyclic graph (DAG). Dependencies are **enablers**, no
 
 ### Custom Schemas
 
-Create your own workflow by adding a schema to `~/.local/share/openspec/schemas/`:
+Create your own workflow by adding a schema to `~/.local/share/projector/schemas/`:
 
 ```
-~/.local/share/openspec/schemas/research-first/
+~/.local/share/projector/schemas/research-first/
 ├── schema.yaml
 └── templates/
     ├── research.md
@@ -523,7 +523,7 @@ Schemas define what artifacts exist and their dependencies. Currently available:
 - **spec-driven** (default): proposal → specs → design → tasks
 - **tdd**: tests → implementation → docs
 
-Run `openspec schemas` to see available schemas.
+Run `projector schemas` to see available schemas.
 
 ## Tips
 
@@ -531,10 +531,10 @@ Run `openspec schemas` to see available schemas.
 - `/opsx:ff` when you know what you want, `/opsx:continue` when exploring
 - During `/opsx:apply`, if something's wrong — fix the artifact, then continue
 - Tasks track progress via checkboxes in `tasks.md`
-- Check status anytime: `openspec status --change "name"`
+- Check status anytime: `projector status --change "name"`
 
 ## Feedback
 
 This is rough. That's intentional — we're learning what works.
 
-Found a bug? Have ideas? Join us on [Discord](https://discord.gg/BYjPaKbqMt) or open an issue on [GitHub](https://github.com/Fission-AI/openspec/issues).
+Found a bug? Have ideas? Join us on [Discord](https://discord.gg/BYjPaKbqMt) or open an issue on [GitHub](https://github.com/Fission-AI/projector/issues).

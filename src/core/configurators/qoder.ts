@@ -2,13 +2,13 @@ import path from 'path';
 import { ToolConfigurator } from './base.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { TemplateManager } from '../templates/index.js';
-import { OPENSPEC_MARKERS } from '../config.js';
+import { PROJECTOR_MARKERS } from '../config.js';
 
 /**
  * Qoder AI Tool Configurator
  * 
- * Configures OpenSpec integration for Qoder AI coding assistant.
- * Creates and manages QODER.md configuration file with OpenSpec instructions.
+ * Configures Projector integration for Qoder AI coding assistant.
+ * Creates and manages QODER.md configuration file with Projector instructions.
  * 
  * @implements {ToolConfigurator}
  */
@@ -25,20 +25,20 @@ export class QoderConfigurator implements ToolConfigurator {
   /**
    * Configure Qoder integration for a project
    * 
-   * Creates or updates QODER.md file with OpenSpec instructions.
+   * Creates or updates QODER.md file with Projector instructions.
    * Uses Claude-compatible template for instruction content.
-   * Wrapped with OpenSpec markers for future updates.
+   * Wrapped with Projector markers for future updates.
    * 
    * @param {string} projectPath - Absolute path to project root directory
-   * @param {string} openspecDir - Path to openspec directory (unused but required by interface)
+   * @param {string} projectorDir - Path to projector directory (unused but required by interface)
    * @returns {Promise<void>} Resolves when configuration is complete
    */
-  async configure(projectPath: string, openspecDir: string): Promise<void> {
+  async configure(projectPath: string, projectorDir: string): Promise<void> {
     // Construct full path to QODER.md at project root
     const filePath = path.join(projectPath, this.configFileName);
     
     // Get Claude-compatible instruction template
-    // This ensures Qoder receives the same high-quality OpenSpec instructions
+    // This ensures Qoder receives the same high-quality Projector instructions
     const content = TemplateManager.getClaudeTemplate();
     
     // Write or update file with managed content between markers
@@ -46,8 +46,8 @@ export class QoderConfigurator implements ToolConfigurator {
     await FileSystemUtils.updateFileWithMarkers(
       filePath,
       content,
-      OPENSPEC_MARKERS.start,
-      OPENSPEC_MARKERS.end
+      PROJECTOR_MARKERS.start,
+      PROJECTOR_MARKERS.end
     );
   }
 }

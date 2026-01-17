@@ -2,7 +2,7 @@ import path from 'path';
 import ora from 'ora';
 import chalk from 'chalk';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getOpenSpecDirName } from '../core/project-config.js';
+import { getProjectorDirName } from '../core/project-config.js';
 import {
   enhancedTasksTemplate,
   taskItemTemplate,
@@ -14,8 +14,8 @@ import {
 
 export class TasksCommand {
   private async getChangePath(changeId: string, projectPath: string): Promise<string> {
-    const openspecDir = getOpenSpecDirName(projectPath);
-    return path.join(projectPath, openspecDir, 'changes', changeId);
+    const projectorDir = getProjectorDirName(projectPath);
+    return path.join(projectPath, projectorDir, 'changes', changeId);
   }
 
   private async getTasksPath(changeId: string, projectPath: string): Promise<string> {
@@ -58,7 +58,7 @@ export class TasksCommand {
     const tasksPath = await this.getTasksPath(changeId, resolvedPath);
 
     if (!(await FileSystemUtils.fileExists(tasksPath))) {
-      console.log(chalk.yellow(`No tasks.md found for "${changeId}". Run "openspec tasks init ${changeId}" first.`));
+      console.log(chalk.yellow(`No tasks.md found for "${changeId}". Run "projector tasks init ${changeId}" first.`));
       return;
     }
 
@@ -135,7 +135,7 @@ export class TasksCommand {
     const tasksPath = await this.getTasksPath(changeId, resolvedPath);
 
     if (!(await FileSystemUtils.fileExists(tasksPath))) {
-      throw new Error(`No tasks.md found for "${changeId}". Run "openspec tasks init ${changeId}" first.`);
+      throw new Error(`No tasks.md found for "${changeId}". Run "projector tasks init ${changeId}" first.`);
     }
 
     const content = await FileSystemUtils.readFile(tasksPath);
@@ -318,7 +318,7 @@ export class TasksCommand {
             console.log(chalk.gray('Verify:'), task.verify);
             console.log(chalk.gray('Done When:'), task.doneWhen);
             console.log();
-            console.log(chalk.gray(`Run "openspec tasks start ${changeId} ${task.id}" to begin`));
+            console.log(chalk.gray(`Run "projector tasks start ${changeId} ${task.id}" to begin`));
             return;
           }
         }

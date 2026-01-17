@@ -3,18 +3,18 @@ import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 /**
  * File paths for Qoder slash commands
- * Maps each OpenSpec workflow stage to its command file location
- * Commands are stored in .qoder/commands/openspec/ directory
+ * Maps each Projector workflow stage to its command file location
+ * Commands are stored in .qoder/commands/projector/ directory
  */
 const FILE_PATHS: Record<CoreSlashCommandId, string> = {
   // Create and validate new change proposals
-  proposal: '.qoder/commands/openspec/proposal.md',
+  proposal: '.qoder/commands/projector/proposal.md',
   
   // Implement approved changes with task tracking
-  apply: '.qoder/commands/openspec/apply.md',
+  apply: '.qoder/commands/projector/apply.md',
   
   // Archive completed changes and update specs
-  archive: '.qoder/commands/openspec/archive.md'
+  archive: '.qoder/commands/projector/archive.md'
 };
 
 /**
@@ -24,31 +24,31 @@ const FILE_PATHS: Record<CoreSlashCommandId, string> = {
  */
 const FRONTMATTER: Record<CoreSlashCommandId, string> = {
   proposal: `---
-name: OpenSpec: Proposal
-description: Scaffold a new OpenSpec change and validate strictly.
-category: OpenSpec
-tags: [openspec, change]
+name: Projector: Proposal
+description: Scaffold a new Projector change and validate strictly.
+category: Projector
+tags: [projector, change]
 ---`,
   apply: `---
-name: OpenSpec: Apply
-description: Implement an approved OpenSpec change and keep tasks in sync.
-category: OpenSpec
-tags: [openspec, apply]
+name: Projector: Apply
+description: Implement an approved Projector change and keep tasks in sync.
+category: Projector
+tags: [projector, apply]
 ---`,
   archive: `---
-name: OpenSpec: Archive
-description: Archive a deployed OpenSpec change and update specs.
-category: OpenSpec
-tags: [openspec, archive]
+name: Projector: Archive
+description: Archive a deployed Projector change and update specs.
+category: Projector
+tags: [projector, archive]
 ---`
 };
 
 /**
  * Qoder Slash Command Configurator
  * 
- * Manages OpenSpec slash commands for Qoder AI assistant.
+ * Manages Projector slash commands for Qoder AI assistant.
  * Creates three workflow commands: proposal, apply, and archive.
- * Uses colon-separated command format (/openspec:proposal).
+ * Uses colon-separated command format (/projector:proposal).
  * 
  * @extends {SlashCommandConfigurator}
  */

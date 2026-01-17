@@ -2,18 +2,18 @@ import path from 'path';
 import ora from 'ora';
 import chalk from 'chalk';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getOpenSpecDirName } from '../core/project-config.js';
+import { getProjectorDirName } from '../core/project-config.js';
 
 export class StateCommand {
   private async getStatePath(projectPath: string): Promise<string> {
-    const openspecDir = getOpenSpecDirName(projectPath);
-    return path.join(projectPath, openspecDir, 'planning', 'STATE.md');
+    const projectorDir = getProjectorDirName(projectPath);
+    return path.join(projectPath, projectorDir, 'planning', 'STATE.md');
   }
 
   private async ensureStateFile(statePath: string): Promise<void> {
     if (!(await FileSystemUtils.fileExists(statePath))) {
       throw new Error(
-        'STATE.md not found. Run "openspec init" first or create openspec/planning/STATE.md'
+        'STATE.md not found. Run "projector init" first or create projector/planning/STATE.md'
       );
     }
   }

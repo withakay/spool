@@ -2,25 +2,25 @@ import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<CoreSlashCommandId, string> = {
-  proposal: '.codebuddy/commands/openspec/proposal.md',
-  apply: '.codebuddy/commands/openspec/apply.md',
-  archive: '.codebuddy/commands/openspec/archive.md'
+  proposal: '.codebuddy/commands/projector/proposal.md',
+  apply: '.codebuddy/commands/projector/apply.md',
+  archive: '.codebuddy/commands/projector/archive.md'
 };
 
 const FRONTMATTER: Record<CoreSlashCommandId, string> = {
   proposal: `---
-name: OpenSpec: Proposal
-description: "Scaffold a new OpenSpec change and validate strictly."
+name: Projector: Proposal
+description: "Scaffold a new Projector change and validate strictly."
 argument-hint: "[feature description or request]"
 ---`,
   apply: `---
-name: OpenSpec: Apply
-description: "Implement an approved OpenSpec change and keep tasks in sync."
+name: Projector: Apply
+description: "Implement an approved Projector change and keep tasks in sync."
 argument-hint: "[change-id]"
 ---`,
   archive: `---
-name: OpenSpec: Archive
-description: "Archive a deployed OpenSpec change and update specs."
+name: Projector: Archive
+description: "Archive a deployed Projector change and update specs."
 argument-hint: "[change-id]"
 ---`
 };

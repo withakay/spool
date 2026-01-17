@@ -1,34 +1,34 @@
 import { SlashCommandConfigurator, EXTENDED_COMMANDS } from "./base.js";
 import { SlashCommandId } from "../../templates/index.js";
 import { FileSystemUtils } from "../../../utils/file-system.js";
-import { OPENSPEC_MARKERS } from "../../config.js";
+import { PROJECTOR_MARKERS } from "../../config.js";
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: ".opencode/command/openspec-proposal.md",
-  apply: ".opencode/command/openspec-apply.md",
-  archive: ".opencode/command/openspec-archive.md",
-  'research': ".opencode/command/openspec-research.md",
-  'research-stack': ".opencode/command/openspec-research-stack.md",
-  'research-features': ".opencode/command/openspec-research-features.md",
-  'research-architecture': ".opencode/command/openspec-research-architecture.md",
-  'research-pitfalls': ".opencode/command/openspec-research-pitfalls.md",
-  'review': ".opencode/command/openspec-review.md",
-  'review-security': ".opencode/command/openspec-review-security.md",
-  'review-scale': ".opencode/command/openspec-review-scale.md",
-  'review-edge': ".opencode/command/openspec-review-edge.md",
+  proposal: ".opencode/command/projector-proposal.md",
+  apply: ".opencode/command/projector-apply.md",
+  archive: ".opencode/command/projector-archive.md",
+  'research': ".opencode/command/projector-research.md",
+  'research-stack': ".opencode/command/projector-research-stack.md",
+  'research-features': ".opencode/command/projector-research-features.md",
+  'research-architecture': ".opencode/command/projector-research-architecture.md",
+  'research-pitfalls': ".opencode/command/projector-research-pitfalls.md",
+  'review': ".opencode/command/projector-review.md",
+  'review-security': ".opencode/command/projector-review-security.md",
+  'review-scale': ".opencode/command/projector-review-scale.md",
+  'review-edge': ".opencode/command/projector-review-edge.md",
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   proposal: `---
-description: Scaffold a new OpenSpec change and validate strictly.
+description: Scaffold a new Projector change and validate strictly.
 ---
-The user has requested the following change proposal. Use the openspec instructions to create their change proposal.
+The user has requested the following change proposal. Use the projector instructions to create their change proposal.
 <UserRequest>
   $ARGUMENTS
 </UserRequest>
 `,
   apply: `---
-description: Implement an approved OpenSpec change and keep tasks in sync.
+description: Implement an approved Projector change and keep tasks in sync.
 ---
 The user has requested to implement the following change proposal. Find the change proposal and follow the instructions below. If you're not sure or if ambiguous, ask for clarification from the user.
 <UserRequest>
@@ -36,7 +36,7 @@ The user has requested to implement the following change proposal. Find the chan
 </UserRequest>
 `,
   archive: `---
-description: Archive a deployed OpenSpec change and update specs.
+description: Archive a deployed Projector change and update specs.
 ---
 <ChangeId>
   $ARGUMENTS
@@ -53,7 +53,7 @@ Conduct full domain research for the following topic. Run stack, features, archi
   'research-stack': `---
 description: Research technology stack options and recommendations.
 ---
-Research the technology stack for the following topic. Write findings to openspec/research/investigations/stack-analysis.md.
+Research the technology stack for the following topic. Write findings to projector/research/investigations/stack-analysis.md.
 <Topic>
   $ARGUMENTS
 </Topic>
@@ -61,7 +61,7 @@ Research the technology stack for the following topic. Write findings to openspe
   'research-features': `---
 description: Map feature landscape and prioritize capabilities.
 ---
-Research the feature landscape for the following topic. Write findings to openspec/research/investigations/feature-landscape.md.
+Research the feature landscape for the following topic. Write findings to projector/research/investigations/feature-landscape.md.
 <Topic>
   $ARGUMENTS
 </Topic>
@@ -69,7 +69,7 @@ Research the feature landscape for the following topic. Write findings to opensp
   'research-architecture': `---
 description: Research architecture patterns and design decisions.
 ---
-Research architecture patterns for the following topic. Write findings to openspec/research/investigations/architecture.md.
+Research architecture patterns for the following topic. Write findings to projector/research/investigations/architecture.md.
 <Topic>
   $ARGUMENTS
 </Topic>
@@ -77,7 +77,7 @@ Research architecture patterns for the following topic. Write findings to opensp
   'research-pitfalls': `---
 description: Identify common pitfalls and mitigation strategies.
 ---
-Research common pitfalls for the following topic. Write findings to openspec/research/investigations/pitfalls.md.
+Research common pitfalls for the following topic. Write findings to projector/research/investigations/pitfalls.md.
 <Topic>
   $ARGUMENTS
 </Topic>
@@ -93,7 +93,7 @@ Conduct full adversarial review for the following change. Run security, scale, a
   'review-security': `---
 description: Security review - find vulnerabilities and attack vectors.
 ---
-Perform a security review for the following change. Write findings to openspec/changes/<id>/reviews/security.md.
+Perform a security review for the following change. Write findings to projector/changes/<id>/reviews/security.md.
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
@@ -101,7 +101,7 @@ Perform a security review for the following change. Write findings to openspec/c
   'review-scale': `---
 description: Scale review - identify performance bottlenecks.
 ---
-Perform a scale review for the following change. Write findings to openspec/changes/<id>/reviews/scale.md.
+Perform a scale review for the following change. Write findings to projector/changes/<id>/reviews/scale.md.
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
@@ -109,7 +109,7 @@ Perform a scale review for the following change. Write findings to openspec/chan
   'review-edge': `---
 description: Edge case review - find boundary conditions and failure modes.
 ---
-Perform an edge case review for the following change. Write findings to openspec/changes/<id>/reviews/edge-cases.md.
+Perform an edge case review for the following change. Write findings to projector/changes/<id>/reviews/edge-cases.md.
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
@@ -132,14 +132,14 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
     return FRONTMATTER[id];
   }
 
-  async generateAll(projectPath: string, _openspecDir: string): Promise<string[]> {
-    const createdOrUpdated = await super.generateAll(projectPath, _openspecDir);
+  async generateAll(projectPath: string, _projectorDir: string): Promise<string[]> {
+    const createdOrUpdated = await super.generateAll(projectPath, _projectorDir);
     await this.rewriteArchiveFile(projectPath);
     return createdOrUpdated;
   }
 
-  async updateExisting(projectPath: string, _openspecDir: string): Promise<string[]> {
-    const updated = await super.updateExisting(projectPath, _openspecDir);
+  async updateExisting(projectPath: string, _projectorDir: string): Promise<string[]> {
+    const updated = await super.updateExisting(projectPath, _projectorDir);
     const rewroteArchive = await this.rewriteArchiveFile(projectPath);
     if (rewroteArchive && !updated.includes(FILE_PATHS.archive)) {
       updated.push(FILE_PATHS.archive);
@@ -161,7 +161,7 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
       sections.push(frontmatter.trim());
     }
 
-    sections.push(`${OPENSPEC_MARKERS.start}\n${body}\n${OPENSPEC_MARKERS.end}`);
+    sections.push(`${PROJECTOR_MARKERS.start}\n${body}\n${PROJECTOR_MARKERS.end}`);
     await FileSystemUtils.writeFile(archivePath, sections.join("\n") + "\n");
     return true;
   }

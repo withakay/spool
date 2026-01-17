@@ -5,8 +5,8 @@ import * as os from 'os';
 import {
   loadProjectConfig,
   saveProjectConfig,
-  getOpenSpecDirName,
-  getOpenSpecPath,
+  getProjectorDirName,
+  getProjectorPath,
   getChangesPath,
   getSpecsPath,
   getModulesPath,
@@ -14,14 +14,14 @@ import {
   clearProjectConfigCache,
   PROJECT_CONFIG_FILE_NAME,
 } from '../../src/core/project-config.js';
-import { OPENSPEC_DIR_NAME } from '../../src/core/config.js';
+import { PROJECTOR_DIR_NAME } from '../../src/core/config.js';
 
 describe('project-config', () => {
   let testDir: string;
 
   beforeEach(() => {
     // Create a temporary directory for each test
-    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projector-test-'));
     clearProjectConfigCache();
   });
 
@@ -88,61 +88,61 @@ describe('project-config', () => {
     });
   });
 
-  describe('getOpenSpecDirName', () => {
+  describe('getProjectorDirName', () => {
     it('should return default if no config', () => {
-      const dirName = getOpenSpecDirName(testDir);
-      expect(dirName).toBe(OPENSPEC_DIR_NAME);
+      const dirName = getProjectorDirName(testDir);
+      expect(dirName).toBe(PROJECTOR_DIR_NAME);
     });
 
     it('should return projectPath from repo config', () => {
       const configPath = path.join(testDir, PROJECT_CONFIG_FILE_NAME);
-      fs.writeFileSync(configPath, JSON.stringify({ projectPath: 'custom-openspec' }));
+      fs.writeFileSync(configPath, JSON.stringify({ projectPath: 'custom-projector' }));
 
-      const dirName = getOpenSpecDirName(testDir);
-      expect(dirName).toBe('custom-openspec');
+      const dirName = getProjectorDirName(testDir);
+      expect(dirName).toBe('custom-projector');
     });
   });
 
-  describe('getOpenSpecPath', () => {
+  describe('getProjectorPath', () => {
     it('should return absolute path with default dir name', () => {
-      const specPath = getOpenSpecPath(testDir);
-      expect(specPath).toBe(path.join(testDir, OPENSPEC_DIR_NAME));
+      const specPath = getProjectorPath(testDir);
+      expect(specPath).toBe(path.join(testDir, PROJECTOR_DIR_NAME));
     });
 
     it('should return absolute path with custom dir name', () => {
       const configPath = path.join(testDir, PROJECT_CONFIG_FILE_NAME);
       fs.writeFileSync(configPath, JSON.stringify({ projectPath: 'my-specs' }));
 
-      const specPath = getOpenSpecPath(testDir);
+      const specPath = getProjectorPath(testDir);
       expect(specPath).toBe(path.join(testDir, 'my-specs'));
     });
   });
 
   describe('getChangesPath', () => {
-    it('should return changes path under openspec dir', () => {
+    it('should return changes path under projector dir', () => {
       const changesPath = getChangesPath(testDir);
-      expect(changesPath).toBe(path.join(testDir, OPENSPEC_DIR_NAME, 'changes'));
+      expect(changesPath).toBe(path.join(testDir, PROJECTOR_DIR_NAME, 'changes'));
     });
   });
 
   describe('getSpecsPath', () => {
-    it('should return specs path under openspec dir', () => {
+    it('should return specs path under projector dir', () => {
       const specsPath = getSpecsPath(testDir);
-      expect(specsPath).toBe(path.join(testDir, OPENSPEC_DIR_NAME, 'specs'));
+      expect(specsPath).toBe(path.join(testDir, PROJECTOR_DIR_NAME, 'specs'));
     });
   });
 
   describe('getModulesPath', () => {
-    it('should return modules path under openspec dir', () => {
+    it('should return modules path under projector dir', () => {
       const modulesPath = getModulesPath(testDir);
-      expect(modulesPath).toBe(path.join(testDir, OPENSPEC_DIR_NAME, 'modules'));
+      expect(modulesPath).toBe(path.join(testDir, PROJECTOR_DIR_NAME, 'modules'));
     });
   });
 
   describe('getArchivePath', () => {
     it('should return archive path under changes dir', () => {
       const archivePath = getArchivePath(testDir);
-      expect(archivePath).toBe(path.join(testDir, OPENSPEC_DIR_NAME, 'changes', 'archive'));
+      expect(archivePath).toBe(path.join(testDir, PROJECTOR_DIR_NAME, 'changes', 'archive'));
     });
   });
 });

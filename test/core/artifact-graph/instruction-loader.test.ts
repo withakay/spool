@@ -47,7 +47,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projector-test-'));
     });
 
     afterEach(() => {
@@ -72,7 +72,7 @@ describe('instruction-loader', () => {
 
     it('should detect completed artifacts', () => {
       // Create change directory with proposal.md
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, 'projector', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -87,11 +87,11 @@ describe('instruction-loader', () => {
       expect(context.completed.size).toBe(0);
     });
 
-    it('should auto-detect schema from .openspec.yaml metadata', () => {
+    it('should auto-detect schema from .projector.yaml metadata', () => {
       // Create change directory with metadata file
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, 'projector', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: tdd\ncreated: "2025-01-05"\n');
+      fs.writeFileSync(path.join(changeDir, '.projector.yaml'), 'schema: tdd\ncreated: "2025-01-05"\n');
 
       // Load without explicit schema - should detect from metadata
       const context = loadChangeContext(tempDir, 'my-change');
@@ -102,9 +102,9 @@ describe('instruction-loader', () => {
 
     it('should use explicit schema over metadata schema', () => {
       // Create change directory with metadata file using tdd
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, 'projector', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.openspec.yaml'), 'schema: tdd\n');
+      fs.writeFileSync(path.join(changeDir, '.projector.yaml'), 'schema: tdd\n');
 
       // Load with explicit schema - should override metadata
       const context = loadChangeContext(tempDir, 'my-change', 'spec-driven');
@@ -115,7 +115,7 @@ describe('instruction-loader', () => {
 
     it('should fall back to default when no metadata and no explicit schema', () => {
       // Create change directory without metadata file
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, 'projector', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
 
       const context = loadChangeContext(tempDir, 'my-change');
@@ -128,7 +128,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projector-test-'));
     });
 
     afterEach(() => {
@@ -163,7 +163,7 @@ describe('instruction-loader', () => {
 
     it('should mark completed dependencies as done', () => {
       // Create proposal
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, 'projector', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -202,7 +202,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openspec-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projector-test-'));
     });
 
     afterEach(() => {
@@ -228,7 +228,7 @@ describe('instruction-loader', () => {
     });
 
     it('should show completed artifacts as done', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, 'projector', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.writeFileSync(path.join(changeDir, 'proposal.md'), '# Proposal');
 
@@ -255,7 +255,7 @@ describe('instruction-loader', () => {
     });
 
     it('should report isComplete true when all done', () => {
-      const changeDir = path.join(tempDir, 'openspec', 'changes', 'my-change');
+      const changeDir = path.join(tempDir, 'projector', 'changes', 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
       fs.mkdirSync(path.join(changeDir, 'specs'), { recursive: true });
 

@@ -82,7 +82,7 @@ export function validateChangeName(name: string): ValidationResult {
 /**
  * Creates a new change directory with metadata file.
  *
- * @param projectRoot - The root directory of the project (where `openspec/` lives)
+ * @param projectRoot - The root directory of the project (where `projector/` lives)
  * @param name - The change name (must be valid kebab-case)
  * @param options - Optional settings for the change
  * @throws Error if the change name is invalid
@@ -90,11 +90,11 @@ export function validateChangeName(name: string): ValidationResult {
  * @throws Error if the change directory already exists
  *
  * @example
- * // Creates openspec/changes/add-auth/ with default schema
+ * // Creates projector/changes/add-auth/ with default schema
  * await createChange('/path/to/project', 'add-auth')
  *
  * @example
- * // Creates openspec/changes/add-auth/ with TDD schema
+ * // Creates projector/changes/add-auth/ with TDD schema
  * await createChange('/path/to/project', 'add-auth', { schema: 'tdd' })
  */
 export async function createChange(

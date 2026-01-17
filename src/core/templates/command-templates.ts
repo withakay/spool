@@ -1,7 +1,7 @@
 /**
  * Command Prompt Templates
  *
- * Prompts for workflow agents - installed to openspec/commands/
+ * Prompts for workflow agents - installed to projector/commands/
  * and registered as slash commands for AI tools.
  */
 

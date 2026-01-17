@@ -3,21 +3,21 @@ import { FileSystemUtils } from '../utils/file-system.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
 import { agentsTemplate } from './templates/agents-template.js';
-import { getOpenSpecPath, getOpenSpecDirName } from './project-config.js';
+import { getProjectorPath, getProjectorDirName } from './project-config.js';
 
 export class UpdateCommand {
   async execute(projectPath: string): Promise<void> {
     const resolvedProjectPath = path.resolve(projectPath);
-    const openspecDirName = getOpenSpecDirName(resolvedProjectPath);
-    const openspecPath = getOpenSpecPath(resolvedProjectPath);
+    const projectorDirName = getProjectorDirName(resolvedProjectPath);
+    const projectorPath = getProjectorPath(resolvedProjectPath);
 
-    // 1. Check openspec directory exists
-    if (!await FileSystemUtils.directoryExists(openspecPath)) {
-      throw new Error(`No OpenSpec directory found. Run 'openspec init' first.`);
+    // 1. Check projector directory exists
+    if (!await FileSystemUtils.directoryExists(projectorPath)) {
+      throw new Error(`No Projector directory found. Run 'projector init' first.`);
     }
 
     // 2. Update AGENTS.md (full replacement)
-    const agentsPath = path.join(openspecPath, 'AGENTS.md');
+    const agentsPath = path.join(projectorPath, 'AGENTS.md');
 
     await FileSystemUtils.writeFile(agentsPath, agentsTemplate);
 
@@ -50,7 +50,7 @@ export class UpdateCommand {
           );
         }
 
-        await configurator.configure(resolvedProjectPath, openspecPath);
+        await configurator.configure(resolvedProjectPath, projectorPath);
         updatedFiles.push(configurator.configFileName);
 
         if (!fileExists) {
@@ -74,7 +74,7 @@ export class UpdateCommand {
       try {
         const updated = await slashConfigurator.updateExisting(
           resolvedProjectPath,
-          openspecPath
+          projectorPath
         );
         updatedSlashFiles.push(...updated);
       } catch (error) {
@@ -88,7 +88,7 @@ export class UpdateCommand {
     }
 
     const summaryParts: string[] = [];
-    const instructionFiles: string[] = [`${openspecDirName}/AGENTS.md`];
+    const instructionFiles: string[] = [`${projectorDirName}/AGENTS.md`];
 
     if (updatedFiles.includes('AGENTS.md')) {
       instructionFiles.push(
@@ -97,7 +97,7 @@ export class UpdateCommand {
     }
 
     summaryParts.push(
-      `Updated OpenSpec instructions (${instructionFiles.join(', ')})`
+      `Updated Projector instructions (${instructionFiles.join(', ')})`
     );
 
     const aiToolFiles = updatedFiles.filter((file) => file !== 'AGENTS.md');

@@ -2,24 +2,24 @@ import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<CoreSlashCommandId, string> = {
-  proposal: '.github/prompts/openspec-proposal.prompt.md',
-  apply: '.github/prompts/openspec-apply.prompt.md',
-  archive: '.github/prompts/openspec-archive.prompt.md'
+  proposal: '.github/prompts/projector-proposal.prompt.md',
+  apply: '.github/prompts/projector-apply.prompt.md',
+  archive: '.github/prompts/projector-archive.prompt.md'
 };
 
 const FRONTMATTER: Record<CoreSlashCommandId, string> = {
   proposal: `---
-description: Scaffold a new OpenSpec change and validate strictly.
+description: Scaffold a new Projector change and validate strictly.
 ---
 
 $ARGUMENTS`,
   apply: `---
-description: Implement an approved OpenSpec change and keep tasks in sync.
+description: Implement an approved Projector change and keep tasks in sync.
 ---
 
 $ARGUMENTS`,
   archive: `---
-description: Archive a deployed OpenSpec change and update specs.
+description: Archive a deployed Projector change and update specs.
 ---
 
 $ARGUMENTS`

@@ -1,7 +1,7 @@
 import path from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getOpenSpecDirName } from './project-config.js';
+import { getProjectorDirName } from './project-config.js';
 
 export interface ModelConfig {
   fast?: string;
@@ -141,12 +141,12 @@ const DEFAULT_CONFIG: AgentConfig = {
   context_strategy: {
     overflow_handling: 'summarize',
     always_include: [
-      'openspec/planning/STATE.md',
-      'openspec/planning/PROJECT.md',
+      'projector/planning/STATE.md',
+      'projector/planning/PROJECT.md',
     ],
     priority_files: [
-      'openspec/planning/ROADMAP.md',
-      'openspec/research/SUMMARY.md',
+      'projector/planning/ROADMAP.md',
+      'projector/research/SUMMARY.md',
     ],
   },
 };
@@ -156,8 +156,8 @@ export class AgentConfigManager {
   private configPath: string | null = null;
 
   async getConfigPath(projectPath: string): Promise<string> {
-    const openspecDir = getOpenSpecDirName(projectPath);
-    return path.join(projectPath, openspecDir, 'config.yaml');
+    const projectorDir = getProjectorDirName(projectPath);
+    return path.join(projectPath, projectorDir, 'config.yaml');
   }
 
   async load(projectPath: string): Promise<AgentConfig> {

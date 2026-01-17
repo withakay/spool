@@ -2,92 +2,92 @@ import { SlashCommandConfigurator, EXTENDED_COMMANDS } from './base.js';
 import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: '.claude/commands/openspec/proposal.md',
-  apply: '.claude/commands/openspec/apply.md',
-  archive: '.claude/commands/openspec/archive.md',
-  'research': '.claude/commands/openspec/research.md',
-  'research-stack': '.claude/commands/openspec/research-stack.md',
-  'research-features': '.claude/commands/openspec/research-features.md',
-  'research-architecture': '.claude/commands/openspec/research-architecture.md',
-  'research-pitfalls': '.claude/commands/openspec/research-pitfalls.md',
-  'review': '.claude/commands/openspec/review.md',
-  'review-security': '.claude/commands/openspec/review-security.md',
-  'review-scale': '.claude/commands/openspec/review-scale.md',
-  'review-edge': '.claude/commands/openspec/review-edge.md',
+  proposal: '.claude/commands/projector/proposal.md',
+  apply: '.claude/commands/projector/apply.md',
+  archive: '.claude/commands/projector/archive.md',
+  'research': '.claude/commands/projector/research.md',
+  'research-stack': '.claude/commands/projector/research-stack.md',
+  'research-features': '.claude/commands/projector/research-features.md',
+  'research-architecture': '.claude/commands/projector/research-architecture.md',
+  'research-pitfalls': '.claude/commands/projector/research-pitfalls.md',
+  'review': '.claude/commands/projector/review.md',
+  'review-security': '.claude/commands/projector/review-security.md',
+  'review-scale': '.claude/commands/projector/review-scale.md',
+  'review-edge': '.claude/commands/projector/review-edge.md',
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   proposal: `---
-name: OpenSpec: Proposal
-description: Scaffold a new OpenSpec change and validate strictly.
-category: OpenSpec
-tags: [openspec, change]
+name: Projector: Proposal
+description: Scaffold a new Projector change and validate strictly.
+category: Projector
+tags: [projector, change]
 ---`,
   apply: `---
-name: OpenSpec: Apply
-description: Implement an approved OpenSpec change and keep tasks in sync.
-category: OpenSpec
-tags: [openspec, apply]
+name: Projector: Apply
+description: Implement an approved Projector change and keep tasks in sync.
+category: Projector
+tags: [projector, apply]
 ---`,
   archive: `---
-name: OpenSpec: Archive
-description: Archive a deployed OpenSpec change and update specs.
-category: OpenSpec
-tags: [openspec, archive]
+name: Projector: Archive
+description: Archive a deployed Projector change and update specs.
+category: Projector
+tags: [projector, archive]
 ---`,
   'research': `---
-name: OpenSpec: Research
+name: Projector: Research
 description: Conduct comprehensive domain research (parallel investigations + synthesis).
-category: OpenSpec
-tags: [openspec, research]
+category: Projector
+tags: [projector, research]
 ---`,
   'research-stack': `---
-name: OpenSpec: Research Stack
+name: Projector: Research Stack
 description: Research technology stack options and recommendations.
-category: OpenSpec
-tags: [openspec, research]
+category: Projector
+tags: [projector, research]
 ---`,
   'research-features': `---
-name: OpenSpec: Research Features
+name: Projector: Research Features
 description: Map feature landscape and prioritize capabilities.
-category: OpenSpec
-tags: [openspec, research]
+category: Projector
+tags: [projector, research]
 ---`,
   'research-architecture': `---
-name: OpenSpec: Research Architecture
+name: Projector: Research Architecture
 description: Research architecture patterns and design decisions.
-category: OpenSpec
-tags: [openspec, research]
+category: Projector
+tags: [projector, research]
 ---`,
   'research-pitfalls': `---
-name: OpenSpec: Research Pitfalls
+name: Projector: Research Pitfalls
 description: Identify common pitfalls and mitigation strategies.
-category: OpenSpec
-tags: [openspec, research]
+category: Projector
+tags: [projector, research]
 ---`,
   'review': `---
-name: OpenSpec: Review
+name: Projector: Review
 description: Conduct adversarial review (security, scale, edge cases) of a change.
-category: OpenSpec
-tags: [openspec, review]
+category: Projector
+tags: [projector, review]
 ---`,
   'review-security': `---
-name: OpenSpec: Review Security
+name: Projector: Review Security
 description: Security review - find vulnerabilities and attack vectors.
-category: OpenSpec
-tags: [openspec, review]
+category: Projector
+tags: [projector, review]
 ---`,
   'review-scale': `---
-name: OpenSpec: Review Scale
+name: Projector: Review Scale
 description: Scale review - identify performance bottlenecks.
-category: OpenSpec
-tags: [openspec, review]
+category: Projector
+tags: [projector, review]
 ---`,
   'review-edge': `---
-name: OpenSpec: Review Edge Cases
+name: Projector: Review Edge Cases
 description: Edge case review - find boundary conditions and failure modes.
-category: OpenSpec
-tags: [openspec, review]
+category: Projector
+tags: [projector, review]
 ---`,
 };
 

@@ -8,7 +8,7 @@ import { parse as parseYaml } from 'yaml';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import { getOpenSpecDirName } from '../project-config.js';
+import { getProjectorDirName } from '../project-config.js';
 import {
   WorkflowDefinition,
   WaveDefinition,
@@ -20,8 +20,8 @@ const VALID_AGENT_TYPES: AgentType[] = ['research', 'execution', 'review', 'plan
 
 export class WorkflowParser {
   async getWorkflowsDir(projectPath: string): Promise<string> {
-    const openspecDir = getOpenSpecDirName(projectPath);
-    return path.join(projectPath, openspecDir, 'workflows');
+    const projectorDir = getProjectorDirName(projectPath);
+    return path.join(projectPath, projectorDir, 'workflows');
   }
 
   async parse(workflowPath: string): Promise<WorkflowDefinition> {

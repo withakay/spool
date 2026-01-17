@@ -76,7 +76,7 @@ Last Updated: ${context.currentDate || getCurrentDate()}
 When resuming work on this project:
 1. Read this STATE.md first
 2. Check ROADMAP.md for current phase
-3. Review any in-progress changes in \`openspec/changes/\`
+3. Review any in-progress changes in \`projector/changes/\`
 4. Continue from "Current Focus" above
 `;
 

@@ -2,9 +2,9 @@ import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<CoreSlashCommandId, string> = {
-  proposal: '.continue/prompts/openspec-proposal.prompt',
-  apply: '.continue/prompts/openspec-apply.prompt',
-  archive: '.continue/prompts/openspec-archive.prompt'
+  proposal: '.continue/prompts/projector-proposal.prompt',
+  apply: '.continue/prompts/projector-apply.prompt',
+  archive: '.continue/prompts/projector-archive.prompt'
 };
 
 /*
@@ -17,22 +17,22 @@ const FILE_PATHS: Record<CoreSlashCommandId, string> = {
  * Body...
  *
  * The 'invokable: true' field is required to make the prompt available as a slash command.
- * We use 'openspec-proposal' as the name so the command becomes /openspec-proposal.
+ * We use 'projector-proposal' as the name so the command becomes /projector-proposal.
  */
 const FRONTMATTER: Record<CoreSlashCommandId, string> = {
   proposal: `---
-name: openspec-proposal
-description: Scaffold a new OpenSpec change and validate strictly.
+name: projector-proposal
+description: Scaffold a new Projector change and validate strictly.
 invokable: true
 ---`,
   apply: `---
-name: openspec-apply
-description: Implement an approved OpenSpec change and keep tasks in sync.
+name: projector-apply
+description: Implement an approved Projector change and keep tasks in sync.
 invokable: true
 ---`,
   archive: `---
-name: openspec-archive
-description: Archive a deployed OpenSpec change and update specs.
+name: projector-archive
+description: Archive a deployed Projector change and update specs.
 invokable: true
 ---`
 };

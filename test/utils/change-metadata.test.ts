@@ -76,8 +76,8 @@ describe('writeChangeMetadata', () => {
   let changeDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-test-${randomUUID()}`);
-    changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
+    testDir = path.join(os.tmpdir(), `projector-test-${randomUUID()}`);
+    changeDir = path.join(testDir, 'projector', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -91,7 +91,7 @@ describe('writeChangeMetadata', () => {
       created: '2025-01-05',
     });
 
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     const content = await fs.readFile(metaPath, 'utf-8');
 
     expect(content).toContain('schema: spec-driven');
@@ -113,8 +113,8 @@ describe('readChangeMetadata', () => {
   let changeDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-test-${randomUUID()}`);
-    changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
+    testDir = path.join(os.tmpdir(), `projector-test-${randomUUID()}`);
+    changeDir = path.join(testDir, 'projector', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -128,7 +128,7 @@ describe('readChangeMetadata', () => {
   });
 
   it('should read valid metadata', async () => {
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     await fs.writeFile(
       metaPath,
       'schema: spec-driven\ncreated: "2025-01-05"\n',
@@ -143,21 +143,21 @@ describe('readChangeMetadata', () => {
   });
 
   it('should throw ChangeMetadataError for invalid YAML', async () => {
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     await fs.writeFile(metaPath, '{ invalid yaml', 'utf-8');
 
     expect(() => readChangeMetadata(changeDir)).toThrow(ChangeMetadataError);
   });
 
   it('should throw ChangeMetadataError for missing schema field', async () => {
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     await fs.writeFile(metaPath, 'created: "2025-01-05"\n', 'utf-8');
 
     expect(() => readChangeMetadata(changeDir)).toThrow(ChangeMetadataError);
   });
 
   it('should throw ChangeMetadataError for unknown schema', async () => {
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     await fs.writeFile(metaPath, 'schema: unknown-schema\n', 'utf-8');
 
     expect(() => readChangeMetadata(changeDir)).toThrow(/Unknown schema/);
@@ -169,8 +169,8 @@ describe('resolveSchemaForChange', () => {
   let changeDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `openspec-test-${randomUUID()}`);
-    changeDir = path.join(testDir, 'openspec', 'changes', 'test-change');
+    testDir = path.join(os.tmpdir(), `projector-test-${randomUUID()}`);
+    changeDir = path.join(testDir, 'projector', 'changes', 'test-change');
     await fs.mkdir(changeDir, { recursive: true });
   });
 
@@ -180,7 +180,7 @@ describe('resolveSchemaForChange', () => {
 
   it('should return explicit schema when provided', async () => {
     // Even with metadata file, explicit schema wins
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
     const result = resolveSchemaForChange(changeDir, 'tdd');
@@ -188,7 +188,7 @@ describe('resolveSchemaForChange', () => {
   });
 
   it('should return schema from metadata when no explicit schema', async () => {
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     await fs.writeFile(metaPath, 'schema: spec-driven\n', 'utf-8');
 
     const result = resolveSchemaForChange(changeDir);
@@ -202,7 +202,7 @@ describe('resolveSchemaForChange', () => {
 
   it('should return default when metadata read fails', async () => {
     // Create an invalid metadata file
-    const metaPath = path.join(changeDir, '.openspec.yaml');
+    const metaPath = path.join(changeDir, '.projector.yaml');
     await fs.writeFile(metaPath, '{ invalid yaml', 'utf-8');
 
     // Should fall back to default, not throw

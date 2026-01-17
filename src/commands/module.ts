@@ -117,7 +117,7 @@ export class ModuleCommand {
 
     console.log(`Created module: ${folderName}`);
     console.log(`  Path: ${moduleDir}`);
-    console.log(`  Edit: openspec/modules/${folderName}/module.md`);
+    console.log(`  Edit: projector/modules/${folderName}/module.md`);
   }
 
   /**
@@ -145,7 +145,7 @@ export class ModuleCommand {
 
     if (modules.length === 0) {
       console.log('No modules found.');
-      console.log('Create one with: openspec module new <name>');
+      console.log('Create one with: projector module new <name>');
       return;
     }
 
@@ -175,7 +175,7 @@ export class ModuleCommand {
       }
 
       if (!interactive) {
-        console.error('Usage: openspec module show <module-id>');
+        console.error('Usage: projector module show <module-id>');
         console.error('Available modules:');
         for (const m of modules) {
           console.error(`  ${m.id} - ${m.fullName}`);
@@ -272,7 +272,7 @@ export class ModuleCommand {
     // If no module ID provided, list and exit
     if (!moduleId) {
       spinner?.stop();
-      console.error('Usage: openspec module validate <module-id>');
+      console.error('Usage: projector module validate <module-id>');
       const modules = await getModuleInfo(root);
       if (modules.length > 0) {
         console.error('Available modules:');
@@ -366,7 +366,7 @@ export class ModuleCommand {
 export function registerModuleCommand(program: any): void {
   const moduleCmd = program
     .command('module')
-    .description('Manage OpenSpec modules (groups of related changes)');
+    .description('Manage Projector modules (groups of related changes)');
 
   moduleCmd
     .command('new [name]')

@@ -2,29 +2,29 @@ import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId, CoreSlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<CoreSlashCommandId, string> = {
-  proposal: '.cursor/commands/openspec-proposal.md',
-  apply: '.cursor/commands/openspec-apply.md',
-  archive: '.cursor/commands/openspec-archive.md'
+  proposal: '.cursor/commands/projector-proposal.md',
+  apply: '.cursor/commands/projector-apply.md',
+  archive: '.cursor/commands/projector-archive.md'
 };
 
 const FRONTMATTER: Record<CoreSlashCommandId, string> = {
   proposal: `---
-name: /openspec-proposal
-id: openspec-proposal
-category: OpenSpec
-description: Scaffold a new OpenSpec change and validate strictly.
+name: /projector-proposal
+id: projector-proposal
+category: Projector
+description: Scaffold a new Projector change and validate strictly.
 ---`,
   apply: `---
-name: /openspec-apply
-id: openspec-apply
-category: OpenSpec
-description: Implement an approved OpenSpec change and keep tasks in sync.
+name: /projector-apply
+id: projector-apply
+category: Projector
+description: Implement an approved Projector change and keep tasks in sync.
 ---`,
   archive: `---
-name: /openspec-archive
-id: openspec-archive
-category: OpenSpec
-description: Archive a deployed OpenSpec change and update specs.
+name: /projector-archive
+id: projector-archive
+category: Projector
+description: Archive a deployed Projector change and update specs.
 ---`
 };
 

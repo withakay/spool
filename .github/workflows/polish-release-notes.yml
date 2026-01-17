@@ -11,7 +11,7 @@ permissions:
 jobs:
   polish:
     # Only run on the main repo, not forks
-    if: github.repository == 'Fission-AI/OpenSpec'
+    if: github.repository == 'Fission-AI/Projector'
     runs-on: ubuntu-latest
 
     steps:
@@ -32,11 +32,11 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           direct_prompt: |
-            Transform the changelog in `current-notes.md` into release notes for OpenSpec ${{ github.event.release.tag_name }}.
+            Transform the changelog in `current-notes.md` into release notes for Projector ${{ github.event.release.tag_name }}.
 
             ## Voice
 
-            OpenSpec is a developer tool. Write like you're talking to a peer:
+            Projector is a developer tool. Write like you're talking to a peer:
             - Direct and practical, not marketing copy
             - Focus on what changed and why it matters
             - Skip the hype, keep it real
@@ -87,7 +87,7 @@ jobs:
 
             ## Rules
 
-            1. Write for developers using OpenSpec with AI coding assistants
+            1. Write for developers using Projector with AI coding assistants
             2. Remove commit hashes (like `eb152eb:`), PR numbers, and changesets wrappers (`### Minor Changes`)
             3. Lead with what users can do, not implementation details
             4. One to two sentences per item, max

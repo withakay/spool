@@ -1,10 +1,10 @@
-# OpenSpec Project Planning & Research Extension
+# Projector Project Planning & Research Extension
 
 > Tool-agnostic workflow for OpenCode, Codex CLI, Claude Code, and other AI coding assistants
 
 ## Executive Summary
 
-This proposal extends OpenSpec with structured project planning, research capabilities, and execution patterns that work across AI coding tools. The design prioritizes **file-based workflows** and **markdown custom commands** that any AI assistant can follow.
+This proposal extends Projector with structured project planning, research capabilities, and execution patterns that work across AI coding tools. The design prioritizes **file-based workflows** and **markdown custom commands** that any AI assistant can follow.
 
 **Primary Target**: [OpenCode](https://opencode.ai/) - open source AI coding agent
 **Also Supports**: [Codex CLI](https://github.com/openai/codex), [Claude Code](https://docs.anthropic.com/claude-code), and other terminal-based AI assistants
@@ -30,7 +30,7 @@ This proposal extends OpenSpec with structured project planning, research capabi
 
 ## Problem Statement
 
-Current OpenSpec workflow gaps:
+Current Projector workflow gaps:
 
 1. **No Research Phase**: Proposals jump directly to specs without domain investigation
 2. **No Project-Level Roadmapping**: Changes are isolated; no multi-phase planning
@@ -49,7 +49,7 @@ Add a research stage that runs **before** proposal creation for complex changes.
 #### Directory Structure
 
 ```
-openspec/
+projector/
 ├── research/                    # Domain research artifacts
 │   ├── SUMMARY.md              # Synthesized findings
 │   └── investigations/
@@ -77,14 +77,14 @@ User describes goal
 └─────────────────────────────────────────────────┘
         │
         ▼
-Standard OpenSpec proposal workflow
+Standard Projector proposal workflow
 ```
 
 #### Research Prompt Templates
 
 Research prompts are stored as markdown files that any AI tool can load:
 
-**`openspec/commands/research-stack.md`**
+**`projector/commands/research-stack.md`**
 ```markdown
 # Research: Stack Analysis
 
@@ -98,7 +98,7 @@ Evaluate technology choices for the proposed feature/project.
 4. Document trade-offs between options
 
 ## Output Format
-Write findings to `openspec/research/investigations/stack-analysis.md`:
+Write findings to `projector/research/investigations/stack-analysis.md`:
 
 ## Stack Analysis: [Topic]
 
@@ -119,7 +119,7 @@ Write findings to `openspec/research/investigations/stack-analysis.md`:
 
 #### Research Output Template
 
-**`openspec/research/SUMMARY.md`**
+**`projector/research/SUMMARY.md`**
 ```markdown
 # Research Summary: [Topic]
 
@@ -158,7 +158,7 @@ Add project-level planning above individual changes.
 #### Directory Structure
 
 ```
-openspec/
+projector/
 ├── planning/                    # Project planning artifacts
 │   ├── PROJECT.md              # Vision, constraints, stakeholders
 │   ├── ROADMAP.md              # Phased milestone plan
@@ -263,7 +263,7 @@ Last Updated: [timestamp]
 When resuming work on this project:
 1. Read this STATE.md first
 2. Check ROADMAP.md for current phase
-3. Review any in-progress changes in `openspec/changes/`
+3. Review any in-progress changes in `projector/changes/`
 4. Continue from "Current Focus" above
 ```
 
@@ -380,15 +380,15 @@ Sequential execution with context preservation via files:
 
 #### Execution Command (Custom Command)
 
-**`openspec/commands/execute.md`**
+**`projector/commands/execute.md`**
 ```markdown
-# Execute OpenSpec Tasks
+# Execute Projector Tasks
 
 ## Objective
 Execute tasks from a change proposal sequentially, verifying each before proceeding.
 
 ## Process
-1. Read `openspec/planning/STATE.md` for current context
+1. Read `projector/planning/STATE.md` for current context
 2. Read the specified change's `tasks.md`
 3. Find the first task with status `[ ] pending`
 4. Execute the task:
@@ -416,7 +416,7 @@ Add systematic challenge phase to stress-test proposals.
 
 Store as custom commands that any tool can execute:
 
-**`openspec/commands/review-security.md`**
+**`projector/commands/review-security.md`**
 ```markdown
 # Security Review
 
@@ -438,10 +438,10 @@ Find ways to exploit, bypass, or abuse the proposed system.
 4. Suggest mitigations
 
 ## Output
-Append findings to `openspec/changes/[change-id]/REVIEW.md`
+Append findings to `projector/changes/[change-id]/REVIEW.md`
 ```
 
-**`openspec/commands/review-scale.md`**
+**`projector/commands/review-scale.md`**
 ```markdown
 # Scale Review
 
@@ -459,7 +459,7 @@ What breaks at 10x, 100x, 1000x scale?
 5. Evaluate caching opportunities
 
 ## Output
-Append findings to `openspec/changes/[change-id]/REVIEW.md`
+Append findings to `projector/changes/[change-id]/REVIEW.md`
 ```
 
 #### REVIEW.md Template
@@ -502,12 +502,12 @@ Append findings to `openspec/changes/[change-id]/REVIEW.md`
 
 ### 6. Custom Commands
 
-OpenSpec workflows are implemented as markdown custom commands compatible with all tools.
+Projector workflows are implemented as markdown custom commands compatible with all tools.
 
 #### Directory Structure
 
 ```
-openspec/
+projector/
 ├── commands/                    # Custom command definitions
 │   ├── research-stack.md       # Stack analysis
 │   ├── research-features.md    # Feature landscape
@@ -534,39 +534,39 @@ openspec/
 
 ```bash
 # Copy commands to OpenCode location
-cp -r openspec/commands .opencode/commands/openspec
+cp -r projector/commands .opencode/commands/projector
 
 # Use in OpenCode
-/openspec/research-stack "authentication system"
-/openspec/execute add-user-auth
-/openspec/review-security add-user-auth
+/projector/research-stack "authentication system"
+/projector/execute add-user-auth
+/projector/review-security add-user-auth
 ```
 
 ---
 
 ## CLI Commands
 
-The `openspec` CLI provides commands that work independently of AI tool:
+The `projector` CLI provides commands that work independently of AI tool:
 
 ```bash
 # Research commands
-openspec research init                 # Create research/ structure
-openspec research status               # Show research progress
+projector research init                 # Create research/ structure
+projector research status               # Show research progress
 
 # Planning commands
-openspec plan init                     # Initialize planning/ directory
-openspec plan milestone [name]         # Create new milestone
-openspec plan phase [milestone] [name] # Add phase to milestone
-openspec plan status                   # Show roadmap progress
+projector plan init                     # Initialize planning/ directory
+projector plan milestone [name]         # Create new milestone
+projector plan phase [milestone] [name] # Add phase to milestone
+projector plan status                   # Show roadmap progress
 
 # State commands
-openspec state                         # Show current STATE.md
-openspec state decision "[text]"       # Record a decision
-openspec state blocker "[text]"        # Record a blocker
-openspec state note "[text]"           # Add session note
+projector state                         # Show current STATE.md
+projector state decision "[text]"       # Record a decision
+projector state blocker "[text]"        # Record a blocker
+projector state note "[text]"           # Add session note
 
 # Validation
-openspec validate [change-id] --strict # Validate including tasks format
+projector validate [change-id] --strict # Validate including tasks format
 ```
 
 ---
@@ -574,14 +574,14 @@ openspec validate [change-id] --strict # Validate including tasks format
 ## Implementation Phases
 
 ### Phase 1: Foundation
-- Add `planning/` directory structure to `openspec init`
+- Add `planning/` directory structure to `projector init`
 - Create PROJECT.md, STATE.md, ROADMAP.md templates
-- Add `openspec state` commands
+- Add `projector state` commands
 - Document tool-agnostic workflow
 
 ### Phase 2: Research
 - Create research command templates
-- Add `openspec/commands/` structure
+- Add `projector/commands/` structure
 - Document integration with OpenCode, Codex, Claude Code
 
 ### Phase 3: Enhanced Tasks
@@ -610,7 +610,7 @@ openspec validate [change-id] --strict # Validate including tasks format
 
 ## Comparison: Before and After
 
-| Capability | Current OpenSpec | With Planning Extension |
+| Capability | Current Projector | With Planning Extension |
 |------------|-----------------|------------------------|
 | Research | None | Structured investigation |
 | Project vision | project.md (basic) | PROJECT.md (structured) |
