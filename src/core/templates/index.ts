@@ -11,10 +11,18 @@ import {
   stateTemplate,
   PlanningContext,
 } from './planning-templates.js';
+import {
+  researchSummaryTemplate,
+  stackAnalysisTemplate,
+  featureLandscapeTemplate,
+  architectureTemplate,
+  pitfallsTemplate,
+  ResearchContext,
+} from './research-templates.js';
 
-export interface Template {
+export interface Template<T = any> {
   path: string;
-  content: string | ((context: ProjectContext) => string);
+  content: string | ((context: T) => string);
 }
 
 export class TemplateManager {
@@ -67,8 +75,48 @@ export class TemplateManager {
       },
     ];
   }
+
+  static getResearchTemplates(context: ResearchContext = {}): Template[] {
+    return [
+      {
+        path: 'research/SUMMARY.md',
+        content: researchSummaryTemplate(context),
+      },
+      {
+        path: 'research/investigations/stack-analysis.md',
+        content: stackAnalysisTemplate(context),
+      },
+      {
+        path: 'research/investigations/feature-landscape.md',
+        content: featureLandscapeTemplate(context),
+      },
+      {
+        path: 'research/investigations/architecture.md',
+        content: architectureTemplate(context),
+      },
+      {
+        path: 'research/investigations/pitfalls.md',
+        content: pitfallsTemplate(context),
+      },
+    ];
+  }
+
+  static getResearchTemplate(
+    type: 'summary' | 'stack' | 'features' | 'architecture' | 'pitfalls',
+    context: ResearchContext = {}
+  ): string {
+    const templates = {
+      summary: researchSummaryTemplate,
+      stack: stackAnalysisTemplate,
+      features: featureLandscapeTemplate,
+      architecture: architectureTemplate,
+      pitfalls: pitfallsTemplate,
+    };
+    return templates[type](context);
+  }
 }
 
 export { ProjectContext } from './project-template.js';
 export { PlanningContext } from './planning-templates.js';
+export { ResearchContext } from './research-templates.js';
 export type { SlashCommandId } from './slash-command-templates.js';

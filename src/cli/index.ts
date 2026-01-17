@@ -19,6 +19,7 @@ import { registerModuleCommand } from '../commands/module.js';
 import { maybeShowTelemetryNotice, trackCommand, shutdown } from '../telemetry/index.js';
 import { StateCommand } from '../commands/state.js';
 import { PlanCommand } from '../commands/plan.js';
+import { ResearchCommand } from '../commands/research.js';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -509,6 +510,81 @@ planCmd
     try {
       const planCommand = new PlanCommand();
       await planCommand.addPhase(milestone, name, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Research command for domain investigation
+const researchCmd = program
+  .command('research')
+  .description('Manage domain research (stack, features, architecture, pitfalls)');
+
+researchCmd
+  .command('init [topic]')
+  .description('Initialize research structure with templates')
+  .action(async (topic?: string) => {
+    try {
+      const researchCommand = new ResearchCommand();
+      await researchCommand.init(topic || '', '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+researchCmd
+  .command('status')
+  .description('Show research progress')
+  .action(async () => {
+    try {
+      const researchCommand = new ResearchCommand();
+      await researchCommand.status('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+researchCmd
+  .command('create <type> [topic]')
+  .description('Create a research template (stack, features, architecture, pitfalls, summary, all)')
+  .action(async (type: string, topic?: string) => {
+    try {
+      const researchCommand = new ResearchCommand();
+      await researchCommand.create(type as any, topic || '', '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+researchCmd
+  .command('show <type>')
+  .description('Display a research document (stack, features, architecture, pitfalls, summary)')
+  .action(async (type: string) => {
+    try {
+      const researchCommand = new ResearchCommand();
+      await researchCommand.show(type as any, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+researchCmd
+  .command('synthesize')
+  .description('Generate SUMMARY.md from completed investigations')
+  .action(async () => {
+    try {
+      const researchCommand = new ResearchCommand();
+      await researchCommand.synthesize('.');
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
