@@ -137,7 +137,7 @@ projector artifact-experimental-setup
 #   Claude will automatically use the appropriate skill.
 #
 # 💡 This is an experimental feature.
-#    Feedback welcome at: https://github.com/Fission-AI/Projector/issues
+#    Feedback welcome at: https://github.com/withakay/Projector/issues
 ```
 
 **Implementation Notes:**

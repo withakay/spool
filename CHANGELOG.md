@@ -1,4 +1,4 @@
-# @fission-ai/projector
+# @withakay/projector
 
 ## 0.19.0
 
