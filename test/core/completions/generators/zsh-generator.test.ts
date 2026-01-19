@@ -24,23 +24,23 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize Projector',
+          description: 'Initialize Spool',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef projector');
-      expect(script).toContain('# Zsh completion script for Projector CLI');
-      expect(script).toContain('_projector() {');
+      expect(script).toContain('#compdef spool');
+      expect(script).toContain('# Zsh completion script for Spool CLI');
+      expect(script).toContain('_spool() {');
     });
 
     it('should include all commands in the command list', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize Projector',
+          description: 'Initialize Spool',
           flags: [],
         },
         {
@@ -57,7 +57,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'init:Initialize Projector'");
+      expect(script).toContain("'init:Initialize Spool'");
       expect(script).toContain("'validate:Validate specs'");
       expect(script).toContain("'show:Show a spec'");
     });
@@ -66,7 +66,7 @@ describe('ZshGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize Projector',
+          description: 'Initialize Spool',
           flags: [],
         },
         {
@@ -78,8 +78,8 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_projector_init() {');
-      expect(script).toContain('_projector_validate() {');
+      expect(script).toContain('_spool_init() {');
+      expect(script).toContain('_spool_validate() {');
     });
 
     it('should handle commands with flags', () => {
@@ -200,8 +200,8 @@ describe('ZshGenerator', () => {
 
       expect(script).toContain("'show:Show a change'");
       expect(script).toContain("'list:List changes'");
-      expect(script).toContain('_projector_change_show() {');
-      expect(script).toContain('_projector_change_list() {');
+      expect(script).toContain('_spool_change_show() {');
+      expect(script).toContain('_spool_change_list() {');
     });
 
     it('should handle positional arguments for change-id', () => {
@@ -217,7 +217,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'*: :_projector_complete_changes'");
+      expect(script).toContain("'*: :_spool_complete_changes'");
     });
 
     it('should handle positional arguments for spec-id', () => {
@@ -233,7 +233,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'*: :_projector_complete_specs'");
+      expect(script).toContain("'*: :_spool_complete_specs'");
     });
 
     it('should handle positional arguments for change-or-spec-id', () => {
@@ -249,14 +249,14 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'*: :_projector_complete_items'");
+      expect(script).toContain("'*: :_spool_complete_items'");
     });
 
     it('should handle positional arguments for paths', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize Projector',
+          description: 'Initialize Spool',
           acceptsPositional: true,
           positionalType: 'path',
           flags: [],
@@ -301,7 +301,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_projector_my_command() {');
+      expect(script).toContain('_spool_my_command() {');
     });
 
     it('should handle complex nested subcommands with flags', () => {
@@ -333,11 +333,11 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_projector_spec() {');
-      expect(script).toContain('_projector_spec_validate() {');
+      expect(script).toContain('_spool_spec() {');
+      expect(script).toContain('_spool_spec_validate() {');
       expect(script).toContain('--strict');
       expect(script).toContain('--json');
-      expect(script).toContain("'*: :_projector_complete_specs'");
+      expect(script).toContain("'*: :_spool_complete_specs'");
     });
 
     it('should generate script that ends with compdef registration', () => {
@@ -351,7 +351,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script.trim().endsWith('compdef _projector projector')).toBe(true);
+      expect(script.trim().endsWith('compdef _spool spool')).toBe(true);
     });
 
     it('should handle empty command list', () => {
@@ -359,8 +359,8 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef projector');
-      expect(script).toContain('_projector() {');
+      expect(script).toContain('#compdef spool');
+      expect(script).toContain('_spool() {');
     });
 
     it('should handle commands with no flags', () => {
@@ -374,7 +374,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('_projector_view() {');
+      expect(script).toContain('_spool_view() {');
       expect(script).toContain('_arguments');
     });
   });

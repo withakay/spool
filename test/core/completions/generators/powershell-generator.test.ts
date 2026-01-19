@@ -24,38 +24,38 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize Projector',
+					description: 'Initialize Spool',
 					flags: [],
 				},
 			];
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('# PowerShell completion script for Projector CLI');
-			expect(script).toContain('$projectorCompleter = {');
+			expect(script).toContain('# PowerShell completion script for Spool CLI');
+			expect(script).toContain('$spoolCompleter = {');
 			expect(script).toContain('Register-ArgumentCompleter');
 		});
 
-		it('should register argument completer for projector command', () => {
+		it('should register argument completer for spool command', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize Projector',
+					description: 'Initialize Spool',
 					flags: [],
 				},
 			];
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('Register-ArgumentCompleter -CommandName projector');
-			expect(script).toContain('-ScriptBlock $projectorCompleter');
+			expect(script).toContain('Register-ArgumentCompleter -CommandName spool');
+			expect(script).toContain('-ScriptBlock $spoolCompleter');
 		});
 
 		it('should include all commands with descriptions', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize Projector',
+					description: 'Initialize Spool',
 					flags: [],
 				},
 				{
@@ -73,7 +73,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('"init"');
-			expect(script).toContain('Initialize Projector');
+			expect(script).toContain('Initialize Spool');
 			expect(script).toContain('"validate"');
 			expect(script).toContain('Validate specs');
 			expect(script).toContain('"show"');
@@ -84,7 +84,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize Projector',
+					description: 'Initialize Spool',
 					flags: [],
 				},
 			];
@@ -281,7 +281,7 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('Get-ProjectorChanges');
+			expect(script).toContain('Get-SpoolChanges');
 		});
 
 		it('should handle positional arguments for spec-id', () => {
@@ -297,7 +297,7 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('Get-ProjectorSpecs');
+			expect(script).toContain('Get-SpoolSpecs');
 		});
 
 		it('should handle positional arguments for change-or-spec-id', () => {
@@ -313,8 +313,8 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('Get-ProjectorChanges');
-			expect(script).toContain('Get-ProjectorSpecs');
+			expect(script).toContain('Get-SpoolChanges');
+			expect(script).toContain('Get-SpoolSpecs');
 		});
 
 		it('should handle positional arguments for shell with inline values', () => {
@@ -340,7 +340,7 @@ describe('PowerShellGenerator', () => {
 			const commands: CommandDefinition[] = [
 				{
 					name: 'init',
-					description: 'Initialize Projector',
+					description: 'Initialize Spool',
 					acceptsPositional: true,
 					positionalType: 'path',
 					flags: [],
@@ -366,8 +366,8 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('function Get-ProjectorChanges');
-			expect(script).toContain('projector __complete changes 2>$null');
+			expect(script).toContain('function Get-SpoolChanges');
+			expect(script).toContain('spool __complete changes 2>$null');
 			expect(script).toContain('-split');
 		});
 
@@ -384,8 +384,8 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('function Get-ProjectorSpecs');
-			expect(script).toContain('projector __complete specs 2>$null');
+			expect(script).toContain('function Get-SpoolSpecs');
+			expect(script).toContain('spool __complete specs 2>$null');
 		});
 
 		it('should escape double quotes in descriptions', () => {
@@ -441,7 +441,7 @@ describe('PowerShellGenerator', () => {
 			expect(script).toContain('"validate"');
 			expect(script).toContain('--strict');
 			expect(script).toContain('--json');
-			expect(script).toContain('Get-ProjectorSpecs');
+			expect(script).toContain('Get-SpoolSpecs');
 		});
 
 		it('should handle empty command list', () => {
@@ -450,7 +450,7 @@ describe('PowerShellGenerator', () => {
 			const script = generator.generate(commands);
 
 			expect(script).toContain('# PowerShell completion script');
-			expect(script).toContain('$projectorCompleter = {');
+			expect(script).toContain('$spoolCompleter = {');
 			expect(script).toContain('Register-ArgumentCompleter');
 		});
 
@@ -482,7 +482,7 @@ describe('PowerShellGenerator', () => {
 
 			const script = generator.generate(commands);
 
-			expect(script).toContain('function Get-ProjectorChanges');
+			expect(script).toContain('function Get-SpoolChanges');
 			// PowerShell uses -split with \\t for tab character
 			expect(script).toContain('-split');
 			expect(script).toContain('[0]');

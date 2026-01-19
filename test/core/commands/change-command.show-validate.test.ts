@@ -14,7 +14,7 @@ describe('ChangeCommand.show/validate', () => {
   beforeAll(async () => {
     cmd = new ChangeCommand();
     originalCwd = process.cwd();
-    tempRoot = path.join(os.tmpdir(), `projector-change-command-${Date.now()}`);
+    tempRoot = path.join(os.tmpdir(), `spool-change-command-${Date.now()}`);
     const changesDir = path.join(getChangesPath(tempRoot), 'sample-change');
     await fs.mkdir(changesDir, { recursive: true });
     const proposal = `# Change: Sample Change\n\n## Why\nConsistency in tests.\n\n## What Changes\n- **auth:** Add requirement`;

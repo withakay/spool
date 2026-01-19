@@ -2,7 +2,7 @@ export interface PlanningContext {
   projectName?: string;
   description?: string;
   currentDate?: string;
-  projectorDir?: string;
+  spoolDir?: string;
 }
 
 const getCurrentDate = () => new Date().toISOString().split('T')[0];
@@ -77,7 +77,7 @@ Last Updated: ${context.currentDate || getCurrentDate()}
 When resuming work on this project:
 1. Read this STATE.md first
 2. Check ROADMAP.md for current phase
-3. Review any in-progress changes in \`${context.projectorDir || '.projector'}/changes/\`
+3. Review any in-progress changes in \`${context.spoolDir || '.spool'}/changes/\`
 4. Continue from "Current Focus" above
 `;
 

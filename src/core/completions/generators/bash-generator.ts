@@ -2,7 +2,7 @@ import { CompletionGenerator, CommandDefinition, FlagDefinition } from '../types
 import { BASH_DYNAMIC_HELPERS } from '../templates/bash-templates.js';
 
 /**
- * Generates Bash completion scripts for the Projector CLI.
+ * Generates Bash completion scripts for the Spool CLI.
  * Follows Bash completion conventions using complete builtin and COMPREPLY array.
  */
 export class BashGenerator implements CompletionGenerator {
@@ -31,10 +31,10 @@ export class BashGenerator implements CompletionGenerator {
     const helpers = BASH_DYNAMIC_HELPERS;
 
     // Assemble final script with template literal
-    return `# Bash completion script for Projector CLI
+    return `# Bash completion script for Spool CLI
 # Auto-generated - do not edit manually
 
-_projector_completion() {
+_spool_completion() {
   local cur prev words cword
 
   # Use _init_completion if available (from bash-completion package)
@@ -71,7 +71,7 @@ ${commandCases}
 }
 
 ${helpers}
-complete -F _projector_completion projector
+complete -F _spool_completion spool
 `;
   }
 
@@ -160,13 +160,13 @@ complete -F _projector_completion projector
 
     switch (positionalType) {
       case 'change-id':
-        lines.push(`${indent}_projector_complete_changes`);
+        lines.push(`${indent}_spool_complete_changes`);
         break;
       case 'spec-id':
-        lines.push(`${indent}_projector_complete_specs`);
+        lines.push(`${indent}_spool_complete_specs`);
         break;
       case 'change-or-spec-id':
-        lines.push(`${indent}_projector_complete_items`);
+        lines.push(`${indent}_spool_complete_items`);
         break;
       case 'shell':
         lines.push(`${indent}local shells="zsh bash fish powershell"`);

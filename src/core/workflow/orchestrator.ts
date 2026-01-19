@@ -7,7 +7,7 @@
 
 import path from 'path';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import { getProjectorDirName } from '../project-config.js';
+import { getSpoolDirName } from '../project-config.js';
 import { agentConfigManager } from '../agent-config.js';
 import { workflowParser } from './parser.js';
 import {
@@ -30,7 +30,7 @@ export class WorkflowOrchestrator {
   ): Promise<ExecutionPlan> {
     const workflow = await workflowParser.parseByName(workflowName, projectPath);
     const config = await agentConfigManager.load(projectPath);
-    const projectorDir = getProjectorDirName(projectPath);
+    const spoolDir = getSpoolDirName(projectPath);
 
     const plan: ExecutionPlan = {
       workflow,
@@ -51,7 +51,7 @@ export class WorkflowOrchestrator {
         const contextBudget = agentConfigManager.getContextBudget(config, tool, task.agent);
 
         // Load prompt template
-        const promptPath = path.join(projectPath, projectorDir, task.prompt);
+        const promptPath = path.join(projectPath, spoolDir, task.prompt);
         let promptContent = '';
         if (await FileSystemUtils.fileExists(promptPath)) {
           promptContent = await FileSystemUtils.readFile(promptPath);
@@ -140,10 +140,10 @@ export class WorkflowOrchestrator {
     execution: WorkflowExecution,
     projectPath: string
   ): Promise<void> {
-    const projectorDir = getProjectorDirName(projectPath);
+    const spoolDir = getSpoolDirName(projectPath);
     const statePath = path.join(
       projectPath,
-      projectorDir,
+      spoolDir,
       'workflows',
       '.state',
       `${execution.workflow.id}.json`
@@ -160,10 +160,10 @@ export class WorkflowOrchestrator {
     workflowId: string,
     projectPath: string
   ): Promise<WorkflowExecution | null> {
-    const projectorDir = getProjectorDirName(projectPath);
+    const spoolDir = getSpoolDirName(projectPath);
     const statePath = path.join(
       projectPath,
-      projectorDir,
+      spoolDir,
       'workflows',
       '.state',
       `${workflowId}.json`
@@ -192,7 +192,7 @@ export class WorkflowOrchestrator {
    * Generate OpenCode-specific orchestration instructions
    */
   private generateOpenCodeInstructions(plan: ExecutionPlan, projectPath: string): string {
-    const projectorDir = getProjectorDirName(projectPath);
+    const spoolDir = getSpoolDirName(projectPath);
     const lines: string[] = [
 
       `# Workflow Execution: ${plan.workflow.name}`,
@@ -253,10 +253,10 @@ export class WorkflowOrchestrator {
     lines.push('');
     lines.push('After all waves complete:');
     if (plan.workflow.on_complete?.update_state) {
-      lines.push(`- Update \`${projectorDir}/planning/STATE.md\` with session notes`);
+      lines.push(`- Update \`${spoolDir}/planning/STATE.md\` with session notes`);
     }
     if (plan.workflow.on_complete?.update_roadmap) {
-      lines.push(`- Update \`${projectorDir}/planning/ROADMAP.md\` progress`);
+      lines.push(`- Update \`${spoolDir}/planning/ROADMAP.md\` progress`);
     }
 
     return lines.join('\n');

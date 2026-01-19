@@ -8,7 +8,7 @@
  * - Other Agent Skills-compatible editors
  */
 
-import { replaceHardcodedDotProjectorPaths } from '../../utils/path-normalization.js';
+import { replaceHardcodedDotSpoolPaths } from '../../utils/path-normalization.js';
 
 export interface SkillTemplate {
   name: string;
@@ -17,10 +17,10 @@ export interface SkillTemplate {
 }
 
 /**
- * Template for projector-explore skill
+ * Template for spool-explore skill
  * Explore mode - adaptive thinking partner for exploring ideas and problems
  */
-export function getExploreSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getExploreSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   const rawInstructions = `Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
 
 **This is a stance, not a workflow.** There are no fixed steps, no required sequence, no mandatory outputs. You're a thinking partner helping the user explore.
@@ -84,15 +84,15 @@ Depending on what the user brings, you might:
 
 ---
 
-## Projector Awareness
+## Spool Awareness
 
-You have full context of the Projector system. Use it naturally, don't force it.
+You have full context of the Spool system. Use it naturally, don't force it.
 
 ### Check for context
 
 At the start, quickly check what exists:
 \`\`\`bash
-projector list --json
+spool list --json
 \`\`\`
 
 This tells you:
@@ -113,13 +113,13 @@ Think freely. When insights crystallize, you might offer:
 If the user mentions a change or you detect one is relevant:
 
 1. **Read existing artifacts for context**
-   - \`${projectorDir}/changes/<name>/proposal.md\`
-   - \`${projectorDir}/changes/<name>/design.md\`
-   - \`${projectorDir}/changes/<name>/tasks.md\`
+   - \`${spoolDir}/changes/<name>/proposal.md\`
+   - \`${spoolDir}/changes/<name>/design.md\`
+   - \`${spoolDir}/changes/<name>/tasks.md\`
 
 2. **Check the current status**
    \`\`\`bash
-   projector show <name> --status
+   spool show <name> --status
    \`\`\`
 
 3. **Update the conversation accordingly**
@@ -164,17 +164,17 @@ But this summary is optional. Sometimes the thinking IS the value.
 - **Do question assumptions** - Including the user's and your own`;
 
   return {
-    name: 'projector-explore',
+    name: 'spool-explore',
     description: 'Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.',
-    instructions: replaceHardcodedDotProjectorPaths(rawInstructions, projectorDir)
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
   };
 }
 
 /**
- * Template for projector-new-change skill
+ * Template for spool-new-change skill
  * Based on /opsx:new command
  */
-export function getNewChangeSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getNewChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   const rawInstructions = `Start a new change using the experimental artifact-driven approach.
 
 **Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
@@ -197,20 +197,20 @@ export function getNewChangeSkillTemplate(projectorDir: string = '.projector'): 
    **Use a different schema only if the user mentions:**
    - "tdd" or "test-driven" → use \`--schema tdd\`
    - A specific schema name → use \`--schema <name>\`
-   - "show workflows" or "what workflows" → run \`projector schemas --json\` and let them choose
+   - "show workflows" or "what workflows" → run \`spool schemas --json\` and let them choose
 
    **Otherwise**: Omit \`--schema\` to use the default.
 
 3. **Create the change directory**
    \`\`\`bash
-   projector new change "<name>"
+   spool new change "<name>"
    \`\`\`
    Add \`--schema <name>\` only if the user requested a specific workflow.
-   This creates a scaffolded change at \`.projector/changes/<name>/\` with the selected schema.
+   This creates a scaffolded change at \`.spool/changes/<name>/\` with the selected schema.
 
 4. **Show the artifact status**
    \`\`\`bash
-   projector status --change "<name>"
+   spool status --change "<name>"
    \`\`\`
    This shows which artifacts need to be created and which are ready (dependencies satisfied).
 
@@ -218,7 +218,7 @@ export function getNewChangeSkillTemplate(projectorDir: string = '.projector'): 
    The first artifact depends on the schema (e.g., \`proposal\` for spec-driven, \`spec\` for tdd).
    Check the status output to find the first artifact with status "ready".
    \`\`\`bash
-   projector instructions <first-artifact-id> --change "<name>"
+   spool instructions <first-artifact-id> --change "<name>"
    \`\`\`
    This outputs the template and context for creating the first artifact.
 
@@ -241,20 +241,20 @@ After completing the steps, summarize:
 - Pass --schema if using a non-default workflow`;
 
   return {
-    name: 'projector-new-change',
-    description: 'Start a new Projector change using the experimental artifact workflow. Use when the user wants to create a new feature, fix, or modification with a structured step-by-step approach.',
-    instructions: replaceHardcodedDotProjectorPaths(rawInstructions, projectorDir)
+    name: 'spool-new-change',
+    description: 'Start a new Spool change using the experimental artifact workflow. Use when the user wants to create a new feature, fix, or modification with a structured step-by-step approach.',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
   };
 }
 
 /**
- * Template for projector-continue-change skill
+ * Template for spool-continue-change skill
  * Based on /opsx:continue command
  */
-export function getContinueChangeSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-continue-change',
-    description: 'Continue working on an Projector change by creating the next artifact. Use when the user wants to progress their change, create the next artifact, or continue their workflow.',
+    name: 'spool-continue-change',
+    description: 'Continue working on an Spool change by creating the next artifact. Use when the user wants to progress their change, create the next artifact, or continue their workflow.',
     instructions: `Continue working on a change by creating the next artifact.
 
 **Input**: Optionally specify a change name. If omitted, MUST prompt for available changes.
@@ -263,7 +263,7 @@ export function getContinueChangeSkillTemplate(projectorDir: string = '.projecto
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to work on.
+   Run \`spool list --json\` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to work on.
 
    Present the top 3-4 most recently modified changes as options, showing:
    - Change name
@@ -277,7 +277,7 @@ export function getContinueChangeSkillTemplate(projectorDir: string = '.projecto
 
 2. **Check current status**
    \`\`\`bash
-   projector status --change "<name>" --json
+   spool status --change "<name>" --json
    \`\`\`
    Parse the JSON to understand current state. The response includes:
    - \`schemaName\`: The workflow schema being used (e.g., "spec-driven", "tdd")
@@ -300,7 +300,7 @@ export function getContinueChangeSkillTemplate(projectorDir: string = '.projecto
    - Pick the FIRST artifact with \`status: "ready"\` from the status output
    - Get its instructions:
      \`\`\`bash
-     projector instructions <artifact-id> --change "<name>" --json
+     spool instructions <artifact-id> --change "<name>" --json
      \`\`\`
    - Parse the JSON to get template, dependencies, and what it unlocks
    - **Create the artifact file** using the template as a starting point:
@@ -318,7 +318,7 @@ export function getContinueChangeSkillTemplate(projectorDir: string = '.projecto
 
 4. **After creating an artifact, show progress**
    \`\`\`bash
-   projector status --change "<name>"
+   spool status --change "<name>"
    \`\`\`
 
 **Output**
@@ -362,14 +362,14 @@ For other schemas, follow the \`instruction\` field from the CLI output.
 }
 
 /**
- * Template for projector-apply-change skill
+ * Template for spool-apply-change skill
  * For implementing tasks from a completed (or in-progress) change
  */
-export function getApplyChangeSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getApplyChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-apply-change',
-    description: 'Implement tasks from an Projector change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
-    instructions: `Implement tasks from an Projector change.
+    name: 'spool-apply-change',
+    description: 'Implement tasks from an Spool change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
+    instructions: `Implement tasks from an Spool change.
 
 **Input**: Optionally specify a change name. If omitted, MUST prompt for available changes.
 
@@ -377,7 +377,7 @@ export function getApplyChangeSkillTemplate(projectorDir: string = '.projector')
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that are implementation-ready (have tasks artifact).
    Include the schema used for each change if available.
@@ -387,7 +387,7 @@ export function getApplyChangeSkillTemplate(projectorDir: string = '.projector')
 
 2. **Check status to understand the schema**
    \`\`\`bash
-   projector status --change "<name>" --json
+   spool status --change "<name>" --json
    \`\`\`
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used (e.g., "spec-driven", "tdd")
@@ -396,7 +396,7 @@ export function getApplyChangeSkillTemplate(projectorDir: string = '.projector')
 3. **Get apply instructions**
 
    \`\`\`bash
-   projector instructions apply --change "<name>" --json
+   spool instructions apply --change "<name>" --json
    \`\`\`
 
    This returns:
@@ -406,7 +406,7 @@ export function getApplyChangeSkillTemplate(projectorDir: string = '.projector')
    - Dynamic instruction based on current state
 
    **Handle states:**
-   - If \`state: "blocked"\` (missing artifacts): show message, suggest using projector-continue-change
+   - If \`state: "blocked"\` (missing artifacts): show message, suggest using spool-continue-change
    - If \`state: "all_done"\`: congratulate, suggest archive
    - Otherwise: proceed to implementation
 
@@ -520,13 +520,13 @@ This skill supports the "actions on a change" model:
 }
 
 /**
- * Template for projector-ff-change skill
+ * Template for spool-ff-change skill
  * Fast-forward through artifact creation
  */
-export function getFfChangeSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-ff-change',
-    description: 'Fast-forward through Projector artifact creation. Use when the user wants to quickly create all artifacts needed for implementation without stepping through each one individually.',
+    name: 'spool-ff-change',
+    description: 'Fast-forward through Spool artifact creation. Use when the user wants to quickly create all artifacts needed for implementation without stepping through each one individually.',
     instructions: `Fast-forward through artifact creation - generate everything needed to start implementation in one go.
 
 **Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
@@ -544,13 +544,13 @@ export function getFfChangeSkillTemplate(projectorDir: string = '.projector'): S
 
 2. **Create the change directory**
    \`\`\`bash
-   projector new change "<name>"
+   spool new change "<name>"
    \`\`\`
-   This creates a scaffolded change at \`.projector/changes/<name>/\`.
+   This creates a scaffolded change at \`.spool/changes/<name>/\`.
 
 3. **Get the artifact build order**
    \`\`\`bash
-   projector status --change "<name>" --json
+   spool status --change "<name>" --json
    \`\`\`
    Parse the JSON to get:
    - \`applyRequires\`: array of artifact IDs needed before implementation (e.g., \`["tasks"]\`)
@@ -565,7 +565,7 @@ export function getFfChangeSkillTemplate(projectorDir: string = '.projector'): S
    a. **For each artifact that is \`ready\` (dependencies satisfied)**:
       - Get instructions:
         \`\`\`bash
-        projector instructions <artifact-id> --change "<name>" --json
+        spool instructions <artifact-id> --change "<name>" --json
         \`\`\`
       - The instructions JSON includes:
         - \`template\`: The template content to use
@@ -577,7 +577,7 @@ export function getFfChangeSkillTemplate(projectorDir: string = '.projector'): S
       - Show brief progress: "✓ Created <artifact-id>"
 
    b. **Continue until all \`applyRequires\` artifacts are complete**
-      - After creating each artifact, re-run \`projector status --change "<name>" --json\`
+      - After creating each artifact, re-run \`spool status --change "<name>" --json\`
       - Check if every artifact ID in \`applyRequires\` has \`status: "done"\` in the artifacts array
       - Stop when all \`applyRequires\` artifacts are done
 
@@ -587,7 +587,7 @@ export function getFfChangeSkillTemplate(projectorDir: string = '.projector'): S
 
 5. **Show final status**
    \`\`\`bash
-   projector status --change "<name>"
+   spool status --change "<name>"
    \`\`\`
 
 **Output**
@@ -600,7 +600,7 @@ After completing all artifacts, summarize:
 
 **Artifact Creation Guidelines**
 
-- Follow the \`instruction\` field from \`projector instructions\` for each artifact type
+- Follow the \`instruction\` field from \`spool instructions\` for each artifact type
 - The schema defines what each artifact should contain - follow it
 - Read dependency artifacts for context before creating new ones
 - Use the \`template\` as a starting point, filling in based on context
@@ -615,12 +615,12 @@ After completing all artifacts, summarize:
 }
 
 /**
- * Template for projector-sync-specs skill
+ * Template for spool-sync-specs skill
  * For syncing delta specs from a change to main specs (agent-driven)
  */
-export function getSyncSpecsSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getSyncSpecsSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-sync-specs',
+    name: 'spool-sync-specs',
     description: 'Sync delta specs from a change to main specs. Use when the user wants to update main specs with changes from a delta spec, without archiving the change.',
     instructions: `Sync delta specs from a change to main specs.
 
@@ -632,7 +632,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that have delta specs (under \`specs/\` directory).
 
@@ -640,7 +640,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 2. **Find delta specs**
 
-   Look for delta spec files in \`.projector/changes/<name>/specs/*/spec.md\`.
+   Look for delta spec files in \`.spool/changes/<name>/specs/*/spec.md\`.
 
    Each delta spec file contains sections like:
    - \`## ADDED Requirements\` - New requirements to add
@@ -652,11 +652,11 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 3. **For each delta spec, apply changes to main specs**
 
-   For each capability with a delta spec at \`.projector/changes/<name>/specs/<capability>/spec.md\`:
+   For each capability with a delta spec at \`.spool/changes/<name>/specs/<capability>/spec.md\`:
 
    a. **Read the delta spec** to understand the intended changes
 
-   b. **Read the main spec** at \`.projector/specs/<capability>/spec.md\` (may not exist yet)
+   b. **Read the main spec** at \`.spool/specs/<capability>/spec.md\` (may not exist yet)
 
    c. **Apply changes intelligently**:
 
@@ -679,7 +679,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
       - Find the FROM requirement, rename to TO
 
    d. **Create new main spec** if capability doesn't exist yet:
-      - Create \`.projector/specs/<capability>/spec.md\`
+      - Create \`.spool/specs/<capability>/spec.md\`
       - Add Purpose section (can be brief, mark as TBD)
       - Add Requirements section with the ADDED requirements
 
@@ -753,18 +753,18 @@ Main specs are now updated. The change remains active - archive when implementat
 }
 
 // -----------------------------------------------------------------------------
-// Core Projector Workflow Skills
+// Core Spool Workflow Skills
 // -----------------------------------------------------------------------------
 
 /**
- * Template for projector-proposal skill
- * Creates and manages Projector change proposals
+ * Template for spool-proposal skill
+ * Creates and manages Spool change proposals
  */
-export function getProposalSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-proposal',
-    description: 'Create and manage Projector change proposals. Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
-    instructions: `Create and manage Projector change proposals using the spec-driven workflow.
+    name: 'spool-proposal',
+    description: 'Create and manage Spool change proposals. Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
+    instructions: `Create and manage Spool change proposals using the spec-driven workflow.
 
 **Input**: The user's request for a change they want to make to the project.
 
@@ -777,21 +777,21 @@ export function getProposalSkillTemplate(projectorDir: string = '.projector'): S
 
 2. **Check for existing changes**
    \`\`\`bash
-   projector list --json
+   spool list --json
    \`\`\`
    - If a similar change exists, suggest continuing that instead
    - Otherwise, proceed with creating a new proposal
 
 3. **Create the change directory**
    \`\`\`bash
-   projector new change "<name>"
+   spool new change "<name>"
    \`\`\`
    - Use a kebab-case name derived from the user's request
-   - This creates the scaffolded structure at \`.projector/changes/<name>/\`
+   - This creates the scaffolded structure at \`.spool/changes/<name>/\`
 
 4. **Create the proposal artifact**
    \`\`\`bash
-   projector instructions proposal --change "<name>"
+   spool instructions proposal --change "<name>"
    \`\`\`
    - Get the template and context for creating the proposal.md
    - Read the template and fill it out based on the user's request:
@@ -802,7 +802,7 @@ export function getProposalSkillTemplate(projectorDir: string = '.projector'): S
 
 5. **Show the proposal status**
    \`\`\`bash
-   projector status --change "<name>"
+   spool status --change "<name>"
    \`\`\`
    - Show that proposal is complete
    - Indicate what's next (specs need to be created)
@@ -831,11 +831,11 @@ After completing the proposal, summarize:
 }
 
 /**
- * Template for projector-apply skill
+ * Template for spool-apply skill
  * Implements tasks from completed change proposals
  */
-export function getApplySkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
-  const rawInstructions = `Implement tasks from a completed Projector change proposal.
+export function getApplySkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
+  const rawInstructions = `Implement tasks from a completed Spool change proposal.
 
 **Input**: Optionally specify a change name. If omitted, MUST prompt for available changes.
 
@@ -843,7 +843,7 @@ export function getApplySkillTemplate(projectorDir: string = '.projector'): Skil
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that are implementation-ready (have tasks artifact and all required artifacts).
    Mark recently modified changes as "(Recent)".
@@ -852,14 +852,14 @@ export function getApplySkillTemplate(projectorDir: string = '.projector'): Skil
 
 2. **Check change is ready for implementation**
    \`\`\`bash
-   projector status --change "<name>" --json
+   spool status --change "<name>" --json
    \`\`\`
    - Verify all required artifacts are complete (proposal, specs, design, tasks)
-   - If artifacts are missing, suggest using \`projector-continue-change\` first
+   - If artifacts are missing, suggest using \`spool-continue-change\` first
 
 3. **Get implementation context**
    \`\`\`bash
-   projector instructions apply --change "<name>" --json
+   spool instructions apply --change "<name>" --json
    \`\`\`
    - This returns context files, task list, and progress
    - Parse the JSON to understand the current state
@@ -893,7 +893,7 @@ export function getApplySkillTemplate(projectorDir: string = '.projector'): Skil
 
 7. **After completing tasks, validate**
    \`\`\`bash
-   projector validate --changes <name>
+   spool validate --changes <name>
    \`\`\`
    - Run validation to ensure the change meets all requirements
    - Fix any issues found during validation
@@ -926,7 +926,7 @@ Working on task 4/7: <task description>
 ...
 - [x] Task 7: <description>
 
-Ready to archive this change with: \`projector archive <name>\`
+Ready to archive this change with: \`spool archive <name>\`
 \`\`\`
 
 **Guardrails**
@@ -938,19 +938,19 @@ Ready to archive this change with: \`projector archive <name>\`
 - Run validation before considering the change complete`;
 
   return {
-    name: 'projector-apply',
-    description: 'Implement tasks from a completed Projector change proposal. Use when the user wants to start coding or implementing an approved change.',
-    instructions: replaceHardcodedDotProjectorPaths(rawInstructions, projectorDir)
+    name: 'spool-apply',
+    description: 'Implement tasks from a completed Spool change proposal. Use when the user wants to start coding or implementing an approved change.',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
   };
 }
 
 /**
- * Template for projector-archive skill
+ * Template for spool-archive skill
  * Archives completed changes and updates main specs
  */
-export function getArchiveSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getArchiveSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-archive',
+    name: 'spool-archive',
     description: 'Archive a completed change and update main specifications. Use when the user has finished implementing and wants to integrate the change into the main codebase.',
     instructions: `Archive a completed change and update main specifications.
 
@@ -960,7 +960,7 @@ export function getArchiveSkillTemplate(projectorDir: string = '.projector'): Sk
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show completed changes (all artifacts done) that are ready for archiving.
    Mark recently completed changes as "(Recent)".
@@ -969,7 +969,7 @@ export function getArchiveSkillTemplate(projectorDir: string = '.projector'): Sk
 
 2. **Validate the change is ready**
    \`\`\`bash
-   projector validate --changes <name>
+   spool validate --changes <name>
    \`\`\`
    - Ensure all requirements are met
    - Check that implementation is complete
@@ -986,10 +986,10 @@ export function getArchiveSkillTemplate(projectorDir: string = '.projector'): Sk
 
 5. **Archive the change**
    \`\`\`bash
-   projector archive <name>
+   spool archive <name>
    \`\`\`
    - This will:
-     - Move change directory to \`.projector/changes/archive/\`
+     - Move change directory to \`.spool/changes/archive/\`
      - Update main specs with delta specs from the change
      - Update any relevant project documentation
 
@@ -1009,7 +1009,7 @@ export function getArchiveSkillTemplate(projectorDir: string = '.projector'): Sk
 - **<capability-1>**: Updated main spec with new requirements
 - **<capability-2>**: Added new scenarios to existing requirements
 
-**Archive Location:** .projector/changes/archive/<name>/
+**Archive Location:** .spool/changes/archive/<name>/
 
 **Next Steps:**
 - Commit the updated main specs
@@ -1030,7 +1030,7 @@ The change is now part of the main codebase specifications!
 - [ ] Tests are not passing
 
 **Recommended Actions:**
-1. Complete remaining tasks with \`projector-apply\`
+1. Complete remaining tasks with \`spool-apply\`
 2. Fix validation issues
 3. Run tests and ensure they pass
 4. Try archiving again
@@ -1047,14 +1047,14 @@ Ready to fix these issues, or want to review the change first?
 }
 
 /**
- * Template for projector-research skill
+ * Template for spool-research skill
  * Conducts research for new features or investigations
  */
-export function getResearchSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getResearchSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-research',
+    name: 'spool-research',
     description: 'Conduct structured research for feature development, technology evaluation, or problem investigation. Use when the user needs to explore options, analyze trade-offs, or investigate technical approaches.',
-    instructions: `Conduct structured research using Projector's research framework.
+    instructions: `Conduct structured research using Spool's research framework.
 
 **Input**: The research topic or question the user wants to investigate.
 
@@ -1068,7 +1068,7 @@ export function getResearchSkillTemplate(projectorDir: string = '.projector'): S
 2. **Initialize research structure**
    \`\`\`bash
    # Create research directory if it doesn't exist
-   mkdir -p .projector/research/investigations
+   mkdir -p .spool/research/investigations
    \`\`\`
    - Create a research directory structure
    - Set up files for different research aspects
@@ -1103,7 +1103,7 @@ export function getResearchSkillTemplate(projectorDir: string = '.projector'): S
    - Plan mitigation strategies
 
 5. **Document findings**
-   Create structured documentation in \`.projector/research/\`:
+   Create structured documentation in \`.spool/research/\`:
    - \`SUMMARY.md\`: Executive summary and recommendations
    - \`investigations/stack-analysis.md\`: Technology stack evaluation
    - \`investigations/feature-landscape.md\`: Solution survey
@@ -1140,11 +1140,11 @@ export function getResearchSkillTemplate(projectorDir: string = '.projector'): S
 3. <third step to take>
 
 **Research Files Created:**
-- .projector/research/SUMMARY.md
-- .projector/research/investigations/stack-analysis.md
-- .projector/research/investigations/feature-landscape.md
-- .projector/research/investigations/architecture.md
-- .projector/research/investigations/pitfalls.md
+- .spool/research/SUMMARY.md
+- .spool/research/investigations/stack-analysis.md
+- .spool/research/investigations/feature-landscape.md
+- .spool/research/investigations/architecture.md
+- .spool/research/investigations/pitfalls.md
 \`\`\`
 
 **Guardrails**
@@ -1157,14 +1157,14 @@ export function getResearchSkillTemplate(projectorDir: string = '.projector'): S
 }
 
 /**
- * Template for projector-review skill
+ * Template for spool-review skill
  * Reviews and validates changes, specs, or implementations
  */
-export function getReviewSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getReviewSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-review',
-    description: 'Review and validate Projector changes, specs, or implementations. Use when the user wants a quality check, code review, or validation of project artifacts.',
-    instructions: `Conduct comprehensive review of Projector artifacts, code changes, or specifications.
+    name: 'spool-review',
+    description: 'Review and validate Spool changes, specs, or implementations. Use when the user wants a quality check, code review, or validation of project artifacts.',
+    instructions: `Conduct comprehensive review of Spool artifacts, code changes, or specifications.
 
 **Input**: What to review (change name, spec name, or specific code/files).
 
@@ -1179,7 +1179,7 @@ export function getReviewSkillTemplate(projectorDir: string = '.projector'): Ski
 
    **For Changes:**
    \`\`\`bash
-   projector validate --changes <name> --strict --json
+   spool validate --changes <name> --strict --json
    \`\`\`
    - Run structured validation on the change
    - Check all artifacts are complete and consistent
@@ -1187,7 +1187,7 @@ export function getReviewSkillTemplate(projectorDir: string = '.projector'): Ski
 
    **For Specs:**
    \`\`\`bash
-   projector validate --specs <name> --strict --json
+   spool validate --specs <name> --strict --json
    \`\`\`
    - Validate spec format and completeness
    - Check requirements are properly structured
@@ -1202,7 +1202,7 @@ export function getReviewSkillTemplate(projectorDir: string = '.projector'): Ski
 
    **Structure Review:**
    - Check all required sections are present
-   - Verify format follows Projector conventions
+   - Verify format follows Spool conventions
    - Ensure cross-references are correct
 
    **Content Review:**
@@ -1270,7 +1270,7 @@ export function getReviewSkillTemplate(projectorDir: string = '.projector'): Ski
 2. <secondary recommendation>
 3. <suggestion for next steps>
 
-**Validation Command:** \`projector validate <type> <name>\`
+**Validation Command:** \`spool validate <type> <name>\`
 \`\`\`
 
 **Guardrails**
@@ -1374,15 +1374,15 @@ Depending on what the user brings, you might:
 
 ---
 
-## Projector Awareness
+## Spool Awareness
 
-You have full context of the Projector system. Use it naturally, don't force it.
+You have full context of the Spool system. Use it naturally, don't force it.
 
 ### Check for context
 
 At the start, quickly check what exists:
 \`\`\`bash
-projector list --json
+spool list --json
 \`\`\`
 
 This tells you:
@@ -1405,9 +1405,9 @@ Think freely. When insights crystallize, you might offer:
 If the user mentions a change or you detect one is relevant:
 
 1. **Read existing artifacts for context**
-   - \`.projector/changes/<name>/proposal.md\`
-   - \`.projector/changes/<name>/design.md\`
-   - \`.projector/changes/<name>/tasks.md\`
+   - \`.spool/changes/<name>/proposal.md\`
+   - \`.spool/changes/<name>/design.md\`
+   - \`.spool/changes/<name>/tasks.md\`
    - etc.
 
 2. **Reference them naturally in conversation**
@@ -1501,27 +1501,27 @@ export function getOpsxNewCommandTemplate(): CommandTemplate {
    **Use a different schema only if the user mentions:**
    - "tdd" or "test-driven" → use \`--schema tdd\`
    - A specific schema name → use \`--schema <name>\`
-   - "show workflows" or "what workflows" → run \`projector schemas --json\` and let them choose
+   - "show workflows" or "what workflows" → run \`spool schemas --json\` and let them choose
 
    **Otherwise**: Omit \`--schema\` to use the default.
 
 3. **Create the change directory**
    \`\`\`bash
-   projector new change "<name>"
+   spool new change "<name>"
    \`\`\`
    Add \`--schema <name>\` only if the user requested a specific workflow.
-   This creates a scaffolded change at \`.projector/changes/<name>/\` with the selected schema.
+   This creates a scaffolded change at \`.spool/changes/<name>/\` with the selected schema.
 
 4. **Show the artifact status**
    \`\`\`bash
-   projector status --change "<name>"
+   spool status --change "<name>"
    \`\`\`
    This shows which artifacts need to be created and which are ready (dependencies satisfied).
 
 5. **Get instructions for the first artifact**
    The first artifact depends on the schema. Check the status output to find the first artifact with status "ready".
    \`\`\`bash
-   projector instructions <first-artifact-id> --change "<name>"
+   spool instructions <first-artifact-id> --change "<name>"
    \`\`\`
    This outputs the template and context for creating the first artifact.
 
@@ -1562,7 +1562,7 @@ export function getOpsxContinueCommandTemplate(): CommandTemplate {
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to work on.
+   Run \`spool list --json\` to get available changes sorted by most recently modified. Then use the **AskUserQuestion tool** to let the user select which change to work on.
 
    Present the top 3-4 most recently modified changes as options, showing:
    - Change name
@@ -1576,7 +1576,7 @@ export function getOpsxContinueCommandTemplate(): CommandTemplate {
 
 2. **Check current status**
    \`\`\`bash
-   projector status --change "<name>" --json
+   spool status --change "<name>" --json
    \`\`\`
    Parse the JSON to understand current state. The response includes:
    - \`schemaName\`: The workflow schema being used (e.g., "spec-driven", "tdd")
@@ -1599,7 +1599,7 @@ export function getOpsxContinueCommandTemplate(): CommandTemplate {
    - Pick the FIRST artifact with \`status: "ready"\` from the status output
    - Get its instructions:
      \`\`\`bash
-     projector instructions <artifact-id> --change "<name>" --json
+     spool instructions <artifact-id> --change "<name>" --json
      \`\`\`
    - Parse the JSON to get template, dependencies, and what it unlocks
    - **Create the artifact file** using the template as a starting point:
@@ -1617,7 +1617,7 @@ export function getOpsxContinueCommandTemplate(): CommandTemplate {
 
 4. **After creating an artifact, show progress**
    \`\`\`bash
-   projector status --change "<name>"
+   spool status --change "<name>"
    \`\`\`
 
 **Output**
@@ -1666,10 +1666,10 @@ For other schemas, follow the \`instruction\` field from the CLI output.
 export function getOpsxApplyCommandTemplate(): CommandTemplate {
   return {
     name: 'OPSX: Apply',
-    description: 'Implement tasks from an Projector change (Experimental)',
+    description: 'Implement tasks from an Spool change (Experimental)',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Implement tasks from an Projector change.
+    content: `Implement tasks from an Spool change.
 
 **Input**: Optionally specify \`--change <name>\` after \`/opsx:apply\`. If omitted, MUST prompt for available changes.
 
@@ -1677,7 +1677,7 @@ export function getOpsxApplyCommandTemplate(): CommandTemplate {
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that are implementation-ready (have tasks artifact).
    Include the schema used for each change if available.
@@ -1687,7 +1687,7 @@ export function getOpsxApplyCommandTemplate(): CommandTemplate {
 
 2. **Check status to understand the schema**
    \`\`\`bash
-   projector status --change "<name>" --json
+   spool status --change "<name>" --json
    \`\`\`
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used (e.g., "spec-driven", "tdd")
@@ -1696,7 +1696,7 @@ export function getOpsxApplyCommandTemplate(): CommandTemplate {
 3. **Get apply instructions**
 
    \`\`\`bash
-   projector instructions apply --change "<name>" --json
+   spool instructions apply --change "<name>" --json
    \`\`\`
 
    This returns:
@@ -1846,13 +1846,13 @@ export function getOpsxFfCommandTemplate(): CommandTemplate {
 
 2. **Create the change directory**
    \`\`\`bash
-   projector new change "<name>"
+   spool new change "<name>"
    \`\`\`
-   This creates a scaffolded change at \`.projector/changes/<name>/\`.
+   This creates a scaffolded change at \`.spool/changes/<name>/\`.
 
 3. **Get the artifact build order**
    \`\`\`bash
-   projector status --change "<name>" --json
+   spool status --change "<name>" --json
    \`\`\`
    Parse the JSON to get:
    - \`applyRequires\`: array of artifact IDs needed before implementation (e.g., \`["tasks"]\`)
@@ -1867,7 +1867,7 @@ export function getOpsxFfCommandTemplate(): CommandTemplate {
    a. **For each artifact that is \`ready\` (dependencies satisfied)**:
       - Get instructions:
         \`\`\`bash
-        projector instructions <artifact-id> --change "<name>" --json
+        spool instructions <artifact-id> --change "<name>" --json
         \`\`\`
       - The instructions JSON includes:
         - \`template\`: The template content to use
@@ -1879,7 +1879,7 @@ export function getOpsxFfCommandTemplate(): CommandTemplate {
       - Show brief progress: "✓ Created <artifact-id>"
 
    b. **Continue until all \`applyRequires\` artifacts are complete**
-      - After creating each artifact, re-run \`projector status --change "<name>" --json\`
+      - After creating each artifact, re-run \`spool status --change "<name>" --json\`
       - Check if every artifact ID in \`applyRequires\` has \`status: "done"\` in the artifacts array
       - Stop when all \`applyRequires\` artifacts are done
 
@@ -1889,7 +1889,7 @@ export function getOpsxFfCommandTemplate(): CommandTemplate {
 
 5. **Show final status**
    \`\`\`bash
-   projector status --change "<name>"
+   spool status --change "<name>"
    \`\`\`
 
 **Output**
@@ -1902,7 +1902,7 @@ After completing all artifacts, summarize:
 
 **Artifact Creation Guidelines**
 
-- Follow the \`instruction\` field from \`projector instructions\` for each artifact type
+- Follow the \`instruction\` field from \`spool instructions\` for each artifact type
 - The schema defines what each artifact should contain - follow it
 - Read dependency artifacts for context before creating new ones
 - Use the \`template\` as a starting point, filling in based on context
@@ -1917,12 +1917,12 @@ After completing all artifacts, summarize:
 }
 
 /**
- * Template for projector-archive-change skill
+ * Template for spool-archive-change skill
  * For archiving completed changes in the experimental workflow
  */
-export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector'): SkillTemplate {
+export function getArchiveChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
-    name: 'projector-archive-change',
+    name: 'spool-archive-change',
     description: 'Archive a completed change in the experimental workflow. Use when the user wants to finalize and archive a change after implementation is complete.',
     instructions: `Archive a completed change in the experimental workflow.
 
@@ -1932,7 +1932,7 @@ export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show only active changes (not already archived).
    Include the schema used for each change if available.
@@ -1941,7 +1941,7 @@ export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector
 
 2. **Check artifact completion status**
 
-   Run \`projector status --change "<name>" --json\` to check artifact completion.
+   Run \`spool status --change "<name>" --json\` to check artifact completion.
 
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used
@@ -1971,11 +1971,11 @@ export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector
 
    **If delta specs exist, perform a quick sync check:**
 
-   a. **For each delta spec** at \`.projector/changes/<name>/specs/<capability>/spec.md\`:
+   a. **For each delta spec** at \`.spool/changes/<name>/specs/<capability>/spec.md\`:
       - Extract requirement names (lines matching \`### Requirement: <name>\`)
       - Note which sections exist (ADDED, MODIFIED, REMOVED)
 
-   b. **Check corresponding main spec** at \`.projector/specs/<capability>/spec.md\`:
+   b. **Check corresponding main spec** at \`.spool/specs/<capability>/spec.md\`:
       - If main spec doesn't exist → needs sync
       - If main spec exists, check if ADDED requirement names appear in it
       - If any ADDED requirements are missing from main spec → needs sync
@@ -1991,7 +1991,7 @@ export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector
       Would you like to sync now before archiving?
       \`\`\`
       - Use **AskUserQuestion tool** with options: "Sync now", "Archive without syncing"
-      - If user chooses sync, execute /opsx:sync logic (use the projector-sync-specs skill)
+      - If user chooses sync, execute /opsx:sync logic (use the spool-sync-specs skill)
 
       **If already synced (all requirements found):**
       - Proceed without prompting (specs appear to be in sync)
@@ -2002,7 +2002,7 @@ export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector
 
    Create the archive directory if it doesn't exist:
    \`\`\`bash
-   mkdir -p .projector/changes/archive
+   mkdir -p .spool/changes/archive
    \`\`\`
 
    Generate target name using current date: \`YYYY-MM-DD-<change-name>\`
@@ -2012,7 +2012,7 @@ export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector
    - If no: Move the change directory to archive
 
    \`\`\`bash
-   mv .projector/changes/<name> .projector/changes/archive/YYYY-MM-DD-<name>
+   mv .spool/changes/<name> .spool/changes/archive/YYYY-MM-DD-<name>
    \`\`\`
 
 6. **Display summary**
@@ -2031,7 +2031,7 @@ export function getArchiveChangeSkillTemplate(projectorDir: string = '.projector
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** .projector/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** .spool/changes/archive/YYYY-MM-DD-<name>/
 **Specs:** ✓ Synced to main specs (or "No delta specs" or "⚠️ Not synced")
 
 All artifacts complete. All tasks complete.
@@ -2039,11 +2039,11 @@ All artifacts complete. All tasks complete.
 
 **Guardrails**
 - Always prompt for change selection if not provided
-- Use artifact graph (projector status --json) for completion checking
+- Use artifact graph (spool status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
-- Preserve .projector.yaml when moving to archive (it moves with the directory)
+- Preserve .spool.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
-- If sync is requested, use projector-sync-specs approach (agent-driven)
+- If sync is requested, use spool-sync-specs approach (agent-driven)
 - Quick sync check: look for requirement names in delta specs, verify they exist in main specs`
   };
 }
@@ -2067,7 +2067,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that have delta specs (under \`specs/\` directory).
 
@@ -2075,7 +2075,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 2. **Find delta specs**
 
-   Look for delta spec files in \`.projector/changes/<name>/specs/*/spec.md\`.
+   Look for delta spec files in \`.spool/changes/<name>/specs/*/spec.md\`.
 
    Each delta spec file contains sections like:
    - \`## ADDED Requirements\` - New requirements to add
@@ -2087,11 +2087,11 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 3. **For each delta spec, apply changes to main specs**
 
-   For each capability with a delta spec at \`.projector/changes/<name>/specs/<capability>/spec.md\`:
+   For each capability with a delta spec at \`.spool/changes/<name>/specs/<capability>/spec.md\`:
 
    a. **Read the delta spec** to understand the intended changes
 
-   b. **Read the main spec** at \`.projector/specs/<capability>/spec.md\` (may not exist yet)
+   b. **Read the main spec** at \`.spool/specs/<capability>/spec.md\` (may not exist yet)
 
    c. **Apply changes intelligently**:
 
@@ -2114,7 +2114,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
       - Find the FROM requirement, rename to TO
 
    d. **Create new main spec** if capability doesn't exist yet:
-      - Create \`.projector/specs/<capability>/spec.md\`
+      - Create \`.spool/specs/<capability>/spec.md\`
       - Add Purpose section (can be brief, mark as TBD)
       - Add Requirements section with the ADDED requirements
 
@@ -2204,7 +2204,7 @@ export function getOpsxArchiveCommandTemplate(): CommandTemplate {
 
 1. **If no change name provided, prompt for selection**
 
-   Run \`projector list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run \`spool list --json\` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show only active changes (not already archived).
    Include the schema used for each change if available.
@@ -2213,7 +2213,7 @@ export function getOpsxArchiveCommandTemplate(): CommandTemplate {
 
 2. **Check artifact completion status**
 
-   Run \`projector status --change "<name>" --json\` to check artifact completion.
+   Run \`spool status --change "<name>" --json\` to check artifact completion.
 
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used
@@ -2243,11 +2243,11 @@ export function getOpsxArchiveCommandTemplate(): CommandTemplate {
 
    **If delta specs exist, perform a quick sync check:**
 
-   a. **For each delta spec** at \`.projector/changes/<name>/specs/<capability>/spec.md\`:
+   a. **For each delta spec** at \`.spool/changes/<name>/specs/<capability>/spec.md\`:
       - Extract requirement names (lines matching \`### Requirement: <name>\`)
       - Note which sections exist (ADDED, MODIFIED, REMOVED)
 
-   b. **Check corresponding main spec** at \`.projector/specs/<capability>/spec.md\`:
+   b. **Check corresponding main spec** at \`.spool/specs/<capability>/spec.md\`:
       - If main spec doesn't exist → needs sync
       - If main spec exists, check if ADDED requirement names appear in it
       - If any ADDED requirements are missing from main spec → needs sync
@@ -2274,7 +2274,7 @@ export function getOpsxArchiveCommandTemplate(): CommandTemplate {
 
    Create the archive directory if it doesn't exist:
    \`\`\`bash
-   mkdir -p .projector/changes/archive
+   mkdir -p .spool/changes/archive
    \`\`\`
 
    Generate target name using current date: \`YYYY-MM-DD-<change-name>\`
@@ -2284,7 +2284,7 @@ export function getOpsxArchiveCommandTemplate(): CommandTemplate {
    - If no: Move the change directory to archive
 
    \`\`\`bash
-   mv .projector/changes/<name> .projector/changes/archive/YYYY-MM-DD-<name>
+   mv .spool/changes/<name> .spool/changes/archive/YYYY-MM-DD-<name>
    \`\`\`
 
 6. **Display summary**
@@ -2303,7 +2303,7 @@ export function getOpsxArchiveCommandTemplate(): CommandTemplate {
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** .projector/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** .spool/changes/archive/YYYY-MM-DD-<name>/
 **Specs:** ✓ Synced to main specs
 
 All artifacts complete. All tasks complete.
@@ -2316,7 +2316,7 @@ All artifacts complete. All tasks complete.
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** .projector/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** .spool/changes/archive/YYYY-MM-DD-<name>/
 **Specs:** No delta specs
 
 All artifacts complete. All tasks complete.
@@ -2329,7 +2329,7 @@ All artifacts complete. All tasks complete.
 
 **Change:** <change-name>
 **Schema:** <schema-name>
-**Archived to:** .projector/changes/archive/YYYY-MM-DD-<name>/
+**Archived to:** .spool/changes/archive/YYYY-MM-DD-<name>/
 **Specs:** ⚠️ Not synced
 
 **Warnings:**
@@ -2346,7 +2346,7 @@ Review the archive if this was not intentional.
 ## Archive Failed
 
 **Change:** <change-name>
-**Target:** .projector/changes/archive/YYYY-MM-DD-<name>/
+**Target:** .spool/changes/archive/YYYY-MM-DD-<name>/
 
 Target archive directory already exists.
 
@@ -2358,9 +2358,9 @@ Target archive directory already exists.
 
 **Guardrails**
 - Always prompt for change selection if not provided
-- Use artifact graph (projector status --json) for completion checking
+- Use artifact graph (spool status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
-- Preserve .projector.yaml when moving to archive (it moves with the directory)
+- Preserve .spool.yaml when moving to archive (it moves with the directory)
 - Quick sync check: look for requirement names in delta specs, verify they exist in main specs
 - Show clear summary of what happened
  - If sync is requested, use /opsx:sync approach (agent-driven)`

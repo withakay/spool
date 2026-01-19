@@ -9,7 +9,7 @@ describe('FileSystemUtils', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `projector-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `spool-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -258,46 +258,46 @@ describe('FileSystemUtils', () => {
     it('should join POSIX-style paths', () => {
       const result = FileSystemUtils.joinPath(
         '/tmp/project',
-        '.claude/commands/projector/proposal.md'
+        '.claude/commands/spool/proposal.md'
       );
-      expect(result).toBe('/tmp/project/.claude/commands/projector/proposal.md');
+      expect(result).toBe('/tmp/project/.claude/commands/spool/proposal.md');
     });
 
     it('should join Linux home directory paths', () => {
       const result = FileSystemUtils.joinPath(
-        '/home/dev/workspace/projector',
+        '/home/dev/workspace/spool',
         '.cursor/commands/install.md'
       );
-      expect(result).toBe('/home/dev/workspace/projector/.cursor/commands/install.md');
+      expect(result).toBe('/home/dev/workspace/spool/.cursor/commands/install.md');
     });
 
     it('should join Windows drive-letter paths with backslashes', () => {
       const result = FileSystemUtils.joinPath(
         'C:\\Users\\dev\\project',
-        '.claude/commands/projector/proposal.md'
+        '.claude/commands/spool/proposal.md'
       );
       expect(result).toBe(
-        'C:\\Users\\dev\\project\\.claude\\commands\\projector\\proposal.md'
+        'C:\\Users\\dev\\project\\.claude\\commands\\spool\\proposal.md'
       );
     });
 
     it('should join Windows paths that use forward slashes', () => {
       const result = FileSystemUtils.joinPath(
         'D:/workspace/app',
-        '.cursor/commands/projector-apply.md'
+        '.cursor/commands/spool-apply.md'
       );
       expect(result).toBe(
-        'D:\\workspace\\app\\.cursor\\commands\\projector-apply.md'
+        'D:\\workspace\\app\\.cursor\\commands\\spool-apply.md'
       );
     });
 
     it('should join UNC-style Windows paths', () => {
       const result = FileSystemUtils.joinPath(
         '\\server\\share\\repo',
-        '.windsurf/workflows/projector-archive.md'
+        '.windsurf/workflows/spool-archive.md'
       );
       expect(result).toBe(
-        '\\server\\share\\repo\\.windsurf\\workflows\\projector-archive.md'
+        '\\server\\share\\repo\\.windsurf\\workflows\\spool-archive.md'
       );
     });
   });

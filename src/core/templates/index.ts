@@ -2,13 +2,13 @@ import { agentsTemplate } from './agents-template.js';
 import { projectTemplate, ProjectContext } from './project-template.js';
 
 export interface TemplateContext {
-  projectorDir: string;
+  spoolDir: string;
 }
 
-export type ProjectorTemplateContext = ProjectContext & TemplateContext;
-export type ProjectorPlanningTemplateContext = PlanningContext & TemplateContext;
-export type ProjectorCommandTemplateContext = CommandContext & TemplateContext;
-export type ProjectorResearchTemplateContext = ResearchContext & TemplateContext;
+export type SpoolTemplateContext = ProjectContext & TemplateContext;
+export type SpoolPlanningTemplateContext = PlanningContext & TemplateContext;
+export type SpoolCommandTemplateContext = CommandContext & TemplateContext;
+export type SpoolResearchTemplateContext = ResearchContext & TemplateContext;
 import { claudeTemplate } from './claude-template.js';
 import { agentsRootStubTemplate } from './agents-root-stub.js';
 import { getSlashCommandBody, SlashCommandId } from './slash-command-templates.js';
@@ -52,16 +52,16 @@ export class TemplateManager {
     ];
   }
 
-  static getClaudeTemplate(context: { projectorDir: string } = { projectorDir: '.projector' }): string {
+  static getClaudeTemplate(context: { spoolDir: string } = { spoolDir: '.spool' }): string {
     return claudeTemplate(context);
   }
 
-  static getAgentsStandardTemplate(context: { projectorDir: string } = { projectorDir: '.projector' }): string {
+  static getAgentsStandardTemplate(context: { spoolDir: string } = { spoolDir: '.spool' }): string {
     return agentsRootStubTemplate(context);
   }
 
-  static getSlashCommandBody(id: SlashCommandId, projectorDir: string = '.projector'): string {
-    return getSlashCommandBody(id, projectorDir);
+  static getSlashCommandBody(id: SlashCommandId, spoolDir: string = '.spool'): string {
+    return getSlashCommandBody(id, spoolDir);
   }
 
   static getPlanningTemplates(context: PlanningContext = {}): Template[] {
@@ -121,16 +121,16 @@ export class TemplateManager {
   }
 
   static getCommandTemplates(context: CommandContext = {}): Template<CommandContext>[] {
-    const contextWithProjectorDir = { projectorDir: '.projector', ...context };
+    const contextWithSpoolDir = { spoolDir: '.spool', ...context };
     return (Object.keys(commandPrompts) as CommandPromptId[]).map((id) => ({
       path: `commands/${id}.md`,
-      content: commandPrompts[id](contextWithProjectorDir),
+      content: commandPrompts[id](contextWithSpoolDir),
     }));
   }
 
   static getCommandPrompt(id: CommandPromptId, context: CommandContext = {}): string {
-    const contextWithProjectorDir = { projectorDir: '.projector', ...context };
-    return commandPrompts[id](contextWithProjectorDir);
+    const contextWithSpoolDir = { spoolDir: '.spool', ...context };
+    return commandPrompts[id](contextWithSpoolDir);
   }
 
   static getCommandPromptDescription(id: CommandPromptId): string {

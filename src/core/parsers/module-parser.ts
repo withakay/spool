@@ -59,7 +59,7 @@ export class ModuleParser extends MarkdownParser {
       changes,
       metadata: {
         version: '1.0.0',
-        format: 'projector-module',
+        format: 'spool-module',
       },
     };
   }

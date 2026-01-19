@@ -8,7 +8,7 @@ describe('spec command', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-spec-command-tmp');
   const specsDir = getSpecsPath(testDir);
-  const projectorBin = path.join(projectRoot, 'bin', 'projector.js');
+  const spoolBin = path.join(projectRoot, 'bin', 'spool.js');
   
   
   beforeEach(async () => {
@@ -60,7 +60,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec show auth`, {
+        const output = execSync(`node ${spoolBin} spec show auth`, {
           encoding: 'utf-8'
         });
         
@@ -76,7 +76,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec show auth --json`, {
+        const output = execSync(`node ${spoolBin} spec show auth --json`, {
           encoding: 'utf-8'
         });
         
@@ -85,7 +85,7 @@ The system SHALL process credit card payments securely`;
         expect(json.title).toBe('auth');
         expect(json.overview).toContain('test specification');
         expect(json.requirements).toHaveLength(2);
-        expect(json.metadata.format).toBe('projector');
+        expect(json.metadata.format).toBe('spool');
       } finally {
         process.chdir(originalCwd);
       }
@@ -95,7 +95,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec show auth --json --requirements`, {
+        const output = execSync(`node ${spoolBin} spec show auth --json --requirements`, {
           encoding: 'utf-8'
         });
         
@@ -112,7 +112,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec show auth --json --no-scenarios`, {
+        const output = execSync(`node ${spoolBin} spec show auth --json --no-scenarios`, {
           encoding: 'utf-8'
         });
         
@@ -128,7 +128,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec show auth --json -r 1`, {
+        const output = execSync(`node ${spoolBin} spec show auth --json -r 1`, {
           encoding: 'utf-8'
         });
         
@@ -144,7 +144,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec show auth --json --no-scenarios`, {
+        const output = execSync(`node ${spoolBin} spec show auth --json --no-scenarios`, {
           encoding: 'utf-8'
         });
         
@@ -162,7 +162,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec list`, {
+        const output = execSync(`node ${spoolBin} spec list`, {
           encoding: 'utf-8'
         });
         
@@ -179,7 +179,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec list --json`, {
+        const output = execSync(`node ${spoolBin} spec list --json`, {
           encoding: 'utf-8'
         });
         
@@ -199,7 +199,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec validate auth`, {
+        const output = execSync(`node ${spoolBin} spec validate auth`, {
           encoding: 'utf-8'
         });
         
@@ -213,7 +213,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec validate auth --json`, {
+        const output = execSync(`node ${spoolBin} spec validate auth --json`, {
           encoding: 'utf-8'
         });
         
@@ -232,7 +232,7 @@ The system SHALL process credit card payments securely`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec validate auth --strict --json`, {
+        const output = execSync(`node ${spoolBin} spec validate auth --strict --json`, {
           encoding: 'utf-8'
         });
         
@@ -260,7 +260,7 @@ This section has no actual requirements`;
         // This should exit with non-zero code
         let exitCode = 0;
         try {
-          execSync(`node ${projectorBin} spec validate invalid`, {
+          execSync(`node ${spoolBin} spec validate invalid`, {
             encoding: 'utf-8'
           });
         } catch (error: any) {
@@ -282,7 +282,7 @@ This section has no actual requirements`;
         
         let error: any;
         try {
-          execSync(`node ${projectorBin} spec show nonexistent`, {
+          execSync(`node ${spoolBin} spec show nonexistent`, {
             encoding: 'utf-8'
           });
         } catch (e) {
@@ -302,7 +302,7 @@ This section has no actual requirements`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} spec list`, { encoding: 'utf-8' });
+        const output = execSync(`node ${spoolBin} spec list`, { encoding: 'utf-8' });
         expect(output.trim()).toBe('No items found');
       } finally {
         process.chdir(originalCwd);
@@ -313,7 +313,7 @@ This section has no actual requirements`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${projectorBin} --no-color spec list --long`, { encoding: 'utf-8' });
+        const output = execSync(`node ${spoolBin} --no-color spec list --long`, { encoding: 'utf-8' });
         // Basic ANSI escape pattern
         const hasAnsi = /\u001b\[[0-9;]*m/.test(output);
         expect(hasAnsi).toBe(false);

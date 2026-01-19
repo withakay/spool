@@ -1,38 +1,38 @@
 /**
- * Path normalization utilities for Projector directory handling
+ * Path normalization utilities for Spool directory handling
  */
 
 /**
- * Normalizes a projector directory name to ensure it starts with a dot.
+ * Normalizes a spool directory name to ensure it starts with a dot.
  * 
- * @param projectorDir - The projector directory name (e.g., '.projector', 'my-projector')
- * @returns The normalized directory name starting with a dot (e.g., '.projector', '.my-projector')
+ * @param spoolDir - The spool directory name (e.g., '.spool', 'my-spool')
+ * @returns The normalized directory name starting with a dot (e.g., '.spool', '.my-spool')
  */
-export function normalizeProjectorDir(projectorDir: string): string {
-  return projectorDir.startsWith('.') ? projectorDir : `.${projectorDir}`;
+export function normalizeSpoolDir(spoolDir: string): string {
+  return spoolDir.startsWith('.') ? spoolDir : `.${spoolDir}`;
 }
 
 /**
- * Replaces hardcoded 'projector/' paths in text with the configured projector directory.
+ * Replaces hardcoded 'spool/' paths in text with the configured spool directory.
  * 
- * @param text - The text containing potentially hardcoded 'projector/' paths
- * @param projectorDir - The configured projector directory name
- * @returns The text with all 'projector/' paths replaced with the normalized projector directory
+ * @param text - The text containing potentially hardcoded 'spool/' paths
+ * @param spoolDir - The configured spool directory name
+ * @returns The text with all 'spool/' paths replaced with the normalized spool directory
  */
-export function replaceHardcodedProjectorPaths(text: string, projectorDir: string = '.projector'): string {
-  const normalizedDir = normalizeProjectorDir(projectorDir);
-  return text.replace(/projector\//g, `${normalizedDir}/`);
+export function replaceHardcodedSpoolPaths(text: string, spoolDir: string = '.spool'): string {
+  const normalizedDir = normalizeSpoolDir(spoolDir);
+  return text.replace(/spool\//g, `${normalizedDir}/`);
 }
 
 /**
- * Replaces hardcoded '.projector/' paths in text with the configured projector directory.
- * This handles cases where the template already has '.projector/' and needs it replaced.
+ * Replaces hardcoded '.spool/' paths in text with the configured spool directory.
+ * This handles cases where the template already has '.spool/' and needs it replaced.
  * 
- * @param text - The text containing potentially hardcoded '.projector/' paths
- * @param projectorDir - The configured projector directory name
- * @returns The text with all '.projector/' paths replaced with the normalized projector directory
+ * @param text - The text containing potentially hardcoded '.spool/' paths
+ * @param spoolDir - The configured spool directory name
+ * @returns The text with all '.spool/' paths replaced with the normalized spool directory
  */
-export function replaceHardcodedDotProjectorPaths(text: string, projectorDir: string = '.projector'): string {
-  const normalizedDir = normalizeProjectorDir(projectorDir);
-  return text.replace(/\.projector\//g, `${normalizedDir}/`);
+export function replaceHardcodedDotSpoolPaths(text: string, spoolDir: string = '.spool'): string {
+  const normalizedDir = normalizeSpoolDir(spoolDir);
+  return text.replace(/\.spool\//g, `${normalizedDir}/`);
 }

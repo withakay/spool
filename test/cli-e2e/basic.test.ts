@@ -17,7 +17,7 @@ async function fileExists(filePath: string): Promise<boolean> {
 const tempRoots: string[] = [];
 
 async function prepareFixture(fixtureName: string): Promise<string> {
-  const base = await fs.mkdtemp(path.join(tmpdir(), 'projector-cli-e2e-'));
+  const base = await fs.mkdtemp(path.join(tmpdir(), 'spool-cli-e2e-'));
   tempRoots.push(base);
   const projectDir = path.join(base, 'project');
   await fs.mkdir(projectDir, { recursive: true });
@@ -30,11 +30,11 @@ afterAll(async () => {
   await Promise.all(tempRoots.map((dir) => fs.rm(dir, { recursive: true, force: true })));
 });
 
-describe('projector CLI e2e basics', () => {
+describe('spool CLI e2e basics', () => {
   it('shows help output', async () => {
     const result = await runCLI(['--help']);
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Usage: projector');
+    expect(result.stdout).toContain('Usage: spool');
     expect(result.stderr).toBe('');
 
   });
@@ -96,15 +96,15 @@ describe('projector CLI e2e basics', () => {
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         emptyProjectDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const codexProposal = path.join(
         emptyProjectDir,
-        '.codex/prompts/projector-proposal.md'
+        '.codex/prompts/spool-proposal.md'
       );
       const copilotProposal = path.join(
         emptyProjectDir,
-        '.github/prompts/projector-proposal.prompt.md'
+        '.github/prompts/spool-proposal.prompt.md'
       );
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(openCodeProposal)).toBe(true);
@@ -124,7 +124,7 @@ describe('projector CLI e2e basics', () => {
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         emptyProjectDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(openCodeProposal)).toBe(false); // Not selected
@@ -142,7 +142,7 @@ describe('projector CLI e2e basics', () => {
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         emptyProjectDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const rootAgentsPath = path.join(emptyProjectDir, 'AGENTS.md');
 

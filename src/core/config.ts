@@ -1,11 +1,11 @@
-export const PROJECTOR_DIR_NAME = '.projector';
+export const SPOOL_DIR_NAME = '.spool';
 
-export const PROJECTOR_MARKERS = {
-  start: '<!-- PROJECTOR:START -->',
-  end: '<!-- PROJECTOR:END -->'
+export const SPOOL_MARKERS = {
+  start: '<!-- SPOOL:START -->',
+  end: '<!-- SPOOL:END -->'
 };
 
-export interface ProjectorConfig {
+export interface SpoolConfig {
   aiTools: string[];
 }
 

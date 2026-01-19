@@ -2,8 +2,8 @@ import { CompletionGenerator, CommandDefinition, FlagDefinition } from '../types
 import { ZSH_DYNAMIC_HELPERS } from '../templates/zsh-templates.js';
 
 /**
- * Generates Zsh completion scripts for the Projector CLI.
- * Follows Zsh completion system conventions using the _projector function.
+ * Generates Zsh completion scripts for the Spool CLI.
+ * Follows Zsh completion system conventions using the _spool function.
  */
 export class ZshGenerator implements CompletionGenerator {
   readonly shell = 'zsh' as const;
@@ -27,7 +27,7 @@ export class ZshGenerator implements CompletionGenerator {
     const commandCaseLines: string[] = [];
     for (const cmd of commands) {
       commandCaseLines.push(`        ${cmd.name})`);
-      commandCaseLines.push(`          _projector_${this.sanitizeFunctionName(cmd.name)}`);
+      commandCaseLines.push(`          _spool_${this.sanitizeFunctionName(cmd.name)}`);
       commandCaseLines.push('          ;;');
     }
     const commandCases = commandCaseLines.join('\n');
@@ -44,12 +44,12 @@ export class ZshGenerator implements CompletionGenerator {
     const helpers = ZSH_DYNAMIC_HELPERS;
 
     // Assemble final script with template literal
-    return `#compdef projector
+    return `#compdef spool
 
-# Zsh completion script for Projector CLI
+# Zsh completion script for Spool CLI
 # Auto-generated - do not edit manually
 
-_projector() {
+_spool() {
   local context state line
   typeset -A opt_args
 
@@ -64,7 +64,7 @@ ${commandList}
 
   case $state in
     command)
-      _describe "projector command" commands
+      _describe "spool command" commands
       ;;
     args)
       case $words[1] in
@@ -76,7 +76,7 @@ ${commandCases}
 
 ${commandFunctions}
 ${helpers}
-compdef _projector projector
+compdef _spool spool
 `;
   }
 
@@ -84,7 +84,7 @@ compdef _projector projector
    * Generate completion function for a specific command
    */
   private generateCommandFunction(cmd: CommandDefinition): string[] {
-    const funcName = `_projector_${this.sanitizeFunctionName(cmd.name)}`;
+    const funcName = `_spool_${this.sanitizeFunctionName(cmd.name)}`;
     const lines: string[] = [];
 
     lines.push(`${funcName}() {`);
@@ -123,7 +123,7 @@ compdef _projector projector
 
       for (const subcmd of cmd.subcommands) {
         lines.push(`        ${subcmd.name})`);
-        lines.push(`          _projector_${this.sanitizeFunctionName(cmd.name)}_${this.sanitizeFunctionName(subcmd.name)}`);
+        lines.push(`          _spool_${this.sanitizeFunctionName(cmd.name)}_${this.sanitizeFunctionName(subcmd.name)}`);
         lines.push('          ;;');
       }
 
@@ -168,7 +168,7 @@ compdef _projector projector
    * Generate completion function for a subcommand
    */
   private generateSubcommandFunction(parentName: string, subcmd: CommandDefinition): string[] {
-    const funcName = `_projector_${this.sanitizeFunctionName(parentName)}_${this.sanitizeFunctionName(subcmd.name)}`;
+    const funcName = `_spool_${this.sanitizeFunctionName(parentName)}_${this.sanitizeFunctionName(subcmd.name)}`;
     const lines: string[] = [];
 
     lines.push(`${funcName}() {`);
@@ -236,11 +236,11 @@ compdef _projector projector
   private generatePositionalSpec(positionalType?: string): string {
     switch (positionalType) {
       case 'change-id':
-        return "'*: :_projector_complete_changes'";
+        return "'*: :_spool_complete_changes'";
       case 'spec-id':
-        return "'*: :_projector_complete_specs'";
+        return "'*: :_spool_complete_specs'";
       case 'change-or-spec-id':
-        return "'*: :_projector_complete_items'";
+        return "'*: :_spool_complete_items'";
       case 'path':
         return "'*:path:_files'";
       case 'shell':

@@ -1,23 +1,23 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { z } from 'zod';
-import { PROJECTOR_DIR_NAME } from './config.js';
+import { SPOOL_DIR_NAME } from './config.js';
 import { getGlobalConfig } from './global-config.js';
 
 /**
  * Name of the repo-level configuration file.
  */
-export const PROJECT_CONFIG_FILE_NAME = 'projector.json';
+export const PROJECT_CONFIG_FILE_NAME = 'spool.json';
 
 /**
- * Zod schema for project-level Projector configuration.
+ * Zod schema for project-level Spool configuration.
  * Uses passthrough() to preserve unknown fields for forward compatibility.
  */
 export const ProjectConfigSchema = z
   .object({
     /**
-     * The path (relative to project root) where projector stores its files.
-      * Defaults to '.projector'.
+     * The path (relative to project root) where spool stores its files.
+      * Defaults to '.spool'.
      */
     projectPath: z.string().optional(),
   })
@@ -29,7 +29,7 @@ export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
  * Default project configuration values.
  */
 export const DEFAULT_PROJECT_CONFIG: ProjectConfig = {
-  projectPath: undefined, // Will fall back to PROJECTOR_DIR_NAME
+  projectPath: undefined, // Will fall back to SPOOL_DIR_NAME
 };
 
 /**
@@ -46,7 +46,7 @@ export function clearProjectConfigCache(): void {
 }
 
 /**
- * Loads the project configuration from a repo-level projector.json file.
+ * Loads the project configuration from a repo-level spool.json file.
  * Returns null if the file doesn't exist.
  *
  * @param projectRoot - The root directory of the project
@@ -91,7 +91,7 @@ export function loadProjectConfig(projectRoot: string): ProjectConfig | null {
 }
 
 /**
- * Saves the project configuration to a repo-level projector.json file.
+ * Saves the project configuration to a repo-level spool.json file.
  *
  * @param projectRoot - The root directory of the project
  * @param config - The configuration to save
@@ -107,17 +107,17 @@ export function saveProjectConfig(projectRoot: string, config: ProjectConfig): v
 }
 
 /**
- * Gets the resolved Projector directory name for a project.
+ * Gets the resolved Spool directory name for a project.
  *
  * Priority order:
- * 1. Repo-level projector.json projectPath
- * 2. Global config (~/.config/projector/config.json) projectPath
- * 3. Default: '.projector'
+ * 1. Repo-level spool.json projectPath
+ * 2. Global config (~/.config/spool/config.json) projectPath
+ * 3. Default: '.spool'
  *
  * @param projectRoot - The root directory of the project (defaults to cwd)
- * @returns The Projector directory name (relative path)
+ * @returns The Spool directory name (relative path)
  */
-export function getProjectorDirName(projectRoot: string = process.cwd()): string {
+export function getSpoolDirName(projectRoot: string = process.cwd()): string {
   // 1. Check repo-level config
   const projectConfig = loadProjectConfig(projectRoot);
   if (projectConfig?.projectPath) {
@@ -131,18 +131,18 @@ export function getProjectorDirName(projectRoot: string = process.cwd()): string
   }
 
   // 3. Fall back to default
-  return PROJECTOR_DIR_NAME;
+  return SPOOL_DIR_NAME;
 }
 
 /**
- * Gets the absolute path to the Projector directory for a project.
+ * Gets the absolute path to the Spool directory for a project.
  *
  * @param projectRoot - The root directory of the project (defaults to cwd)
- * @returns The absolute path to the Projector directory
+ * @returns The absolute path to the Spool directory
  */
-export function getProjectorPath(projectRoot: string = process.cwd()): string {
+export function getSpoolPath(projectRoot: string = process.cwd()): string {
   const absoluteRoot = path.resolve(projectRoot);
-  const dirName = getProjectorDirName(absoluteRoot);
+  const dirName = getSpoolDirName(absoluteRoot);
   return path.join(absoluteRoot, dirName);
 }
 
@@ -153,7 +153,7 @@ export function getProjectorPath(projectRoot: string = process.cwd()): string {
  * @returns The absolute path to the changes directory
  */
 export function getChangesPath(projectRoot: string = process.cwd()): string {
-  return path.join(getProjectorPath(projectRoot), 'changes');
+  return path.join(getSpoolPath(projectRoot), 'changes');
 }
 
 /**
@@ -163,7 +163,7 @@ export function getChangesPath(projectRoot: string = process.cwd()): string {
  * @returns The absolute path to the specs directory
  */
 export function getSpecsPath(projectRoot: string = process.cwd()): string {
-  return path.join(getProjectorPath(projectRoot), 'specs');
+  return path.join(getSpoolPath(projectRoot), 'specs');
 }
 
 /**
@@ -173,7 +173,7 @@ export function getSpecsPath(projectRoot: string = process.cwd()): string {
  * @returns The absolute path to the modules directory
  */
 export function getModulesPath(projectRoot: string = process.cwd()): string {
-  return path.join(getProjectorPath(projectRoot), 'modules');
+  return path.join(getSpoolPath(projectRoot), 'modules');
 }
 
 /**

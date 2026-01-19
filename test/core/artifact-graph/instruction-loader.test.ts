@@ -48,7 +48,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projector-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-'));
     });
 
     afterEach(() => {
@@ -88,11 +88,11 @@ describe('instruction-loader', () => {
       expect(context.completed.size).toBe(0);
     });
 
-    it('should auto-detect schema from .projector.yaml metadata', () => {
+    it('should auto-detect schema from .spool.yaml metadata', () => {
       // Create change directory with metadata file
       const changeDir = path.join(getChangesPath(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.projector.yaml'), 'schema: tdd\ncreated: "2025-01-05"\n');
+      fs.writeFileSync(path.join(changeDir, '.spool.yaml'), 'schema: tdd\ncreated: "2025-01-05"\n');
 
       // Load without explicit schema - should detect from metadata
       const context = loadChangeContext(tempDir, 'my-change');
@@ -105,7 +105,7 @@ describe('instruction-loader', () => {
       // Create change directory with metadata file using tdd
       const changeDir = path.join(getChangesPath(tempDir), 'my-change');
       fs.mkdirSync(changeDir, { recursive: true });
-      fs.writeFileSync(path.join(changeDir, '.projector.yaml'), 'schema: tdd\n');
+      fs.writeFileSync(path.join(changeDir, '.spool.yaml'), 'schema: tdd\n');
 
       // Load with explicit schema - should override metadata
       const context = loadChangeContext(tempDir, 'my-change', 'spec-driven');
@@ -129,7 +129,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projector-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-'));
     });
 
     afterEach(() => {
@@ -203,7 +203,7 @@ describe('instruction-loader', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'projector-test-'));
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-'));
     });
 
     afterEach(() => {

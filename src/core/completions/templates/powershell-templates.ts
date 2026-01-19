@@ -5,8 +5,8 @@
 
 export const POWERSHELL_DYNAMIC_HELPERS = `# Dynamic completion helpers
 
-function Get-ProjectorChanges {
-    $output = projector __complete changes 2>$null
+function Get-SpoolChanges {
+    $output = spool __complete changes 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]
@@ -14,8 +14,8 @@ function Get-ProjectorChanges {
     }
 }
 
-function Get-ProjectorSpecs {
-    $output = projector __complete specs 2>$null
+function Get-SpoolSpecs {
+    $output = spool __complete specs 2>$null
     if ($output) {
         $output | ForEach-Object {
             ($_ -split "\\t")[0]

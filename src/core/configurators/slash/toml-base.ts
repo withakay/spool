@@ -1,7 +1,7 @@
 import { FileSystemUtils } from '../../../utils/file-system.js';
 import { SlashCommandConfigurator } from './base.js';
 import { SlashCommandId } from '../../templates/index.js';
-import { PROJECTOR_MARKERS } from '../../config.js';
+import { SPOOL_MARKERS } from '../../config.js';
 
 export abstract class TomlSlashCommandConfigurator extends SlashCommandConfigurator {
   protected getFrontmatter(_id: SlashCommandId): string | undefined {
@@ -12,7 +12,7 @@ export abstract class TomlSlashCommandConfigurator extends SlashCommandConfigura
   protected abstract getDescription(id: SlashCommandId): string;
 
   // Override to generate TOML format with markers inside the prompt field
-  async generateAll(projectPath: string, _projectorDir: string): Promise<string[]> {
+  async generateAll(projectPath: string, _spoolDir: string): Promise<string[]> {
     const createdOrUpdated: string[] = [];
 
     for (const target of this.getTargets()) {
@@ -40,9 +40,9 @@ export abstract class TomlSlashCommandConfigurator extends SlashCommandConfigura
     return `description = "${description}"
 
 prompt = """
-${PROJECTOR_MARKERS.start}
+${SPOOL_MARKERS.start}
 ${body}
-${PROJECTOR_MARKERS.end}
+${SPOOL_MARKERS.end}
 """
 `;
   }
@@ -50,14 +50,14 @@ ${PROJECTOR_MARKERS.end}
   // Override updateBody to handle TOML format
   protected async updateBody(filePath: string, body: string): Promise<void> {
     const content = await FileSystemUtils.readFile(filePath);
-    const startIndex = content.indexOf(PROJECTOR_MARKERS.start);
-    const endIndex = content.indexOf(PROJECTOR_MARKERS.end);
+    const startIndex = content.indexOf(SPOOL_MARKERS.start);
+    const endIndex = content.indexOf(SPOOL_MARKERS.end);
 
     if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-      throw new Error(`Missing Projector markers in ${filePath}`);
+      throw new Error(`Missing Spool markers in ${filePath}`);
     }
 
-    const before = content.slice(0, startIndex + PROJECTOR_MARKERS.start.length);
+    const before = content.slice(0, startIndex + SPOOL_MARKERS.start.length);
     const after = content.slice(endIndex);
     const updatedContent = `${before}\n${body}\n${after}`;
 

@@ -1,70 +1,70 @@
 import { describe, it, expect } from 'vitest';
 import {
-  normalizeProjectorDir,
-  replaceHardcodedProjectorPaths,
-  replaceHardcodedDotProjectorPaths,
+  normalizeSpoolDir,
+  replaceHardcodedSpoolPaths,
+  replaceHardcodedDotSpoolPaths,
 } from '../../src/utils/path-normalization.js';
 
 describe('path normalization utilities', () => {
-  describe('normalizeProjectorDir', () => {
+  describe('normalizeSpoolDir', () => {
     it('should leave directories starting with dot unchanged', () => {
-      expect(normalizeProjectorDir('.projector')).toBe('.projector');
-      expect(normalizeProjectorDir('.my-projector')).toBe('.my-projector');
+      expect(normalizeSpoolDir('.spool')).toBe('.spool');
+      expect(normalizeSpoolDir('.my-spool')).toBe('.my-spool');
     });
 
     it('should add dot prefix to directories without it', () => {
-      expect(normalizeProjectorDir('projector')).toBe('.projector');
-      expect(normalizeProjectorDir('my-projector')).toBe('.my-projector');
-      expect(normalizeProjectorDir('custom')).toBe('.custom');
+      expect(normalizeSpoolDir('spool')).toBe('.spool');
+      expect(normalizeSpoolDir('my-spool')).toBe('.my-spool');
+      expect(normalizeSpoolDir('custom')).toBe('.custom');
     });
   });
 
-  describe('replaceHardcodedProjectorPaths', () => {
-    it('should replace projector/ paths with default .projector', () => {
-      const text = 'Write to projector/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedProjectorPaths(text)).toBe('Write to .projector/research/investigations/stack-analysis.md');
+  describe('replaceHardcodedSpoolPaths', () => {
+    it('should replace spool/ paths with default .spool', () => {
+      const text = 'Write to spool/research/investigations/stack-analysis.md';
+      expect(replaceHardcodedSpoolPaths(text)).toBe('Write to .spool/research/investigations/stack-analysis.md');
     });
 
-    it('should replace projector/ paths with custom directory', () => {
-      const text = 'Write to projector/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedProjectorPaths(text, '.my-projector')).toBe('Write to .my-projector/research/investigations/stack-analysis.md');
+    it('should replace spool/ paths with custom directory', () => {
+      const text = 'Write to spool/research/investigations/stack-analysis.md';
+      expect(replaceHardcodedSpoolPaths(text, '.my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
     });
 
     it('should add dot prefix if custom directory lacks it', () => {
-      const text = 'Write to projector/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedProjectorPaths(text, 'my-projector')).toBe('Write to .my-projector/research/investigations/stack-analysis.md');
+      const text = 'Write to spool/research/investigations/stack-analysis.md';
+      expect(replaceHardcodedSpoolPaths(text, 'my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
     });
 
     it('should handle multiple replacements', () => {
-      const text = 'projector/changes and projector/specs';
-      expect(replaceHardcodedProjectorPaths(text, '.custom')).toBe('.custom/changes and .custom/specs');
+      const text = 'spool/changes and spool/specs';
+      expect(replaceHardcodedSpoolPaths(text, '.custom')).toBe('.custom/changes and .custom/specs');
     });
 
     it('should not affect other text', () => {
       const text = 'This is just regular text with no paths';
-      expect(replaceHardcodedProjectorPaths(text)).toBe(text);
+      expect(replaceHardcodedSpoolPaths(text)).toBe(text);
     });
   });
 
-  describe('replaceHardcodedDotProjectorPaths', () => {
-    it('should replace .projector/ paths with custom directory', () => {
-      const text = 'Write to .projector/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedDotProjectorPaths(text, '.my-projector')).toBe('Write to .my-projector/research/investigations/stack-analysis.md');
+  describe('replaceHardcodedDotSpoolPaths', () => {
+    it('should replace .spool/ paths with custom directory', () => {
+      const text = 'Write to .spool/research/investigations/stack-analysis.md';
+      expect(replaceHardcodedDotSpoolPaths(text, '.my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
     });
 
     it('should add dot prefix if custom directory lacks it', () => {
-      const text = 'Write to .projector/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedDotProjectorPaths(text, 'my-projector')).toBe('Write to .my-projector/research/investigations/stack-analysis.md');
+      const text = 'Write to .spool/research/investigations/stack-analysis.md';
+      expect(replaceHardcodedDotSpoolPaths(text, 'my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
     });
 
     it('should handle multiple replacements', () => {
-      const text = '.projector/changes and .projector/specs';
-      expect(replaceHardcodedDotProjectorPaths(text, '.custom')).toBe('.custom/changes and .custom/specs');
+      const text = '.spool/changes and .spool/specs';
+      expect(replaceHardcodedDotSpoolPaths(text, '.custom')).toBe('.custom/changes and .custom/specs');
     });
 
     it('should not affect other text', () => {
       const text = 'This is just regular text with no paths';
-      expect(replaceHardcodedDotProjectorPaths(text)).toBe(text);
+      expect(replaceHardcodedDotSpoolPaths(text)).toBe(text);
     });
   });
 });

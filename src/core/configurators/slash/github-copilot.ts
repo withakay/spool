@@ -3,36 +3,36 @@ import { SlashCommandId } from '../../templates/index.js';
 import { EXTENDED_COMMANDS } from './base.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: '.github/prompts/projector-proposal.prompt.md',
-  apply: '.github/prompts/projector-apply.prompt.md',
-  archive: '.github/prompts/projector-archive.prompt.md',
-  research: '.github/prompts/projector-research.prompt.md',
-  review: '.github/prompts/projector-review.prompt.md'
+  proposal: '.github/prompts/spool-proposal.prompt.md',
+  apply: '.github/prompts/spool-apply.prompt.md',
+  archive: '.github/prompts/spool-archive.prompt.md',
+  research: '.github/prompts/spool-research.prompt.md',
+  review: '.github/prompts/spool-review.prompt.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   proposal: `---
- description: Scaffold a new Projector change and validate strictly.
+ description: Scaffold a new Spool change and validate strictly.
  ---
  
  $ARGUMENTS`,
   apply: `---
- description: Implement an approved Projector change and keep tasks in sync.
+ description: Implement an approved Spool change and keep tasks in sync.
  ---
  
  $ARGUMENTS`,
   archive: `---
- description: Archive a deployed Projector change and update specs.
+ description: Archive a deployed Spool change and update specs.
  ---
  
  $ARGUMENTS`,
   research: `---
- description: Conduct Projector research via skills (stack, architecture, features, pitfalls).
+ description: Conduct Spool research via skills (stack, architecture, features, pitfalls).
  ---
  
  $ARGUMENTS`,
   review: `---
- description: Conduct adversarial review via Projector review skill.
+ description: Conduct adversarial review via Spool review skill.
  ---
  
  $ARGUMENTS`

@@ -5,7 +5,7 @@ import os from 'os';
 import { InitCommand } from '../../src/core/init.js';
 import {
   getChangesPath,
-  getProjectorPath,
+  getSpoolPath,
   getSpecsPath,
 } from '../../src/core/project-config.js';
 
@@ -53,7 +53,7 @@ describe('InitCommand', () => {
   let prevCodexHome: string | undefined;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `projector-init-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `spool-init-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
     selectionQueue = [];
     mockPrompt.mockReset();
@@ -73,13 +73,13 @@ describe('InitCommand', () => {
   });
 
   describe('execute', () => {
-    it('should create Projector directory structure', async () => {
+    it('should create Spool directory structure', async () => {
       queueSelections('claude', DONE);
 
       await initCommand.execute(testDir);
 
-      const projectorPath = getProjectorPath(testDir);
-      expect(await directoryExists(projectorPath)).toBe(true);
+      const spoolPath = getSpoolPath(testDir);
+      expect(await directoryExists(spoolPath)).toBe(true);
       expect(await directoryExists(getSpecsPath(testDir))).toBe(true);
       expect(await directoryExists(getChangesPath(testDir))).toBe(true);
       expect(
@@ -92,24 +92,24 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const projectorPath = getProjectorPath(testDir);
-      expect(await fileExists(path.join(projectorPath, 'AGENTS.md'))).toBe(true);
-      expect(await fileExists(path.join(projectorPath, 'project.md'))).toBe(true);
+      const spoolPath = getSpoolPath(testDir);
+      expect(await fileExists(path.join(spoolPath, 'AGENTS.md'))).toBe(true);
+      expect(await fileExists(path.join(spoolPath, 'project.md'))).toBe(true);
 
       const agentsContent = await fs.readFile(
-        path.join(projectorPath, 'AGENTS.md'),
+        path.join(spoolPath, 'AGENTS.md'),
         'utf-8'
       );
-      expect(agentsContent).toContain('Projector Instructions');
+      expect(agentsContent).toContain('Spool Instructions');
 
       const projectContent = await fs.readFile(
-        path.join(projectorPath, 'project.md'),
+        path.join(spoolPath, 'project.md'),
         'utf-8'
       );
       expect(projectContent).toContain('Project Context');
     });
 
-    it('should install Projector skills by default', async () => {
+    it('should install Spool skills by default', async () => {
       queueSelections('claude', DONE);
 
       await initCommand.execute(testDir);
@@ -117,12 +117,12 @@ describe('InitCommand', () => {
       const skillsDir = path.join(testDir, '.claude/skills');
       const proposalSkill = path.join(
         skillsDir,
-        'projector-proposal',
+        'spool-proposal',
         'SKILL.md'
       );
       const researchSkill = path.join(
         skillsDir,
-        'projector-research',
+        'spool-research',
         'SKILL.md'
       );
 
@@ -139,10 +139,10 @@ describe('InitCommand', () => {
       expect(await fileExists(claudePath)).toBe(true);
 
       const content = await fs.readFile(claudePath, 'utf-8');
-      expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain('@/.projector/AGENTS.md');
-      expect(content).toContain('projector update');
-      expect(content).toContain('<!-- PROJECTOR:END -->');
+      expect(content).toContain('<!-- SPOOL:START -->');
+      expect(content).toContain('@/.spool/AGENTS.md');
+      expect(content).toContain('spool update');
+      expect(content).toContain('<!-- SPOOL:END -->');
     });
 
     it('should always create AGENTS.md in project root', async () => {
@@ -154,10 +154,10 @@ describe('InitCommand', () => {
       expect(await fileExists(rootAgentsPath)).toBe(true);
 
       const content = await fs.readFile(rootAgentsPath, 'utf-8');
-      expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain('@/.projector/AGENTS.md');
-      expect(content).toContain('projector update');
-      expect(content).toContain('<!-- PROJECTOR:END -->');
+      expect(content).toContain('<!-- SPOOL:START -->');
+      expect(content).toContain('@/.spool/AGENTS.md');
+      expect(content).toContain('spool update');
+      expect(content).toContain('<!-- SPOOL:END -->');
     });
 
     it('should create Claude slash command files with templates', async () => {
@@ -167,23 +167,23 @@ describe('InitCommand', () => {
 
       const claudeProposal = path.join(
         testDir,
-        '.claude/commands/projector/proposal.md'
+        '.claude/commands/spool/proposal.md'
       );
       const claudeApply = path.join(
         testDir,
-        '.claude/commands/projector/apply.md'
+        '.claude/commands/spool/apply.md'
       );
       const claudeArchive = path.join(
         testDir,
-        '.claude/commands/projector/archive.md'
+        '.claude/commands/spool/archive.md'
       );
       const claudeResearch = path.join(
         testDir,
-        '.claude/commands/projector/research.md'
+        '.claude/commands/spool/research.md'
       );
       const claudeReview = path.join(
         testDir,
-        '.claude/commands/projector/review.md'
+        '.claude/commands/spool/review.md'
       );
 
       expect(await fileExists(claudeProposal)).toBe(true);
@@ -193,22 +193,22 @@ describe('InitCommand', () => {
       expect(await fileExists(claudeReview)).toBe(true);
 
       const proposalContent = await fs.readFile(claudeProposal, 'utf-8');
-      expect(proposalContent).toContain('name: Projector: Proposal');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
+      expect(proposalContent).toContain('name: Spool: Proposal');
+      expect(proposalContent).toContain('<!-- SPOOL:START -->');
 
       const applyContent = await fs.readFile(claudeApply, 'utf-8');
-      expect(applyContent).toContain('name: Projector: Apply');
+      expect(applyContent).toContain('name: Spool: Apply');
 
       const archiveContent = await fs.readFile(claudeArchive, 'utf-8');
-      expect(archiveContent).toContain('name: Projector: Archive');
+      expect(archiveContent).toContain('name: Spool: Archive');
 
       const researchContent = await fs.readFile(claudeResearch, 'utf-8');
-      expect(researchContent).toContain('name: Projector: Research');
-      expect(researchContent).toContain('Use the Projector agent skill');
+      expect(researchContent).toContain('name: Spool: Research');
+      expect(researchContent).toContain('Use the Spool agent skill');
 
       const reviewContent = await fs.readFile(claudeReview, 'utf-8');
-      expect(reviewContent).toContain('name: Projector: Review');
-      expect(reviewContent).toContain('Use the Projector agent skill');
+      expect(reviewContent).toContain('name: Spool: Review');
+      expect(reviewContent).toContain('Use the Spool agent skill');
     });
 
     it('should create OpenCode slash command files with templates', async () => {
@@ -218,23 +218,23 @@ describe('InitCommand', () => {
 
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const openCodeApply = path.join(
         testDir,
-        '.opencode/command/projector-apply.md'
+        '.opencode/command/spool-apply.md'
       );
       const openCodeArchive = path.join(
         testDir,
-        '.opencode/command/projector-archive.md'
+        '.opencode/command/spool-archive.md'
       );
       const openCodeResearch = path.join(
         testDir,
-        '.opencode/command/projector-research.md'
+        '.opencode/command/spool-research.md'
       );
       const openCodeReview = path.join(
         testDir,
-        '.opencode/command/projector-review.md'
+        '.opencode/command/spool-review.md'
       );
 
       expect(await fileExists(openCodeProposal)).toBe(true);
@@ -245,15 +245,15 @@ describe('InitCommand', () => {
 
       const proposalContent = await fs.readFile(openCodeProposal, 'utf-8');
       expect(proposalContent).toContain(
-        'description: Scaffold a new Projector change and validate strictly.'
+        'description: Scaffold a new Spool change and validate strictly.'
       );
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
+      expect(proposalContent).toContain('<!-- SPOOL:START -->');
 
       const researchContent = await fs.readFile(openCodeResearch, 'utf-8');
-      expect(researchContent).toContain('Projector research via skills');
+      expect(researchContent).toContain('Spool research via skills');
 
       const reviewContent = await fs.readFile(openCodeReview, 'utf-8');
-      expect(reviewContent).toContain('Projector review skill');
+      expect(reviewContent).toContain('Spool review skill');
     });
 
     it('should create Codex prompts with templates and placeholders', async () => {
@@ -263,23 +263,23 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.codex/prompts/projector-proposal.md'
+        '.codex/prompts/spool-proposal.md'
       );
       const applyPath = path.join(
         testDir,
-        '.codex/prompts/projector-apply.md'
+        '.codex/prompts/spool-apply.md'
       );
       const archivePath = path.join(
         testDir,
-        '.codex/prompts/projector-archive.md'
+        '.codex/prompts/spool-archive.md'
       );
       const researchPath = path.join(
         testDir,
-        '.codex/prompts/projector-research.md'
+        '.codex/prompts/spool-research.md'
       );
       const reviewPath = path.join(
         testDir,
-        '.codex/prompts/projector-review.md'
+        '.codex/prompts/spool-review.md'
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -293,10 +293,10 @@ describe('InitCommand', () => {
       expect(proposalContent).toContain('$ARGUMENTS');
 
       const researchContent = await fs.readFile(researchPath, 'utf-8');
-      expect(researchContent).toContain('Projector research via skills');
+      expect(researchContent).toContain('Spool research via skills');
 
       const reviewContent = await fs.readFile(reviewPath, 'utf-8');
-      expect(reviewContent).toContain('Projector review skill');
+      expect(reviewContent).toContain('Spool review skill');
     });
 
     it('should create GitHub Copilot prompt files with templates', async () => {
@@ -306,23 +306,23 @@ describe('InitCommand', () => {
 
       const proposalPath = path.join(
         testDir,
-        '.github/prompts/projector-proposal.prompt.md'
+        '.github/prompts/spool-proposal.prompt.md'
       );
       const applyPath = path.join(
         testDir,
-        '.github/prompts/projector-apply.prompt.md'
+        '.github/prompts/spool-apply.prompt.md'
       );
       const archivePath = path.join(
         testDir,
-        '.github/prompts/projector-archive.prompt.md'
+        '.github/prompts/spool-archive.prompt.md'
       );
       const researchPath = path.join(
         testDir,
-        '.github/prompts/projector-research.prompt.md'
+        '.github/prompts/spool-research.prompt.md'
       );
       const reviewPath = path.join(
         testDir,
-        '.github/prompts/projector-review.prompt.md'
+        '.github/prompts/spool-review.prompt.md'
       );
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -332,24 +332,24 @@ describe('InitCommand', () => {
       expect(await fileExists(reviewPath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
+      expect(proposalContent).toContain('description: Scaffold a new Spool change and validate strictly.');
       expect(proposalContent).toContain('$ARGUMENTS');
 
       const researchContent = await fs.readFile(researchPath, 'utf-8');
-      expect(researchContent).toContain('Projector research via skills');
+      expect(researchContent).toContain('Spool research via skills');
 
       const reviewContent = await fs.readFile(reviewPath, 'utf-8');
-      expect(reviewContent).toContain('Projector review skill');
+      expect(reviewContent).toContain('Spool review skill');
     });
 
-    it('should add new tool when Projector already exists', async () => {
+    it('should add new tool when Spool already exists', async () => {
       queueSelections('claude', DONE, 'opencode', DONE);
       await initCommand.execute(testDir);
       await initCommand.execute(testDir);
 
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       expect(await fileExists(openCodeProposal)).toBe(true);
     });
@@ -360,20 +360,20 @@ describe('InitCommand', () => {
       await expect(initCommand.execute(testDir)).resolves.toBeUndefined();
     });
 
-    it('should recreate deleted projector/AGENTS.md in extend mode', async () => {
+    it('should recreate deleted spool/AGENTS.md in extend mode', async () => {
       await testFileRecreationInExtendMode(
         testDir,
         initCommand,
-        '.projector/AGENTS.md',
-        'Projector Instructions'
+        '.spool/AGENTS.md',
+        'Spool Instructions'
       );
     });
 
-    it('should recreate deleted projector/project.md in extend mode', async () => {
+    it('should recreate deleted spool/project.md in extend mode', async () => {
       await testFileRecreationInExtendMode(
         testDir,
         initCommand,
-        '.projector/project.md',
+        '.spool/project.md',
         'Project Context'
       );
     });
@@ -383,7 +383,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const agentsPath = path.join(getProjectorPath(testDir), 'AGENTS.md');
+      const agentsPath = path.join(getSpoolPath(testDir), 'AGENTS.md');
       const customContent = '# My Custom AGENTS Content\nDo not overwrite this!';
 
       await fs.writeFile(agentsPath, customContent);
@@ -392,7 +392,7 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(agentsPath, 'utf-8');
       expect(content).toBe(customContent);
-      expect(content).not.toContain('Projector Instructions');
+      expect(content).not.toContain('Spool Instructions');
     });
 
     it('should display success message with selected tool name', async () => {
@@ -403,8 +403,8 @@ describe('InitCommand', () => {
 
       const calls = logSpy.mock.calls.flat().join('\n');
       expect(calls).toContain('Copy these prompts to Claude Code');
-      expect(calls).toContain('Please read .projector/project.md');
-      expect(calls).toContain('Projector workflow from .projector/AGENTS.md');
+      expect(calls).toContain('Please read .spool/project.md');
+      expect(calls).toContain('Spool workflow from .spool/AGENTS.md');
     });
   });
 
@@ -457,15 +457,15 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const codexProposal = path.join(
         testDir,
-        '.codex/prompts/projector-proposal.md'
+        '.codex/prompts/spool-proposal.md'
       );
       const copilotProposal = path.join(
         testDir,
-        '.github/prompts/projector-proposal.prompt.md'
+        '.github/prompts/spool-proposal.prompt.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -482,11 +482,11 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const codexProposal = path.join(
         testDir,
-        '.codex/prompts/projector-proposal.md'
+        '.codex/prompts/spool-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -502,7 +502,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/command/projector-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
 
       const rootAgentsPath = path.join(testDir, 'AGENTS.md');
@@ -527,7 +527,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const codexProposal = path.join(
         testDir,
-        '.codex/prompts/projector-proposal.md'
+        '.codex/prompts/spool-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
@@ -599,7 +599,7 @@ describe('InitCommand', () => {
       const codexPromptsDir = path.join(testDir, '.codex/prompts');
       await fs.mkdir(codexPromptsDir, { recursive: true });
       await fs.writeFile(
-        path.join(codexPromptsDir, 'projector-proposal.md'),
+        path.join(codexPromptsDir, 'spool-proposal.md'),
         '# Existing prompt\n'
       );
 
@@ -626,7 +626,7 @@ describe('InitCommand', () => {
         async (filePath: any, ...args: any[]) => {
           if (
             typeof filePath === 'string' &&
-            filePath.includes('.projector-test-')
+            filePath.includes('.spool-test-')
           ) {
             throw new Error('EACCES: permission denied');
           }

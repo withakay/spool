@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Zod schema for global Projector configuration.
+ * Zod schema for global Spool configuration.
  * Uses passthrough() to preserve unknown fields for forward compatibility.
  */
 export const GlobalConfigSchema = z
@@ -11,8 +11,8 @@ export const GlobalConfigSchema = z
       .optional()
       .default({}),
     /**
-     * Default project path for Projector directory.
-     * Can be overridden by repo-level projector.json.
+     * Default project path for Spool directory.
+     * Can be overridden by repo-level spool.json.
      */
     projectPath: z.string().optional(),
   })

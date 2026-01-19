@@ -144,10 +144,10 @@ export class ValidateCommand {
 
   private printNonInteractiveHint(): void {
     console.error('Nothing to validate. Try one of:');
-    console.error('  projector validate --all');
-    console.error('  projector validate --changes');
-    console.error('  projector validate --specs');
-    console.error('  projector validate <item-name>');
+    console.error('  spool validate --all');
+    console.error('  spool validate --changes');
+    console.error('  spool validate --specs');
+    console.error('  spool validate <item-name>');
     console.error('Or run in an interactive terminal.');
   }
 
@@ -168,7 +168,7 @@ export class ValidateCommand {
 
     if (!opts.typeOverride && isChange && isSpec) {
       console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
-      console.error('Pass --type change|spec, or use: projector change validate / projector spec validate');
+      console.error('Pass --type change|spec, or use: spool change validate / spool spec validate');
       process.exitCode = 1;
       return;
     }
@@ -221,7 +221,7 @@ export class ValidateCommand {
     if (type === 'change') {
       bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
-      bullets.push('- Debug parsed deltas: projector change show <id> --json --deltas-only');
+      bullets.push('- Debug parsed deltas: spool change show <id> --json --deltas-only');
     } else if (type === 'spec') {
       bullets.push('- Ensure spec includes ## Purpose and ## Requirements sections');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
@@ -246,7 +246,7 @@ export class ValidateCommand {
 
     const DEFAULT_CONCURRENCY = 6;
     const maxSuggestions = 5; // used by nearestMatches
-    const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env.PROJECTOR_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
+    const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env.SPOOL_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
     const validator = new Validator(opts.strict);
     const queue: Array<() => Promise<BulkItemResult>> = [];
 

@@ -13,7 +13,7 @@ export {
 
 // Path normalization utilities
 export {
-  normalizeProjectorDir,
-  replaceHardcodedProjectorPaths,
-  replaceHardcodedDotProjectorPaths,
+  normalizeSpoolDir,
+  replaceHardcodedSpoolPaths,
+  replaceHardcodedDotSpoolPaths,
 } from './path-normalization.js';

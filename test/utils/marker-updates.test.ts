@@ -6,11 +6,11 @@ import { FileSystemUtils } from '../../src/utils/file-system.js';
 
 describe('FileSystemUtils.updateFileWithMarkers', () => {
   let testDir: string;
-  const START_MARKER = '<!-- PROJECTOR:START -->';
-  const END_MARKER = '<!-- PROJECTOR:END -->';
+  const START_MARKER = '<!-- SPOOL:START -->';
+  const END_MARKER = '<!-- SPOOL:END -->';
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `projector-marker-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `spool-marker-test-${Date.now()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -21,7 +21,7 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
   describe('new file creation', () => {
     it('should create new file with markers and content', async () => {
       const filePath = path.join(testDir, 'new-file.md');
-      const content = 'Projector content';
+      const content = 'Spool content';
       
       await FileSystemUtils.updateFileWithMarkers(
         filePath,
@@ -41,7 +41,7 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
       const existingContent = '# Existing Content\nUser content here';
       await fs.writeFile(filePath, existingContent);
       
-      const newContent = 'Projector content';
+      const newContent = 'Spool content';
       await FileSystemUtils.updateFileWithMarkers(
         filePath,
         newContent,
@@ -60,13 +60,13 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
     it('should replace content between markers', async () => {
       const filePath = path.join(testDir, 'with-markers.md');
       const beforeContent = '# Before\nSome content before';
-      const oldManagedContent = 'Old Projector content';
+      const oldManagedContent = 'Old Spool content';
       const afterContent = '# After\nSome content after';
       
       const existingFile = `${beforeContent}\n${START_MARKER}\n${oldManagedContent}\n${END_MARKER}\n${afterContent}`;
       await fs.writeFile(filePath, existingFile);
       
-      const newContent = 'New Projector content';
+      const newContent = 'New Spool content';
       await FileSystemUtils.updateFileWithMarkers(
         filePath,
         newContent,

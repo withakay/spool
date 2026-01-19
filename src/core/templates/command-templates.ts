@@ -1,14 +1,14 @@
 /**
  * Command Prompt Templates
  *
- * Prompts for workflow agents - installed to .projector/commands/
+ * Prompts for workflow agents - installed to .spool/commands/
  * and registered as slash commands for AI tools.
  */
 
 export interface CommandContext {
   topic?: string;
   changeId?: string;
-  projectorDir?: string;
+  spoolDir?: string;
 }
 
 // ============ Research Prompts ============

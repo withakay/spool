@@ -30,7 +30,7 @@ import {
 import { createChange, validateChangeName } from '../utils/change-utils.js';
 import { getExploreSkillTemplate, getNewChangeSkillTemplate, getContinueChangeSkillTemplate, getApplyChangeSkillTemplate, getFfChangeSkillTemplate, getSyncSpecsSkillTemplate, getArchiveChangeSkillTemplate, getOpsxExploreCommandTemplate, getOpsxNewCommandTemplate, getOpsxContinueCommandTemplate, getOpsxApplyCommandTemplate, getOpsxFfCommandTemplate, getOpsxSyncCommandTemplate, getOpsxArchiveCommandTemplate } from '../core/templates/skill-templates.js';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getChangesPath, getProjectorDirName } from '../core/project-config.js';
+import { getChangesPath, getSpoolDirName } from '../core/project-config.js';
 
 // -----------------------------------------------------------------------------
 // Types for Apply Instructions
@@ -124,7 +124,7 @@ async function validateChangeExists(
   if (!changeName) {
     const available = await getAvailableChanges();
     if (available.length === 0) {
-      throw new Error('No changes found. Create one with: projector new change <name>');
+      throw new Error('No changes found. Create one with: spool new change <name>');
     }
     throw new Error(
       `Missing required option --change. Available changes:\n  ${available.join('\n  ')}`
@@ -145,7 +145,7 @@ async function validateChangeExists(
     const available = await getAvailableChanges();
     if (available.length === 0) {
       throw new Error(
-        `Change '${changeName}' not found. No changes exist. Create one with: projector new change <name>`
+        `Change '${changeName}' not found. No changes exist. Create one with: spool new change <name>`
       );
     }
     throw new Error(
@@ -552,17 +552,17 @@ async function generateApplyInstructions(
 
   if (missingArtifacts.length > 0) {
     state = 'blocked';
-    instruction = `Cannot apply this change yet. Missing artifacts: ${missingArtifacts.join(', ')}.\nUse the projector-continue-change skill to create the missing artifacts first.`;
+    instruction = `Cannot apply this change yet. Missing artifacts: ${missingArtifacts.join(', ')}.\nUse the spool-continue-change skill to create the missing artifacts first.`;
   } else if (tracksFile && !tracksFileExists) {
     // Tracking file configured but doesn't exist yet
     const tracksFilename = path.basename(tracksFile);
     state = 'blocked';
-    instruction = `The ${tracksFilename} file is missing and must be created.\nUse projector-continue-change to generate the tracking file.`;
+    instruction = `The ${tracksFilename} file is missing and must be created.\nUse spool-continue-change to generate the tracking file.`;
   } else if (tracksFile && tracksFileExists && total === 0) {
     // Tracking file exists but contains no tasks
     const tracksFilename = path.basename(tracksFile);
     state = 'blocked';
-    instruction = `The ${tracksFilename} file exists but contains no tasks.\nAdd tasks to ${tracksFilename} or regenerate it with projector-continue-change.`;
+    instruction = `The ${tracksFilename} file exists but contains no tasks.\nAdd tasks to ${tracksFilename} or regenerate it with spool-continue-change.`;
   } else if (tracksFile && remaining === 0 && total > 0) {
     state = 'all_done';
     instruction = 'All tasks are complete! This change is ready to be archived.\nConsider running tests and reviewing the changes before archiving.';
@@ -629,7 +629,7 @@ function printApplyInstructionsText(instructions: ApplyInstructions): void {
     console.log('### ⚠️ Blocked');
     console.log();
     console.log(`Missing artifacts: ${missingArtifacts.join(', ')}`);
-    console.log('Use the projector-continue-change skill to create these first.');
+    console.log('Use the spool-continue-change skill to create these first.');
     console.log();
   }
 
@@ -769,8 +769,8 @@ async function newChangeCommand(name: string | undefined, options: NewChangeOpti
     }
 
     const schemaUsed = options.schema ?? DEFAULT_SCHEMA;
-    const projectorDir = getProjectorDirName(projectRoot);
-    spinner.succeed(`Created change '${name}' at ${projectorDir}/changes/${name}/ (schema: ${schemaUsed})`);
+    const spoolDir = getSpoolDirName(projectRoot);
+    spinner.succeed(`Created change '${name}' at ${spoolDir}/changes/${name}/ (schema: ${schemaUsed})`);
   } catch (error) {
     spinner.fail(`Failed to create change '${name}'`);
     throw error;
@@ -814,13 +814,13 @@ async function artifactExperimentalSetupCommand(): Promise<void> {
 
     // Create skill directories and SKILL.md files
     const skills = [
-      { template: exploreSkill, dirName: 'projector-explore' },
-      { template: newChangeSkill, dirName: 'projector-new-change' },
-      { template: continueChangeSkill, dirName: 'projector-continue-change' },
-      { template: applyChangeSkill, dirName: 'projector-apply-change' },
-      { template: ffChangeSkill, dirName: 'projector-ff-change' },
-      { template: syncSpecsSkill, dirName: 'projector-sync-specs' },
-      { template: archiveChangeSkill, dirName: 'projector-archive-change' },
+      { template: exploreSkill, dirName: 'spool-explore' },
+      { template: newChangeSkill, dirName: 'spool-new-change' },
+      { template: continueChangeSkill, dirName: 'spool-continue-change' },
+      { template: applyChangeSkill, dirName: 'spool-apply-change' },
+      { template: ffChangeSkill, dirName: 'spool-ff-change' },
+      { template: syncSpecsSkill, dirName: 'spool-sync-specs' },
+      { template: archiveChangeSkill, dirName: 'spool-archive-change' },
     ];
 
     const createdSkillFiles: string[] = [];
@@ -899,7 +899,7 @@ ${template.content}
     console.log('  • Windsurf - Auto-imports from .claude directory');
     console.log();
     console.log('  Ask Claude naturally:');
-    console.log('  • "I want to start a new Projector change to add <feature>"');
+    console.log('  • "I want to start a new Spool change to add <feature>"');
     console.log('  • "Continue working on this change"');
     console.log('  • "Implement the tasks for this change"');
     console.log();
@@ -913,7 +913,7 @@ ${template.content}
     console.log('  • /opsx:archive - Archive a completed change');
     console.log();
     console.log(chalk.yellow('💡 This is an experimental feature.'));
-    console.log('   Feedback welcome at: https://github.com/withakay/Projector/issues');
+    console.log('   Feedback welcome at: https://github.com/withakay/Spool/issues');
     console.log();
   } catch (error) {
     spinner.fail('Failed to setup experimental artifact workflow');
@@ -963,7 +963,7 @@ export function registerArtifactWorkflowCommands(program: Command): void {
     .command('status')
     .description('[Experimental] Display artifact completion status for a change')
     .option('--change <id>', 'Change name to show status for')
-    .option('--schema <name>', 'Schema override (auto-detected from .projector.yaml)')
+    .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
     .action(async (options: StatusOptions) => {
       try {
@@ -980,7 +980,7 @@ export function registerArtifactWorkflowCommands(program: Command): void {
     .command('instructions [artifact]')
     .description('[Experimental] Output enriched instructions for creating an artifact or applying tasks')
     .option('--change <id>', 'Change name')
-    .option('--schema <name>', 'Schema override (auto-detected from .projector.yaml)')
+    .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
     .action(async (artifactId: string | undefined, options: InstructionsOptions) => {
       try {

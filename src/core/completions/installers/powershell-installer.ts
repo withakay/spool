@@ -15,8 +15,8 @@ export class PowerShellInstaller {
    * Markers for PowerShell profile configuration management
    */
   private readonly PROFILE_MARKERS = {
-    start: '# PROJECTOR:START',
-    end: '# PROJECTOR:END',
+    start: '# SPOOL:START',
+    end: '# SPOOL:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -77,7 +77,7 @@ export class PowerShellInstaller {
   getInstallationPath(): string {
     const profilePath = this.getProfilePath();
     const profileDir = path.dirname(profilePath);
-    return path.join(profileDir, 'ProjectorCompletion.ps1');
+    return path.join(profileDir, 'SpoolCompletion.ps1');
   }
 
   /**
@@ -108,7 +108,7 @@ export class PowerShellInstaller {
    */
   private generateProfileConfig(scriptPath: string): string {
     return [
-      '# Projector shell completions configuration',
+      '# Spool shell completions configuration',
       `if (Test-Path "${scriptPath}") {`,
       `    . "${scriptPath}"`,
       '}',
@@ -144,16 +144,16 @@ export class PowerShellInstaller {
           continue; // Already configured, skip
         }
 
-        // Add Projector completion configuration with markers
-        const projectorBlock = [
+        // Add Spool completion configuration with markers
+        const spoolBlock = [
           '',
-          '# PROJECTOR:START - Projector completion (managed block, do not edit manually)',
+          '# SPOOL:START - Spool completion (managed block, do not edit manually)',
           scriptLine,
-          '# PROJECTOR:END',
+          '# SPOOL:END',
           '',
         ].join('\n');
 
-        const newContent = profileContent + projectorBlock;
+        const newContent = profileContent + spoolBlock;
         await fs.writeFile(profilePath, newContent, 'utf-8');
         anyConfigured = true;
       } catch (error) {
@@ -185,13 +185,13 @@ export class PowerShellInstaller {
           continue; // Profile doesn't exist, nothing to remove
         }
 
-        // Remove PROJECTOR:START -> PROJECTOR:END block
-        const startMarker = '# PROJECTOR:START';
-        const endMarker = '# PROJECTOR:END';
+        // Remove SPOOL:START -> SPOOL:END block
+        const startMarker = '# SPOOL:START';
+        const endMarker = '# SPOOL:END';
         const startIndex = profileContent.indexOf(startMarker);
 
         if (startIndex === -1) {
-          continue; // No Projector block found
+          continue; // No Spool block found
         }
 
         const endIndex = profileContent.indexOf(endMarker, startIndex);
@@ -308,7 +308,7 @@ export class PowerShellInstaller {
       '',
       `To enable completions, add the following to your PowerShell profile (${profilePath}):`,
       '',
-      '  # Source Projector completions',
+      '  # Source Spool completions',
       `  if (Test-Path "${installedPath}") {`,
       `      . "${installedPath}"`,
       '  }',

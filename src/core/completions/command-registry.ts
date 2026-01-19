@@ -29,13 +29,13 @@ const COMMON_FLAGS = {
 } as const;
 
 /**
- * Registry of all Projector CLI commands with their flags and metadata.
+ * Registry of all Spool CLI commands with their flags and metadata.
  * This registry is used to generate shell completion scripts.
  */
 export const COMMAND_REGISTRY: CommandDefinition[] = [
   {
     name: 'init',
-    description: 'Initialize Projector in your project',
+    description: 'Initialize Spool in your project',
     acceptsPositional: true,
     positionalType: 'path',
     flags: [
@@ -48,7 +48,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     name: 'update',
-    description: 'Update Projector instruction files',
+    description: 'Update Spool instruction files',
     acceptsPositional: true,
     positionalType: 'path',
     flags: [],
@@ -95,7 +95,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
       COMMON_FLAGS.jsonValidation,
       {
         name: 'concurrency',
-        description: 'Max concurrent validations (defaults to env PROJECTOR_CONCURRENCY or 6)',
+        description: 'Max concurrent validations (defaults to env SPOOL_CONCURRENCY or 6)',
         takesValue: true,
       },
       COMMON_FLAGS.noInteractive,
@@ -157,7 +157,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     name: 'change',
-    description: 'Manage Projector change proposals (deprecated)',
+    description: 'Manage Spool change proposals (deprecated)',
     flags: [],
     subcommands: [
       {
@@ -204,7 +204,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     name: 'spec',
-    description: 'Manage Projector specifications',
+    description: 'Manage Spool specifications',
     flags: [],
     subcommands: [
       {
@@ -257,7 +257,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     name: 'completion',
-    description: 'Manage shell completions for Projector CLI',
+    description: 'Manage shell completions for Spool CLI',
     flags: [],
     subcommands: [
       {
@@ -296,7 +296,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     name: 'config',
-    description: 'View and modify global Projector configuration',
+    description: 'View and modify global Spool configuration',
     flags: [
       {
         name: 'scope',

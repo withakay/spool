@@ -13,7 +13,7 @@ describe('ViewCommand', () => {
   let logOutput: string[] = [];
 
   beforeEach(async () => {
-    tempDir = path.join(os.tmpdir(), `projector-view-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `spool-view-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
     originalLog = console.log;

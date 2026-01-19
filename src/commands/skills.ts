@@ -1,7 +1,7 @@
 /**
  * Skills Command
  * 
- * Manages Projector Agent Skills installation and configuration.
+ * Manages Spool Agent Skills installation and configuration.
  */
 
 import type { Command } from 'commander';
@@ -10,7 +10,7 @@ import chalk from 'chalk';
 import path from 'path';
 import * as fs from 'node:fs/promises';
 import { PALETTE } from '../core/styles/palette.js';
-import { getProjectorDirName } from '../core/project-config.js';
+import { getSpoolDirName } from '../core/project-config.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { SkillsConfigurator } from '../core/configurators/skills.js';
 
@@ -21,7 +21,7 @@ interface SkillsOptions {
 }
 
 /**
- * List available Projector skills
+ * List available Spool skills
  */
 async function listAvailableSkills(): Promise<void> {
   const spinner = ora('Loading available skills...').start();
@@ -32,16 +32,16 @@ async function listAvailableSkills(): Promise<void> {
     
     spinner.stop();
     
-    console.log(chalk.bold('Available Projector Skills:'));
+    console.log(chalk.bold('Available Spool Skills:'));
     console.log();
     
     // Group skills by category
     const coreSkills = availableSkills.filter(skill => 
-      ['projector-proposal', 'projector-apply', 'projector-archive', 'projector-research', 'projector-review'].includes(skill.id)
+      ['spool-proposal', 'spool-apply', 'spool-archive', 'spool-research', 'spool-review'].includes(skill.id)
     );
     
     const experimentalSkills = availableSkills.filter(skill =>
-      ['projector-explore', 'projector-new-change', 'projector-continue-change', 'projector-ff-change', 'projector-sync-specs', 'projector-archive-change'].includes(skill.id)
+      ['spool-explore', 'spool-new-change', 'spool-continue-change', 'spool-ff-change', 'spool-sync-specs', 'spool-archive-change'].includes(skill.id)
     );
     
     // Core workflow skills
@@ -68,10 +68,10 @@ async function listAvailableSkills(): Promise<void> {
     
     console.log();
     console.log(chalk.gray('Usage:'));
-    console.log(`  ${chalk.cyan('projector skills install <skill-id>,<skill-id>,...')} - Install specific skills`);
-    console.log(`  ${chalk.cyan('projector skills install --all')} - Install all skills`);
-    console.log(`  ${chalk.cyan('projector skills list')} - Show available skills`);
-    console.log(`  ${chalk.cyan('projector skills uninstall <skill-id>,<skill-id>,...')} - Remove specific skills`);
+    console.log(`  ${chalk.cyan('spool skills install <skill-id>,<skill-id>,...')} - Install specific skills`);
+    console.log(`  ${chalk.cyan('spool skills install --all')} - Install all skills`);
+    console.log(`  ${chalk.cyan('spool skills list')} - Show available skills`);
+    console.log(`  ${chalk.cyan('spool skills uninstall <skill-id>,<skill-id>,...')} - Remove specific skills`);
     
   } catch (error) {
     spinner.fail('Failed to load skills');
@@ -84,16 +84,16 @@ async function listAvailableSkills(): Promise<void> {
  * Install specified skills
  */
 async function installSkills(skillIds: string[]): Promise<void> {
-  const spinner = ora('Installing Projector Skills...').start();
+  const spinner = ora('Installing Spool Skills...').start();
   
   try {
     const projectRoot = process.cwd();
-    const projectorDir = getProjectorDirName(projectRoot);
+    const spoolDir = getSpoolDirName(projectRoot);
     const configurator = new SkillsConfigurator();
     
-    await configurator.installSkills(projectRoot, projectorDir, skillIds);
+    await configurator.installSkills(projectRoot, spoolDir, skillIds);
     
-    spinner.succeed('Projector Skills installed successfully!');
+    spinner.succeed('Spool Skills installed successfully!');
     
     console.log();
     console.log(chalk.bold('Skills Installed:'));
@@ -119,7 +119,7 @@ async function listInstalledSkills(): Promise<void> {
   
   try {
     const projectRoot = process.cwd();
-    const projectorDir = getProjectorDirName(projectRoot);
+    const spoolDir = getSpoolDirName(projectRoot);
     const configurator = new SkillsConfigurator();
     
     const installedSkills = await configurator.getInstalledSkills(projectRoot);
@@ -127,16 +127,16 @@ async function listInstalledSkills(): Promise<void> {
     spinner.stop();
     
     if (installedSkills.length === 0) {
-      console.log(chalk.gray('No Projector skills are currently installed.'));
+      console.log(chalk.gray('No Spool skills are currently installed.'));
     } else {
-      console.log(chalk.bold('Installed Projector Skills:'));
+      console.log(chalk.bold('Installed Spool Skills:'));
       for (const skill of installedSkills) {
         console.log(`  ${chalk.cyan('•')} ${chalk.white(skill)}`);
       }
     }
     
     console.log();
-    console.log(chalk.gray('Use ') + chalk.cyan('projector skills list') + chalk.gray(' to see all available skills.'));
+    console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see all available skills.'));
     
   } catch (error) {
     spinner.fail('Failed to check installed skills');
@@ -149,7 +149,7 @@ async function listInstalledSkills(): Promise<void> {
  * Uninstall specified skills
  */
 async function uninstallSkills(skillIds: string[]): Promise<void> {
-  const spinner = ora('Uninstalling Projector Skills...').start();
+  const spinner = ora('Uninstalling Spool Skills...').start();
   
   try {
     const projectRoot = process.cwd();
@@ -192,12 +192,12 @@ async function uninstallSkills(skillIds: string[]): Promise<void> {
 export function registerSkillsCommands(program: Command): void {
   const skillsCmd = program
     .command('skills')
-    .description('Manage Projector Agent Skills (core workflows and experimental OPSX)');
+    .description('Manage Spool Agent Skills (core workflows and experimental OPSX)');
     
   // List command
   skillsCmd
     .command('list')
-    .description('List all available Projector skills')
+    .description('List all available Spool skills')
     .action(async () => {
       await listAvailableSkills();
     });
@@ -205,7 +205,7 @@ export function registerSkillsCommands(program: Command): void {
   // Install command
   skillsCmd
     .command('install <skills...>')
-    .description('Install specified Projector skills (or --all for all)')
+    .description('Install specified Spool skills (or --all for all)')
     .option('--all', 'Install all available skills')
     .action(async (skills: string[], options: { all?: boolean }) => {
       if (options.all) {
@@ -218,7 +218,7 @@ export function registerSkillsCommands(program: Command): void {
         await installSkills(skills);
       } else {
         console.log(chalk.yellow('Error: Please specify skill IDs to install or use --all.'));
-        console.log(chalk.gray('Use ') + chalk.cyan('projector skills list') + chalk.gray(' to see available skills.'));
+        console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see available skills.'));
         process.exit(1);
       }
     });
@@ -226,13 +226,13 @@ export function registerSkillsCommands(program: Command): void {
   // Uninstall command
   skillsCmd
     .command('uninstall <skills...>')
-    .description('Remove specified Projector skills')
+    .description('Remove specified Spool skills')
     .action(async (skills: string[]) => {
       if (skills.length > 0) {
         await uninstallSkills(skills);
       } else {
         console.log(chalk.yellow('Error: Please specify skill IDs to uninstall.'));
-        console.log(chalk.gray('Use ') + chalk.cyan('projector skills list') + chalk.gray(' to see installed skills.'));
+        console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see installed skills.'));
         process.exit(1);
       }
     });
@@ -240,7 +240,7 @@ export function registerSkillsCommands(program: Command): void {
   // Status command
   skillsCmd
     .command('status')
-    .description('Show currently installed Projector skills')
+    .description('Show currently installed Spool skills')
     .action(async () => {
       await listInstalledSkills();
     });

@@ -113,7 +113,7 @@ describe('createChange', () => {
   let testDir: string;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `projector-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `spool-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
   });
 
@@ -130,19 +130,19 @@ describe('createChange', () => {
       expect(stats.isDirectory()).toBe(true);
     });
 
-    it('should create .projector.yaml metadata file with default schema', async () => {
+    it('should create .spool.yaml metadata file with default schema', async () => {
       await createChange(testDir, 'add-auth');
 
-      const metaPath = path.join(getChangesPath(testDir), 'add-auth', '.projector.yaml');
+      const metaPath = path.join(getChangesPath(testDir), 'add-auth', '.spool.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: spec-driven');
       expect(content).toMatch(/created: \d{4}-\d{2}-\d{2}/);
     });
 
-    it('should create .projector.yaml with custom schema', async () => {
+    it('should create .spool.yaml with custom schema', async () => {
       await createChange(testDir, 'add-auth', { schema: 'tdd' });
 
-      const metaPath = path.join(getChangesPath(testDir), 'add-auth', '.projector.yaml');
+      const metaPath = path.join(getChangesPath(testDir), 'add-auth', '.spool.yaml');
       const content = await fs.readFile(metaPath, 'utf-8');
       expect(content).toContain('schema: tdd');
     });
@@ -187,11 +187,11 @@ describe('createChange', () => {
   });
 
   describe('creates parent directories if needed', () => {
-    it('should create projector/changes/ directories if they do not exist', async () => {
+    it('should create spool/changes/ directories if they do not exist', async () => {
       const newProjectDir = path.join(testDir, 'new-project');
       await fs.mkdir(newProjectDir);
 
-      // projector/changes/ does not exist yet
+      // spool/changes/ does not exist yet
       await createChange(newProjectDir, 'add-auth');
 
       const changeDir = path.join(getChangesPath(newProjectDir), 'add-auth');

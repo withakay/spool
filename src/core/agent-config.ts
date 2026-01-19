@@ -1,8 +1,8 @@
 import path from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { replaceHardcodedDotProjectorPaths } from '../utils/path-normalization.js';
-import { getProjectorDirName } from './project-config.js';
+import { replaceHardcodedDotSpoolPaths } from '../utils/path-normalization.js';
+import { getSpoolDirName } from './project-config.js';
 
 export interface ModelConfig {
   fast?: string;
@@ -156,12 +156,12 @@ const DEFAULT_CONFIG: AgentConfig = {
   context_strategy: {
     overflow_handling: 'summarize',
     always_include: [
-      '.projector/planning/STATE.md',
-      '.projector/planning/PROJECT.md',
+      '.spool/planning/STATE.md',
+      '.spool/planning/PROJECT.md',
     ],
     priority_files: [
-      '.projector/planning/ROADMAP.md',
-      '.projector/research/SUMMARY.md',
+      '.spool/planning/ROADMAP.md',
+      '.spool/research/SUMMARY.md',
     ],
   },
 };
@@ -171,8 +171,8 @@ export class AgentConfigManager {
   private configPath: string | null = null;
 
   async getConfigPath(projectPath: string): Promise<string> {
-    const projectorDir = getProjectorDirName(projectPath);
-    return path.join(projectPath, projectorDir, 'config.yaml');
+    const spoolDir = getSpoolDirName(projectPath);
+    return path.join(projectPath, spoolDir, 'config.yaml');
   }
 
   async load(projectPath: string): Promise<AgentConfig> {
@@ -197,10 +197,10 @@ export class AgentConfigManager {
       indent: 2,
       lineWidth: 0,
     });
-    const projectorDir = getProjectorDirName(projectPath);
-    const normalized = replaceHardcodedDotProjectorPaths(
+    const spoolDir = getSpoolDirName(projectPath);
+    const normalized = replaceHardcodedDotSpoolPaths(
       content,
-      projectorDir
+      spoolDir
     );
 
     await FileSystemUtils.writeFile(configPath, normalized);

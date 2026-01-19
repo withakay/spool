@@ -24,30 +24,30 @@ describe('FishGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize Projector',
+          description: 'Initialize Spool',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('# Fish completion script for Projector CLI');
-      expect(script).toContain('function __fish_projector');
+      expect(script).toContain('# Fish completion script for Spool CLI');
+      expect(script).toContain('function __fish_spool');
     });
 
     it('should generate helper functions for Fish', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize Projector',
+          description: 'Initialize Spool',
           flags: [],
         },
       ];
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_projector_using_subcommand');
-      expect(script).toContain('function __fish_projector_no_subcommand');
+      expect(script).toContain('function __fish_spool_using_subcommand');
+      expect(script).toContain('function __fish_spool_no_subcommand');
       expect(script).toContain('commandline -opc');
     });
 
@@ -55,7 +55,7 @@ describe('FishGenerator', () => {
       const commands: CommandDefinition[] = [
         {
           name: 'init',
-          description: 'Initialize Projector',
+          description: 'Initialize Spool',
           flags: [],
         },
         {
@@ -72,9 +72,9 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("complete -c projector");
+      expect(script).toContain("complete -c spool");
       expect(script).toContain("-a 'init'");
-      expect(script).toContain("'Initialize Projector'");
+      expect(script).toContain("'Initialize Spool'");
       expect(script).toContain("-a 'validate'");
       expect(script).toContain("'Validate specs'");
       expect(script).toContain("-a 'show'");
@@ -224,7 +224,7 @@ describe('FishGenerator', () => {
       expect(script).toContain("'change'");
       expect(script).toContain("'show'");
       expect(script).toContain("'list'");
-      expect(script).toContain("__fish_projector_using_subcommand change");
+      expect(script).toContain("__fish_spool_using_subcommand change");
     });
 
     it('should handle positional arguments for change-id', () => {
@@ -240,7 +240,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('__fish_projector_changes');
+      expect(script).toContain('__fish_spool_changes');
     });
 
     it('should handle positional arguments for spec-id', () => {
@@ -256,7 +256,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('__fish_projector_specs');
+      expect(script).toContain('__fish_spool_specs');
     });
 
     it('should handle positional arguments for change-or-spec-id', () => {
@@ -272,7 +272,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('__fish_projector_items');
+      expect(script).toContain('__fish_spool_items');
     });
 
     it('should handle positional arguments for shell with inline values', () => {
@@ -307,8 +307,8 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_projector_changes');
-      expect(script).toContain('projector __complete changes 2>/dev/null');
+      expect(script).toContain('function __fish_spool_changes');
+      expect(script).toContain('spool __complete changes 2>/dev/null');
       expect(script).toContain('while read -l id desc');
       expect(script).toContain('printf');
     });
@@ -326,8 +326,8 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_projector_specs');
-      expect(script).toContain('projector __complete specs 2>/dev/null');
+      expect(script).toContain('function __fish_spool_specs');
+      expect(script).toContain('spool __complete specs 2>/dev/null');
     });
 
     it('should generate dynamic completion helper for items', () => {
@@ -343,9 +343,9 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('function __fish_projector_items');
-      expect(script).toContain('__fish_projector_changes');
-      expect(script).toContain('__fish_projector_specs');
+      expect(script).toContain('function __fish_spool_items');
+      expect(script).toContain('__fish_spool_changes');
+      expect(script).toContain('__fish_spool_specs');
     });
 
     it('should escape single quotes in descriptions', () => {
@@ -400,7 +400,7 @@ describe('FishGenerator', () => {
       expect(script).toContain("'validate'");
       expect(script).toContain("-l strict");
       expect(script).toContain("-l json");
-      expect(script).toContain('__fish_projector_specs');
+      expect(script).toContain('__fish_spool_specs');
     });
 
     it('should handle empty command list', () => {
@@ -409,7 +409,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('# Fish completion script');
-      expect(script).toContain('function __fish_projector');
+      expect(script).toContain('function __fish_spool');
     });
 
     it('should handle commands with no flags', () => {

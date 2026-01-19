@@ -1,20 +1,20 @@
 export interface AgentsTemplateContext {
-  projectorDir: string;
+  spoolDir: string;
 }
 
-export const agentsTemplate = (context: AgentsTemplateContext) => `# Projector Instructions
+export const agentsTemplate = (context: AgentsTemplateContext) => `# Spool Instructions
 
-Instructions for AI coding assistants using Projector for spec-driven development.
+Instructions for AI coding assistants using Spool for spec-driven development.
 
 ## TL;DR Quick Checklist
 
-- Search existing work: \`projector spec list --long\`, \`projector list\`, \`projector module list\`
+- Search existing work: \`spool spec list --long\`, \`spool list\`, \`spool module list\`
 - Decide scope: new capability vs modify existing capability
 - For large features (epics): Create a module to group related changes
 - Pick a unique \`change-id\`: For modular changes use \`NNN-CC_name\` format (e.g., \`001-01_init-repo\`)
 - Scaffold: \`proposal.md\`, \`tasks.md\`, \`design.md\` (only if needed), and delta specs per affected capability
 - Write deltas: use \`## ADDED|MODIFIED|REMOVED|RENAMED Requirements\`; include at least one \`#### Scenario:\` per requirement
-- Validate: \`projector validate [change-id] --strict\` and fix issues
+- Validate: \`spool validate [change-id] --strict\` and fix issues
 - Request approval: Do not start implementation until proposal is approved
 
 ## Three-Stage Workflow
@@ -46,10 +46,10 @@ Skip proposal for:
 - Tests for existing behavior
 
 **Workflow**
-1. Review \`${context.projectorDir}/project.md\`, \`projector list\`, and \`projector list --specs\` to understand current context.
-2. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, \`tasks.md\`, optional \`design.md\`, and spec deltas under \`${context.projectorDir}/changes/<id>/\`.
+1. Review \`${context.spoolDir}/project.md\`, \`spool list\`, and \`spool list --specs\` to understand current context.
+2. Choose a unique verb-led \`change-id\` and scaffold \`proposal.md\`, \`tasks.md\`, optional \`design.md\`, and spec deltas under \`${context.spoolDir}/changes/<id>/\`.
 3. Draft spec deltas using \`## ADDED|MODIFIED|REMOVED Requirements\` with at least one \`#### Scenario:\` per requirement.
-4. Run \`projector validate <id> --strict\` and resolve any issues before sharing the proposal.
+4. Run \`spool validate <id> --strict\` and resolve any issues before sharing the proposal.
 
 ### Stage 2: Implementing Changes
 Track these steps as TODOs and complete them one by one.
@@ -65,31 +65,31 @@ Track these steps as TODOs and complete them one by one.
 After deployment, create separate PR to:
 - Move \`changes/[name]/\` → \`changes/archive/YYYY-MM-DD-[name]/\`
 - Update \`specs/\` if capabilities changed
-- Use \`projector archive <change-id> --skip-specs --yes\` for tooling-only changes (always pass the change ID explicitly)
-- Run \`projector validate --strict\` to confirm the archived change passes checks
+- Use \`spool archive <change-id> --skip-specs --yes\` for tooling-only changes (always pass the change ID explicitly)
+- Run \`spool validate --strict\` to confirm the archived change passes checks
 
 ## Before Any Task
 
 **Context Checklist:**
 - [ ] Read relevant specs in \`specs/[capability]/spec.md\`
 - [ ] Check pending changes in \`changes/\` for conflicts
-- [ ] Read \`${context.projectorDir}/project.md\` for conventions
-- [ ] Run \`projector list\` to see active changes
-- [ ] Run \`projector list --specs\` to see existing capabilities
+- [ ] Read \`${context.spoolDir}/project.md\` for conventions
+- [ ] Run \`spool list\` to see active changes
+- [ ] Run \`spool list --specs\` to see existing capabilities
 
 **Before Creating Specs:**
 - Always check if capability already exists
 - Prefer modifying existing specs over creating duplicates
-- Use \`projector show [spec]\` to review current state
+- Use \`spool show [spec]\` to review current state
 - If request is ambiguous, ask 1–2 clarifying questions before scaffolding
 
 ### Search Guidance
-- Enumerate specs: \`projector spec list --long\` (or \`--json\` for scripts)
-- Enumerate changes: \`projector list\` (or \`projector change list --json\` - deprecated but available)
+- Enumerate specs: \`spool spec list --long\` (or \`--json\` for scripts)
+- Enumerate changes: \`spool list\` (or \`spool change list --json\` - deprecated but available)
 - Show details:
-  - Spec: \`projector show <spec-id> --type spec\` (use \`--json\` for filters)
-  - Change: \`projector show <change-id> --json --deltas-only\`
-- Full-text search (use ripgrep): \`rg -n "Requirement:|Scenario:" ${context.projectorDir}/specs\`
+  - Spec: \`spool show <spec-id> --type spec\` (use \`--json\` for filters)
+  - Change: \`spool show <change-id> --json --deltas-only\`
+- Full-text search (use ripgrep): \`rg -n "Requirement:|Scenario:" ${context.spoolDir}/specs\`
 
 ## Quick Start
 
@@ -97,30 +97,30 @@ After deployment, create separate PR to:
 
 \`\`\`bash
 # Essential commands
-projector list                  # List active changes
-projector list --specs          # List specifications
-projector show [item]           # Display change or spec
-projector validate [item]       # Validate changes or specs
-projector archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
+spool list                  # List active changes
+spool list --specs          # List specifications
+spool show [item]           # Display change or spec
+spool validate [item]       # Validate changes or specs
+spool archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
 
 # Module commands
-projector module list           # List all modules
-projector module new <name>     # Create a new module
-projector module show <id>      # Show module details
-projector module validate <id>  # Validate a module
+spool module list           # List all modules
+spool module new <name>     # Create a new module
+spool module show <id>      # Show module details
+spool module validate <id>  # Validate a module
 
 # Project management
-projector init [path]           # Initialize Projector
-projector update [path]         # Update instruction files
+spool init [path]           # Initialize Spool
+spool update [path]         # Update instruction files
 
 # Interactive mode
-projector show                  # Prompts for selection
-projector validate              # Bulk validation mode
+spool show                  # Prompts for selection
+spool validate              # Bulk validation mode
 
 # Debugging
-projector show [change] --json --deltas-only
-projector validate [change] --strict
-projector validate --modules    # Validate all modules
+spool show [change] --json --deltas-only
+spool validate [change] --strict
+spool validate --modules    # Validate all modules
 \`\`\`
 
 ### Command Flags
@@ -135,7 +135,7 @@ projector validate --modules    # Validate all modules
 ## Directory Structure
 
 \`\`\`
-${context.projectorDir}/
+${context.spoolDir}/
 ├── project.md              # Project conventions
 ├── specs/                  # Current truth - what IS built
 │   └── [capability]/       # Single focused capability
@@ -271,8 +271,8 @@ Modules group related changes into epics. Use modules for large features that sp
 ### Creating a Module
 
 \`\`\`bash
-projector module new project-setup
-# Creates: ${context.projectorDir}/modules/001_project-setup/module.md
+spool module new project-setup
+# Creates: ${context.spoolDir}/modules/001_project-setup/module.md
 \`\`\`
 
 ### module.md Structure
@@ -309,15 +309,15 @@ Set up the initial project structure and tooling.
 \`\`\`bash
 # Change naming: NNN-CC_name
 # NNN = module ID, CC = change number
-mkdir -p ${context.projectorDir}/changes/001-01_init-repo/{specs/project-config}
+mkdir -p ${context.spoolDir}/changes/001-01_init-repo/{specs/project-config}
 \`\`\`
 
 ### Module Validation
 
 \`\`\`bash
-projector module validate 001           # Validate module + scope
-projector module validate 001 --with-changes  # Also validate all changes
-projector validate --modules            # Validate all modules
+spool module validate 001           # Validate module + scope
+spool module validate 001 --with-changes  # Also validate all changes
+spool validate --modules            # Validate all modules
 \`\`\`
 
 ## Spec File Format
@@ -360,7 +360,7 @@ Headers matched with \`trim(header)\` - whitespace ignored.
 Common pitfall: Using MODIFIED to add a new concern without including the previous text. This causes loss of detail at archive time. If you aren’t explicitly changing the existing requirement, add a new requirement under ADDED instead.
 
 Authoring a MODIFIED requirement correctly:
-1) Locate the existing requirement in \`${context.projectorDir}/specs/<capability>/spec.md\`.
+1) Locate the existing requirement in \`${context.spoolDir}/specs/<capability>/spec.md\`.
 2) Copy the entire requirement block (from \`### Requirement: ...\` through its scenarios).
 3) Paste it under \`## MODIFIED Requirements\` and edit to reflect the new behavior.
 4) Ensure the header text matches exactly (whitespace-insensitive) and keep at least one \`#### Scenario:\`.
@@ -386,39 +386,39 @@ Example for RENAMED:
 
 **Silent scenario parsing failures**
 - Exact format required: \`#### Scenario: Name\`
-- Debug with: \`projector show [change] --json --deltas-only\`
+- Debug with: \`spool show [change] --json --deltas-only\`
 
 ### Validation Tips
 
 \`\`\`bash
 # Always use strict mode for comprehensive checks
-projector validate [change] --strict
+spool validate [change] --strict
 
 # Debug delta parsing
-projector show [change] --json | jq '.deltas'
+spool show [change] --json | jq '.deltas'
 
 # Check specific requirement
-projector show [spec] --json -r 1
+spool show [spec] --json -r 1
 \`\`\`
 
 ## Happy Path Script
 
 \`\`\`bash
 # 1) Explore current state
-projector spec list --long
-projector list
+spool spec list --long
+spool list
 # Optional full-text search:
-# rg -n "Requirement:|Scenario:" ${context.projectorDir}/specs
-# rg -n "^#|Requirement:" ${context.projectorDir}/changes
+# rg -n "Requirement:|Scenario:" ${context.spoolDir}/specs
+# rg -n "^#|Requirement:" ${context.spoolDir}/changes
 
 # 2) Choose change id and scaffold
 CHANGE=add-two-factor-auth
-mkdir -p ${context.projectorDir}/changes/$CHANGE/{specs/auth}
-printf "## Why\\n...\\n\\n## What Changes\\n- ...\\n\\n## Impact\\n- ...\\n" > ${context.projectorDir}/changes/$CHANGE/proposal.md
-printf "## 1. Implementation\\n- [ ] 1.1 ...\\n" > ${context.projectorDir}/changes/$CHANGE/tasks.md
+mkdir -p ${context.spoolDir}/changes/$CHANGE/{specs/auth}
+printf "## Why\\n...\\n\\n## What Changes\\n- ...\\n\\n## Impact\\n- ...\\n" > ${context.spoolDir}/changes/$CHANGE/proposal.md
+printf "## 1. Implementation\\n- [ ] 1.1 ...\\n" > ${context.spoolDir}/changes/$CHANGE/tasks.md
 
 # 3) Add deltas (example)
-cat > ${context.projectorDir}/changes/$CHANGE/specs/auth/spec.md << 'EOF'
+cat > ${context.spoolDir}/changes/$CHANGE/specs/auth/spec.md << 'EOF'
 ## ADDED Requirements
 ### Requirement: Two-Factor Authentication
 Users MUST provide a second factor during login.
@@ -429,13 +429,13 @@ Users MUST provide a second factor during login.
 EOF
 
 # 4) Validate
-projector validate $CHANGE --strict
+spool validate $CHANGE --strict
 \`\`\`
 
 ## Multi-Capability Example
 
 \`\`\`
-${context.projectorDir}/changes/add-2fa-notify/
+${context.spoolDir}/changes/add-2fa-notify/
 ├── proposal.md
 ├── tasks.md
 └── specs/
@@ -501,7 +501,7 @@ Only add complexity with:
 ## Error Recovery
 
 ### Change Conflicts
-1. Run \`projector list\` to see active changes
+1. Run \`spool list\` to see active changes
 2. Check for overlapping specs
 3. Coordinate with change owners
 4. Consider combining proposals
@@ -533,10 +533,10 @@ Only add complexity with:
 
 ### CLI Essentials
 \`\`\`bash
-projector list              # What's in progress?
-projector show [item]       # View details
-projector validate --strict # Is it correct?
-projector archive <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
+spool list              # What's in progress?
+spool show [item]       # View details
+spool validate --strict # Is it correct?
+spool archive <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
 \`\`\`
 
 Remember: Specs are truth. Changes are proposals. Keep them in sync.

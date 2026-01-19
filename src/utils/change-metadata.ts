@@ -4,7 +4,7 @@ import * as yaml from 'yaml';
 import { ChangeMetadataSchema, type ChangeMetadata } from '../core/artifact-graph/types.js';
 import { listSchemas } from '../core/artifact-graph/resolver.js';
 
-const METADATA_FILENAME = '.projector.yaml';
+const METADATA_FILENAME = '.spool.yaml';
 
 /**
  * Error thrown when change metadata validation fails.
@@ -38,7 +38,7 @@ export function validateSchemaName(schemaName: string): string {
 }
 
 /**
- * Writes change metadata to .projector.yaml in the change directory.
+ * Writes change metadata to .spool.yaml in the change directory.
  *
  * @param changeDir - The path to the change directory
  * @param metadata - The metadata to write
@@ -77,7 +77,7 @@ export function writeChangeMetadata(
 }
 
 /**
- * Reads change metadata from .projector.yaml in the change directory.
+ * Reads change metadata from .spool.yaml in the change directory.
  *
  * @param changeDir - The path to the change directory
  * @returns The validated metadata, or null if no metadata file exists
@@ -140,7 +140,7 @@ export function readChangeMetadata(changeDir: string): ChangeMetadata | null {
  *
  * Resolution order:
  * 1. Explicit schema (if provided)
- * 2. Schema from .projector.yaml metadata (if exists)
+ * 2. Schema from .spool.yaml metadata (if exists)
  * 3. Default 'spec-driven'
  *
  * @param changeDir - The path to the change directory

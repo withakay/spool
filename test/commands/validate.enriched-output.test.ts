@@ -8,7 +8,7 @@ describe('validate command enriched human output', () => {
   const projectRoot = process.cwd();
   const testDir = path.join(projectRoot, 'test-validate-enriched-tmp');
   const changesDir = getChangesPath(testDir);
-  const bin = path.join(projectRoot, 'bin', 'projector.js');
+  const bin = path.join(projectRoot, 'bin', 'spool.js');
 
 
   beforeEach(async () => {
@@ -40,7 +40,7 @@ describe('validate command enriched human output', () => {
       expect(code).not.toBe(0);
       expect(stderr).toContain('has issues');
       expect(stderr).toContain('Next steps:');
-      expect(stderr).toContain('projector change show');
+      expect(stderr).toContain('spool change show');
     } finally {
       process.chdir(originalCwd);
     }

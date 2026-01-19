@@ -83,7 +83,7 @@ export async function runCLI(args: string[] = [], options: RunCLIOptions = {}): 
       cwd: options.cwd ?? projectRoot,
       env: {
         ...process.env,
-        PROJECTOR_INTERACTIVE: '0',
+        SPOOL_INTERACTIVE: '0',
         ...options.env,
       },
       stdio: ['pipe', 'pipe', 'pipe'],

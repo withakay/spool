@@ -3,16 +3,16 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 
 // Constants
-export const GLOBAL_CONFIG_DIR_NAME = 'projector';
+export const GLOBAL_CONFIG_DIR_NAME = 'spool';
 export const GLOBAL_CONFIG_FILE_NAME = 'config.json';
-export const GLOBAL_DATA_DIR_NAME = 'projector';
+export const GLOBAL_DATA_DIR_NAME = 'spool';
 
 // TypeScript interfaces
 export interface GlobalConfig {
   featureFlags?: Record<string, boolean>;
   /**
-   * Default project path for Projector directory.
-   * Can be overridden by repo-level projector.json.
+   * Default project path for Spool directory.
+   * Can be overridden by repo-level spool.json.
    */
   projectPath?: string;
 }
@@ -25,9 +25,9 @@ const DEFAULT_CONFIG: GlobalConfig = {
 /**
  * Gets the global configuration directory path following XDG Base Directory Specification.
  *
- * - All platforms: $XDG_CONFIG_HOME/projector/ if XDG_CONFIG_HOME is set
- * - Unix/macOS fallback: ~/.config/projector/
- * - Windows fallback: %APPDATA%/projector/
+ * - All platforms: $XDG_CONFIG_HOME/spool/ if XDG_CONFIG_HOME is set
+ * - Unix/macOS fallback: ~/.config/spool/
+ * - Windows fallback: %APPDATA%/spool/
  */
 export function getGlobalConfigDir(): string {
   // XDG_CONFIG_HOME takes precedence on all platforms when explicitly set
@@ -56,9 +56,9 @@ export function getGlobalConfigDir(): string {
  * Gets the global data directory path following XDG Base Directory Specification.
  * Used for user data like schema overrides.
  *
- * - All platforms: $XDG_DATA_HOME/projector/ if XDG_DATA_HOME is set
- * - Unix/macOS fallback: ~/.local/share/projector/
- * - Windows fallback: %LOCALAPPDATA%/projector/
+ * - All platforms: $XDG_DATA_HOME/spool/ if XDG_DATA_HOME is set
+ * - Unix/macOS fallback: ~/.local/share/spool/
+ * - Windows fallback: %LOCALAPPDATA%/spool/
  */
 export function getGlobalDataDir(): string {
   // XDG_DATA_HOME takes precedence on all platforms when explicitly set

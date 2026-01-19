@@ -3,24 +3,24 @@ import * as path from 'path';
 import chalk from 'chalk';
 import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
 import { MarkdownParser } from './parsers/markdown-parser.js';
-import { getProjectorPath } from './project-config.js';
+import { getSpoolPath } from './project-config.js';
 
 export class ViewCommand {
   async execute(targetPath: string = '.'): Promise<void> {
-    const projectorDir = getProjectorPath(targetPath);
+    const spoolDir = getSpoolPath(targetPath);
 
-    if (!fs.existsSync(projectorDir)) {
+    if (!fs.existsSync(spoolDir)) {
       // Return no data rather than exiting to keep this usable in library/test contexts.
-      console.error(chalk.red('No projector directory found'));
+      console.error(chalk.red('No spool directory found'));
       return;
     }
 
-    console.log(chalk.bold('\nProjector Dashboard\n'));
+    console.log(chalk.bold('\nSpool Dashboard\n'));
     console.log('═'.repeat(60));
 
     // Get changes and specs data
-    const changesData = await this.getChangesData(projectorDir);
-    const specsData = await this.getSpecsData(projectorDir);
+    const changesData = await this.getChangesData(spoolDir);
+    const specsData = await this.getSpecsData(spoolDir);
 
     // Display summary metrics
     this.displaySummary(changesData, specsData);
@@ -77,15 +77,15 @@ export class ViewCommand {
     }
 
     console.log('\n' + '═'.repeat(60));
-    console.log(chalk.dim(`\nUse ${chalk.white('projector list --changes')} or ${chalk.white('projector list --specs')} for detailed views`));
+    console.log(chalk.dim(`\nUse ${chalk.white('spool list --changes')} or ${chalk.white('spool list --specs')} for detailed views`));
   }
 
-  private async getChangesData(projectorDir: string): Promise<{
+  private async getChangesData(spoolDir: string): Promise<{
     draft: Array<{ name: string }>;
     active: Array<{ name: string; progress: { total: number; completed: number } }>;
     completed: Array<{ name: string }>;
   }> {
-    const changesDir = path.join(projectorDir, 'changes');
+    const changesDir = path.join(spoolDir, 'changes');
 
     if (!fs.existsSync(changesDir)) {
       return { draft: [], active: [], completed: [] };
@@ -131,8 +131,8 @@ export class ViewCommand {
     return { draft, active, completed };
   }
 
-  private async getSpecsData(projectorDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
-    const specsDir = path.join(projectorDir, 'specs');
+  private async getSpecsData(spoolDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
+    const specsDir = path.join(spoolDir, 'specs');
     
     if (!fs.existsSync(specsDir)) {
       return [];

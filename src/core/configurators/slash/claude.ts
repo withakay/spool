@@ -2,43 +2,43 @@ import { SlashCommandConfigurator, EXTENDED_COMMANDS } from './base.js';
 import { SlashCommandId } from '../../templates/index.js';
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: '.claude/commands/projector/proposal.md',
-  apply: '.claude/commands/projector/apply.md',
-  archive: '.claude/commands/projector/archive.md',
-  research: '.claude/commands/projector/research.md',
-  review: '.claude/commands/projector/review.md',
+  proposal: '.claude/commands/spool/proposal.md',
+  apply: '.claude/commands/spool/apply.md',
+  archive: '.claude/commands/spool/archive.md',
+  research: '.claude/commands/spool/research.md',
+  review: '.claude/commands/spool/review.md',
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
   proposal: `---
-name: Projector: Proposal
-description: Scaffold a new Projector change and validate strictly.
-category: Projector
-tags: [projector, change]
+name: Spool: Proposal
+description: Scaffold a new Spool change and validate strictly.
+category: Spool
+tags: [spool, change]
 ---`,
   apply: `---
-name: Projector: Apply
-description: Implement an approved Projector change and keep tasks in sync.
-category: Projector
-tags: [projector, apply]
+name: Spool: Apply
+description: Implement an approved Spool change and keep tasks in sync.
+category: Spool
+tags: [spool, apply]
 ---`,
   archive: `---
-name: Projector: Archive
-description: Archive a deployed Projector change and update specs.
-category: Projector
-tags: [projector, archive]
+name: Spool: Archive
+description: Archive a deployed Spool change and update specs.
+category: Spool
+tags: [spool, archive]
 ---`,
   research: `---
-name: Projector: Research
-description: Conduct research via Projector skills (stack, architecture, features, pitfalls).
-category: Projector
-tags: [projector, research]
+name: Spool: Research
+description: Conduct research via Spool skills (stack, architecture, features, pitfalls).
+category: Spool
+tags: [spool, research]
 ---`,
   review: `---
-name: Projector: Review
-description: Conduct adversarial review via Projector review skill.
-category: Projector
-tags: [projector, review]
+name: Spool: Review
+description: Conduct adversarial review via Spool review skill.
+category: Spool
+tags: [spool, review]
 ---`,
 };
 

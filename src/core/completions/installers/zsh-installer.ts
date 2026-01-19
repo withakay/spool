@@ -15,8 +15,8 @@ export class ZshInstaller {
    * Markers for .zshrc configuration management
    */
   private readonly ZSHRC_MARKERS = {
-    start: '# PROJECTOR:START',
-    end: '# PROJECTOR:END',
+    start: '# SPOOL:START',
+    end: '# SPOOL:END',
   };
 
   constructor(homeDir: string = os.homedir()) {
@@ -53,13 +53,13 @@ export class ZshInstaller {
     if (isOhMyZsh) {
       // Oh My Zsh custom completions directory
       return {
-        path: path.join(this.homeDir, '.oh-my-zsh', 'custom', 'completions', '_projector'),
+        path: path.join(this.homeDir, '.oh-my-zsh', 'custom', 'completions', '_spool'),
         isOhMyZsh: true,
       };
     } else {
       // Standard Zsh completions directory
       return {
-        path: path.join(this.homeDir, '.zsh', 'completions', '_projector'),
+        path: path.join(this.homeDir, '.zsh', 'completions', '_spool'),
         isOhMyZsh: false,
       };
     }
@@ -102,7 +102,7 @@ export class ZshInstaller {
    */
   private generateZshrcConfig(completionsDir: string): string {
     return [
-      '# Projector shell completions configuration',
+      '# Spool shell completions configuration',
       `fpath=("${completionsDir}" $fpath)`,
       'autoload -Uz compinit',
       'compinit',
@@ -118,7 +118,7 @@ export class ZshInstaller {
    */
   async configureZshrc(completionsDir: string): Promise<boolean> {
     // Check if auto-configuration is disabled
-    if (process.env.PROJECTOR_NO_AUTO_CONFIG === '1') {
+    if (process.env.SPOOL_NO_AUTO_CONFIG === '1') {
       return false;
     }
 
@@ -149,7 +149,7 @@ export class ZshInstaller {
   }
 
   /**
-   * Check if .zshrc has Projector configuration markers
+   * Check if .zshrc has Spool configuration markers
    *
    * @returns true if .zshrc exists and has markers
    */
@@ -436,7 +436,7 @@ export class ZshInstaller {
         messages.push(`Completion script removed from ${targetPath}`);
       }
       if (zshrcCleaned && !isOhMyZsh) {
-        messages.push('Removed Projector configuration from ~/.zshrc');
+        messages.push('Removed Spool configuration from ~/.zshrc');
       }
 
       return {

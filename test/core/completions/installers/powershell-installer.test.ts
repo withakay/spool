@@ -12,7 +12,7 @@ describe('PowerShellInstaller', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    testHomeDir = path.join(os.tmpdir(), `projector-powershell-test-${randomUUID()}`);
+    testHomeDir = path.join(os.tmpdir(), `spool-powershell-test-${randomUUID()}`);
     await fs.mkdir(testHomeDir, { recursive: true });
     installer = new PowerShellInstaller(testHomeDir);
     originalPlatform = process.platform;
@@ -74,13 +74,13 @@ describe('PowerShellInstaller', () => {
       });
 
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, '.config', 'powershell', 'ProjectorCompletion.ps1'));
+      expect(result).toBe(path.join(testHomeDir, '.config', 'powershell', 'SpoolCompletion.ps1'));
     });
 
     it('should work with custom PROFILE environment variable', () => {
       process.env.PROFILE = path.join(testHomeDir, 'custom', 'profile.ps1');
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, 'custom', 'ProjectorCompletion.ps1'));
+      expect(result).toBe(path.join(testHomeDir, 'custom', 'SpoolCompletion.ps1'));
     });
 
     it('should return Windows path when on Windows platform', () => {
@@ -90,7 +90,7 @@ describe('PowerShellInstaller', () => {
       });
 
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, 'Documents', 'PowerShell', 'ProjectorCompletion.ps1'));
+      expect(result).toBe(path.join(testHomeDir, 'Documents', 'PowerShell', 'SpoolCompletion.ps1'));
     });
   });
 
@@ -136,26 +136,26 @@ describe('PowerShellInstaller', () => {
   });
 
   describe('configureProfile', () => {
-    const mockScriptPath = '/path/to/ProjectorCompletion.ps1';
+    const mockScriptPath = '/path/to/SpoolCompletion.ps1';
 
-    // Note: PROJECTOR_NO_AUTO_CONFIG check is now handled in the install() method,
+    // Note: SPOOL_NO_AUTO_CONFIG check is now handled in the install() method,
     // not in configureProfile() itself
 
     it('should create profile with markers when file does not exist', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const profilePath = installer.getProfilePath();
 
       const result = await installer.configureProfile(mockScriptPath);
 
       expect(result).toBe(true);
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).toContain('# PROJECTOR:START');
-      expect(content).toContain('# PROJECTOR:END');
+      expect(content).toContain('# SPOOL:START');
+      expect(content).toContain('# SPOOL:END');
       expect(content).toContain(`. "${mockScriptPath}"`);
     });
 
     it('should prepend markers and config when file exists without markers', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const profilePath = installer.getProfilePath();
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
       await fs.writeFile(profilePath, '# My custom PowerShell config\nWrite-Host "Hello"');
@@ -164,8 +164,8 @@ describe('PowerShellInstaller', () => {
 
       expect(result).toBe(true);
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).toContain('# PROJECTOR:START');
-      expect(content).toContain('# PROJECTOR:END');
+      expect(content).toContain('# SPOOL:START');
+      expect(content).toContain('# SPOOL:END');
       expect(content).toContain(mockScriptPath);
       expect(content).toContain('# My custom PowerShell config');
       expect(content).toContain('Write-Host "Hello"');
@@ -174,14 +174,14 @@ describe('PowerShellInstaller', () => {
     // Skip on Windows: Windows has dual profile paths (PowerShell Core + Windows PowerShell 5.1),
     // so even if one profile is already configured, the second one will be configured and return true
     it.skipIf(process.platform === 'win32')('should skip configuration when script line already exists', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const profilePath = installer.getProfilePath();
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
       const initialContent = [
-        '# PROJECTOR:START - Projector completion (managed block, do not edit manually)',
+        '# SPOOL:START - Spool completion (managed block, do not edit manually)',
         `. "${mockScriptPath}"`,
-        '# PROJECTOR:END',
+        '# SPOOL:END',
         '',
         '# My custom config',
         'Write-Host "Custom"',
@@ -199,7 +199,7 @@ describe('PowerShellInstaller', () => {
     });
 
     it('should preserve user content outside markers', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const profilePath = installer.getProfilePath();
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
@@ -207,9 +207,9 @@ describe('PowerShellInstaller', () => {
         '# User config before',
         'Set-Variable -Name "test" -Value "before"',
         '',
-        '# PROJECTOR:START',
+        '# SPOOL:START',
         '# Old config',
-        '# PROJECTOR:END',
+        '# SPOOL:END',
         '',
         '# User config after',
         'Set-Variable -Name "test" -Value "after"',
@@ -228,21 +228,21 @@ describe('PowerShellInstaller', () => {
     });
 
     it('should generate correct PowerShell syntax in config', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const profilePath = installer.getProfilePath();
 
       await installer.configureProfile(mockScriptPath);
 
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).toContain('# PROJECTOR:START');
+      expect(content).toContain('# SPOOL:START');
       expect(content).toContain(`. "${mockScriptPath}"`);
-      expect(content).toContain('# PROJECTOR:END');
+      expect(content).toContain('# SPOOL:END');
     });
 
     // Skip on Windows: fs.chmod() doesn't reliably restrict write access on Windows
     // (admin users can bypass read-only attribute, and CI runners often have elevated privileges)
     it.skipIf(process.platform === 'win32')('should return false on write permission error', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const profilePath = installer.getProfilePath();
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
       await fs.writeFile(profilePath, '# Test');
@@ -282,12 +282,12 @@ describe('PowerShellInstaller', () => {
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
       const initialContent = [
-        '# PROJECTOR:START',
-        '# Projector completions',
+        '# SPOOL:START',
+        '# Spool completions',
         'if (Test-Path "/path") {',
         '    . "/path"',
         '}',
-        '# PROJECTOR:END',
+        '# SPOOL:END',
         '',
         '# My config',
       ].join('\n');
@@ -298,9 +298,9 @@ describe('PowerShellInstaller', () => {
 
       expect(result).toBe(true);
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).not.toContain('# PROJECTOR:START');
-      expect(content).not.toContain('# PROJECTOR:END');
-      expect(content).not.toContain('# Projector completions');
+      expect(content).not.toContain('# SPOOL:START');
+      expect(content).not.toContain('# SPOOL:END');
+      expect(content).not.toContain('# Spool completions');
       expect(content).toContain('# My config');
     });
 
@@ -310,9 +310,9 @@ describe('PowerShellInstaller', () => {
 
       const initialContent = [
         '# User config',
-        '# PROJECTOR:START',
+        '# SPOOL:START',
         '# Config',
-        '# PROJECTOR:END',
+        '# SPOOL:END',
         '',
         '',
       ].join('\n');
@@ -332,9 +332,9 @@ describe('PowerShellInstaller', () => {
 
       const initialContent = [
         '# Before',
-        '# PROJECTOR:START',
-        '# Projector',
-        '# PROJECTOR:END',
+        '# SPOOL:START',
+        '# Spool',
+        '# SPOOL:END',
         '# After',
       ].join('\n');
 
@@ -353,9 +353,9 @@ describe('PowerShellInstaller', () => {
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
       const initialContent = [
-        '# PROJECTOR:END',
+        '# SPOOL:END',
         '# Config',
-        '# PROJECTOR:START',
+        '# SPOOL:START',
       ].join('\n');
 
       await fs.writeFile(profilePath, initialContent);
@@ -367,26 +367,26 @@ describe('PowerShellInstaller', () => {
   });
 
   describe('install', () => {
-    const mockCompletionScript = `# PowerShell completion script for Projector
-$projectorCompleter = {
+    const mockCompletionScript = `# PowerShell completion script for Spool
+$spoolCompleter = {
     param($wordToComplete, $commandAst, $cursorPosition)
     # Completion logic here
 }
-Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorCompleter
+Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 `;
 
     it('should install completion script for the first time', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const result = await installer.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('installed');
-      expect(result.installedPath).toContain('ProjectorCompletion.ps1');
+      expect(result.installedPath).toContain('SpoolCompletion.ps1');
       expect(result.backupPath).toBeUndefined();
     });
 
     it('should create parent directories if they do not exist', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const result = await installer.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
@@ -396,7 +396,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should write completion script content correctly', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const targetPath = installer.getInstallationPath();
@@ -405,7 +405,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should detect when already installed with same content', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const result = await installer.install(mockCompletionScript);
@@ -416,7 +416,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should update when content is different', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const updatedScript = mockCompletionScript + '\n# Updated version';
@@ -428,7 +428,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should create backup when updating existing installation', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const updatedScript = mockCompletionScript + '\n# Updated';
@@ -443,7 +443,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should configure PowerShell profile when not disabled', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const result = await installer.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
@@ -452,13 +452,13 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
       expect(result.instructions).toBeUndefined();
     });
 
-    // Note: PROJECTOR_NO_AUTO_CONFIG support was removed from PowerShell installer
+    // Note: SPOOL_NO_AUTO_CONFIG support was removed from PowerShell installer
     // Profile is now always auto-configured if possible
 
     // Skip on Windows: fs.chmod() doesn't reliably restrict write access on Windows
     // (admin users can bypass read-only attribute, and CI runners often have elevated privileges)
     it.skipIf(process.platform === 'win32')('should provide instructions when profile cannot be configured', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       // Make profile directory read-only to prevent configuration
       const profilePath = installer.getProfilePath();
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
@@ -477,7 +477,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should include backup path in message when updating', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const updatedScript = mockCompletionScript + '\n# Updated';
@@ -489,14 +489,14 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should handle installation with paths containing spaces', async () => {
-      const spacedHomeDir = path.join(os.tmpdir(), `projector powershell test ${randomUUID()}`);
+      const spacedHomeDir = path.join(os.tmpdir(), `spool powershell test ${randomUUID()}`);
       await fs.mkdir(spacedHomeDir, { recursive: true });
 
       const spacedInstaller = new PowerShellInstaller(spacedHomeDir);
       const result = await spacedInstaller.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
-      expect(result.installedPath).toContain('projector powershell test');
+      expect(result.installedPath).toContain('spool powershell test');
 
       // Cleanup
       await fs.rm(spacedHomeDir, { recursive: true, force: true });
@@ -522,7 +522,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should handle empty completion script', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const result = await installer.install('');
 
       expect(result.success).toBe(true);
@@ -532,7 +532,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should handle completion script with special characters', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       const specialScript = `# PowerShell with special chars: ' " \` $ @\n$test = "value"`;
 
       const result = await installer.install(specialScript);
@@ -546,12 +546,12 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
 
   describe('uninstall', () => {
     const mockCompletionScript = `# PowerShell completion script
-$projectorCompleter = {}
-Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorCompleter
+$spoolCompleter = {}
+Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 `;
 
     it('should successfully uninstall when completion script exists', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const result = await installer.uninstall();
@@ -561,7 +561,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should remove the completion file', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
       const targetPath = installer.getInstallationPath();
 
@@ -572,15 +572,15 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should remove profile configuration', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
       const profilePath = installer.getProfilePath();
 
       await installer.uninstall();
 
       const content = await fs.readFile(profilePath, 'utf-8');
-      expect(content).not.toContain('# PROJECTOR:START');
-      expect(content).not.toContain('# PROJECTOR:END');
+      expect(content).not.toContain('# SPOOL:START');
+      expect(content).not.toContain('# SPOOL:END');
     });
 
     it('should return failure when completion script is not installed', async () => {
@@ -591,7 +591,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should accept yes option parameter', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const result = await installer.uninstall({ yes: true });
@@ -601,7 +601,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
     });
 
     it('should handle both script and config removal', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
 
       const targetPath = installer.getInstallationPath();
@@ -611,7 +611,7 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
       const scriptExists = await fs.access(targetPath).then(() => true).catch(() => false);
       const profileContent = await fs.readFile(profilePath, 'utf-8');
       expect(scriptExists).toBe(true);
-      expect(profileContent).toContain('# PROJECTOR:START');
+      expect(profileContent).toContain('# SPOOL:START');
 
       await installer.uninstall();
 
@@ -619,13 +619,13 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
       const scriptExistsAfter = await fs.access(targetPath).then(() => true).catch(() => false);
       const profileContentAfter = await fs.readFile(profilePath, 'utf-8');
       expect(scriptExistsAfter).toBe(false);
-      expect(profileContentAfter).not.toContain('# PROJECTOR:START');
+      expect(profileContentAfter).not.toContain('# SPOOL:START');
     });
 
     // Skip on Windows: fs.chmod() on directories doesn't restrict write access on Windows
     // Windows uses ACLs which Node.js chmod doesn't control
     it.skipIf(process.platform === 'win32')('should return failure on permission error', async () => {
-      delete process.env.PROJECTOR_NO_AUTO_CONFIG;
+      delete process.env.SPOOL_NO_AUTO_CONFIG;
       await installer.install(mockCompletionScript);
       const targetPath = installer.getInstallationPath();
       const parentDir = path.dirname(targetPath);

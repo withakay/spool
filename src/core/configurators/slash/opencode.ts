@@ -1,54 +1,54 @@
 import { SlashCommandConfigurator, EXTENDED_COMMANDS } from "./base.js";
 import { SlashCommandId } from "../../templates/index.js";
 import { FileSystemUtils } from "../../../utils/file-system.js";
-import { PROJECTOR_MARKERS } from "../../config.js";
-import { replaceHardcodedProjectorPaths } from "../../../utils/path-normalization.js";
+import { SPOOL_MARKERS } from "../../config.js";
+import { replaceHardcodedSpoolPaths } from "../../../utils/path-normalization.js";
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: ".opencode/command/projector-proposal.md",
-  apply: ".opencode/command/projector-apply.md",
-  archive: ".opencode/command/projector-archive.md",
-  research: ".opencode/command/projector-research.md",
-  review: ".opencode/command/projector-review.md",
+  proposal: ".opencode/command/spool-proposal.md",
+  apply: ".opencode/command/spool-apply.md",
+  archive: ".opencode/command/spool-archive.md",
+  research: ".opencode/command/spool-research.md",
+  review: ".opencode/command/spool-review.md",
 };
 
 const FRONTMATTER_TEMPLATES: Record<SlashCommandId, string> = {
   proposal: `---
- description: Scaffold a new Projector change and validate strictly.
+ description: Scaffold a new Spool change and validate strictly.
  ---
- The user has requested the following change proposal. Use the Projector skill to create their proposal.
+ The user has requested the following change proposal. Use the Spool skill to create their proposal.
  <UserRequest>
    $ARGUMENTS
  </UserRequest>
  `,
   apply: `---
- description: Implement an approved Projector change and keep tasks in sync.
+ description: Implement an approved Spool change and keep tasks in sync.
  ---
- The user has requested to implement the following change proposal. Follow the Projector skill instructions.
+ The user has requested to implement the following change proposal. Follow the Spool skill instructions.
  <UserRequest>
    $ARGUMENTS
  </UserRequest>
  `,
   archive: `---
- description: Archive a deployed Projector change and update specs.
+ description: Archive a deployed Spool change and update specs.
  ---
  <ChangeId>
    $ARGUMENTS
  </ChangeId>
  `,
   research: `---
- description: Conduct Projector research via skills (stack, architecture, features, pitfalls).
+ description: Conduct Spool research via skills (stack, architecture, features, pitfalls).
  ---
- Conduct Projector research for the following topic. The prompt may include a focus like stack, architecture, features, or pitfalls.
- Write findings under projector/research/investigations/ as directed by the skill.
+ Conduct Spool research for the following topic. The prompt may include a focus like stack, architecture, features, or pitfalls.
+ Write findings under spool/research/investigations/ as directed by the skill.
  <Topic>
    $ARGUMENTS
  </Topic>
  `,
   review: `---
- description: Conduct adversarial review via Projector review skill.
+ description: Conduct adversarial review via Spool review skill.
  ---
- Review the following change or scope using the Projector review skill instructions.
+ Review the following change or scope using the Spool review skill instructions.
  <ChangeId>
    $ARGUMENTS
  </ChangeId>
@@ -68,46 +68,46 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
     return FILE_PATHS[id];
   }
 
-  protected getFrontmatter(id: SlashCommandId, projectorDir: string = '.projector'): string | undefined {
+  protected getFrontmatter(id: SlashCommandId, spoolDir: string = '.spool'): string | undefined {
     const template = FRONTMATTER_TEMPLATES[id];
     if (!template) {
       return undefined;
     }
     
-    // Replace hardcoded 'projector/' paths with the configured projectorDir
-    return replaceHardcodedProjectorPaths(template, projectorDir);
+    // Replace hardcoded 'spool/' paths with the configured spoolDir
+    return replaceHardcodedSpoolPaths(template, spoolDir);
   }
 
-  async generateAll(projectPath: string, projectorDir: string): Promise<string[]> {
-    const createdOrUpdated = await super.generateAll(projectPath, projectorDir);
-    await this.rewriteArchiveFile(projectPath, projectorDir);
+  async generateAll(projectPath: string, spoolDir: string): Promise<string[]> {
+    const createdOrUpdated = await super.generateAll(projectPath, spoolDir);
+    await this.rewriteArchiveFile(projectPath, spoolDir);
     return createdOrUpdated;
   }
 
-  async updateExisting(projectPath: string, projectorDir: string): Promise<string[]> {
-    const updated = await super.updateExisting(projectPath, projectorDir);
-    const rewroteArchive = await this.rewriteArchiveFile(projectPath, projectorDir);
+  async updateExisting(projectPath: string, spoolDir: string): Promise<string[]> {
+    const updated = await super.updateExisting(projectPath, spoolDir);
+    const rewroteArchive = await this.rewriteArchiveFile(projectPath, spoolDir);
     if (rewroteArchive && !updated.includes(FILE_PATHS.archive)) {
       updated.push(FILE_PATHS.archive);
     }
     return updated;
   }
 
-  private async rewriteArchiveFile(projectPath: string, projectorDir: string = '.projector'): Promise<boolean> {
+  private async rewriteArchiveFile(projectPath: string, spoolDir: string = '.spool'): Promise<boolean> {
     const archivePath = FileSystemUtils.joinPath(projectPath, FILE_PATHS.archive);
     if (!await FileSystemUtils.fileExists(archivePath)) {
       return false;
     }
 
-    const body = this.getBody("archive", projectorDir);
-    const frontmatter = this.getFrontmatter("archive", projectorDir);
+    const body = this.getBody("archive", spoolDir);
+    const frontmatter = this.getFrontmatter("archive", spoolDir);
     const sections: string[] = [];
 
     if (frontmatter) {
       sections.push(frontmatter.trim());
     }
 
-    sections.push(`${PROJECTOR_MARKERS.start}\n${body}\n${PROJECTOR_MARKERS.end}`);
+    sections.push(`${SPOOL_MARKERS.start}\n${body}\n${SPOOL_MARKERS.end}`);
     await FileSystemUtils.writeFile(archivePath, sections.join("\n") + "\n");
     return true;
   }

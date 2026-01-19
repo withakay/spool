@@ -1,7 +1,7 @@
 /**
- * Projector Research Command
+ * Spool Research Command
  * 
- * Single entrypoint for Projector research functionality.
+ * Single entrypoint for Spool research functionality.
  * Routes based on arguments or asks user to choose.
  */
 
@@ -86,7 +86,7 @@ async function promptForTopic(): Promise<string> {
  * Create research directory structure
  */
 async function ensureResearchDir(projectPath: string): Promise<string> {
-  const researchDir = path.join(projectPath, '.projector', 'research');
+  const researchDir = path.join(projectPath, '.spool', 'research');
   
   // Create main research directory
   await fs.mkdir(researchDir, { recursive: true });
@@ -154,14 +154,14 @@ async function generateResearchFile(
  * Show research directory status
  */
 async function showResearchStatus(projectPath: string): Promise<void> {
-  const researchDir = path.join(projectPath, '.projector', 'research');
+  const researchDir = path.join(projectPath, '.spool', 'research');
   
   try {
     const exists = await fs.access(researchDir).then(() => true).catch(() => false);
     
     if (!exists) {
       console.log(chalk.yellow('No research directory found.'));
-      console.log(chalk.gray('Create your first research with: /projector-research'));
+      console.log(chalk.gray('Create your first research with: /spool-research'));
       return;
     }
 
@@ -170,7 +170,7 @@ async function showResearchStatus(projectPath: string): Promise<void> {
     
     if (files.length === 0) {
       console.log(chalk.yellow('No research files found.'));
-      console.log(chalk.gray('Create research with: /projector-research <type> <topic>'));
+      console.log(chalk.gray('Create research with: /spool-research <type> <topic>'));
       return;
     }
 
@@ -215,9 +215,9 @@ async function handleResearchCommand(options: ResearchOptions, projectPath: stri
     
     console.log();
     console.log(chalk.gray('Usage:'));
-    console.log(`  /projector-research <type> <topic>`);
-    console.log(`  /projector-research <type>           (will prompt for topic)`);
-    console.log(`  /projector-research                   (shows status and options)`);
+    console.log(`  /spool-research <type> <topic>`);
+    console.log(`  /spool-research <type>           (will prompt for topic)`);
+    console.log(`  /spool-research                   (shows status and options)`);
     
     return;
   }
@@ -248,7 +248,7 @@ async function handleResearchCommand(options: ResearchOptions, projectPath: stri
  */
 export function registerResearchCommand(program: Command): void {
   program
-    .command('projector-research [type] [topic]')
+    .command('spool-research [type] [topic]')
     .description('Conduct structured research - single entrypoint for all research types')
     .option('--type <type>', 'Research type: summary, stack, features, architecture, pitfalls')
     .option('--topic <topic>', 'Research topic or question')

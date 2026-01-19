@@ -86,7 +86,7 @@ export class ListCommand {
       try {
         await fs.access(changesDir);
       } catch {
-        throw new Error("No Projector changes directory found. Run 'projector init' first.");
+        throw new Error("No Spool changes directory found. Run 'spool init' first.");
       }
 
       // Get all directories in changes (excluding archive)

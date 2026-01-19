@@ -2,7 +2,7 @@ import { CompletionGenerator, CommandDefinition, FlagDefinition } from '../types
 import { POWERSHELL_DYNAMIC_HELPERS } from '../templates/powershell-templates.js';
 
 /**
- * Generates PowerShell completion scripts for the Projector CLI.
+ * Generates PowerShell completion scripts for the Spool CLI.
  * Uses Register-ArgumentCompleter for command completion.
  */
 export class PowerShellGenerator implements CompletionGenerator {
@@ -35,11 +35,11 @@ export class PowerShellGenerator implements CompletionGenerator {
     const helpers = POWERSHELL_DYNAMIC_HELPERS;
 
     // Assemble final script with template literal
-    return `# PowerShell completion script for Projector CLI
+    return `# PowerShell completion script for Spool CLI
 # Auto-generated - do not edit manually
 
 ${helpers}
-$projectorCompleter = {
+$spoolCompleter = {
     param($wordToComplete, $commandAst, $cursorPosition)
 
     $tokens = $commandAst.ToString() -split "\\s+"
@@ -63,7 +63,7 @@ ${commandCases}
     }
 }
 
-Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorCompleter
+Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 `;
   }
 
@@ -173,17 +173,17 @@ Register-ArgumentCompleter -CommandName projector -ScriptBlock $projectorComplet
 
     switch (positionalType) {
       case 'change-id':
-        lines.push(`${indent}Get-ProjectorChanges | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
+        lines.push(`${indent}Get-SpoolChanges | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
         lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Change: $_")`);
         lines.push(`${indent}}`);
         break;
       case 'spec-id':
-        lines.push(`${indent}Get-ProjectorSpecs | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
+        lines.push(`${indent}Get-SpoolSpecs | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
         lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Spec: $_")`);
         lines.push(`${indent}}`);
         break;
       case 'change-or-spec-id':
-        lines.push(`${indent}$items = @(Get-ProjectorChanges) + @(Get-ProjectorSpecs)`);
+        lines.push(`${indent}$items = @(Get-SpoolChanges) + @(Get-SpoolSpecs)`);
         lines.push(`${indent}$items | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
         lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_)`);
         lines.push(`${indent}}`);

@@ -2,13 +2,13 @@ import path from 'path';
 import ora from 'ora';
 import chalk from 'chalk';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getProjectorDirName } from '../core/project-config.js';
+import { getSpoolDirName } from '../core/project-config.js';
 import { TemplateManager, PlanningContext } from '../core/templates/index.js';
 
 export class PlanCommand {
   private async getPlanningPath(projectPath: string): Promise<string> {
-    const projectorDir = getProjectorDirName(projectPath);
-    return path.join(projectPath, projectorDir, 'planning');
+    const spoolDir = getSpoolDirName(projectPath);
+    return path.join(projectPath, spoolDir, 'planning');
   }
 
   private async getRoadmapPath(projectPath: string): Promise<string> {
@@ -19,16 +19,16 @@ export class PlanCommand {
   private async ensureRoadmapFile(roadmapPath: string): Promise<void> {
     if (!(await FileSystemUtils.fileExists(roadmapPath))) {
       throw new Error(
-        'ROADMAP.md not found. Run "projector init" or "projector plan init" first.'
+        'ROADMAP.md not found. Run "spool init" or "spool plan init" first.'
       );
     }
   }
 
   async init(projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
-    const projectorDir = getProjectorDirName(resolvedPath);
-    const projectorPath = path.join(resolvedPath, projectorDir);
-    const planningPath = path.join(projectorPath, 'planning');
+    const spoolDir = getSpoolDirName(resolvedPath);
+    const spoolPath = path.join(resolvedPath, spoolDir);
+    const planningPath = path.join(spoolPath, 'planning');
 
     // Create directories
     const directories = [
@@ -48,7 +48,7 @@ export class PlanCommand {
     const templates = TemplateManager.getPlanningTemplates(context);
 
     for (const template of templates) {
-      const filePath = path.join(projectorPath, template.path);
+      const filePath = path.join(spoolPath, template.path);
 
       // Skip if file exists
       if (await FileSystemUtils.fileExists(filePath)) {
@@ -65,9 +65,9 @@ export class PlanCommand {
 
     ora().succeed(chalk.green('Planning structure initialized'));
     console.log(chalk.gray('Created:'));
-    console.log(chalk.gray(`  - ${projectorDir}/planning/PROJECT.md`));
-    console.log(chalk.gray(`  - ${projectorDir}/planning/ROADMAP.md`));
-    console.log(chalk.gray(`  - ${projectorDir}/planning/STATE.md`));
+    console.log(chalk.gray(`  - ${spoolDir}/planning/PROJECT.md`));
+    console.log(chalk.gray(`  - ${spoolDir}/planning/ROADMAP.md`));
+    console.log(chalk.gray(`  - ${spoolDir}/planning/STATE.md`));
   }
 
   async status(projectPath: string = '.'): Promise<void> {

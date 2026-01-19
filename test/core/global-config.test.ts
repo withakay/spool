@@ -19,7 +19,7 @@ describe('global-config', () => {
 
   beforeEach(() => {
     // Create temp directory for tests
-    tempDir = path.join(os.tmpdir(), `projector-global-config-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `spool-global-config-test-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Save original env
@@ -42,7 +42,7 @@ describe('global-config', () => {
 
   describe('constants', () => {
     it('should export correct directory name', () => {
-      expect(GLOBAL_CONFIG_DIR_NAME).toBe('projector');
+      expect(GLOBAL_CONFIG_DIR_NAME).toBe('spool');
     });
 
     it('should export correct file name', () => {
@@ -56,7 +56,7 @@ describe('global-config', () => {
 
       const result = getGlobalConfigDir();
 
-      expect(result).toBe(path.join(tempDir, 'projector'));
+      expect(result).toBe(path.join(tempDir, 'spool'));
     });
 
     it('should fall back to ~/.config on Unix/macOS without XDG_CONFIG_HOME', () => {
@@ -64,9 +64,9 @@ describe('global-config', () => {
 
       const result = getGlobalConfigDir();
 
-      // On non-Windows, should use ~/.config/projector
+      // On non-Windows, should use ~/.config/spool
       if (os.platform() !== 'win32') {
-        expect(result).toBe(path.join(os.homedir(), '.config', 'projector'));
+        expect(result).toBe(path.join(os.homedir(), '.config', 'spool'));
       }
     });
 
@@ -78,7 +78,7 @@ describe('global-config', () => {
         const appData = process.env.APPDATA;
         if (appData) {
           const result = getGlobalConfigDir();
-          expect(result).toBe(path.join(appData, 'projector'));
+          expect(result).toBe(path.join(appData, 'spool'));
         }
       }
     });
@@ -90,7 +90,7 @@ describe('global-config', () => {
 
       const result = getGlobalConfigPath();
 
-      expect(result).toBe(path.join(tempDir, 'projector', 'config.json'));
+      expect(result).toBe(path.join(tempDir, 'spool', 'config.json'));
     });
   });
 

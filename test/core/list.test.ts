@@ -12,7 +12,7 @@ describe('ListCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `projector-list-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `spool-list-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
     // Mock console.log to capture output
@@ -32,11 +32,11 @@ describe('ListCommand', () => {
   });
 
   describe('execute', () => {
-    it('should handle missing projector/changes directory', async () => {
+    it('should handle missing spool/changes directory', async () => {
       const listCommand = new ListCommand();
       
       await expect(listCommand.execute(tempDir, 'changes')).rejects.toThrow(
-        "No Projector changes directory found. Run 'projector init' first."
+        "No Spool changes directory found. Run 'spool init' first."
       );
     });
 

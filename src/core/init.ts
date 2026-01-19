@@ -17,13 +17,13 @@ import { TemplateManager, ProjectContext, PlanningContext } from './templates/in
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
 import {
-  ProjectorConfig,
+  SpoolConfig,
   AI_TOOLS,
   AIToolOption,
-  PROJECTOR_MARKERS,
+  SPOOL_MARKERS,
 } from './config.js';
 import { PALETTE } from './styles/palette.js';
-import { getProjectorDirName } from './project-config.js';
+import { getSpoolDirName } from './project-config.js';
 
 const PROGRESS_SPINNER = {
   interval: 80,
@@ -271,7 +271,7 @@ const toolSelectionWizard = createPrompt<string[], ToolWizardConfig>(
     
         
     const selectedNativeToolChoices = nonHeadingChoices.filter((choice) =>
-      selectedSet.has(choice.value) && !choice.value.startsWith('projector-')
+      selectedSet.has(choice.value) && !choice.value.startsWith('spool-')
     );
 
     const formatSummaryLabel = (
@@ -293,11 +293,11 @@ const toolSelectionWizard = createPrompt<string[], ToolWizardConfig>(
 
     if (step === 'intro') {
       const introHeadline = config.extendMode
-        ? 'Extend your Projector tooling'
-        : 'Configure your Projector tooling';
+        ? 'Extend your Spool tooling'
+        : 'Configure your Spool tooling';
       const introBody = config.extendMode
         ? 'We detected an existing setup. We will help you refresh or add integrations.'
-        : "Let's get your AI assistants connected so they understand Projector.";
+        : "Let's get your AI assistants connected so they understand Spool.";
 
       lines.push(PALETTE.white(introHeadline));
       lines.push(PALETTE.midGray(introBody));
@@ -364,11 +364,11 @@ export class InitCommand {
 
   async execute(targetPath: string): Promise<void> {
     const projectPath = path.resolve(targetPath);
-    const projectorDir = getProjectorDirName(projectPath);
-    const projectorPath = path.join(projectPath, projectorDir);
+    const spoolDir = getSpoolDirName(projectPath);
+    const spoolPath = path.join(projectPath, spoolDir);
 
     // Validation happens silently in the background
-    const extendMode = await this.validate(projectPath, projectorPath);
+    const extendMode = await this.validate(projectPath, spoolPath);
     const existingToolStates = await this.getExistingToolStates(projectPath, extendMode);
 
     this.renderBanner(extendMode);
@@ -397,29 +397,29 @@ export class InitCommand {
     // Step 1: Create directory structure
     if (!extendMode) {
       const structureSpinner = this.startSpinner(
-        'Creating Projector structure...'
+        'Creating Spool structure...'
       );
-      await this.createDirectoryStructure(projectorPath);
-      await this.generateFiles(projectorPath, config);
+      await this.createDirectoryStructure(spoolPath);
+      await this.generateFiles(spoolPath, config);
       structureSpinner.stopAndPersist({
         symbol: PALETTE.white('▌'),
-        text: PALETTE.white('Projector structure created'),
+        text: PALETTE.white('Spool structure created'),
       });
     } else {
       ora({ stream: process.stdout }).info(
         PALETTE.midGray(
-          'ℹ Projector already initialized. Checking for missing files...'
+          'ℹ Spool already initialized. Checking for missing files...'
         )
       );
-      await this.createDirectoryStructure(projectorPath);
-      await this.ensureTemplateFiles(projectorPath, config);
+      await this.createDirectoryStructure(spoolPath);
+      await this.ensureTemplateFiles(spoolPath, config);
     }
 
     // Step 2: Configure AI tools
     const toolSpinner = this.startSpinner('Configuring AI tools...');
     const rootStubStatus = await this.configureAITools(
       projectPath,
-      projectorDir,
+      spoolDir,
       config.aiTools
     );
     toolSpinner.stopAndPersist({
@@ -427,12 +427,12 @@ export class InitCommand {
       text: PALETTE.white('AI tools configured'),
     });
 
-     // Step 3: Install Projector skills (Agent Skills) as a core part of init
-     const skillsSpinner = this.startSpinner('Installing Projector skills...');
-     await this.installProjectorSkills(projectPath, projectorDir);
+     // Step 3: Install Spool skills (Agent Skills) as a core part of init
+     const skillsSpinner = this.startSpinner('Installing Spool skills...');
+     await this.installSpoolSkills(projectPath, spoolDir);
      skillsSpinner.stopAndPersist({
        symbol: PALETTE.white(''),
-       text: PALETTE.white('Projector skills installed'),
+       text: PALETTE.white('Spool skills installed'),
      });
 
 
@@ -445,15 +445,15 @@ export class InitCommand {
       skipped,
       extendMode,
       rootStubStatus,
-      projectorDir
+      spoolDir
     );
   }
 
   private async validate(
     projectPath: string,
-    _projectorPath: string
+    _spoolPath: string
   ): Promise<boolean> {
-    const extendMode = await FileSystemUtils.directoryExists(_projectorPath);
+    const extendMode = await FileSystemUtils.directoryExists(_spoolPath);
 
     // Check write permissions
     if (!(await FileSystemUtils.ensureWritePermissions(projectPath))) {
@@ -465,7 +465,7 @@ export class InitCommand {
   private async getConfiguration(
     existingTools: Record<string, boolean>,
     extendMode: boolean
-  ): Promise<ProjectorConfig> {
+  ): Promise<SpoolConfig> {
     const selectedTools = await this.getSelectedTools(existingTools, extendMode);
     return { aiTools: selectedTools };
   }
@@ -569,7 +569,7 @@ export class InitCommand {
         value: '__heading-native__',
         label: {
           primary:
-            'Natively supported providers (✔ Projector custom slash commands available)',
+            'Natively supported providers (✔ Spool custom slash commands available)',
         },
         selectable: false,
       },
@@ -636,15 +636,15 @@ export class InitCommand {
     projectPath: string,
     toolId: string
   ): Promise<boolean> {
-    // A tool is only considered "configured by Projector" if its files contain Projector markers.
+    // A tool is only considered "configured by Spool" if its files contain Spool markers.
     // For tools with both config files and slash commands, BOTH must have markers.
     // For slash commands, at least one file with markers is sufficient (not all required).
 
-    // Helper to check if a file exists and contains Projector markers
+    // Helper to check if a file exists and contains Spool markers
     const fileHasMarkers = async (absolutePath: string): Promise<boolean> => {
       try {
         const content = await FileSystemUtils.readFile(absolutePath);
-        return content.includes(PROJECTOR_MARKERS.start) && content.includes(PROJECTOR_MARKERS.end);
+        return content.includes(SPOOL_MARKERS.start) && content.includes(SPOOL_MARKERS.end);
       } catch {
         return false;
       }
@@ -653,14 +653,14 @@ export class InitCommand {
     let hasConfigFile = false;
     let hasSlashCommands = false;
 
-    // Check if the tool has a config file with Projector markers
+    // Check if the tool has a config file with Spool markers
     const configFile = ToolRegistry.get(toolId)?.configFileName;
     if (configFile) {
       const configPath = path.join(projectPath, configFile);
       hasConfigFile = (await FileSystemUtils.fileExists(configPath)) && (await fileHasMarkers(configPath));
     }
 
-    // Check if any slash command file exists with Projector markers
+    // Check if any slash command file exists with Spool markers
     const slashConfigurator = SlashCommandRegistry.get(toolId);
     if (slashConfigurator) {
       for (const target of slashConfigurator.getTargets()) {
@@ -692,19 +692,19 @@ export class InitCommand {
     return false;
   }
 
-  private async createDirectoryStructure(projectorPath: string): Promise<void> {
+  private async createDirectoryStructure(spoolPath: string): Promise<void> {
     const directories = [
-      projectorPath,
-      path.join(projectorPath, 'specs'),
-      path.join(projectorPath, 'changes'),
-      path.join(projectorPath, 'changes', 'archive'),
-      path.join(projectorPath, 'planning'),
-      path.join(projectorPath, 'planning', 'milestones'),
-      path.join(projectorPath, 'research'),
-      path.join(projectorPath, 'research', 'investigations'),
-      path.join(projectorPath, 'workflows'),
-      path.join(projectorPath, 'workflows', '.state'),
-      path.join(projectorPath, 'commands'),
+      spoolPath,
+      path.join(spoolPath, 'specs'),
+      path.join(spoolPath, 'changes'),
+      path.join(spoolPath, 'changes', 'archive'),
+      path.join(spoolPath, 'planning'),
+      path.join(spoolPath, 'planning', 'milestones'),
+      path.join(spoolPath, 'research'),
+      path.join(spoolPath, 'research', 'investigations'),
+      path.join(spoolPath, 'workflows'),
+      path.join(spoolPath, 'workflows', '.state'),
+      path.join(spoolPath, 'commands'),
     ];
 
     for (const dir of directories) {
@@ -713,22 +713,22 @@ export class InitCommand {
   }
 
   private async generateFiles(
-    projectorPath: string,
-    config: ProjectorConfig
+    spoolPath: string,
+    config: SpoolConfig
   ): Promise<void> {
-    await this.writeTemplateFiles(projectorPath, config, false);
+    await this.writeTemplateFiles(spoolPath, config, false);
   }
 
   private async ensureTemplateFiles(
-    projectorPath: string,
-    config: ProjectorConfig
+    spoolPath: string,
+    config: SpoolConfig
   ): Promise<void> {
-    await this.writeTemplateFiles(projectorPath, config, true);
+    await this.writeTemplateFiles(spoolPath, config, true);
   }
 
   private async writeTemplateFiles(
-    projectorPath: string,
-    config: ProjectorConfig,
+    spoolPath: string,
+    config: SpoolConfig,
     skipExisting: boolean
   ): Promise<void> {
     const context: ProjectContext = {
@@ -746,7 +746,7 @@ export class InitCommand {
 
     // Write standard templates
     for (const template of templates) {
-      const filePath = path.join(projectorPath, template.path);
+      const filePath = path.join(spoolPath, template.path);
 
       if (skipExisting && (await FileSystemUtils.fileExists(filePath))) {
         continue;
@@ -763,7 +763,7 @@ export class InitCommand {
     // Write command templates (separate context type)
     const commandTemplates = TemplateManager.getCommandTemplates({});
     for (const template of commandTemplates) {
-      const filePath = path.join(projectorPath, template.path);
+      const filePath = path.join(spoolPath, template.path);
 
       if (skipExisting && (await FileSystemUtils.fileExists(filePath))) {
         continue;
@@ -780,23 +780,23 @@ export class InitCommand {
 
   private async configureAITools(
     projectPath: string,
-    projectorDir: string,
+    spoolDir: string,
     toolIds: string[]
   ): Promise<RootStubStatus> {
     const rootStubStatus = await this.configureRootAgentsStub(
       projectPath,
-      projectorDir
+      spoolDir
     );
 
     for (const toolId of toolIds) {
       const configurator = ToolRegistry.get(toolId);
       if (configurator && configurator.isAvailable) {
-        await configurator.configure(projectPath, projectorDir);
+        await configurator.configure(projectPath, spoolDir);
       }
 
       const slashConfigurator = SlashCommandRegistry.get(toolId);
       if (slashConfigurator && slashConfigurator.isAvailable) {
-        await slashConfigurator.generateAll(projectPath, projectorDir);
+        await slashConfigurator.generateAll(projectPath, spoolDir);
       }
     }
 
@@ -804,38 +804,38 @@ export class InitCommand {
   }
 
   /**
-   * Configure Projector Skills if selected
+   * Configure Spool Skills if selected
    */
-  private async installProjectorSkills(
+  private async installSpoolSkills(
     projectPath: string,
-    projectorDir: string
+    spoolDir: string
   ): Promise<void> {
     const { SkillsConfigurator } = await import('./configurators/skills.js');
     const configurator = new SkillsConfigurator();
 
     const skillIds = configurator
-      .getAvailableSkills(projectorDir)
+      .getAvailableSkills(spoolDir)
       // drop experimental / opsx skills
       .filter(
         (skill) =>
           ![
-            'projector-explore',
-            'projector-new-change',
-            'projector-continue-change',
-            'projector-apply-change',
-            'projector-ff-change',
-            'projector-sync-specs',
-            'projector-archive-change',
+            'spool-explore',
+            'spool-new-change',
+            'spool-continue-change',
+            'spool-apply-change',
+            'spool-ff-change',
+            'spool-sync-specs',
+            'spool-archive-change',
           ].includes(skill.id)
       )
       .map((skill) => skill.id);
 
-    await configurator.installSkills(projectPath, projectorDir, skillIds);
+    await configurator.installSkills(projectPath, spoolDir, skillIds);
   }
 
   private async configureRootAgentsStub(
     projectPath: string,
-    projectorDir: string
+    spoolDir: string
   ): Promise<RootStubStatus> {
     const configurator = ToolRegistry.get('agents');
     if (!configurator || !configurator.isAvailable) {
@@ -845,7 +845,7 @@ export class InitCommand {
     const stubPath = path.join(projectPath, configurator.configFileName);
     const existed = await FileSystemUtils.fileExists(stubPath);
 
-    await configurator.configure(projectPath, projectorDir);
+    await configurator.configure(projectPath, spoolDir);
 
     return existed ? 'updated' : 'created';
   }
@@ -858,12 +858,12 @@ export class InitCommand {
     skipped: AIToolOption[],
     extendMode: boolean,
     rootStubStatus: RootStubStatus,
-    projectorDir: string
+    spoolDir: string
   ): void {
     console.log(); // Empty line for spacing
     const successHeadline = extendMode
-      ? 'Projector tool configuration updated!'
-      : 'Projector initialized successfully!';
+      ? 'Spool tool configuration updated!'
+      : 'Spool initialized successfully!';
     ora().succeed(PALETTE.white(successHeadline));
 
     console.log();
@@ -907,7 +907,7 @@ export class InitCommand {
     console.log();
     console.log(
       PALETTE.midGray(
-        'Use `projector update` to refresh shared Projector instructions in the future.'
+        'Use `spool update` to refresh shared Spool instructions in the future.'
       )
     );
 
@@ -922,7 +922,7 @@ export class InitCommand {
       );
       console.log(
         PALETTE.midGray(
-          'to ensure the new /projector commands appear in your command palette.'
+          'to ensure the new /spool commands appear in your command palette.'
         )
       );
     }
@@ -938,7 +938,7 @@ export class InitCommand {
     console.log(PALETTE.white('1. Populate your project context:'));
     console.log(
       PALETTE.lightGray(
-        `   "Please read ${projectorDir}/project.md and help me fill it out`
+        `   "Please read ${spoolDir}/project.md and help me fill it out`
       )
     );
     console.log(
@@ -953,12 +953,12 @@ export class InitCommand {
       )
     );
     console.log(
-      PALETTE.lightGray('    Projector change proposal for this feature"\n')
+      PALETTE.lightGray('    Spool change proposal for this feature"\n')
     );
-    console.log(PALETTE.white('3. Learn the Projector workflow:'));
+    console.log(PALETTE.white('3. Learn the Spool workflow:'));
     console.log(
       PALETTE.lightGray(
-        `   "Please explain the Projector workflow from ${projectorDir}/AGENTS.md`
+        `   "Please explain the Spool workflow from ${spoolDir}/AGENTS.md`
       )
     );
     console.log(
@@ -1000,7 +1000,7 @@ export class InitCommand {
 
   private renderBanner(_extendMode: boolean): void {
     const rows = ['', '', '', '', ''];
-    for (const char of 'PROJECTOR') {
+    for (const char of 'SPOOL') {
       const glyph = LETTER_MAP[char] ?? LETTER_MAP[' '];
       for (let i = 0; i < rows.length; i += 1) {
         rows[i] += `${glyph[i]}  `;
@@ -1020,7 +1020,7 @@ export class InitCommand {
       console.log(rowStyles[index](row.replace(/\s+$/u, '')));
     });
     console.log();
-    console.log(PALETTE.white('Welcome to Projector!'));
+    console.log(PALETTE.white('Welcome to Spool!'));
     console.log();
   }
 

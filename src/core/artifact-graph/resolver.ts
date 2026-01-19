@@ -33,7 +33,7 @@ export function getPackageSchemasDir(): string {
  * Resolves a schema name to its directory path.
  *
  * Resolution order:
- * 1. User override: ${XDG_DATA_HOME}/projector/schemas/<name>/schema.yaml
+ * 1. User override: ${XDG_DATA_HOME}/spool/schemas/<name>/schema.yaml
  * 2. Package built-in: <package>/schemas/<name>/schema.yaml
  *
  * @param name - Schema name (e.g., "spec-driven")
@@ -61,7 +61,7 @@ export function getSchemaDir(name: string): string | null {
  * Resolves a schema name to a SchemaYaml object.
  *
  * Resolution order:
- * 1. User override: ${XDG_DATA_HOME}/projector/schemas/<name>/schema.yaml
+ * 1. User override: ${XDG_DATA_HOME}/spool/schemas/<name>/schema.yaml
  * 2. Package built-in: <package>/schemas/<name>/schema.yaml
  *
  * @param name - Schema name (e.g., "spec-driven")

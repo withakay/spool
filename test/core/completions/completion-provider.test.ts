@@ -11,7 +11,7 @@ describe('CompletionProvider', () => {
   let provider: CompletionProvider;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `projector-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `spool-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
     provider = new CompletionProvider(2000, testDir);
   });
@@ -27,7 +27,7 @@ describe('CompletionProvider', () => {
     });
 
     it('should return active change IDs', async () => {
-      // Create projector/changes directory structure
+      // Create spool/changes directory structure
       const changesDir = getChangesPath(testDir);
       await fs.mkdir(changesDir, { recursive: true });
 

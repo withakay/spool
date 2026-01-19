@@ -2,18 +2,18 @@ import path from 'path';
 import ora from 'ora';
 import chalk from 'chalk';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { getProjectorDirName } from '../core/project-config.js';
+import { getSpoolDirName } from '../core/project-config.js';
 
 export class StateCommand {
   private async getStatePath(projectPath: string): Promise<string> {
-    const projectorDir = getProjectorDirName(projectPath);
-    return path.join(projectPath, projectorDir, 'planning', 'STATE.md');
+    const spoolDir = getSpoolDirName(projectPath);
+    return path.join(projectPath, spoolDir, 'planning', 'STATE.md');
   }
 
-  private async ensureStateFile(statePath: string, projectorDir: string): Promise<void> {
+  private async ensureStateFile(statePath: string, spoolDir: string): Promise<void> {
     if (!(await FileSystemUtils.fileExists(statePath))) {
       throw new Error(
-        `STATE.md not found. Run "projector init" first or create ${projectorDir}/planning/STATE.md`
+        `STATE.md not found. Run "spool init" first or create ${spoolDir}/planning/STATE.md`
       );
     }
   }
@@ -30,7 +30,7 @@ export class StateCommand {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
-    await this.ensureStateFile(statePath, getProjectorDirName(resolvedPath));
+    await this.ensureStateFile(statePath, getSpoolDirName(resolvedPath));
 
     const content = await FileSystemUtils.readFile(statePath);
     console.log(content);
@@ -43,7 +43,7 @@ export class StateCommand {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
-    await this.ensureStateFile(statePath, getProjectorDirName(resolvedPath));
+    await this.ensureStateFile(statePath, getSpoolDirName(resolvedPath));
 
     const content = await FileSystemUtils.readFile(statePath);
     const date = this.getCurrentDate();
@@ -69,7 +69,7 @@ export class StateCommand {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
-    await this.ensureStateFile(statePath, getProjectorDirName(resolvedPath));
+    await this.ensureStateFile(statePath, getSpoolDirName(resolvedPath));
 
     const content = await FileSystemUtils.readFile(statePath);
     const entry = `- ${text}`;
@@ -97,7 +97,7 @@ export class StateCommand {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
-    await this.ensureStateFile(statePath, getProjectorDirName(resolvedPath));
+    await this.ensureStateFile(statePath, getSpoolDirName(resolvedPath));
 
     const content = await FileSystemUtils.readFile(statePath);
     const date = this.getCurrentDate();
@@ -134,7 +134,7 @@ export class StateCommand {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
-    await this.ensureStateFile(statePath, getProjectorDirName(resolvedPath));
+    await this.ensureStateFile(statePath, getSpoolDirName(resolvedPath));
 
     const content = await FileSystemUtils.readFile(statePath);
 
@@ -155,7 +155,7 @@ export class StateCommand {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
-    await this.ensureStateFile(statePath, getProjectorDirName(resolvedPath));
+    await this.ensureStateFile(statePath, getSpoolDirName(resolvedPath));
 
     const content = await FileSystemUtils.readFile(statePath);
     const entry = `- [ ] ${text}`;

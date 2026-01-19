@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { UpdateCommand } from '../../src/core/update.js';
 import { FileSystemUtils } from '../../src/utils/file-system.js';
-import { getProjectorPath } from '../../src/core/project-config.js';
+import { getSpoolPath } from '../../src/core/project-config.js';
 import path from 'path';
 import fs from 'fs/promises';
 import os from 'os';
@@ -22,11 +22,11 @@ describe('UpdateCommand', () => {
   let prevCodexHome: string | undefined;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `projector-test-${randomUUID()}`);
+    testDir = path.join(os.tmpdir(), `spool-test-${randomUUID()}`);
     await fs.mkdir(testDir, { recursive: true });
 
-    const projectorDir = getProjectorPath(testDir);
-    await fs.mkdir(projectorDir, { recursive: true });
+    const spoolDir = getSpoolPath(testDir);
+    await fs.mkdir(spoolDir, { recursive: true });
 
     updateCommand = new UpdateCommand();
 
@@ -46,9 +46,9 @@ describe('UpdateCommand', () => {
 
 Some existing content here.
 
-<!-- PROJECTOR:START -->
-Old Projector content
-<!-- PROJECTOR:END -->
+<!-- SPOOL:START -->
+Old Spool content
+<!-- SPOOL:END -->
 
 More content after.`;
     await fs.writeFile(claudePath, initialContent);
@@ -58,16 +58,16 @@ More content after.`;
     await updateCommand.execute(testDir);
 
     const updatedContent = await fs.readFile(claudePath, 'utf-8');
-    expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-    expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-    expect(updatedContent).toContain('@/.projector/AGENTS.md');
-    expect(updatedContent).toContain('projector update');
+    expect(updatedContent).toContain('<!-- SPOOL:START -->');
+    expect(updatedContent).toContain('<!-- SPOOL:END -->');
+    expect(updatedContent).toContain('@/.spool/AGENTS.md');
+    expect(updatedContent).toContain('spool update');
     expect(updatedContent).toContain('Some existing content here');
     expect(updatedContent).toContain('More content after');
 
     const [logMessage] = consoleSpy.mock.calls[0];
     expect(logMessage).toContain(
-      'Updated Projector instructions (.projector/AGENTS.md'
+      'Updated Spool instructions (.spool/AGENTS.md'
     );
     expect(logMessage).toContain('AGENTS.md (created)');
     expect(logMessage).toContain('Updated AI tool files: CLAUDE.md');
@@ -77,88 +77,88 @@ More content after.`;
   it('should refresh existing Claude slash command files', async () => {
     const proposalPath = path.join(
       testDir,
-      '.claude/commands/projector/proposal.md'
+      '.claude/commands/spool/proposal.md'
     );
     await fs.mkdir(path.dirname(proposalPath), { recursive: true });
     const initialContent = `---
-name: Projector: Proposal
+name: Spool: Proposal
 description: Old description
-category: Projector
-tags: [projector, change]
+category: Spool
+tags: [spool, change]
 ---
-<!-- PROJECTOR:START -->
+<!-- SPOOL:START -->
 Old slash content
-<!-- PROJECTOR:END -->`;
+<!-- SPOOL:END -->`;
     await fs.writeFile(proposalPath, initialContent);
 
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(proposalPath, 'utf-8');
-    expect(updated).toContain('name: Projector: Proposal');
-    expect(updated).toContain('Use the Projector agent skill `projector-proposal`');
+    expect(updated).toContain('name: Spool: Proposal');
+    expect(updated).toContain('Use the Spool agent skill `spool-proposal`');
     expect(updated).not.toContain('Old slash content');
   });
 
   it('should refresh existing OpenCode slash command files', async () => {
     const researchPath = path.join(
       testDir,
-      '.opencode/command/projector-research.md'
+      '.opencode/command/spool-research.md'
     );
     await fs.mkdir(path.dirname(researchPath), { recursive: true });
     const initialContent = `---
  description: Old description
  ---
-<!-- PROJECTOR:START -->
+<!-- SPOOL:START -->
 Old slash content
-<!-- PROJECTOR:END -->`;
+<!-- SPOOL:END -->`;
     await fs.writeFile(researchPath, initialContent);
 
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(researchPath, 'utf-8');
-    expect(updated).toContain('Use the Projector agent skill `projector-research`');
+    expect(updated).toContain('Use the Spool agent skill `spool-research`');
     expect(updated).not.toContain('Old slash content');
   });
 
   it('should refresh existing Codex prompts', async () => {
     const applyPath = path.join(
       testDir,
-      '.codex/prompts/projector-apply.md'
+      '.codex/prompts/spool-apply.md'
     );
     await fs.mkdir(path.dirname(applyPath), { recursive: true });
     const initialContent = `---
  description: Old description
  ---
-<!-- PROJECTOR:START -->
+<!-- SPOOL:START -->
 Old body
-<!-- PROJECTOR:END -->`;
+<!-- SPOOL:END -->`;
     await fs.writeFile(applyPath, initialContent);
 
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(applyPath, 'utf-8');
-    expect(updated).toContain('Use the Projector agent skill `projector-apply`');
+    expect(updated).toContain('Use the Spool agent skill `spool-apply`');
     expect(updated).not.toContain('Old body');
   });
 
   it('should refresh existing GitHub Copilot prompts', async () => {
     const reviewPath = path.join(
       testDir,
-      '.github/prompts/projector-review.prompt.md'
+      '.github/prompts/spool-review.prompt.md'
     );
     await fs.mkdir(path.dirname(reviewPath), { recursive: true });
     const initialContent = `---
  description: Old description
  ---
-<!-- PROJECTOR:START -->
+<!-- SPOOL:START -->
 Old content
-<!-- PROJECTOR:END -->`;
+<!-- SPOOL:END -->`;
     await fs.writeFile(reviewPath, initialContent);
 
     await updateCommand.execute(testDir);
 
     const updated = await fs.readFile(reviewPath, 'utf-8');
-    expect(updated).toContain('Use the Projector agent skill `projector-review`');
+    expect(updated).toContain('Use the Spool agent skill `spool-review`');
     expect(updated).not.toContain('Old content');
   });
 
@@ -176,7 +176,7 @@ Old content
 
     const proposalPath = path.join(
       testDir,
-      '.opencode/command/projector-proposal.md'
+      '.opencode/command/spool-proposal.md'
     );
     expect(await fileExists(proposalPath)).toBe(false);
   });

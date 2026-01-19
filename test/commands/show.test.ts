@@ -9,7 +9,7 @@ describe('top-level show command', () => {
   const testDir = path.join(projectRoot, 'test-show-command-tmp');
   const changesDir = getChangesPath(testDir);
   const specsDir = getSpecsPath(testDir);
-  const projectorBin = path.join(projectRoot, 'bin', 'projector.js');
+  const spoolBin = path.join(projectRoot, 'bin', 'spool.js');
 
 
   beforeEach(async () => {
@@ -34,18 +34,18 @@ describe('top-level show command', () => {
     const originalEnv = { ...process.env };
     try {
       process.chdir(testDir);
-      process.env.PROJECTOR_INTERACTIVE = '0';
+      process.env.SPOOL_INTERACTIVE = '0';
       let err: any;
       try {
-        execSync(`node ${projectorBin} show`, { encoding: 'utf-8' });
+        execSync(`node ${spoolBin} show`, { encoding: 'utf-8' });
       } catch (e) { err = e; }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       const stderr = err.stderr.toString();
       expect(stderr).toContain('Nothing to show.');
-      expect(stderr).toContain('projector show <item>');
-      expect(stderr).toContain('projector change show');
-      expect(stderr).toContain('projector spec show');
+      expect(stderr).toContain('spool show <item>');
+      expect(stderr).toContain('spool change show');
+      expect(stderr).toContain('spool spec show');
     } finally {
       process.chdir(originalCwd);
       process.env = originalEnv;
@@ -56,7 +56,7 @@ describe('top-level show command', () => {
     const originalCwd = process.cwd();
     try {
       process.chdir(testDir);
-      const output = execSync(`node ${projectorBin} show demo --json`, { encoding: 'utf-8' });
+      const output = execSync(`node ${spoolBin} show demo --json`, { encoding: 'utf-8' });
       const json = JSON.parse(output);
       expect(json.id).toBe('demo');
       expect(Array.isArray(json.deltas)).toBe(true);
@@ -69,7 +69,7 @@ describe('top-level show command', () => {
     const originalCwd = process.cwd();
     try {
       process.chdir(testDir);
-      const output = execSync(`node ${projectorBin} show auth --json --requirements`, { encoding: 'utf-8' });
+      const output = execSync(`node ${spoolBin} show auth --json --requirements`, { encoding: 'utf-8' });
       const json = JSON.parse(output);
       expect(json.id).toBe('auth');
       expect(Array.isArray(json.requirements)).toBe(true);
@@ -90,7 +90,7 @@ describe('top-level show command', () => {
       process.chdir(testDir);
       let err: any;
       try {
-        execSync(`node ${projectorBin} show foo`, { encoding: 'utf-8' });
+        execSync(`node ${spoolBin} show foo`, { encoding: 'utf-8' });
       } catch (e) { err = e; }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
@@ -108,7 +108,7 @@ describe('top-level show command', () => {
       process.chdir(testDir);
       let err: any;
       try {
-        execSync(`node ${projectorBin} show unknown-item`, { encoding: 'utf-8' });
+        execSync(`node ${spoolBin} show unknown-item`, { encoding: 'utf-8' });
       } catch (e) { err = e; }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);

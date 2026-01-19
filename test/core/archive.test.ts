@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArchiveCommand } from '../../src/core/archive.js';
 import { Validator } from '../../src/core/validation/validator.js';
-import { getChangesPath, getSpecsPath, getProjectorPath } from '../../src/core/project-config.js';
+import { getChangesPath, getSpecsPath, getSpoolPath } from '../../src/core/project-config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -19,14 +19,14 @@ describe('ArchiveCommand', () => {
 
   beforeEach(async () => {
     // Create temp directory
-    tempDir = path.join(os.tmpdir(), `projector-archive-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `spool-archive-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     // Change to temp directory
     process.chdir(tempDir);
     
-    // Create Projector structure
-    const projectorDir = getProjectorPath(tempDir);
+    // Create Spool structure
+    const spoolDir = getSpoolPath(tempDir);
     await fs.mkdir(getChangesPath(tempDir), { recursive: true });
     await fs.mkdir(getSpecsPath(tempDir), { recursive: true });
     await fs.mkdir(path.join(getChangesPath(tempDir), 'archive'), { recursive: true });
@@ -711,13 +711,13 @@ E1 updated`);
   });
 
   describe('error handling', () => {
-    it('should throw error when projector directory does not exist', async () => {
-      // Remove projector directory
-      await fs.rm(getProjectorPath(tempDir), { recursive: true });
+    it('should throw error when spool directory does not exist', async () => {
+      // Remove spool directory
+      await fs.rm(getSpoolPath(tempDir), { recursive: true });
       
       await expect(
         archiveCommand.execute('any-change', { yes: true })
-      ).rejects.toThrow("No Projector changes directory found. Run 'projector init' first.");
+      ).rejects.toThrow("No Spool changes directory found. Run 'spool init' first.");
     });
   });
 

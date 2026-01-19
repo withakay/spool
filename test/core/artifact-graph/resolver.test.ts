@@ -16,7 +16,7 @@ describe('artifact-graph/resolver', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
-    tempDir = path.join(os.tmpdir(), `projector-resolver-test-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `spool-resolver-test-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
     originalEnv = { ...process.env };
   });
@@ -38,7 +38,7 @@ describe('artifact-graph/resolver', () => {
     it('should use XDG_DATA_HOME when set', () => {
       process.env.XDG_DATA_HOME = tempDir;
       const userDir = getUserSchemasDir();
-      expect(userDir).toBe(path.join(tempDir, 'projector', 'schemas'));
+      expect(userDir).toBe(path.join(tempDir, 'spool', 'schemas'));
     });
   });
 

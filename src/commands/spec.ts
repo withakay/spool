@@ -6,11 +6,11 @@ import { Validator } from '../core/validation/validator.js';
 import type { Spec } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
 import { getSpecIds } from '../utils/item-discovery.js';
-import { getProjectorDirName } from '../core/project-config.js';
+import { getSpoolDirName } from '../core/project-config.js';
 
 function getSpecsDir(projectRoot: string = process.cwd()): string {
-  const projectorDir = getProjectorDirName(projectRoot);
-  return join(projectRoot, projectorDir, 'specs');
+  const spoolDir = getSpoolDirName(projectRoot);
+  return join(projectRoot, spoolDir, 'specs');
 }
 
 interface ShowOptions {
@@ -49,7 +49,7 @@ function filterSpec(spec: Spec, options: ShowOptions): Spec {
     scenarios: includeScenarios ? req.scenarios : [],
   }));
 
-  const metadata = spec.metadata ?? { version: '1.0.0', format: 'projector' as const };
+  const metadata = spec.metadata ?? { version: '1.0.0', format: 'spool' as const };
 
   return {
     name: spec.name,
@@ -91,9 +91,9 @@ export class SpecCommand {
     const specsDir = this.getSpecsDir();
     const specPath = join(specsDir, specId, 'spec.md');
     if (!existsSync(specPath)) {
-      const projectorDir = getProjectorDirName(process.cwd());
+      const spoolDir = getSpoolDirName(process.cwd());
       throw new Error(
-        `Spec '${specId}' not found at ${projectorDir}/specs/${specId}/spec.md`
+        `Spec '${specId}' not found at ${spoolDir}/specs/${specId}/spec.md`
       );
     }
 
@@ -109,7 +109,7 @@ export class SpecCommand {
         overview: parsed.overview,
         requirementCount: filtered.requirements.length,
         requirements: filtered.requirements,
-        metadata: parsed.metadata ?? { version: '1.0.0', format: 'projector' as const },
+        metadata: parsed.metadata ?? { version: '1.0.0', format: 'spool' as const },
       };
       console.log(JSON.stringify(output, null, 2));
       return;
@@ -121,11 +121,11 @@ export class SpecCommand {
 export function registerSpecCommand(rootProgram: typeof program) {
   const specCommand = rootProgram
     .command('spec')
-    .description('Manage and view Projector specifications');
+    .description('Manage and view Spool specifications');
 
   // Deprecation notice for noun-based commands
   specCommand.hook('preAction', () => {
-    console.error('Warning: The "projector spec ..." commands are deprecated. Prefer verb-first commands (e.g., "projector show", "projector validate --specs").');
+    console.error('Warning: The "spool spec ..." commands are deprecated. Prefer verb-first commands (e.g., "spool show", "spool validate --specs").');
   });
 
   specCommand
@@ -232,9 +232,9 @@ export function registerSpecCommand(rootProgram: typeof program) {
         const specPath = join(specsDir, specId, 'spec.md');
 
         if (!existsSync(specPath)) {
-          const projectorDir = getProjectorDirName(process.cwd());
+          const spoolDir = getSpoolDirName(process.cwd());
           throw new Error(
-            `Spec '${specId}' not found at ${projectorDir}/specs/${specId}/spec.md`
+            `Spec '${specId}' not found at ${spoolDir}/specs/${specId}/spec.md`
           );
         }
 
