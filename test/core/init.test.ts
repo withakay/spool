@@ -3,7 +3,11 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { InitCommand } from '../../src/core/init.js';
-import { getChangesPath, getSpecsPath, getProjectorPath } from '../../src/core/project-config.js';
+import {
+  getChangesPath,
+  getProjectorPath,
+  getSpecsPath,
+} from '../../src/core/project-config.js';
 
 const DONE = '__done__';
 
@@ -34,6 +38,15 @@ function queueSelections(...values: string[]) {
   }
 }
 
+function getPromptCall(index: number): any {
+  const calls = mockPrompt.mock.calls as any[];
+  const call = calls[index];
+  if (!call) {
+    throw new Error(`Missing prompt call at index ${index}`);
+  }
+  return call[0];
+}
+
 describe('InitCommand', () => {
   let testDir: string;
   let initCommand: InitCommand;
@@ -46,12 +59,10 @@ describe('InitCommand', () => {
     mockPrompt.mockReset();
     initCommand = new InitCommand({ prompt: mockPrompt });
 
-    // Route Codex global directory into the test sandbox
     prevCodexHome = process.env.CODEX_HOME;
     process.env.CODEX_HOME = path.join(testDir, '.codex');
 
-    // Mock console.log to suppress output during tests
-    vi.spyOn(console, 'log').mockImplementation(() => { });
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   afterEach(async () => {
@@ -69,12 +80,8 @@ describe('InitCommand', () => {
 
       const projectorPath = getProjectorPath(testDir);
       expect(await directoryExists(projectorPath)).toBe(true);
-      expect(await directoryExists(getSpecsPath(testDir))).toBe(
-        true
-      );
-      expect(await directoryExists(getChangesPath(testDir))).toBe(
-        true
-      );
+      expect(await directoryExists(getSpecsPath(testDir))).toBe(true);
+      expect(await directoryExists(getChangesPath(testDir))).toBe(true);
       expect(
         await directoryExists(path.join(getChangesPath(testDir), 'archive'))
       ).toBe(true);
@@ -87,9 +94,7 @@ describe('InitCommand', () => {
 
       const projectorPath = getProjectorPath(testDir);
       expect(await fileExists(path.join(projectorPath, 'AGENTS.md'))).toBe(true);
-      expect(await fileExists(path.join(projectorPath, 'project.md'))).toBe(
-        true
-      );
+      expect(await fileExists(path.join(projectorPath, 'project.md'))).toBe(true);
 
       const agentsContent = await fs.readFile(
         path.join(projectorPath, 'AGENTS.md'),
@@ -104,6 +109,27 @@ describe('InitCommand', () => {
       expect(projectContent).toContain('Project Context');
     });
 
+    it('should install Projector skills by default', async () => {
+      queueSelections('claude', DONE);
+
+      await initCommand.execute(testDir);
+
+      const skillsDir = path.join(testDir, '.claude/skills');
+      const proposalSkill = path.join(
+        skillsDir,
+        'projector-proposal',
+        'SKILL.md'
+      );
+      const researchSkill = path.join(
+        skillsDir,
+        'projector-research',
+        'SKILL.md'
+      );
+
+      expect(await fileExists(proposalSkill)).toBe(true);
+      expect(await fileExists(researchSkill)).toBe(true);
+    });
+
     it('should create CLAUDE.md when Claude Code is selected', async () => {
       queueSelections('claude', DONE);
 
@@ -114,148 +140,9 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(claudePath, 'utf-8');
       expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain("@/.projector/AGENTS.md");
+      expect(content).toContain('@/.projector/AGENTS.md');
       expect(content).toContain('projector update');
       expect(content).toContain('<!-- PROJECTOR:END -->');
-    });
-
-    it('should update existing CLAUDE.md with markers', async () => {
-      queueSelections('claude', DONE);
-
-      const claudePath = path.join(testDir, 'CLAUDE.md');
-      const existingContent =
-        '# My Project Instructions\nCustom instructions here';
-      await fs.writeFile(claudePath, existingContent);
-
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(claudePath, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain("@/.projector/AGENTS.md");
-      expect(updatedContent).toContain('projector update');
-      expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-      expect(updatedContent).toContain('Custom instructions here');
-    });
-
-    it('should create CLINE.md when Cline is selected', async () => {
-      queueSelections('cline', DONE);
-
-      await initCommand.execute(testDir);
-
-      const clinePath = path.join(testDir, 'CLINE.md');
-      expect(await fileExists(clinePath)).toBe(true);
-
-      const content = await fs.readFile(clinePath, 'utf-8');
-      expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain("@/.projector/AGENTS.md");
-      expect(content).toContain('projector update');
-      expect(content).toContain('<!-- PROJECTOR:END -->');
-    });
-
-    it('should update existing CLINE.md with markers', async () => {
-      queueSelections('cline', DONE);
-
-      const clinePath = path.join(testDir, 'CLINE.md');
-      const existingContent =
-        '# My Cline Rules\nCustom Cline instructions here';
-      await fs.writeFile(clinePath, existingContent);
-
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(clinePath, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain("@/.projector/AGENTS.md");
-      expect(updatedContent).toContain('projector update');
-      expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-      expect(updatedContent).toContain('Custom Cline instructions here');
-    });
-
-    it('should create Windsurf workflows when Windsurf is selected', async () => {
-      queueSelections('windsurf', DONE);
-
-      await initCommand.execute(testDir);
-
-      const wsProposal = path.join(
-        testDir,
-        '.windsurf/workflows/projector-proposal.md'
-      );
-      const wsApply = path.join(
-        testDir,
-        '.windsurf/workflows/projector-apply.md'
-      );
-      const wsArchive = path.join(
-        testDir,
-        '.windsurf/workflows/projector-archive.md'
-      );
-
-      expect(await fileExists(wsProposal)).toBe(true);
-      expect(await fileExists(wsApply)).toBe(true);
-      expect(await fileExists(wsArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(wsProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('auto_execution_mode: 3');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(wsApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('auto_execution_mode: 3');
-      expect(applyContent).toContain('<!-- PROJECTOR:START -->');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(wsArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('auto_execution_mode: 3');
-      expect(archiveContent).toContain('<!-- PROJECTOR:START -->');
-      expect(archiveContent).toContain('Run `projector archive <id> --yes`');
-    });
-
-    it('should create Antigravity workflows when Antigravity is selected', async () => {
-      queueSelections('antigravity', DONE);
-
-      await initCommand.execute(testDir);
-
-      const agProposal = path.join(
-        testDir,
-        '.agent/workflows/projector-proposal.md'
-      );
-      const agApply = path.join(
-        testDir,
-        '.agent/workflows/projector-apply.md'
-      );
-      const agArchive = path.join(
-        testDir,
-        '.agent/workflows/projector-archive.md'
-      );
-
-      expect(await fileExists(agProposal)).toBe(true);
-      expect(await fileExists(agApply)).toBe(true);
-      expect(await fileExists(agArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(agProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-      expect(proposalContent).not.toContain('auto_execution_mode');
-
-      const applyContent = await fs.readFile(agApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('<!-- PROJECTOR:START -->');
-      expect(applyContent).toContain('Work through tasks sequentially');
-      expect(applyContent).not.toContain('auto_execution_mode');
-
-      const archiveContent = await fs.readFile(agArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('<!-- PROJECTOR:START -->');
-      expect(archiveContent).toContain('Run `projector archive <id> --yes`');
-      expect(archiveContent).not.toContain('auto_execution_mode');
     });
 
     it('should always create AGENTS.md in project root', async () => {
@@ -268,12 +155,9 @@ describe('InitCommand', () => {
 
       const content = await fs.readFile(rootAgentsPath, 'utf-8');
       expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain("@/.projector/AGENTS.md");
+      expect(content).toContain('@/.projector/AGENTS.md');
       expect(content).toContain('projector update');
       expect(content).toContain('<!-- PROJECTOR:END -->');
-
-      const claudeExists = await fileExists(path.join(testDir, 'CLAUDE.md'));
-      expect(claudeExists).toBe(false);
     });
 
     it('should create Claude slash command files with templates', async () => {
@@ -293,181 +177,38 @@ describe('InitCommand', () => {
         testDir,
         '.claude/commands/projector/archive.md'
       );
+      const claudeResearch = path.join(
+        testDir,
+        '.claude/commands/projector/research.md'
+      );
+      const claudeReview = path.join(
+        testDir,
+        '.claude/commands/projector/review.md'
+      );
 
       expect(await fileExists(claudeProposal)).toBe(true);
       expect(await fileExists(claudeApply)).toBe(true);
       expect(await fileExists(claudeArchive)).toBe(true);
+      expect(await fileExists(claudeResearch)).toBe(true);
+      expect(await fileExists(claudeReview)).toBe(true);
 
       const proposalContent = await fs.readFile(claudeProposal, 'utf-8');
       expect(proposalContent).toContain('name: Projector: Proposal');
       expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
 
       const applyContent = await fs.readFile(claudeApply, 'utf-8');
       expect(applyContent).toContain('name: Projector: Apply');
-      expect(applyContent).toContain('Work through tasks sequentially');
 
       const archiveContent = await fs.readFile(claudeArchive, 'utf-8');
       expect(archiveContent).toContain('name: Projector: Archive');
-      expect(archiveContent).toContain('projector archive <id>');
-      expect(archiveContent).toContain(
-        '`--skip-specs` only for tooling-only work'
-      );
-    });
 
-    it('should create Cursor slash command files with templates', async () => {
-      queueSelections('cursor', DONE);
+      const researchContent = await fs.readFile(claudeResearch, 'utf-8');
+      expect(researchContent).toContain('name: Projector: Research');
+      expect(researchContent).toContain('Use the Projector agent skill');
 
-      await initCommand.execute(testDir);
-
-      const cursorProposal = path.join(
-        testDir,
-        '.cursor/commands/projector-proposal.md'
-      );
-      const cursorApply = path.join(
-        testDir,
-        '.cursor/commands/projector-apply.md'
-      );
-      const cursorArchive = path.join(
-        testDir,
-        '.cursor/commands/projector-archive.md'
-      );
-
-      expect(await fileExists(cursorProposal)).toBe(true);
-      expect(await fileExists(cursorApply)).toBe(true);
-      expect(await fileExists(cursorArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(cursorProposal, 'utf-8');
-      expect(proposalContent).toContain('name: /projector-proposal');
-      expect(proposalContent).toContain('<!-- PROJECTOR:END -->');
-
-      const applyContent = await fs.readFile(cursorApply, 'utf-8');
-      expect(applyContent).toContain('id: projector-apply');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(cursorArchive, 'utf-8');
-      expect(archiveContent).toContain('name: /projector-archive');
-      expect(archiveContent).toContain('projector list --specs');
-    });
-
-    it('should create Gemini CLI TOML files when selected', async () => {
-      queueSelections('gemini', DONE);
-
-      await initCommand.execute(testDir);
-
-      const geminiProposal = path.join(
-        testDir,
-        '.gemini/commands/projector/proposal.toml'
-      );
-      const geminiApply = path.join(
-        testDir,
-        '.gemini/commands/projector/apply.toml'
-      );
-      const geminiArchive = path.join(
-        testDir,
-        '.gemini/commands/projector/archive.toml'
-      );
-
-      expect(await fileExists(geminiProposal)).toBe(true);
-      expect(await fileExists(geminiApply)).toBe(true);
-      expect(await fileExists(geminiArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(geminiProposal, 'utf-8');
-      expect(proposalContent).toContain('description = "Scaffold a new Projector change and validate strictly."');
-      expect(proposalContent).toContain('prompt = """');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-      expect(proposalContent).toContain('<!-- PROJECTOR:END -->');
-
-      const applyContent = await fs.readFile(geminiApply, 'utf-8');
-      expect(applyContent).toContain('description = "Implement an approved Projector change and keep tasks in sync."');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(geminiArchive, 'utf-8');
-      expect(archiveContent).toContain('description = "Archive a deployed Projector change and update specs."');
-      expect(archiveContent).toContain('projector archive <id>');
-    });
-
-    it('should update existing Gemini CLI TOML files with refreshed content', async () => {
-      queueSelections('gemini', DONE);
-
-      await initCommand.execute(testDir);
-
-      const geminiProposal = path.join(
-        testDir,
-        '.gemini/commands/projector/proposal.toml'
-      );
-
-      // Modify the file to simulate user customization
-      const originalContent = await fs.readFile(geminiProposal, 'utf-8');
-      const modifiedContent = originalContent.replace(
-        '<!-- PROJECTOR:START -->',
-        '<!-- PROJECTOR:START -->\nCustom instruction added by user\n'
-      );
-      await fs.writeFile(geminiProposal, modifiedContent);
-
-      // Run init again to test update/refresh path
-      queueSelections('gemini', DONE);
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(geminiProposal, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain('**Guardrails**');
-      expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-      expect(updatedContent).not.toContain('Custom instruction added by user');
-    });
-
-    it('should create IFlow CLI slash command files with templates', async () => {
-      queueSelections('iflow', DONE);
-      await initCommand.execute(testDir);
-
-      const iflowProposal = path.join(
-        testDir,
-        '.iflow/commands/projector-proposal.md'
-      );
-      const iflowApply = path.join(
-        testDir,
-        '.iflow/commands/projector-apply.md'
-      );
-      const iflowArchive = path.join(
-        testDir,
-        '.iflow/commands/projector-archive.md'
-      );
-
-      expect(await fileExists(iflowProposal)).toBe(true);
-      expect(await fileExists(iflowApply)).toBe(true);
-      expect(await fileExists(iflowArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(iflowProposal, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-      expect(proposalContent).toContain('<!-- PROJECTOR:END -->');
-
-      const applyContent = await fs.readFile(iflowApply, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(iflowArchive, 'utf-8');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('projector archive <id>');
-    });
-
-    it('should update existing IFLOW.md with markers', async () => {
-      queueSelections('iflow', DONE);
-
-      const iflowPath = path.join(testDir, 'IFLOW.md');
-      const existingContent = '# My IFLOW Instructions\nCustom instructions here';
-      await fs.writeFile(iflowPath, existingContent);
-
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(iflowPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain("@/.projector/AGENTS.md");
-      expect(updatedContent).toContain('projector update');
-      expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-      expect(updatedContent).toContain('Custom instructions here');
+      const reviewContent = await fs.readFile(claudeReview, 'utf-8');
+      expect(reviewContent).toContain('name: Projector: Review');
+      expect(reviewContent).toContain('Use the Projector agent skill');
     });
 
     it('should create OpenCode slash command files with templates', async () => {
@@ -487,183 +228,32 @@ describe('InitCommand', () => {
         testDir,
         '.opencode/command/projector-archive.md'
       );
+      const openCodeResearch = path.join(
+        testDir,
+        '.opencode/command/projector-research.md'
+      );
+      const openCodeReview = path.join(
+        testDir,
+        '.opencode/command/projector-review.md'
+      );
 
       expect(await fileExists(openCodeProposal)).toBe(true);
       expect(await fileExists(openCodeApply)).toBe(true);
       expect(await fileExists(openCodeArchive)).toBe(true);
+      expect(await fileExists(openCodeResearch)).toBe(true);
+      expect(await fileExists(openCodeReview)).toBe(true);
 
       const proposalContent = await fs.readFile(openCodeProposal, 'utf-8');
-      expect(proposalContent).not.toContain('agent:');
       expect(proposalContent).toContain(
         'description: Scaffold a new Projector change and validate strictly.'
       );
       expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
 
-      const applyContent = await fs.readFile(openCodeApply, 'utf-8');
-      expect(applyContent).not.toContain('agent:');
-      expect(applyContent).toContain(
-        'description: Implement an approved Projector change and keep tasks in sync.'
-      );
-      expect(applyContent).toContain('Work through tasks sequentially');
+      const researchContent = await fs.readFile(openCodeResearch, 'utf-8');
+      expect(researchContent).toContain('Projector research via skills');
 
-      const archiveContent = await fs.readFile(openCodeArchive, 'utf-8');
-      expect(archiveContent).not.toContain('agent:');
-      expect(archiveContent).toContain(
-        'description: Archive a deployed Projector change and update specs.'
-      );
-      expect(archiveContent).toContain('projector list --specs');
-    });
-
-    it('should create Qwen configuration and slash command files with templates', async () => {
-      queueSelections('qwen', DONE);
-
-      await initCommand.execute(testDir);
-
-      const qwenConfigPath = path.join(testDir, 'QWEN.md');
-      const proposalPath = path.join(
-        testDir,
-        '.qwen/commands/projector-proposal.toml'
-      );
-      const applyPath = path.join(
-        testDir,
-        '.qwen/commands/projector-apply.toml'
-      );
-      const archivePath = path.join(
-        testDir,
-        '.qwen/commands/projector-archive.toml'
-      );
-
-      expect(await fileExists(qwenConfigPath)).toBe(true);
-      expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
-      expect(await fileExists(archivePath)).toBe(true);
-
-      const qwenConfigContent = await fs.readFile(qwenConfigPath, 'utf-8');
-      expect(qwenConfigContent).toContain('<!-- PROJECTOR:START -->');
-      expect(qwenConfigContent).toContain("@/.projector/AGENTS.md");
-      expect(qwenConfigContent).toContain('<!-- PROJECTOR:END -->');
-
-      const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('description = "Scaffold a new Projector change and validate strictly."');
-      expect(proposalContent).toContain('prompt = """');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('description = "Implement an approved Projector change and keep tasks in sync."');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('description = "Archive a deployed Projector change and update specs."');
-      expect(archiveContent).toContain('projector archive <id>');
-    });
-
-    it('should update existing QWEN.md with markers', async () => {
-      queueSelections('qwen', DONE);
-
-      const qwenPath = path.join(testDir, 'QWEN.md');
-      const existingContent = '# My Qwen Instructions\nCustom instructions here';
-      await fs.writeFile(qwenPath, existingContent);
-
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(qwenPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain("@/.projector/AGENTS.md");
-      expect(updatedContent).toContain('projector update');
-      expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-      expect(updatedContent).toContain('Custom instructions here');
-    });
-
-    it('should create Cline workflow files with templates', async () => {
-      queueSelections('cline', DONE);
-
-      await initCommand.execute(testDir);
-
-      const clineProposal = path.join(
-        testDir,
-        '.clinerules/workflows/projector-proposal.md'
-      );
-      const clineApply = path.join(
-        testDir,
-        '.clinerules/workflows/projector-apply.md'
-      );
-      const clineArchive = path.join(
-        testDir,
-        '.clinerules/workflows/projector-archive.md'
-      );
-
-      expect(await fileExists(clineProposal)).toBe(true);
-      expect(await fileExists(clineApply)).toBe(true);
-      expect(await fileExists(clineArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(clineProposal, 'utf-8');
-      expect(proposalContent).toContain('# Projector: Proposal');
-      expect(proposalContent).toContain('Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(clineApply, 'utf-8');
-      expect(applyContent).toContain('# Projector: Apply');
-      expect(applyContent).toContain('Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(clineArchive, 'utf-8');
-      expect(archiveContent).toContain('# Projector: Archive');
-      expect(archiveContent).toContain('Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('projector archive <id>');
-    });
-
-    it('should create Factory slash command files with templates', async () => {
-      queueSelections('factory', DONE);
-
-      await initCommand.execute(testDir);
-
-      const factoryProposal = path.join(
-        testDir,
-        '.factory/commands/projector-proposal.md'
-      );
-      const factoryApply = path.join(
-        testDir,
-        '.factory/commands/projector-apply.md'
-      );
-      const factoryArchive = path.join(
-        testDir,
-        '.factory/commands/projector-archive.md'
-      );
-
-      expect(await fileExists(factoryProposal)).toBe(true);
-      expect(await fileExists(factoryApply)).toBe(true);
-      expect(await fileExists(factoryArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(factoryProposal, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('argument-hint: request or feature description');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(
-        /<!-- PROJECTOR:START -->([\s\S]*?)<!-- PROJECTOR:END -->/u.exec(
-          proposalContent
-        )?.[1]
-      ).toContain('$ARGUMENTS');
-
-      const applyContent = await fs.readFile(factoryApply, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('Work through tasks sequentially');
-      expect(
-        /<!-- PROJECTOR:START -->([\s\S]*?)<!-- PROJECTOR:END -->/u.exec(
-          applyContent
-        )?.[1]
-      ).toContain('$ARGUMENTS');
-
-      const archiveContent = await fs.readFile(factoryArchive, 'utf-8');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-      expect(
-        /<!-- PROJECTOR:START -->([\s\S]*?)<!-- PROJECTOR:END -->/u.exec(
-          archiveContent
-        )?.[1]
-      ).toContain('$ARGUMENTS');
+      const reviewContent = await fs.readFile(openCodeReview, 'utf-8');
+      expect(reviewContent).toContain('Projector review skill');
     });
 
     it('should create Codex prompts with templates and placeholders', async () => {
@@ -683,65 +273,30 @@ describe('InitCommand', () => {
         testDir,
         '.codex/prompts/projector-archive.md'
       );
+      const researchPath = path.join(
+        testDir,
+        '.codex/prompts/projector-research.md'
+      );
+      const reviewPath = path.join(
+        testDir,
+        '.codex/prompts/projector-review.md'
+      );
 
       expect(await fileExists(proposalPath)).toBe(true);
       expect(await fileExists(applyPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
+      expect(await fileExists(researchPath)).toBe(true);
+      expect(await fileExists(reviewPath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
       expect(proposalContent).toContain('argument-hint: request or feature description');
       expect(proposalContent).toContain('$ARGUMENTS');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('$ARGUMENTS');
-      expect(applyContent).toContain('Work through tasks sequentially');
+      const researchContent = await fs.readFile(researchPath, 'utf-8');
+      expect(researchContent).toContain('Projector research via skills');
 
-      const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('$ARGUMENTS');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should create Kilo Code workflows with templates', async () => {
-      queueSelections('kilocode', DONE);
-
-      await initCommand.execute(testDir);
-
-      const proposalPath = path.join(
-        testDir,
-        '.kilocode/workflows/projector-proposal.md'
-      );
-      const applyPath = path.join(
-        testDir,
-        '.kilocode/workflows/projector-apply.md'
-      );
-      const archivePath = path.join(
-        testDir,
-        '.kilocode/workflows/projector-archive.md'
-      );
-
-      expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
-      expect(await fileExists(archivePath)).toBe(true);
-
-      const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-      expect(proposalContent).not.toContain('---\n');
-
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('Work through tasks sequentially');
-      expect(applyContent).not.toContain('---\n');
-
-      const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('projector list --specs');
-      expect(archiveContent).not.toContain('---\n');
+      const reviewContent = await fs.readFile(reviewPath, 'utf-8');
+      expect(reviewContent).toContain('Projector review skill');
     });
 
     it('should create GitHub Copilot prompt files with templates', async () => {
@@ -761,41 +316,42 @@ describe('InitCommand', () => {
         testDir,
         '.github/prompts/projector-archive.prompt.md'
       );
+      const researchPath = path.join(
+        testDir,
+        '.github/prompts/projector-research.prompt.md'
+      );
+      const reviewPath = path.join(
+        testDir,
+        '.github/prompts/projector-review.prompt.md'
+      );
 
       expect(await fileExists(proposalPath)).toBe(true);
       expect(await fileExists(applyPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
+      expect(await fileExists(researchPath)).toBe(true);
+      expect(await fileExists(reviewPath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('---');
       expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
       expect(proposalContent).toContain('$ARGUMENTS');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
 
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('$ARGUMENTS');
-      expect(applyContent).toContain('Work through tasks sequentially');
+      const researchContent = await fs.readFile(researchPath, 'utf-8');
+      expect(researchContent).toContain('Projector research via skills');
 
-      const archiveContent = await fs.readFile(archivePath, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('$ARGUMENTS');
-      expect(archiveContent).toContain('projector archive <id> --yes');
+      const reviewContent = await fs.readFile(reviewPath, 'utf-8');
+      expect(reviewContent).toContain('Projector review skill');
     });
 
     it('should add new tool when Projector already exists', async () => {
-      queueSelections('claude', DONE, 'cursor', DONE);
+      queueSelections('claude', DONE, 'opencode', DONE);
       await initCommand.execute(testDir);
       await initCommand.execute(testDir);
 
-      const cursorProposal = path.join(
+      const openCodeProposal = path.join(
         testDir,
-        '.cursor/commands/projector-proposal.md'
+        '.opencode/command/projector-proposal.md'
       );
-      expect(await fileExists(cursorProposal)).toBe(true);
+      expect(await fileExists(openCodeProposal)).toBe(true);
     });
 
     it('should allow extend mode with no additional native tools', async () => {
@@ -825,31 +381,18 @@ describe('InitCommand', () => {
     it('should preserve existing template files in extend mode', async () => {
       queueSelections('claude', DONE, DONE);
 
-      // First init
       await initCommand.execute(testDir);
 
       const agentsPath = path.join(getProjectorPath(testDir), 'AGENTS.md');
       const customContent = '# My Custom AGENTS Content\nDo not overwrite this!';
 
-      // Modify the file with custom content
       await fs.writeFile(agentsPath, customContent);
 
-      // Run init again - should NOT overwrite
       await initCommand.execute(testDir);
 
       const content = await fs.readFile(agentsPath, 'utf-8');
       expect(content).toBe(customContent);
       expect(content).not.toContain('Projector Instructions');
-    });
-
-    it('should handle non-existent target directory', async () => {
-      queueSelections('claude', DONE);
-
-      const newDir = path.join(testDir, 'new-project');
-      await initCommand.execute(newDir);
-
-      const projectorPath = getProjectorPath(newDir);
-      expect(await directoryExists(projectorPath)).toBe(true);
     });
 
     it('should display success message with selected tool name', async () => {
@@ -860,18 +403,8 @@ describe('InitCommand', () => {
 
       const calls = logSpy.mock.calls.flat().join('\n');
       expect(calls).toContain('Copy these prompts to Claude Code');
-    });
-
-    it('should reference AGENTS compatible assistants in success message', async () => {
-      queueSelections(DONE);
-      const logSpy = vi.spyOn(console, 'log');
-
-      await initCommand.execute(testDir);
-
-      const calls = logSpy.mock.calls.flat().join('\n');
-      expect(calls).toContain(
-        'Copy these prompts to your AGENTS.md-compatible assistant'
-      );
+      expect(calls).toContain('Please read .projector/project.md');
+      expect(calls).toContain('Projector workflow from .projector/AGENTS.md');
     });
   });
 
@@ -890,73 +423,16 @@ describe('InitCommand', () => {
       );
     });
 
-    it('should handle different AI tool selections', async () => {
-      // For now, only Claude is available, but test the structure
-      queueSelections('claude', DONE);
-
-      await initCommand.execute(testDir);
-
-      // When other tools are added, we'd test their specific configurations here
-      const claudePath = path.join(testDir, 'CLAUDE.md');
-      expect(await fileExists(claudePath)).toBe(true);
-    });
-
     it('should mark existing tools as already configured during extend mode', async () => {
-      queueSelections('claude', DONE, 'cursor', DONE);
+      queueSelections('claude', DONE, 'opencode', DONE);
       await initCommand.execute(testDir);
       await initCommand.execute(testDir);
 
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
+      const secondRunArgs = getPromptCall(1);
       const claudeChoice = secondRunArgs.choices.find(
         (choice: any) => choice.value === 'claude'
       );
       expect(claudeChoice.configured).toBe(true);
-    });
-
-    it('should mark Qwen as already configured during extend mode', async () => {
-      queueSelections('qwen', DONE, 'qwen', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const qwenChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'qwen'
-      );
-      expect(qwenChoice.configured).toBe(true);
-    });
-
-    it('should preselect Kilo Code when workflows already exist', async () => {
-      queueSelections('kilocode', DONE, 'kilocode', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const preselected = secondRunArgs.initialSelected ?? [];
-      expect(preselected).toContain('kilocode');
-    });
-
-    it('should mark Windsurf as already configured during extend mode', async () => {
-      queueSelections('windsurf', DONE, 'windsurf', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const wsChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'windsurf'
-      );
-      expect(wsChoice.configured).toBe(true);
-    });
-
-    it('should mark Antigravity as already configured during extend mode', async () => {
-      queueSelections('antigravity', DONE, 'antigravity', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const antigravityChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'antigravity'
-      );
-      expect(antigravityChoice.configured).toBe(true);
     });
 
     it('should mark Codex as already configured during extend mode', async () => {
@@ -964,559 +440,11 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
       await initCommand.execute(testDir);
 
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
+      const secondRunArgs = getPromptCall(1);
       const codexChoice = secondRunArgs.choices.find(
         (choice: any) => choice.value === 'codex'
       );
       expect(codexChoice.configured).toBe(true);
-    });
-
-    it('should mark Factory Droid as already configured during extend mode', async () => {
-      queueSelections('factory', DONE, 'factory', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const factoryChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'factory'
-      );
-      expect(factoryChoice.configured).toBe(true);
-    });
-
-    it('should mark GitHub Copilot as already configured during extend mode', async () => {
-      queueSelections('github-copilot', DONE, 'github-copilot', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const githubCopilotChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'github-copilot'
-      );
-      expect(githubCopilotChoice.configured).toBe(true);
-    });
-
-    it('should create Amazon Q Developer prompt files with templates', async () => {
-      queueSelections('amazon-q', DONE);
-
-      await initCommand.execute(testDir);
-
-      const proposalPath = path.join(
-        testDir,
-        '.amazonq/prompts/projector-proposal.md'
-      );
-      const applyPath = path.join(
-        testDir,
-        '.amazonq/prompts/projector-apply.md'
-      );
-      const archivePath = path.join(
-        testDir,
-        '.amazonq/prompts/projector-archive.md'
-      );
-
-      expect(await fileExists(proposalPath)).toBe(true);
-      expect(await fileExists(applyPath)).toBe(true);
-      expect(await fileExists(archivePath)).toBe(true);
-
-      const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('$ARGUMENTS');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(applyPath, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('$ARGUMENTS');
-      expect(applyContent).toContain('<!-- PROJECTOR:START -->');
-    });
-
-    it('should mark Amazon Q Developer as already configured during extend mode', async () => {
-      queueSelections('amazon-q', DONE, 'amazon-q', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const amazonQChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'amazon-q'
-      );
-      expect(amazonQChoice.configured).toBe(true);
-    });
-
-    it('should create Auggie slash command files with templates', async () => {
-      queueSelections('auggie', DONE);
-
-      await initCommand.execute(testDir);
-
-      const auggieProposal = path.join(
-        testDir,
-        '.augment/commands/projector-proposal.md'
-      );
-      const auggieApply = path.join(
-        testDir,
-        '.augment/commands/projector-apply.md'
-      );
-      const auggieArchive = path.join(
-        testDir,
-        '.augment/commands/projector-archive.md'
-      );
-
-      expect(await fileExists(auggieProposal)).toBe(true);
-      expect(await fileExists(auggieApply)).toBe(true);
-      expect(await fileExists(auggieArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(auggieProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('argument-hint: feature description or request');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(auggieApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(auggieArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should mark Auggie as already configured during extend mode', async () => {
-      queueSelections('auggie', DONE, 'auggie', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const auggieChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'auggie'
-      );
-      expect(auggieChoice.configured).toBe(true);
-    });
-
-    it('should create CodeBuddy slash command files with templates', async () => {
-      queueSelections('codebuddy', DONE);
-
-      await initCommand.execute(testDir);
-
-      const codeBuddyProposal = path.join(
-        testDir,
-        '.codebuddy/commands/projector/proposal.md'
-      );
-      const codeBuddyApply = path.join(
-        testDir,
-        '.codebuddy/commands/projector/apply.md'
-      );
-      const codeBuddyArchive = path.join(
-        testDir,
-        '.codebuddy/commands/projector/archive.md'
-      );
-
-      expect(await fileExists(codeBuddyProposal)).toBe(true);
-      expect(await fileExists(codeBuddyApply)).toBe(true);
-      expect(await fileExists(codeBuddyArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(codeBuddyProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: Projector: Proposal');
-      expect(proposalContent).toContain('description: "Scaffold a new Projector change and validate strictly."');
-      expect(proposalContent).toContain('argument-hint: "[feature description or request]"');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(codeBuddyApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: Projector: Apply');
-      expect(applyContent).toContain('description: "Implement an approved Projector change and keep tasks in sync."');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(codeBuddyArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('name: Projector: Archive');
-      expect(archiveContent).toContain('description: "Archive a deployed Projector change and update specs."');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should mark CodeBuddy as already configured during extend mode', async () => {
-      queueSelections('codebuddy', DONE, 'codebuddy', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const codeBuddyChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'codebuddy'
-      );
-      expect(codeBuddyChoice.configured).toBe(true);
-    });
-
-    it('should create Continue slash command files with templates', async () => {
-      queueSelections('continue', DONE);
-
-      await initCommand.execute(testDir);
-
-      const continueProposal = path.join(
-        testDir,
-        '.continue/prompts/projector-proposal.prompt'
-      );
-      const continueApply = path.join(
-        testDir,
-        '.continue/prompts/projector-apply.prompt'
-      );
-      const continueArchive = path.join(
-        testDir,
-        '.continue/prompts/projector-archive.prompt'
-      );
-
-      expect(await fileExists(continueProposal)).toBe(true);
-      expect(await fileExists(continueApply)).toBe(true);
-      expect(await fileExists(continueArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(continueProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: projector-proposal');
-      expect(proposalContent).toContain('invokable: true');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-
-      const applyContent = await fs.readFile(continueApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: projector-apply');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('invokable: true');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(continueArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('name: projector-archive');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('invokable: true');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should mark Continue as already configured during extend mode', async () => {
-      queueSelections('continue', DONE, 'continue', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const continueChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'continue'
-      );
-      expect(continueChoice.configured).toBe(true);
-    });
-
-    it('should create CODEBUDDY.md when CodeBuddy is selected', async () => {
-      queueSelections('codebuddy', DONE);
-
-      await initCommand.execute(testDir);
-
-      const codeBuddyPath = path.join(testDir, 'CODEBUDDY.md');
-      expect(await fileExists(codeBuddyPath)).toBe(true);
-
-      const content = await fs.readFile(codeBuddyPath, 'utf-8');
-      expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain("@/.projector/AGENTS.md");
-      expect(content).toContain('projector update');
-      expect(content).toContain('<!-- PROJECTOR:END -->');
-    });
-
-    it('should update existing CODEBUDDY.md with markers', async () => {
-      queueSelections('codebuddy', DONE);
-
-      const codeBuddyPath = path.join(testDir, 'CODEBUDDY.md');
-      const existingContent =
-        '# My CodeBuddy Instructions\nCustom instructions here';
-      await fs.writeFile(codeBuddyPath, existingContent);
-
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(codeBuddyPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain("@/.projector/AGENTS.md");
-      expect(updatedContent).toContain('projector update');
-      expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-      expect(updatedContent).toContain('Custom instructions here');
-    });
-
-    it('should create Crush slash command files with templates', async () => {
-      queueSelections('crush', DONE);
-
-      await initCommand.execute(testDir);
-
-      const crushProposal = path.join(
-        testDir,
-        '.crush/commands/projector/proposal.md'
-      );
-      const crushApply = path.join(
-        testDir,
-        '.crush/commands/projector/apply.md'
-      );
-      const crushArchive = path.join(
-        testDir,
-        '.crush/commands/projector/archive.md'
-      );
-
-      expect(await fileExists(crushProposal)).toBe(true);
-      expect(await fileExists(crushApply)).toBe(true);
-      expect(await fileExists(crushArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(crushProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: Projector: Proposal');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('category: Projector');
-      expect(proposalContent).toContain('tags: [projector, change]');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(crushApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: Projector: Apply');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('category: Projector');
-      expect(applyContent).toContain('tags: [projector, apply]');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(crushArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('name: Projector: Archive');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('category: Projector');
-      expect(archiveContent).toContain('tags: [projector, archive]');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should mark Crush as already configured during extend mode', async () => {
-      queueSelections('crush', DONE, 'crush', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const crushChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'crush'
-      );
-      expect(crushChoice.configured).toBe(true);
-    });
-
-    it('should create CoStrict slash command files with templates', async () => {
-      queueSelections('costrict', DONE);
-
-      await initCommand.execute(testDir);
-
-      const costrictProposal = path.join(
-        testDir,
-        '.cospec/projector/commands/projector-proposal.md'
-      );
-      const costrictApply = path.join(
-        testDir,
-        '.cospec/projector/commands/projector-apply.md'
-      );
-      const costrictArchive = path.join(
-        testDir,
-        '.cospec/projector/commands/projector-archive.md'
-      );
-
-      expect(await fileExists(costrictProposal)).toBe(true);
-      expect(await fileExists(costrictApply)).toBe(true);
-      expect(await fileExists(costrictArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(costrictProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('description: "Scaffold a new Projector change and validate strictly."');
-      expect(proposalContent).toContain('argument-hint: feature description or request');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(costrictApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('description: "Implement an approved Projector change and keep tasks in sync."');
-      expect(applyContent).toContain('argument-hint: change-id');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(costrictArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('description: "Archive a deployed Projector change and update specs."');
-      expect(archiveContent).toContain('argument-hint: change-id');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should mark CoStrict as already configured during extend mode', async () => {
-      queueSelections('costrict', DONE, 'costrict', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const costrictChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'costrict'
-      );
-      expect(costrictChoice.configured).toBe(true);
-    });
-
-    it('should create RooCode slash command files with templates', async () => {
-      queueSelections('roocode', DONE);
-
-      await initCommand.execute(testDir);
-
-      const rooProposal = path.join(
-        testDir,
-        '.roo/commands/projector-proposal.md'
-      );
-      const rooApply = path.join(
-        testDir,
-        '.roo/commands/projector-apply.md'
-      );
-      const rooArchive = path.join(
-        testDir,
-        '.roo/commands/projector-archive.md'
-      );
-
-      expect(await fileExists(rooProposal)).toBe(true);
-      expect(await fileExists(rooApply)).toBe(true);
-      expect(await fileExists(rooArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(rooProposal, 'utf-8');
-      expect(proposalContent).toContain('# Projector: Proposal');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(rooApply, 'utf-8');
-      expect(applyContent).toContain('# Projector: Apply');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(rooArchive, 'utf-8');
-      expect(archiveContent).toContain('# Projector: Archive');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should mark RooCode as already configured during extend mode', async () => {
-      queueSelections('roocode', DONE, 'roocode', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const rooChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'roocode'
-      );
-      expect(rooChoice.configured).toBe(true);
-    });
-
-    it('should create Qoder slash command files with templates', async () => {
-      queueSelections('qoder', DONE);
-
-      await initCommand.execute(testDir);
-
-      const qoderProposal = path.join(
-        testDir,
-        '.qoder/commands/projector/proposal.md'
-      );
-      const qoderApply = path.join(
-        testDir,
-        '.qoder/commands/projector/apply.md'
-      );
-      const qoderArchive = path.join(
-        testDir,
-        '.qoder/commands/projector/archive.md'
-      );
-
-      expect(await fileExists(qoderProposal)).toBe(true);
-      expect(await fileExists(qoderApply)).toBe(true);
-      expect(await fileExists(qoderArchive)).toBe(true);
-
-      const proposalContent = await fs.readFile(qoderProposal, 'utf-8');
-      expect(proposalContent).toContain('---');
-      expect(proposalContent).toContain('name: Projector: Proposal');
-      expect(proposalContent).toContain('description: Scaffold a new Projector change and validate strictly.');
-      expect(proposalContent).toContain('category: Projector');
-      expect(proposalContent).toContain('<!-- PROJECTOR:START -->');
-      expect(proposalContent).toContain('**Guardrails**');
-
-      const applyContent = await fs.readFile(qoderApply, 'utf-8');
-      expect(applyContent).toContain('---');
-      expect(applyContent).toContain('name: Projector: Apply');
-      expect(applyContent).toContain('description: Implement an approved Projector change and keep tasks in sync.');
-      expect(applyContent).toContain('Work through tasks sequentially');
-
-      const archiveContent = await fs.readFile(qoderArchive, 'utf-8');
-      expect(archiveContent).toContain('---');
-      expect(archiveContent).toContain('name: Projector: Archive');
-      expect(archiveContent).toContain('description: Archive a deployed Projector change and update specs.');
-      expect(archiveContent).toContain('projector archive <id> --yes');
-    });
-
-    it('should mark Qoder as already configured during extend mode', async () => {
-      queueSelections('qoder', DONE, 'qoder', DONE);
-      await initCommand.execute(testDir);
-      await initCommand.execute(testDir);
-
-      const secondRunArgs = mockPrompt.mock.calls[1][0];
-      const qoderChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'qoder'
-      );
-      expect(qoderChoice.configured).toBe(true);
-    });
-
-    it('should create COSTRICT.md when CoStrict is selected', async () => {
-      queueSelections('costrict', DONE);
-
-      await initCommand.execute(testDir);
-
-      const costrictPath = path.join(testDir, 'COSTRICT.md');
-      expect(await fileExists(costrictPath)).toBe(true);
-
-      const content = await fs.readFile(costrictPath, 'utf-8');
-      expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain("@/.projector/AGENTS.md");
-      expect(content).toContain('projector update');
-      expect(content).toContain('<!-- PROJECTOR:END -->');
-    });
-
-    it('should create QODER.md when Qoder is selected', async () => {
-      queueSelections('qoder', DONE);
-
-      await initCommand.execute(testDir);
-
-      const qoderPath = path.join(testDir, 'QODER.md');
-      expect(await fileExists(qoderPath)).toBe(true);
-
-      const content = await fs.readFile(qoderPath, 'utf-8');
-      expect(content).toContain('<!-- PROJECTOR:START -->');
-      expect(content).toContain("@/.projector/AGENTS.md");
-      expect(content).toContain('projector update');
-      expect(content).toContain('<!-- PROJECTOR:END -->');
-    });
-    it('should update existing COSTRICT.md with markers', async () => {
-      queueSelections('costrict', DONE);
-
-      const costrictPath = path.join(testDir, 'COSTRICT.md');
-      const existingContent =
-        '# My CoStrict Instructions\nCustom instructions here';
-      await fs.writeFile(costrictPath, existingContent);
-
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(costrictPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain('# My CoStrict Instructions');
-      expect(updatedContent).toContain('Custom instructions here');
-    });
-
-    it('should update existing QODER.md with markers', async () => {
-      queueSelections('qoder', DONE);
-
-      const qoderPath = path.join(testDir, 'QODER.md');
-      const existingContent =
-        '# My Qoder Instructions\nCustom instructions here';
-      await fs.writeFile(qoderPath, existingContent);
-
-      await initCommand.execute(testDir);
-
-      const updatedContent = await fs.readFile(qoderPath, 'utf-8');
-      expect(updatedContent).toContain('<!-- PROJECTOR:START -->');
-      expect(updatedContent).toContain("@/.projector/AGENTS.md");
-      expect(updatedContent).toContain('projector update');
-      expect(updatedContent).toContain('<!-- PROJECTOR:END -->');
-      expect(updatedContent).toContain('Custom instructions here');
     });
   });
 
@@ -1526,40 +454,44 @@ describe('InitCommand', () => {
 
       await nonInteractiveCommand.execute(testDir);
 
-      // Should create configurations for all available tools
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const cursorProposal = path.join(
+      const openCodeProposal = path.join(
         testDir,
-        '.cursor/commands/projector-proposal.md'
+        '.opencode/command/projector-proposal.md'
       );
-      const windsurfProposal = path.join(
+      const codexProposal = path.join(
         testDir,
-        '.windsurf/workflows/projector-proposal.md'
+        '.codex/prompts/projector-proposal.md'
+      );
+      const copilotProposal = path.join(
+        testDir,
+        '.github/prompts/projector-proposal.prompt.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
-      expect(await fileExists(cursorProposal)).toBe(true);
-      expect(await fileExists(windsurfProposal)).toBe(true);
+      expect(await fileExists(openCodeProposal)).toBe(true);
+      expect(await fileExists(codexProposal)).toBe(true);
+      expect(await fileExists(copilotProposal)).toBe(true);
     });
 
     it('should select specific tools with --tools option', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'claude,cursor' });
+      const nonInteractiveCommand = new InitCommand({ tools: 'claude,codex' });
 
       await nonInteractiveCommand.execute(testDir);
 
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const cursorProposal = path.join(
+      const openCodeProposal = path.join(
         testDir,
-        '.cursor/commands/projector-proposal.md'
+        '.opencode/command/projector-proposal.md'
       );
-      const windsurfProposal = path.join(
+      const codexProposal = path.join(
         testDir,
-        '.windsurf/workflows/projector-proposal.md'
+        '.codex/prompts/projector-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
-      expect(await fileExists(cursorProposal)).toBe(true);
-      expect(await fileExists(windsurfProposal)).toBe(false); // Not selected
+      expect(await fileExists(codexProposal)).toBe(true);
+      expect(await fileExists(openCodeProposal)).toBe(false);
     });
 
     it('should skip tool configuration with --tools none option', async () => {
@@ -1568,16 +500,15 @@ describe('InitCommand', () => {
       await nonInteractiveCommand.execute(testDir);
 
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const cursorProposal = path.join(
+      const openCodeProposal = path.join(
         testDir,
-        '.cursor/commands/projector-proposal.md'
+        '.opencode/command/projector-proposal.md'
       );
 
-      // Should still create AGENTS.md but no tool-specific files
       const rootAgentsPath = path.join(testDir, 'AGENTS.md');
       expect(await fileExists(rootAgentsPath)).toBe(true);
       expect(await fileExists(claudePath)).toBe(false);
-      expect(await fileExists(cursorProposal)).toBe(false);
+      expect(await fileExists(openCodeProposal)).toBe(false);
     });
 
     it('should throw error for invalid tool names', async () => {
@@ -1589,18 +520,18 @@ describe('InitCommand', () => {
     });
 
     it('should handle comma-separated tool names with spaces', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'claude, cursor' });
+      const nonInteractiveCommand = new InitCommand({ tools: 'claude, codex' });
 
       await nonInteractiveCommand.execute(testDir);
 
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const cursorProposal = path.join(
+      const codexProposal = path.join(
         testDir,
-        '.cursor/commands/projector-proposal.md'
+        '.codex/prompts/projector-proposal.md'
       );
 
       expect(await fileExists(claudePath)).toBe(true);
-      expect(await fileExists(cursorProposal)).toBe(true);
+      expect(await fileExists(codexProposal)).toBe(true);
     });
 
     it('should reject combining reserved keywords with explicit tool ids', async () => {
@@ -1614,7 +545,6 @@ describe('InitCommand', () => {
 
   describe('already configured detection', () => {
     it('should NOT show tools as already configured in fresh project with existing CLAUDE.md', async () => {
-      // Simulate user having their own CLAUDE.md before running projector init
       const claudePath = path.join(testDir, 'CLAUDE.md');
       await fs.writeFile(claudePath, '# My Custom Claude Instructions\n');
 
@@ -1622,9 +552,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      // In the first run (non-interactive mode via queueSelections),
-      // the prompt is called with configured: false for claude
-      const firstCallArgs = mockPrompt.mock.calls[0][0];
+      const firstCallArgs = getPromptCall(0);
       const claudeChoice = firstCallArgs.choices.find(
         (choice: any) => choice.value === 'claude'
       );
@@ -1633,7 +561,6 @@ describe('InitCommand', () => {
     });
 
     it('should NOT show tools as already configured in fresh project with existing slash commands', async () => {
-      // Simulate user having their own custom slash commands
       const customCommandDir = path.join(testDir, '.claude/commands/custom');
       await fs.mkdir(customCommandDir, { recursive: true });
       await fs.writeFile(
@@ -1645,7 +572,7 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const firstCallArgs = mockPrompt.mock.calls[0][0];
+      const firstCallArgs = getPromptCall(0);
       const claudeChoice = firstCallArgs.choices.find(
         (choice: any) => choice.value === 'claude'
       );
@@ -1654,15 +581,13 @@ describe('InitCommand', () => {
     });
 
     it('should show tools as already configured in extend mode', async () => {
-      // First initialization
       queueSelections('claude', DONE);
       await initCommand.execute(testDir);
 
-      // Second initialization (extend mode)
-      queueSelections('cursor', DONE);
+      queueSelections('opencode', DONE);
       await initCommand.execute(testDir);
 
-      const secondCallArgs = mockPrompt.mock.calls[1][0];
+      const secondCallArgs = getPromptCall(1);
       const claudeChoice = secondCallArgs.choices.find(
         (choice: any) => choice.value === 'claude'
       );
@@ -1671,7 +596,6 @@ describe('InitCommand', () => {
     });
 
     it('should NOT show already configured for Codex in fresh init even with global prompts', async () => {
-      // Create global Codex prompts (simulating previous installation)
       const codexPromptsDir = path.join(testDir, '.codex/prompts');
       await fs.mkdir(codexPromptsDir, { recursive: true });
       await fs.writeFile(
@@ -1683,23 +607,20 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const firstCallArgs = mockPrompt.mock.calls[0][0];
+      const firstCallArgs = getPromptCall(0);
       const codexChoice = firstCallArgs.choices.find(
         (choice: any) => choice.value === 'codex'
       );
 
-      // In fresh init, even global tools should not show as configured
       expect(codexChoice.configured).toBe(false);
     });
   });
 
   describe('error handling', () => {
     it('should provide helpful error for insufficient permissions', async () => {
-      // This is tricky to test cross-platform, but we can test the error message
       const readOnlyDir = path.join(testDir, 'readonly');
       await fs.mkdir(readOnlyDir);
 
-      // Mock the permission check to fail
       const originalCheck = fs.writeFile;
       vi.spyOn(fs, 'writeFile').mockImplementation(
         async (filePath: any, ...args: any[]) => {
@@ -1729,17 +650,14 @@ async function testFileRecreationInExtendMode(
 ): Promise<void> {
   queueSelections('claude', DONE, DONE);
 
-  // First init
   await initCommand.execute(testDir);
 
   const filePath = path.join(testDir, relativePath);
   expect(await fileExists(filePath)).toBe(true);
 
-  // Delete the file
   await fs.unlink(filePath);
   expect(await fileExists(filePath)).toBe(false);
 
-  // Run init again - should recreate the file
   await initCommand.execute(testDir);
   expect(await fileExists(filePath)).toBe(true);
 

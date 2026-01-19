@@ -94,9 +94,22 @@ describe('projector CLI e2e basics', () => {
 
       // Check that tool configurations were created
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/projector-proposal.md');
+      const openCodeProposal = path.join(
+        emptyProjectDir,
+        '.opencode/command/projector-proposal.md'
+      );
+      const codexProposal = path.join(
+        emptyProjectDir,
+        '.codex/prompts/projector-proposal.md'
+      );
+      const copilotProposal = path.join(
+        emptyProjectDir,
+        '.github/prompts/projector-proposal.prompt.md'
+      );
       expect(await fileExists(claudePath)).toBe(true);
-      expect(await fileExists(cursorProposal)).toBe(true);
+      expect(await fileExists(openCodeProposal)).toBe(true);
+      expect(await fileExists(codexProposal)).toBe(true);
+      expect(await fileExists(copilotProposal)).toBe(true);
     });
 
     it('initializes with --tools list option', async () => {
@@ -109,9 +122,12 @@ describe('projector CLI e2e basics', () => {
       expect(result.stdout).toContain('Tool summary:');
 
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/projector-proposal.md');
+      const openCodeProposal = path.join(
+        emptyProjectDir,
+        '.opencode/command/projector-proposal.md'
+      );
       expect(await fileExists(claudePath)).toBe(true);
-      expect(await fileExists(cursorProposal)).toBe(false); // Not selected
+      expect(await fileExists(openCodeProposal)).toBe(false); // Not selected
     });
 
     it('initializes with --tools none option', async () => {
@@ -124,12 +140,15 @@ describe('projector CLI e2e basics', () => {
       expect(result.stdout).toContain('Tool summary:');
 
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const cursorProposal = path.join(emptyProjectDir, '.cursor/commands/projector-proposal.md');
+      const openCodeProposal = path.join(
+        emptyProjectDir,
+        '.opencode/command/projector-proposal.md'
+      );
       const rootAgentsPath = path.join(emptyProjectDir, 'AGENTS.md');
 
       expect(await fileExists(rootAgentsPath)).toBe(true);
       expect(await fileExists(claudePath)).toBe(false);
-      expect(await fileExists(cursorProposal)).toBe(false);
+      expect(await fileExists(openCodeProposal)).toBe(false);
     });
 
     it('returns error for invalid tool names', async () => {
