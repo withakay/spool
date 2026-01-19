@@ -444,7 +444,8 @@ export class InitCommand {
       skippedExisting,
       skipped,
       extendMode,
-      rootStubStatus
+      rootStubStatus,
+      projectorDir
     );
   }
 
@@ -856,7 +857,8 @@ export class InitCommand {
     skippedExisting: AIToolOption[],
     skipped: AIToolOption[],
     extendMode: boolean,
-    rootStubStatus: RootStubStatus
+    rootStubStatus: RootStubStatus,
+    projectorDir: string
   ): void {
     console.log(); // Empty line for spacing
     const successHeadline = extendMode
@@ -936,7 +938,7 @@ export class InitCommand {
     console.log(PALETTE.white('1. Populate your project context:'));
     console.log(
       PALETTE.lightGray(
-        '   "Please read .projector/project.md and help me fill it out'
+        `   "Please read ${projectorDir}/project.md and help me fill it out`
       )
     );
     console.log(
@@ -956,7 +958,7 @@ export class InitCommand {
     console.log(PALETTE.white('3. Learn the Projector workflow:'));
     console.log(
       PALETTE.lightGray(
-        '   "Please explain the Projector workflow from .projector/AGENTS.md'
+        `   "Please explain the Projector workflow from ${projectorDir}/AGENTS.md`
       )
     );
     console.log(

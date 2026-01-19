@@ -1,6 +1,7 @@
 import path from 'path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { FileSystemUtils } from '../utils/file-system.js';
+import { replaceHardcodedDotProjectorPaths } from '../utils/path-normalization.js';
 import { getProjectorDirName } from './project-config.js';
 
 export interface ModelConfig {
@@ -196,8 +197,13 @@ export class AgentConfigManager {
       indent: 2,
       lineWidth: 0,
     });
+    const projectorDir = getProjectorDirName(projectPath);
+    const normalized = replaceHardcodedDotProjectorPaths(
+      content,
+      projectorDir
+    );
 
-    await FileSystemUtils.writeFile(configPath, content);
+    await FileSystemUtils.writeFile(configPath, normalized);
     this.config = configToSave;
   }
 

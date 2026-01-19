@@ -192,7 +192,9 @@ export class WorkflowOrchestrator {
    * Generate OpenCode-specific orchestration instructions
    */
   private generateOpenCodeInstructions(plan: ExecutionPlan, projectPath: string): string {
+    const projectorDir = getProjectorDirName(projectPath);
     const lines: string[] = [
+
       `# Workflow Execution: ${plan.workflow.name}`,
       '',
       `> Tool: OpenCode`,
@@ -250,12 +252,12 @@ export class WorkflowOrchestrator {
     lines.push('## Completion');
     lines.push('');
     lines.push('After all waves complete:');
-      if (plan.workflow.on_complete?.update_state) {
-        lines.push('- Update `.projector/planning/STATE.md` with session notes');
-      }
-      if (plan.workflow.on_complete?.update_roadmap) {
-        lines.push('- Update `.projector/planning/ROADMAP.md` progress');
-      }
+    if (plan.workflow.on_complete?.update_state) {
+      lines.push(`- Update \`${projectorDir}/planning/STATE.md\` with session notes`);
+    }
+    if (plan.workflow.on_complete?.update_roadmap) {
+      lines.push(`- Update \`${projectorDir}/planning/ROADMAP.md\` progress`);
+    }
 
     return lines.join('\n');
   }
