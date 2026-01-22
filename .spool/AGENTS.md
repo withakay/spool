@@ -4,9 +4,10 @@ Instructions for AI coding assistants using Spool for spec-driven development.
 
 ## TL;DR Quick Checklist
 
-- Search existing work: `spool spec list --long`, `spool list` (use `rg` only for full-text search)
+- Search existing work: `spool spec list --long`, `spool list`, `spool module list`
 - Decide scope: new capability vs modify existing capability
-- Pick a unique `change-id`: kebab-case, verb-led (`add-`, `update-`, `remove-`, `refactor-`)
+- For large features (epics): Create a module to group related changes
+- Pick a unique `change-id`: For modular changes use `NNN-CC_name` format (e.g., `001-01_init-repo`)
 - Scaffold: `proposal.md`, `tasks.md`, `design.md` (only if needed), and delta specs per affected capability
 - Write deltas: use `## ADDED|MODIFIED|REMOVED|RENAMED Requirements`; include at least one `#### Scenario:` per requirement
 - Validate: `spool validate [change-id] --strict` and fix issues
@@ -41,8 +42,8 @@ Skip proposal for:
 - Tests for existing behavior
 
 **Workflow**
-1. Review `spool/project.md`, `spool list`, and `spool list --specs` to understand current context.
-2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `spool/changes/<id>/`.
+1. Review `.spool/project.md`, `spool list`, and `spool list --specs` to understand current context.
+2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `.spool/changes/<id>/`.
 3. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
 4. Run `spool validate <id> --strict` and resolve any issues before sharing the proposal.
 
@@ -68,7 +69,7 @@ After deployment, create separate PR to:
 **Context Checklist:**
 - [ ] Read relevant specs in `specs/[capability]/spec.md`
 - [ ] Check pending changes in `changes/` for conflicts
-- [ ] Read `spool/project.md` for conventions
+- [ ] Read `.spool/project.md` for conventions
 - [ ] Run `spool list` to see active changes
 - [ ] Run `spool list --specs` to see existing capabilities
 
@@ -84,7 +85,7 @@ After deployment, create separate PR to:
 - Show details:
   - Spec: `spool show <spec-id> --type spec` (use `--json` for filters)
   - Change: `spool show <change-id> --json --deltas-only`
-- Full-text search (use ripgrep): `rg -n "Requirement:|Scenario:" spool/specs`
+- Full-text search (use ripgrep): `rg -n "Requirement:|Scenario:" .spool/specs`
 
 ## Quick Start
 
@@ -98,6 +99,12 @@ spool show [item]           # Display change or spec
 spool validate [item]       # Validate changes or specs
 spool archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
 
+# Module commands
+spool module list           # List all modules
+spool module new <name>     # Create a new module
+spool module show <id>      # Show module details
+spool module validate <id>  # Validate a module
+
 # Project management
 spool init [path]           # Initialize Spool
 spool update [path]         # Update instruction files
@@ -109,6 +116,7 @@ spool validate              # Bulk validation mode
 # Debugging
 spool show [change] --json --deltas-only
 spool validate [change] --strict
+spool validate --modules    # Validate all modules
 ```
 
 ### Command Flags
@@ -123,22 +131,34 @@ spool validate [change] --strict
 ## Directory Structure
 
 ```
-spool/
+.spool/
 ├── project.md              # Project conventions
 ├── specs/                  # Current truth - what IS built
 │   └── [capability]/       # Single focused capability
 │       ├── spec.md         # Requirements and scenarios
 │       └── design.md       # Technical patterns
+├── modules/                # Module definitions (epics)
+│   └── [NNN_module-name]/  # e.g., 001_project-setup
+│       └── module.md       # Purpose, scope, changes list
 ├── changes/                # Proposals - what SHOULD change
-│   ├── [change-name]/
+│   ├── [NNN-CC_name]/      # Modular change (e.g., 001-01_init-repo)
 │   │   ├── proposal.md     # Why, what, impact
 │   │   ├── tasks.md        # Implementation checklist
-│   │   ├── design.md       # Technical decisions (optional; see criteria)
+│   │   ├── design.md       # Technical decisions (optional)
 │   │   └── specs/          # Delta changes
 │   │       └── [capability]/
 │   │           └── spec.md # ADDED/MODIFIED/REMOVED
+│   ├── [change-name]/      # Legacy change (no module)
+│   │   └── ...
 │   └── archive/            # Completed changes
 ```
+
+### Module Naming Convention
+- Module folder: `NNN_module-name` (e.g., `001_project-setup`)
+- Modular change: `NNN-CC_change-name` (e.g., `001-01_init-repo`)
+- `NNN` = 3-digit module ID
+- `CC` = 2-digit change number within module
+- Module `000` is reserved for ungrouped/standalone changes
 
 ## Creating Change Proposals
 
@@ -160,6 +180,8 @@ New request?
 
 2. **Write proposal.md:**
 ```markdown
+# Change: [Brief description of change]
+
 ## Why
 [1-2 sentences on problem/opportunity]
 
@@ -232,6 +254,68 @@ Minimal `design.md` skeleton:
 - [...]
 ```
 
+## Working with Modules
+
+Modules group related changes into epics. Use modules for large features that span multiple changes.
+
+### When to Create a Module
+- Feature requires 3+ related changes
+- Epic-level work spanning multiple capabilities
+- Need to track dependencies between changes
+- Want to enforce scope boundaries
+
+### Creating a Module
+
+```bash
+spool module new project-setup
+# Creates: .spool/modules/001_project-setup/module.md
+```
+
+### module.md Structure
+
+```markdown
+# Project Setup
+
+## Purpose
+Set up the initial project structure and tooling.
+
+## Depends On
+<!-- Optional: modules that must complete first -->
+- 000
+
+## Scope
+<!-- Capabilities this module may create or modify -->
+- project-config
+- dev-environment
+
+## Changes
+<!-- Hybrid: existing changes auto-discovered + planned -->
+- [ ] 001-01_init-repo
+- [ ] 001-02_add-readme (planned)
+- [x] 001-03_setup-eslint
+```
+
+### Scope Enforcement
+- Changes in a module can ONLY modify specs listed in `## Scope`
+- Use `*` for unrestricted scope (not recommended)
+- Scope violations are validation ERRORs
+
+### Creating Modular Changes
+
+```bash
+# Change naming: NNN-CC_name
+# NNN = module ID, CC = change number
+mkdir -p .spool/changes/001-01_init-repo/{specs/project-config}
+```
+
+### Module Validation
+
+```bash
+spool module validate 001           # Validate module + scope
+spool module validate 001 --with-changes  # Also validate all changes
+spool validate --modules            # Validate all modules
+```
+
 ## Spec File Format
 
 ### Critical: Scenario Formatting
@@ -272,7 +356,7 @@ Headers matched with `trim(header)` - whitespace ignored.
 Common pitfall: Using MODIFIED to add a new concern without including the previous text. This causes loss of detail at archive time. If you aren’t explicitly changing the existing requirement, add a new requirement under ADDED instead.
 
 Authoring a MODIFIED requirement correctly:
-1) Locate the existing requirement in `spool/specs/<capability>/spec.md`.
+1) Locate the existing requirement in `.spool/specs/<capability>/spec.md`.
 2) Copy the entire requirement block (from `### Requirement: ...` through its scenarios).
 3) Paste it under `## MODIFIED Requirements` and edit to reflect the new behavior.
 4) Ensure the header text matches exactly (whitespace-insensitive) and keep at least one `#### Scenario:`.
@@ -320,17 +404,17 @@ spool show [spec] --json -r 1
 spool spec list --long
 spool list
 # Optional full-text search:
-# rg -n "Requirement:|Scenario:" spool/specs
-# rg -n "^#|Requirement:" spool/changes
+# rg -n "Requirement:|Scenario:" .spool/specs
+# rg -n "^#|Requirement:" .spool/changes
 
 # 2) Choose change id and scaffold
 CHANGE=add-two-factor-auth
-mkdir -p spool/changes/$CHANGE/{specs/auth}
-printf "## Why\n...\n\n## What Changes\n- ...\n\n## Impact\n- ...\n" > spool/changes/$CHANGE/proposal.md
-printf "## 1. Implementation\n- [ ] 1.1 ...\n" > spool/changes/$CHANGE/tasks.md
+mkdir -p .spool/changes/$CHANGE/{specs/auth}
+printf "## Why\n...\n\n## What Changes\n- ...\n\n## Impact\n- ...\n" > .spool/changes/$CHANGE/proposal.md
+printf "## 1. Implementation\n- [ ] 1.1 ...\n" > .spool/changes/$CHANGE/tasks.md
 
 # 3) Add deltas (example)
-cat > spool/changes/$CHANGE/specs/auth/spec.md << 'EOF'
+cat > .spool/changes/$CHANGE/specs/auth/spec.md << 'EOF'
 ## ADDED Requirements
 ### Requirement: Two-Factor Authentication
 Users MUST provide a second factor during login.
@@ -347,7 +431,7 @@ spool validate $CHANGE --strict
 ## Multi-Capability Example
 
 ```
-spool/changes/add-2fa-notify/
+.spool/changes/add-2fa-notify/
 ├── proposal.md
 ├── tasks.md
 └── specs/
