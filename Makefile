@@ -1,4 +1,4 @@
-.PHONY: build test test-watch test-coverage lint clean help
+.PHONY: build test test-watch test-coverage lint clean install-local help
 
 build:
 	node build.js
@@ -15,6 +15,9 @@ test-coverage:
 lint:
 	pnpm lint
 
+install-local:
+	pnpm -g add .
+
 clean:
 	rm -rf dist
 
@@ -25,5 +28,6 @@ help:
 	@echo "  test-watch     - Run tests in watch mode"
 	@echo "  test-coverage  - Run tests with coverage"
 	@echo "  lint           - Run linter"
+	@echo "  install-local  - Install spool CLI globally from this repo"
 	@echo "  clean          - Remove build artifacts"
 	@echo "  help           - Show this help message"
