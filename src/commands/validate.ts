@@ -5,6 +5,9 @@ import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getSpecIds, getModuleInfo } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import { getChangesPath, getSpecsPath } from '../core/project-config.js';
+import { SplitCommand } from './split.js';
+import { confirm } from '@inquirer/prompts';
+import { Command } from 'commander';
 
 type ItemType = 'change' | 'spec' | 'module';
 
@@ -63,7 +66,12 @@ export class ValidateCommand {
 
     // Direct item validation with type detection or override
     const typeOverride = this.normalizeType(options.type);
-    await this.validateDirectItem(itemName, { typeOverride, strict: !!options.strict, json: !!options.json });
+    await this.validateDirectItem(itemName, { 
+      typeOverride, 
+      strict: !!options.strict, 
+      json: !!options.json,
+      noInteractive: resolveNoInteractive(options)
+    });
   }
 
   private normalizeType(value?: string): ItemType | undefined {
@@ -151,7 +159,7 @@ export class ValidateCommand {
     console.error('Or run in an interactive terminal.');
   }
 
-  private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean }): Promise<void> {
+  private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean; noInteractive?: boolean }): Promise<void> {
     const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
     const isChange = changes.includes(itemName);
     const isSpec = specs.includes(itemName);
@@ -176,7 +184,7 @@ export class ValidateCommand {
     await this.validateByType(type, itemName, opts);
   }
 
-  private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
+  private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean; noInteractive?: boolean }): Promise<void> {
     const validator = new Validator(opts.strict);
     if (type === 'change') {
       const changeDir = path.join(getChangesPath(), id);
@@ -184,6 +192,40 @@ export class ValidateCommand {
       const report = await validator.validateChangeDeltaSpecs(changeDir);
       const durationMs = Date.now() - start;
       this.printReport('change', id, report, durationMs, opts.json);
+
+      // Check for split warning if interactive
+      if (!opts.json && !opts.noInteractive && !report.valid) {
+        // Look for split warning metadata
+        const splitIssue = report.issues.find(i => 
+          i.metadata && 
+          i.metadata.type === 'too_many_deltas' && 
+          i.metadata.remediation === 'split'
+        );
+
+        if (splitIssue) {
+          console.log('\n'); // Spacing
+          const shouldSplit = await confirm({
+            message: `Change '${id}' has ${splitIssue.metadata!.count} deltas (max ${splitIssue.metadata!.threshold}). Would you like to split it now?`,
+            default: true
+          });
+
+          if (shouldSplit) {
+            // Need to invoke SplitCommand. 
+            // We can construct it but it needs 'program'. 
+            // A bit hacky to create a dummy program or just instantiate the logic separately.
+            // SplitCommand logic is in execute(changeId).
+            // Let's create a new Command instance just to satisfy the constructor
+            const dummyProgram = new Command();
+            const splitCmd = new SplitCommand(dummyProgram);
+            await splitCmd.execute(id);
+            // After split, maybe re-validate? Or just exit.
+            // Re-validating might be confusing if items moved.
+            console.log('\nSplit complete. Please re-run validation if needed.');
+            return;
+          }
+        }
+      }
+
       // Non-zero exit if invalid (keeps enriched output test semantics)
       process.exitCode = report.valid ? 0 : 1;
       return;

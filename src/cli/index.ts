@@ -23,6 +23,7 @@ import { AgentConfigCommand } from '../commands/agent-config.js';
 import { WorkflowCommand } from '../commands/workflow.js';
 import { registerSkillsCommands } from '../commands/skills.js';
 import { registerResearchCommand } from '../commands/research.js';
+import { SplitCommand } from '../commands/split.js';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -367,5 +368,8 @@ registerSkillsCommands(program);
 
 // Register research command
 registerResearchCommand(program);
+
+// Split command
+new SplitCommand(program);
 
 program.parse();
