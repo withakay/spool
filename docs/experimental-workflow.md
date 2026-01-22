@@ -2,7 +2,7 @@
 
 > **Status:** Experimental. Things might break. Feedback welcome on [Discord](https://discord.gg/BYjPaKbqMt).
 >
-> **Compatibility:** Claude Code only (for now)
+> **Compatibility:** Claude Code slash commands; skills work anywhere Agent Skills is supported
 
 ## What Is It?
 
@@ -82,49 +82,49 @@ This creates skills in `.claude/skills/` that Claude Code auto-detects.
 
 | Command | What it does |
 |---------|--------------|
-| `/opsx:explore` | Think through ideas, investigate problems, clarify requirements |
-| `/opsx:new` | Start a new change |
-| `/opsx:continue` | Create the next artifact (based on what's ready) |
-| `/opsx:ff` | Fast-forward — create all planning artifacts at once |
-| `/opsx:apply` | Implement tasks, updating artifacts as needed |
-| `/opsx:sync` | Sync delta specs to main specs |
-| `/opsx:archive` | Archive when done |
+| `/spool-explore` | Think through ideas, investigate problems, clarify requirements |
+| `/spool-new-change` | Start a new change |
+| `/spool-continue-change` | Create the next artifact (based on what's ready) |
+| `/spool-ff-change` | Fast-forward — create all planning artifacts at once |
+| `/spool-apply-change` | Implement tasks, updating artifacts as needed |
+| `/spool-sync-specs` | Sync delta specs to main specs |
+| `/spool-archive-change` | Archive when done |
 
 ## Usage
 
 ### Explore an idea
 ```
-/opsx:explore
+/spool-explore
 ```
-Think through ideas, investigate problems, compare options. No structure required - just a thinking partner. When insights crystallize, transition to `/opsx:new` or `/opsx:ff`.
+Think through ideas, investigate problems, compare options. No structure required - just a thinking partner. When insights crystallize, transition to `/spool-new-change` or `/spool-ff-change`.
 
 ### Start a new change
 ```
-/opsx:new
+/spool-new-change
 ```
 You'll be asked what you want to build and which workflow schema to use.
 
 ### Create artifacts
 ```
-/opsx:continue
+/spool-continue-change
 ```
 Shows what's ready to create based on dependencies, then creates one artifact. Use repeatedly to build up your change incrementally.
 
 ```
-/opsx:ff add-dark-mode
+/spool-ff-change add-dark-mode
 ```
 Creates all planning artifacts at once. Use when you have a clear picture of what you're building.
 
 ### Implement (the fluid part)
 ```
-/opsx:apply
+/spool-apply-change
 ```
 Works through tasks, checking them off as you go. **Key difference:** if you discover issues during implementation, you can update your specs, design, or tasks — then continue. No phase gates.
 
 ### Finish up
 ```
-/opsx:sync      # Update main specs with your delta specs
-/opsx:archive   # Move to archive when done
+/spool-sync-specs      # Update main specs with your delta specs
+/spool-archive-change  # Move to archive when done
 ```
 
 ## When to Update vs. Start Fresh
@@ -215,7 +215,7 @@ Think of it like git branches:
 
 ## What's Different?
 
-| | Standard (`/spool:proposal`) | Experimental (`/opsx:*`) |
+| | Standard (`/spool:proposal`) | Experimental (`/spool-*`) |
 |---|---|---|
 | **Structure** | One big proposal document | Discrete artifacts with dependencies |
 | **Workflow** | Linear phases: plan → implement → archive | Fluid actions — do anything anytime |
@@ -397,7 +397,7 @@ Artifacts form a directed acyclic graph (DAG). Dependencies are **enablers**, no
 **OPSX** — agent queries for rich context:
 
 ```
-  User: "/opsx:continue"
+  User: "/spool-continue-change"
            │
            ▼
   ┌──────────────────────────────────────────────────────────────────────────┐
@@ -454,7 +454,7 @@ Artifacts form a directed acyclic graph (DAG). Dependencies are **enablers**, no
 **OPSX** — natural iteration:
 
 ```
-  /opsx:new ───► /opsx:continue ───► /opsx:apply ───► /opsx:archive
+  /spool-new-change ───► /spool-continue-change ───► /spool-apply-change ───► /spool-archive-change
       │                │                  │
       │                │                  ├── "The design is wrong"
       │                │                  │
@@ -463,7 +463,7 @@ Artifacts form a directed acyclic graph (DAG). Dependencies are **enablers**, no
       │                │            and continue!
       │                │                  │
       │                │                  ▼
-      │                │         /opsx:apply picks up
+      │                │         /spool-apply-change picks up
       │                │         where you left off
       │                │
       │                └── Creates ONE artifact, shows what's unlocked
@@ -527,9 +527,9 @@ Run `spool schemas` to see available schemas.
 
 ## Tips
 
-- Use `/opsx:explore` to think through an idea before committing to a change
-- `/opsx:ff` when you know what you want, `/opsx:continue` when exploring
-- During `/opsx:apply`, if something's wrong — fix the artifact, then continue
+- Use `/spool-explore` to think through an idea before committing to a change
+- `/spool-ff-change` when you know what you want, `/spool-continue-change` when exploring
+- During `/spool-apply-change`, if something's wrong — fix the artifact, then continue
 - Tasks track progress via checkboxes in `tasks.md`
 - Check status anytime: `spool status --change "name"`
 

@@ -105,7 +105,7 @@ This tells you:
 Think freely. When insights crystallize, you might offer:
 
 - "This feels solid enough to start a change. Want me to create one?"
-  → Can transition to \`/opsx:new\` or \`/opsx:ff\`
+  → Can transition to \`/spool-new-change\` or \`/spool-ff-change\`
 - Or keep exploring - no pressure to formalize
 
 ### When a change exists
@@ -145,8 +145,8 @@ The user decides when to stop. Common signals:
 If valuable insights emerged, you might offer:
 
 > "This was useful. Want me to:
-> - Create a change: /opsx:new <name>
-> - Fast-forward to tasks: /opsx:ff <name>
+> - Create a change: /spool-new-change <name>
+> - Fast-forward to tasks: /spool-ff-change <name>
 > - Keep exploring: just keep talking"
 
 But this summary is optional. Sometimes the thinking IS the value.
@@ -172,7 +172,7 @@ But this summary is optional. Sometimes the thinking IS the value.
 
 /**
  * Template for spool-new-change skill
- * Based on /opsx:new command
+ * Based on /spool-new-change command
  */
 export function getNewChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   const rawInstructions = `Start a new change using the experimental artifact-driven approach.
@@ -262,7 +262,7 @@ After completing the steps, summarize:
 
 /**
  * Template for spool-continue-change skill
- * Based on /opsx:continue command
+ * Based on /spool-continue-change command
  */
 export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
@@ -624,7 +624,7 @@ After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions
 - What's ready: "All artifacts created! Ready for implementation."
-- Prompt: "Run \`/opsx:apply\` or ask me to implement to start working on the tasks."
+- Prompt: "Run \`/spool-apply-change\` or ask me to implement to start working on the tasks."
 
 **Artifact Creation Guidelines**
 
@@ -1457,20 +1457,18 @@ export interface CommandTemplate {
 }
 
 /**
- * Template for /opsx:explore slash command
+ * Template for /spool-explore slash command
  * Explore mode - adaptive thinking partner
  */
-export function getOpsxExploreCommandTemplate(): CommandTemplate {
+export function getSpoolExploreCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Explore',
+    name: 'Spool Explore',
     description: 'Enter explore mode - think through ideas, investigate problems, clarify requirements',
     category: 'Workflow',
     tags: ['workflow', 'explore', 'experimental', 'thinking'],
-    content: `Use the \`spool-explore\` skill for OPSX explore mode.
+    content: `Use the \`spool-explore\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-explore/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-explore\``
@@ -1479,19 +1477,17 @@ If the skill is missing, install it first:
 
 
 /**
- * Template for /opsx:new slash command
+ * Template for /spool-new-change slash command
  */
-export function getOpsxNewCommandTemplate(): CommandTemplate {
+export function getSpoolNewChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: New',
-    description: 'Start a new change using the experimental artifact workflow (OPSX)',
+    name: 'Spool New Change',
+    description: 'Start a new change using the experimental artifact workflow',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-new-change\` skill to start a change in the OPSX workflow.
+    content: `Use the \`spool-new-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-new-change/SKILL.md\`
-- Follow the instructions exactly (module-first + CLI driven)
+Follow the skill instructions exactly (module-first + CLI driven).
 
 If the skill is missing, install it first:
 \`spool skills install spool-new-change\``
@@ -1499,19 +1495,17 @@ If the skill is missing, install it first:
 }
 
 /**
- * Template for /opsx:continue slash command
+ * Template for /spool-continue-change slash command
  */
-export function getOpsxContinueCommandTemplate(): CommandTemplate {
+export function getSpoolContinueChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Continue',
+    name: 'Spool Continue Change',
     description: 'Continue working on a change - create the next artifact (Experimental)',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-continue-change\` skill to advance the OPSX workflow.
+    content: `Use the \`spool-continue-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-continue-change/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-continue-change\``
@@ -1520,19 +1514,17 @@ If the skill is missing, install it first:
 
 
 /**
- * Template for /opsx:apply slash command
+ * Template for /spool-apply-change slash command
  */
-export function getOpsxApplyCommandTemplate(): CommandTemplate {
+export function getSpoolApplyChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Apply',
+    name: 'Spool Apply Change',
     description: 'Implement tasks from an Spool change (Experimental)',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-apply-change\` skill to implement tasks for an OPSX change.
+    content: `Use the \`spool-apply-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-apply-change/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-apply-change\``
@@ -1542,19 +1534,17 @@ If the skill is missing, install it first:
 
 
 /**
- * Template for /opsx:ff slash command
+ * Template for /spool-ff-change slash command
  */
-export function getOpsxFfCommandTemplate(): CommandTemplate {
+export function getSpoolFfChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Fast Forward',
+    name: 'Spool Fast Forward',
     description: 'Create a change and generate all artifacts needed for implementation in one go',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-ff-change\` skill to fast-forward artifact creation.
+    content: `Use the \`spool-ff-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-ff-change/SKILL.md\`
-- Follow the instructions exactly (module-first + CLI driven)
+Follow the skill instructions exactly (module-first + CLI driven).
 
 If the skill is missing, install it first:
 \`spool skills install spool-ff-change\``
@@ -1636,7 +1626,7 @@ export function getArchiveChangeSkillTemplate(spoolDir: string = '.spool'): Skil
       Would you like to sync now before archiving?
       \`\`\`
       - Use **AskUserQuestion tool** with options: "Sync now", "Archive without syncing"
-      - If user chooses sync, execute /opsx:sync logic (use the spool-sync-specs skill)
+      - If user chooses sync, use the \`spool-sync-specs\` skill
 
       **If already synced (all requirements found):**
       - Proceed without prompting (specs appear to be in sync)
@@ -1694,19 +1684,17 @@ All artifacts complete. All tasks complete.
 }
 
 /**
- * Template for /opsx:sync slash command
+ * Template for /spool-sync-specs slash command
  */
-export function getOpsxSyncCommandTemplate(): CommandTemplate {
+export function getSpoolSyncSpecsCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Sync',
+    name: 'Spool Sync Specs',
     description: 'Sync delta specs from a change to main specs',
     category: 'Workflow',
     tags: ['workflow', 'specs', 'experimental'],
-    content: `Use the \`spool-sync-specs\` skill to sync delta specs.
+    content: `Use the \`spool-sync-specs\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-sync-specs/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-sync-specs\``
@@ -1714,23 +1702,19 @@ If the skill is missing, install it first:
 }
 
 /**
- * Template for /opsx:archive slash command
+ * Template for /spool-archive-change slash command
  */
-export function getOpsxArchiveCommandTemplate(): CommandTemplate {
+export function getSpoolArchiveChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Archive',
+    name: 'Spool Archive Change',
     description: 'Archive a completed change in the experimental workflow',
     category: 'Workflow',
     tags: ['workflow', 'archive', 'experimental'],
-    content: `Use the \`spool-archive-change\` skill to archive an OPSX change.
+    content: `Use the \`spool-archive-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-archive-change/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-archive-change\``
   };
 }
-
-

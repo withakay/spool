@@ -30,7 +30,22 @@ import {
 import { createModularChange, validateChangeIdentifier, validateChangeName, validateModuleId } from '../utils/change-utils.js';
 import { getModuleIds, getModuleInfo } from '../utils/item-discovery.js';
 import { generateModuleContent } from '../core/parsers/module-parser.js';
-import { getExploreSkillTemplate, getNewChangeSkillTemplate, getContinueChangeSkillTemplate, getApplyChangeSkillTemplate, getFfChangeSkillTemplate, getSyncSpecsSkillTemplate, getArchiveChangeSkillTemplate, getOpsxExploreCommandTemplate, getOpsxNewCommandTemplate, getOpsxContinueCommandTemplate, getOpsxApplyCommandTemplate, getOpsxFfCommandTemplate, getOpsxSyncCommandTemplate, getOpsxArchiveCommandTemplate } from '../core/templates/skill-templates.js';
+import {
+  getExploreSkillTemplate,
+  getNewChangeSkillTemplate,
+  getContinueChangeSkillTemplate,
+  getApplyChangeSkillTemplate,
+  getFfChangeSkillTemplate,
+  getSyncSpecsSkillTemplate,
+  getArchiveChangeSkillTemplate,
+  getSpoolExploreCommandTemplate,
+  getSpoolNewChangeCommandTemplate,
+  getSpoolContinueChangeCommandTemplate,
+  getSpoolApplyChangeCommandTemplate,
+  getSpoolFfChangeCommandTemplate,
+  getSpoolSyncSpecsCommandTemplate,
+  getSpoolArchiveChangeCommandTemplate,
+} from '../core/templates/skill-templates.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { getChangesPath, getModulesPath, getSpoolDirName } from '../core/project-config.js';
 import { formatModuleFolderName, getNextModuleId, parseModuleName, UNGROUPED_MODULE_ID } from '../core/schemas/index.js';
@@ -869,7 +884,7 @@ async function newChangeCommand(name: string | undefined, options: NewChangeOpti
 /**
  * Generates Agent Skills and slash commands for the experimental artifact workflow.
  * Creates .claude/skills/ directory with SKILL.md files following Agent Skills spec.
- * Creates .claude/commands/opsx/ directory with slash command files.
+ * Creates .claude/commands/ directory with slash command files.
  */
 async function artifactExperimentalSetupCommand(): Promise<void> {
   const spinner = ora('Setting up experimental artifact workflow...').start();
@@ -877,7 +892,7 @@ async function artifactExperimentalSetupCommand(): Promise<void> {
   try {
     const projectRoot = process.cwd();
     const skillsDir = path.join(projectRoot, '.claude', 'skills');
-    const commandsDir = path.join(projectRoot, '.claude', 'commands', 'opsx');
+    const commandsDir = path.join(projectRoot, '.claude', 'commands');
 
     // Get skill templates
     const exploreSkill = getExploreSkillTemplate();
@@ -889,13 +904,13 @@ async function artifactExperimentalSetupCommand(): Promise<void> {
     const archiveChangeSkill = getArchiveChangeSkillTemplate();
 
     // Get command templates
-    const exploreCommand = getOpsxExploreCommandTemplate();
-    const newCommand = getOpsxNewCommandTemplate();
-    const continueCommand = getOpsxContinueCommandTemplate();
-    const applyCommand = getOpsxApplyCommandTemplate();
-    const ffCommand = getOpsxFfCommandTemplate();
-    const syncCommand = getOpsxSyncCommandTemplate();
-    const archiveCommand = getOpsxArchiveCommandTemplate();
+    const exploreCommand = getSpoolExploreCommandTemplate();
+    const newCommand = getSpoolNewChangeCommandTemplate();
+    const continueCommand = getSpoolContinueChangeCommandTemplate();
+    const applyCommand = getSpoolApplyChangeCommandTemplate();
+    const ffCommand = getSpoolFfChangeCommandTemplate();
+    const syncCommand = getSpoolSyncSpecsCommandTemplate();
+    const archiveCommand = getSpoolArchiveChangeCommandTemplate();
 
     // Create skill directories and SKILL.md files
     const skills = [
@@ -930,13 +945,13 @@ ${template.instructions}
 
     // Create slash command files
     const commands = [
-      { template: exploreCommand, fileName: 'explore.md' },
-      { template: newCommand, fileName: 'new.md' },
-      { template: continueCommand, fileName: 'continue.md' },
-      { template: applyCommand, fileName: 'apply.md' },
-      { template: ffCommand, fileName: 'ff.md' },
-      { template: syncCommand, fileName: 'sync.md' },
-      { template: archiveCommand, fileName: 'archive.md' },
+      { template: exploreCommand, fileName: 'spool-explore.md' },
+      { template: newCommand, fileName: 'spool-new-change.md' },
+      { template: continueCommand, fileName: 'spool-continue-change.md' },
+      { template: applyCommand, fileName: 'spool-apply-change.md' },
+      { template: ffCommand, fileName: 'spool-ff-change.md' },
+      { template: syncCommand, fileName: 'spool-sync-specs.md' },
+      { template: archiveCommand, fileName: 'spool-archive-change.md' },
     ];
 
     const createdCommandFiles: string[] = [];
@@ -989,13 +1004,13 @@ ${template.content}
     console.log('  • "Implement the tasks for this change"');
     console.log();
     console.log('  ' + chalk.cyan('Slash Commands') + ' for explicit invocation:');
-    console.log('  • /opsx:explore - Think through ideas, investigate problems');
-    console.log('  • /opsx:new - Start a new change');
-    console.log('  • /opsx:continue - Create the next artifact');
-    console.log('  • /opsx:apply - Implement tasks');
-    console.log('  • /opsx:ff - Fast-forward: create all artifacts at once');
-    console.log('  • /opsx:sync - Sync delta specs to main specs');
-    console.log('  • /opsx:archive - Archive a completed change');
+    console.log('  • /spool-explore - Think through ideas, investigate problems');
+    console.log('  • /spool-new-change - Start a new change');
+    console.log('  • /spool-continue-change - Create the next artifact');
+    console.log('  • /spool-apply-change - Implement tasks');
+    console.log('  • /spool-ff-change - Fast-forward: create all artifacts at once');
+    console.log('  • /spool-sync-specs - Sync delta specs to main specs');
+    console.log('  • /spool-archive-change - Archive a completed change');
     console.log();
     console.log(chalk.yellow('💡 This is an experimental feature.'));
     console.log('   Feedback welcome at: https://github.com/withakay/Spool/issues');

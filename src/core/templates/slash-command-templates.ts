@@ -21,11 +21,11 @@ const skillDrivenBody = (
 ${input}
 
 **Instructions**
-1. Open the Spool skill file for \`${skillId}\` in your agent skills directory (for example, \`.claude/skills/${skillId}/SKILL.md\`).
+1. Use the \`${skillId}\` skill to complete this workflow.
 2. Follow the skill instructions exactly, using any supplied arguments or context from the prompt.${extra}
 
 **Guardrails**
-- If the skill file is missing, ask the user to run \`spool init\` to install Spool skills, then stop.
+- If the \`${skillId}\` skill is missing or unavailable, ask the user to run \`spool init\` (or install it with \`spool skills install ${skillId}\`), then stop.
 - Do not duplicate the full workflow here; defer to the skill guidance.`;
 };
 

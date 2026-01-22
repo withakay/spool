@@ -20,7 +20,7 @@ The goal is to allow users to test the new artifact-driven workflow system along
 - **Note**: This is a future refactor to unify the old system with schemas
 
 ### 3. New Artifact System - Granular Mode (Experimental)
-- **Commands**: `/opsx:new`, `/opsx:continue`
+- **Commands**: `/spool-new-change`, `/spool-continue-change`
 - **Behavior**: One artifact at a time, dependency-driven, iterative
 - **Status**: Target for this experimental release
 
@@ -35,15 +35,15 @@ The goal is to allow users to test the new artifact-driven workflow system along
 - Files: `.claude/commands/awf/start.md`, `.claude/commands/awf/continue.md`
 
 **Target State:**
-- Commands: `/opsx:new`, `/opsx:continue`
-- Files: `.claude/commands/opsx/new.md`, `.claude/commands/opsx/continue.md`
+- Commands: `/spool-new-change`, `/spool-continue-change`
+- Files: `.claude/commands/spool-new-change.md`, `.claude/commands/spool-continue-change.md`
 
 **Tasks:**
-- [x] Create `.claude/commands/opsx/` directory
-- [x] Rename `start.md` → `new.md` and update content
-- [x] Copy `continue.md` with updated references
-- [x] Update all references from "awf" to "opsx" in command content
-- [x] Update frontmatter (name, description) to use "opsx" naming
+- [x] Create `.claude/commands/` directory
+- [x] Rename `start.md` → `spool-new-change.md` and update content
+- [x] Rename `continue.md` → `spool-continue-change.md` with updated references
+- [x] Update all references from "awf" to "spool" in command content
+- [x] Update frontmatter (name, description) to use `spool-*` naming
 - [x] Remove `.claude/commands/awf/` directory
 
 **CLI Commands:**
@@ -144,14 +144,14 @@ spool artifact-experimental-setup
 - Simple file writing: Create directories and write templated `SKILL.md` files (no complex logic)
 - Use existing `FileSystemUtils.writeFile()` pattern like slash command configurators
 - Template structure: YAML frontmatter + markdown body
-- Keep existing `/opsx:*` slash commands for now (manual cleanup later)
+- Keep existing `/spool-*` experimental slash commands for now (manual cleanup later)
 - Skills use invocation model (user explicitly asks Claude to use them)
 - Skill `description` field guides when Claude suggests using the skill
 - Each `SKILL.md` has required fields: `name` (matches directory) and `description`
 
 ---
 
-### 4. Update `/opsx:new` Command Content
+### 4. Update `/spool-new-change` Command Content
 
 **Current Behavior (awf:start):**
 1. Ask user what they want to build (if no input)
@@ -164,7 +164,7 @@ spool artifact-experimental-setup
 **New Behavior (opsx:new):**
 Same flow but with updated naming:
 - References to "awf" → "opsx"
-- References to `/awf:continue` → `/opsx:continue`
+- References to `/awf:continue` → `/spool-continue-change`
 - Update frontmatter name/description
 
 **Tasks:**
@@ -174,7 +174,7 @@ Same flow but with updated naming:
 
 ---
 
-### 5. Update `/opsx:continue` Command Content
+### 5. Update `/spool-continue-change` Command Content
 
 **Current Behavior (awf:continue):**
 1. Prompt for change selection (if not provided)
@@ -321,7 +321,7 @@ The following are explicitly NOT part of this experimental release:
 2. **New schemas** - Only shipping with existing `spec-driven` and `tdd`
 3. **Schema customization UI** - No `spool schema list` or similar
 4. **Multiple editor support in CLI** - Skills work cross-editor automatically via `.claude/skills/`
-5. **Replacing existing commands** - Skills are additive, not replacing `/spool:*` or `/opsx:*`
+5. **Replacing existing commands** - Skills are additive, not replacing `/spool:*` or `/spool-*`
 
 ---
 

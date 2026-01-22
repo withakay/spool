@@ -1,12 +1,18 @@
-# OPSX Archive Skill Spec
+# Spool Archive Change Skill Spec
 
-### Requirement: OPSX Archive Skill
+## Purpose
 
-The system SHALL provide an `/opsx:archive` skill that archives completed changes in the experimental workflow.
+Define the `/spool-archive-change` skill behavior for archiving completed changes.
+
+## Requirements
+
+### Requirement: Spool Archive Change Skill
+
+The system SHALL provide an `/spool-archive-change` skill that archives completed changes in the experimental workflow.
 
 #### Scenario: Archive a change with all artifacts complete
 
-- **WHEN** agent executes `/opsx:archive` with a change name
+- **WHEN** agent executes `/spool-archive-change` with a change name
 - **AND** all artifacts in the schema are complete
 - **AND** all tasks are complete
 - **THEN** the agent moves the change to `spool/changes/archive/YYYY-MM-DD-<name>/`
@@ -14,7 +20,7 @@ The system SHALL provide an `/opsx:archive` skill that archives completed change
 
 #### Scenario: Change selection prompt
 
-- **WHEN** agent executes `/opsx:archive` without specifying a change
+- **WHEN** agent executes `/spool-archive-change` without specifying a change
 - **THEN** the agent prompts user to select from available changes
 - **AND** shows only active changes (excludes archive/)
 
@@ -68,7 +74,7 @@ The skill SHALL prompt to sync delta specs before archiving if specs exist.
 - **WHEN** agent checks for delta specs
 - **AND** `specs/` directory exists in the change with spec files
 - **THEN** prompt user: "This change has delta specs. Would you like to sync them to main specs before archiving?"
-- **AND** if user confirms, execute `/opsx:sync` logic
+- **AND** if user confirms, execute `/spool-sync-specs` logic
 - **AND** proceed with archive regardless of sync choice
 
 #### Scenario: No delta specs
@@ -103,7 +109,7 @@ The skill SHALL provide clear feedback about the archive operation.
 
 - **WHEN** archive completes after syncing specs
 - **THEN** display summary:
-  - Specs synced (from `/opsx:sync` output)
+  - Specs synced (from `/spool-sync-specs` output)
   - Change archived to location
   - Schema that was used
 

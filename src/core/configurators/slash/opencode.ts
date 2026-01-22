@@ -3,11 +3,11 @@ import { SlashCommandId } from "../../templates/index.js";
 import { replaceHardcodedSpoolPaths } from "../../../utils/path-normalization.js";
 
 const FILE_PATHS: Record<SlashCommandId, string> = {
-  proposal: ".opencode/command/spool-proposal.md",
-  apply: ".opencode/command/spool-apply.md",
-  archive: ".opencode/command/spool-archive.md",
-  research: ".opencode/command/spool-research.md",
-  review: ".opencode/command/spool-review.md",
+  proposal: ".opencode/commands/spool-proposal.md",
+  apply: ".opencode/commands/spool-apply.md",
+  archive: ".opencode/commands/spool-archive.md",
+  research: ".opencode/commands/spool-research.md",
+  review: ".opencode/commands/spool-review.md",
 };
 
 const FRONTMATTER_TEMPLATES: Record<SlashCommandId, string> = {

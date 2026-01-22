@@ -96,7 +96,7 @@ describe('spool CLI e2e basics', () => {
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         emptyProjectDir,
-        '.opencode/command/spool-proposal.md'
+        '.opencode/commands/spool-proposal.md'
       );
       const codexProposal = path.join(
         emptyProjectDir,
@@ -124,7 +124,7 @@ describe('spool CLI e2e basics', () => {
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         emptyProjectDir,
-        '.opencode/command/spool-proposal.md'
+        '.opencode/commands/spool-proposal.md'
       );
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(openCodeProposal)).toBe(false); // Not selected
@@ -142,7 +142,7 @@ describe('spool CLI e2e basics', () => {
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         emptyProjectDir,
-        '.opencode/command/spool-proposal.md'
+        '.opencode/commands/spool-proposal.md'
       );
       const rootAgentsPath = path.join(emptyProjectDir, 'AGENTS.md');
 

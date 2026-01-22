@@ -78,7 +78,7 @@ The command SHALL properly configure selected AI tools with Spool-specific instr
 
 #### Scenario: Configuring OpenCode
 - **WHEN** OpenCode is selected
-- **THEN** create `.opencode/command/spool-proposal.md`, `.opencode/command/spool-apply.md`, `.opencode/command/spool-archive.md`, `.opencode/command/spool-research.md`, and `.opencode/command/spool-review.md`
+- **THEN** create `.opencode/commands/spool-proposal.md`, `.opencode/commands/spool-apply.md`, `.opencode/commands/spool-archive.md`, `.opencode/commands/spool-research.md`, and `.opencode/commands/spool-review.md`
 - **AND** populate each file from shared templates so command text matches other tools
 
 #### Scenario: Configuring Codex

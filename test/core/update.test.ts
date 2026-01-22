@@ -102,7 +102,7 @@ Old slash content
   it('should refresh existing OpenCode slash command files', async () => {
     const researchPath = path.join(
       testDir,
-      '.opencode/command/spool-research.md'
+      '.opencode/commands/spool-research.md'
     );
     await fs.mkdir(path.dirname(researchPath), { recursive: true });
     const initialContent = `---
@@ -176,7 +176,7 @@ Old content
 
     const proposalPath = path.join(
       testDir,
-      '.opencode/command/spool-proposal.md'
+      '.opencode/commands/spool-proposal.md'
     );
     expect(await fileExists(proposalPath)).toBe(false);
   });
