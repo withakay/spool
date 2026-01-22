@@ -205,11 +205,12 @@ export async function buildUpdatedSpec(
   try {
     targetContent = await fs.readFile(update.target, 'utf-8');
   } catch {
-    // Target spec does not exist; MODIFIED and RENAMED are not allowed for new specs
-    // REMOVED will be ignored with a warning since there's nothing to remove
-    if (plan.modified.length > 0 || plan.renamed.length > 0) {
+    // Target spec does not exist; only ADDED requirements are normally allowed for new specs
+    // However, if we see MODIFIED, we can treat it as ADDED for new specs to be user-friendly
+    // RENAMED is not allowed because there is no source to rename from
+    if (plan.renamed.length > 0) {
       throw new Error(
-        `${specName}: target spec does not exist; only ADDED requirements are allowed for new specs. MODIFIED and RENAMED operations require an existing spec.`
+        `${specName}: target spec does not exist; RENAMED operations require an existing spec.`
       );
     }
     // Warn about REMOVED requirements being ignored for new specs
@@ -273,7 +274,8 @@ export async function buildUpdatedSpec(
   // MODIFIED
   for (const mod of plan.modified) {
     const key = normalizeRequirementName(mod.name);
-    if (!nameToBlock.has(key)) {
+    // If it's a new spec, treat MODIFIED as ADDED (don't check for existence)
+    if (!nameToBlock.has(key) && !isNewSpec) {
       throw new Error(`${specName} MODIFIED failed for header "### Requirement: ${mod.name}" - not found`);
     }
     // Replace block with provided raw (ensure header line matches key)
