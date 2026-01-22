@@ -1,6 +1,6 @@
 /**
  * Agent Skills Configurator
- * 
+ *
  * Configures Agent Skills (agentskills.io compatible) for supported harnesses.
  * Installs core Spool workflow skills as Agent Skills.
  */
@@ -73,7 +73,8 @@ export class SkillsConfigurator implements ToolConfigurator {
     }
 
     if (toolId === 'opencode') {
-      return path.join(projectPath, '.opencode', 'skills');
+      // IMPORTANT! Opencode uses the singular "skill" directory, the same goes for command, plugin etc.
+      return path.join(projectPath, '.opencode', 'skill');
     }
 
     if (toolId === 'github-copilot') {
@@ -214,7 +215,7 @@ export class SkillsConfigurator implements ToolConfigurator {
   private generateSkillFile(template: SkillTemplate, spoolDir: string = '.spool'): string {
     // Replace hardcoded .spool/ paths with the configured spoolDir
     const normalizedInstructions = replaceHardcodedDotSpoolPaths(template.instructions, spoolDir);
-    
+
     return `---
 name: ${template.name}
 description: ${template.description}
@@ -229,7 +230,7 @@ ${normalizedInstructions}
    */
   async isConfigured(projectPath: string, toolId: SkillsHarness = 'claude'): Promise<boolean> {
     const skillsDir = this.getSkillsDirectory(projectPath, toolId);
-    
+
     try {
       // Check if skills directory exists
       if (!(await FileSystemUtils.directoryExists(skillsDir))) {
@@ -238,7 +239,7 @@ ${normalizedInstructions}
 
       // Read directory to check for skill files
       const entries = await fs.readdir(skillsDir, { withFileTypes: true });
-      
+
       if (entries.length === 0) {
         return false;
       }
@@ -249,15 +250,15 @@ ${normalizedInstructions}
           const skillFile = path.join(skillsDir, entry.name, 'SKILL.md');
           if (await FileSystemUtils.fileExists(skillFile)) {
             const content = await FileSystemUtils.readFile(skillFile);
-            if (content.includes('spool-proposal') || 
-                content.includes('spool-apply') || 
+            if (content.includes('spool-proposal') ||
+                content.includes('spool-apply') ||
                 content.includes('Spool')) {
               return true;
             }
           }
         }
       }
-      
+
       return false;
     } catch {
       return false;
@@ -281,7 +282,7 @@ ${normalizedInstructions}
 
     try {
       const entries = await fs.readdir(skillsDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const skillFile = path.join(skillsDir, entry.name, 'SKILL.md');

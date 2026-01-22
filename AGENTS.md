@@ -45,3 +45,14 @@ make help
 ```
 
 All Makefile commands use pnpm internally.
+
+## OpenCode Path Convention
+
+**IMPORTANT**: OpenCode uses **singular** directory names for its configuration paths:
+- `.opencode/skill/` (NOT `.opencode/skills/`)
+- `.opencode/command/` (NOT `.opencode/commands/`)
+- `.opencode/plugin/` (NOT `.opencode/plugins/`)
+
+This differs from other tools like Claude Code which use plural forms (`.claude/skills/`, `.claude/commands/`).
+
+When writing tests or code that references OpenCode paths, always use the singular form.

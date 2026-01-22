@@ -16,7 +16,12 @@ lint:
 	pnpm lint
 
 install-local:
-	pnpm -g add .
+	@# Temporarily modify version to force reinstall, then restore
+	@VERSION=$$(node -p "require('./package.json').version"); \
+	TIMESTAMP=$$(date +%Y%m%d%H%M%S); \
+	node -e "const p=require('./package.json'); p.version='$$VERSION-local.$$TIMESTAMP'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n')"; \
+	pnpm -g add . || (node -e "const p=require('./package.json'); p.version='$$VERSION'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n')" && exit 1); \
+	node -e "const p=require('./package.json'); p.version='$$VERSION'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n')"
 
 clean:
 	rm -rf dist

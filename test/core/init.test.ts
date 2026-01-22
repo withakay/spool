@@ -218,23 +218,23 @@ describe('InitCommand', () => {
 
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/commands/spool-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const openCodeApply = path.join(
         testDir,
-        '.opencode/commands/spool-apply.md'
+        '.opencode/command/spool-apply.md'
       );
       const openCodeArchive = path.join(
         testDir,
-        '.opencode/commands/spool-archive.md'
+        '.opencode/command/spool-archive.md'
       );
       const openCodeResearch = path.join(
         testDir,
-        '.opencode/commands/spool-research.md'
+        '.opencode/command/spool-research.md'
       );
       const openCodeReview = path.join(
         testDir,
-        '.opencode/commands/spool-review.md'
+        '.opencode/command/spool-review.md'
       );
 
       expect(await fileExists(openCodeProposal)).toBe(true);
@@ -349,7 +349,7 @@ describe('InitCommand', () => {
 
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/commands/spool-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       expect(await fileExists(openCodeProposal)).toBe(true);
     });
@@ -457,7 +457,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/commands/spool-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const codexProposal = path.join(
         testDir,
@@ -482,7 +482,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/commands/spool-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
       const codexProposal = path.join(
         testDir,
@@ -502,7 +502,7 @@ describe('InitCommand', () => {
       const claudePath = path.join(testDir, 'CLAUDE.md');
       const openCodeProposal = path.join(
         testDir,
-        '.opencode/commands/spool-proposal.md'
+        '.opencode/command/spool-proposal.md'
       );
 
       const rootAgentsPath = path.join(testDir, 'AGENTS.md');

@@ -22,22 +22,40 @@ Create and manage Spool change proposals using the spec-driven workflow.
     - Otherwise, proceed with creating a new proposal
 
    3. **Pick or create a module**
-     ```bash
-     spool module list --json
+     
+     If the user specifies a module (e.g., `--module 001` or `--module 1`), use it directly.
+     Module IDs support flexible formats: `1`, `01`, `001`, `1_foo` all resolve to `001`.
+     
+     If no module is specified, prompt the user with these options:
+     
      ```
-     - If the request maps to an existing module, use that module ID
-     - If this is a small, ungrouped task, default to module `000`
-     - If no module fits, create one:
+     Use the mcp_question tool to ask:
+     "Which module should this change belong to?"
+     Options:
+     - "Use last worked-on module: NNN_name" (if available from .spool/.state/session.json)
+     - "Create a new module"
+     - "Ungrouped (module 000)"
+     ```
+     
+     Then based on the response:
+     - **Last worked-on**: Use that module ID directly
+     - **Create new**: Ask for the module name, then run:
        ```bash
        spool module new "<module-name>"
        ```
-     - Capture the module ID for the new change
+     - **Ungrouped**: Use module `000`
+     
+     You can also list modules for reference:
+     ```bash
+     spool module list --json
+     ```
 
    4. **Create the change directory (module-first)**
      ```bash
      spool new change "<name>" --module <module-id>
      ```
      - Use a kebab-case name derived from the user's request
+     - Module ID can be in flexible format: `1`, `01`, `001` all work
      - This creates the scaffolded structure at `.spool/changes/<module-id>-NN_<name>/`
 
    5. **Create the proposal artifact**

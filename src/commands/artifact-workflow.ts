@@ -28,7 +28,8 @@ import {
   type SchemaInfo,
 } from '../core/artifact-graph/index.js';
 import { createModularChange, validateChangeIdentifier, validateChangeName, validateModuleId } from '../utils/change-utils.js';
-import { getModuleIds, getModuleInfo } from '../utils/item-discovery.js';
+import { getModuleIds, getModuleInfo, resolveChangeId as resolveChangeIdFromDiscovery } from '../utils/item-discovery.js';
+import { parseChangeId, parseModuleId as parseFlexibleModuleId } from '../utils/id-parser.js';
 import { generateModuleContent } from '../core/parsers/module-parser.js';
 import {
   getExploreSkillTemplate,
@@ -124,6 +125,12 @@ async function createModuleFromPrompt(projectRoot: string): Promise<string> {
 
 async function resolveModuleId(projectRoot: string, moduleOption?: string): Promise<string> {
   if (moduleOption) {
+    // Try to parse flexible module ID first (e.g., "1" -> "001")
+    const parsed = parseFlexibleModuleId(moduleOption);
+    if (parsed.success) {
+      return parsed.moduleId;
+    }
+    // Fall back to strict validation for error message
     const validation = validateModuleId(moduleOption);
     if (!validation.valid) {
       throw new Error(validation.error);
@@ -224,6 +231,19 @@ async function validateChangeExists(
     throw new Error(
       `Missing required option --change. Available changes:\n  ${available.join('\n  ')}`
     );
+  }
+
+  // Try to resolve flexible ID first (e.g., "1-2_foo" -> "001-02_foo")
+  const parsed = parseChangeId(changeName);
+  if (parsed.success) {
+    // Try to resolve to an existing change folder
+    const resolved = await resolveChangeIdFromDiscovery(changeName, projectRoot);
+    if (resolved) {
+      changeName = resolved;
+    } else {
+      // Use canonical form even if folder doesn't exist yet
+      changeName = parsed.canonical;
+    }
   }
 
   // Validate change name format to prevent path traversal

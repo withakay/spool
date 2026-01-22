@@ -10,7 +10,9 @@ import {
   getChangesForModule,
   getActiveChangeIds,
   getArchivedChangeIds,
+  resolveModuleIdOrThrow,
 } from '../utils/item-discovery.js';
+import { parseModuleId } from '../utils/id-parser.js';
 import {
   formatModuleFolderName,
   getNextModuleId,
@@ -195,8 +197,16 @@ export class ModuleCommand {
       moduleId = choice;
     }
 
+    // Resolve flexible module ID to canonical format
+    const parsedId = parseModuleId(moduleId);
+    if (!parsedId.success) {
+      console.error(parsedId.hint ? `${parsedId.error}. ${parsedId.hint}` : parsedId.error);
+      process.exitCode = 1;
+      return;
+    }
+    
     // Find the module
-    const module = await getModuleById(moduleId, root);
+    const module = await getModuleById(parsedId.moduleId, root);
     if (!module) {
       console.error(`Module not found: ${moduleId}`);
       process.exitCode = 1;
@@ -284,8 +294,17 @@ export class ModuleCommand {
       return;
     }
 
+    // Resolve flexible module ID to canonical format
+    const parsedId = parseModuleId(moduleId);
+    if (!parsedId.success) {
+      spinner?.stop();
+      console.error(parsedId.hint ? `${parsedId.error}. ${parsedId.hint}` : parsedId.error);
+      process.exitCode = 1;
+      return;
+    }
+    
     // Find the module
-    const module = await getModuleById(moduleId, root);
+    const module = await getModuleById(parsedId.moduleId, root);
     if (!module) {
       spinner?.stop();
       console.error(`Module not found: ${moduleId}`);

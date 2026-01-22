@@ -249,4 +249,40 @@ export class FileSystemUtils {
       return false;
     }
   }
+
+  /**
+   * Delete a file if it exists.
+   */
+  static async deleteFile(filePath: string): Promise<void> {
+    try {
+      await fs.unlink(filePath);
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+      // File doesn't exist, nothing to delete
+    }
+  }
+
+  /**
+   * Read the contents of a directory.
+   * @returns Array of file/directory names in the directory
+   */
+  static async readDirectory(dirPath: string): Promise<string[]> {
+    return await fs.readdir(dirPath);
+  }
+
+  /**
+   * Delete an empty directory.
+   */
+  static async deleteDirectory(dirPath: string): Promise<void> {
+    try {
+      await fs.rmdir(dirPath);
+    } catch (error: any) {
+      if (error.code !== 'ENOENT' && error.code !== 'ENOTEMPTY') {
+        throw error;
+      }
+      // Directory doesn't exist or is not empty, ignore
+    }
+  }
 }
