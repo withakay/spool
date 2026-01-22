@@ -6,6 +6,7 @@ export interface ValidationIssue {
   message: string;
   line?: number;
   column?: number;
+  metadata?: Record<string, any>;
 }
 
 export interface ValidationReport {
