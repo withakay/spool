@@ -12,10 +12,9 @@ Use the Spool agent skill `spool-apply` as the source of truth for this workflow
 - The change ID or implementation request is provided in the prompt arguments or <UserRequest> block.
 
 **Instructions**
-1. Open the Spool skill file for `spool-apply` in your agent skills directory (for example, `.claude/skills/spool-apply/SKILL.md`).
-2. Follow the skill instructions exactly, using any supplied arguments or context from the prompt.
+Tell the model to use the `spool-apply` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**
-- If the skill file is missing, ask the user to run `spool init` to install Spool skills, then stop.
+- If the `spool-apply` skill is missing or unavailable, ask the user to run `spool init` (or install it with `spool skills install spool-apply`), then stop.
 - Do not duplicate the full workflow here; defer to the skill guidance.
 <!-- SPOOL:END -->

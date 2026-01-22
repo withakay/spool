@@ -38,7 +38,6 @@ description: Archive a deployed Spool change and update specs.
 description: Conduct Spool research via skills (stack, architecture, features, pitfalls).
 ---
 Conduct Spool research for the following topic. The prompt may include a focus like stack, architecture, features, or pitfalls.
-Write findings under spool/research/investigations/ as directed by the skill.
 <Topic>
   $ARGUMENTS
 </Topic>

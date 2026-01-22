@@ -12,10 +12,9 @@ Use the Spool agent skill `spool-proposal` as the source of truth for this workf
 - The request is provided in the prompt arguments or <UserRequest> block. Use it to scope the change and name the change ID.
 
 **Instructions**
-1. Open the Spool skill file for `spool-proposal` in your agent skills directory (for example, `.claude/skills/spool-proposal/SKILL.md`).
-2. Follow the skill instructions exactly, using any supplied arguments or context from the prompt.
+Tell the model to use the `spool-proposal` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**
-- If the skill file is missing, ask the user to run `spool init` to install Spool skills, then stop.
+- If the `spool-proposal` skill is missing or unavailable, ask the user to run `spool init` (or install it with `spool skills install spool-proposal`), then stop.
 - Do not duplicate the full workflow here; defer to the skill guidance.
 <!-- SPOOL:END -->

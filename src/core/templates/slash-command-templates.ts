@@ -21,8 +21,7 @@ const skillDrivenBody = (
 ${input}
 
 **Instructions**
-1. Use the \`${skillId}\` skill to complete this workflow.
-2. Follow the skill instructions exactly, using any supplied arguments or context from the prompt.${extra}
+Tell the model to use the \`${skillId}\` skill to complete this workflow, using any supplied arguments or context from the prompt.${extra}
 
 **Guardrails**
 - If the \`${skillId}\` skill is missing or unavailable, ask the user to run \`spool init\` (or install it with \`spool skills install ${skillId}\`), then stop.
@@ -45,7 +44,7 @@ const archiveBody = skillDrivenBody(
 );
 
 const researchFocusInstructions = `**Focus**
-- If the user specifies one of: stack, architecture, features, pitfalls, focus only on that investigation and write to the matching file under \`spool/research/investigations/\`.
+- If the user specifies one of: stack, architecture, features, pitfalls, follow the skill's focus guidance.
 - If the focus is missing or unclear, ask the user whether they want a single investigation or the full research suite.`;
 
 const researchBody = skillDrivenBody(
