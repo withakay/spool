@@ -110,14 +110,19 @@ program
 program
   .command('update [path]')
   .description('Update Spool instruction files')
-  .action(async (targetPath = '.') => {
+  .option('--json', 'Output update summary as JSON')
+  .action(async (targetPath = '.', options?: { json?: boolean }) => {
     try {
       const resolvedPath = path.resolve(targetPath);
       const updateCommand = new UpdateCommand();
-      await updateCommand.execute(resolvedPath);
+      await updateCommand.execute(resolvedPath, { json: options?.json });
     } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
+      if (options?.json) {
+        console.log(JSON.stringify({ error: (error as Error).message }, null, 2));
+      } else {
+        console.log(); // Empty line for spacing
+        ora().fail(`Error: ${(error as Error).message}`);
+      }
       process.exit(1);
     }
   });

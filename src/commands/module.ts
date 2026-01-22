@@ -1,7 +1,6 @@
 import ora from 'ora';
 import path from 'path';
 import { promises as fs } from 'fs';
-import { select } from '@inquirer/prompts';
 import { Validator } from '../core/validation/validator.js';
 import { ModuleParser, generateModuleContent } from '../core/parsers/module-parser.js';
 import {
@@ -185,6 +184,7 @@ export class ModuleCommand {
       }
 
       // Interactive selection
+      const { select } = await import('@inquirer/prompts');
       const choice = await select({
         message: 'Select a module:',
         choices: modules.map(m => ({
