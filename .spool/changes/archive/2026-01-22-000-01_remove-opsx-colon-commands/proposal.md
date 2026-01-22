@@ -16,7 +16,6 @@
   - `/spool-ff-change`
   - `/spool-sync-specs`
   - `/spool-archive-change`
-- Standardize OpenCode slash command output to `.opencode/commands/`.
 
 ## Capabilities
 
@@ -27,9 +26,7 @@
 ### Modified
 
 - Experimental workflow command wrappers and docs use `/spool-*`.
-- OpenCode init/update writes commands under `.opencode/commands/`.
 
 ## Impact
 
 - Breaking change: `/opsx:*` commands are removed (no backward compatibility).
-- Users with existing `.opencode/command/` will need to migrate to `.opencode/commands/`.

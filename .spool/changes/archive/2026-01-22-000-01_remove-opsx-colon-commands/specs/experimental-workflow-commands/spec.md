@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Experimental Workflow Slash Commands
 
@@ -24,12 +24,3 @@ The system SHALL generate Claude command wrapper files as flat files under `.cla
 
 - **WHEN** `spool artifact-experimental-setup` runs
 - **THEN** it creates `.claude/commands/spool-explore.md`, `.claude/commands/spool-new-change.md`, `.claude/commands/spool-continue-change.md`, `.claude/commands/spool-apply-change.md`, `.claude/commands/spool-ff-change.md`, `.claude/commands/spool-sync-specs.md`, and `.claude/commands/spool-archive-change.md`
-
-### Requirement: OpenCode Command Directory
-
-The system SHALL create and refresh OpenCode slash command files under `.opencode/commands/` (not `.opencode/command/`).
-
-#### Scenario: Configuring OpenCode on init
-
-- **WHEN** OpenCode is selected during `spool init`
-- **THEN** create `.opencode/commands/spool-proposal.md`, `.opencode/commands/spool-apply.md`, `.opencode/commands/spool-archive.md`, `.opencode/commands/spool-research.md`, and `.opencode/commands/spool-review.md`
