@@ -17,18 +17,18 @@ Conduct comprehensive review of Spool artifacts, code changes, or specifications
 2. **Select appropriate review method**
 
    **For Changes:**
-   ```bash
-   spool validate --changes <name> --strict --json
-   ```
-   - Run structured validation on the change
+    ```bash
+    spool validate --changes <name> --strict --json
+    ```
+    - **Execute this command** to run structured validation on the change
    - Check all artifacts are complete and consistent
    - Verify requirements are fully specified
 
    **For Specs:**
-   ```bash
-   spool validate --specs <name> --strict --json
-   ```
-   - Validate spec format and completeness
+    ```bash
+    spool validate --specs <name> --strict --json
+    ```
+    - **Execute this command** to validate spec format and completeness
    - Check requirements are properly structured
    - Verify scenarios are testable and complete
 
@@ -108,8 +108,6 @@ Conduct comprehensive review of Spool artifacts, code changes, or specifications
 1. <priority recommendation>
 2. <secondary recommendation>
 3. <suggestion for next steps>
-
-**Validation Command:** `spool validate <type> <name>`
 ```
 
 **Guardrails**

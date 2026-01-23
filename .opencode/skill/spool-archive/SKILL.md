@@ -19,10 +19,11 @@ Archive a completed change and update main specifications.
    **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
 
 2. **Validate the change is ready**
-   ```bash
-   spool validate --changes <name>
-   ```
-   - Ensure all requirements are met
+    ```bash
+    spool validate --changes <name>
+    ```
+    - **Execute this command** to validate the change
+    - Ensure all requirements are met
    - Check that implementation is complete
    - Verify tests are passing
 
@@ -36,11 +37,12 @@ Archive a completed change and update main specifications.
    - Wait for explicit confirmation before proceeding
 
 5. **Archive the change**
-   ```bash
-   spool archive <name>
-   ```
-   - This will:
-     - Move change directory to `.spool/changes/archive/`
+    ```bash
+    spool archive <name>
+    ```
+    - **Execute this command** to archive the change
+    - This will:
+      - Move change directory to `.spool/changes/archive/`
      - Update main specs with delta specs from the change
      - Update any relevant project documentation
 
