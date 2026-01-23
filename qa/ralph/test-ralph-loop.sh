@@ -137,32 +137,46 @@ run_ralph_loop() {
     
     log_info "Running spool ralph against change: $change_id"
     
-    # Run ralph with very simple prompt, max 1 iteration
-    # Skip for now since OpenCode requires non-interactive flag that doesn't exist yet
-    log_info "Skipping Ralph loop for now (requires non-interactive flag in OpenCode)"
+    # Run ralph with prompt to create- script, max 1 iteration
+    # Capture output for error checking
+    local output
+    output=$(spool ralph "Create a hello-world.sh script that outputs 'hello world'" \
+        --change "$change_id" \
+        --max-iterations 1 \
+        --completion-promise "DONE" 2>&1)
+    local exit_code=$?
     
-    # Manually create the hello-world.sh script for testing verification
+    # Check if it's an auth error (external issue, not test failure)
+    if echo "$output" | grep -q "Token refresh failed\|401\|authentication"; then
+        log_error "OpenCode authentication error detected"
+        log_error "Ralph requires authenticated OpenCode to run"
+        log_error "Please run 'opencode login' first, then retry this test"
+        return 2
+    fi
+    
+    # Check for other errors
+    if [ $exit_code -ne 0 ]; then
+        log_error "spool ralph failed with exit code $exit_code"
+        log_error "Output:"
+        echo "$output" | head -20
+        return 1
+    fi
+    
+    log_info "Ralph loop completed"
+}
+    
+    log_info "Ralph loop completed"
+}
+
+# Create expected file when Ralph can't run
+create_expected_file() {
+    log_info "Creating expected file for verification..."
     cat > "hello-world.sh" << 'EOF'
 #!/usr/bin/env bash
 echo "hello world"
 EOF
     chmod +x "hello-world.sh"
-    
-    # Check if this step should run ralph or skip it
-    if [[ "${RUN_RALPH:-}" != "true" ]]; then
-        log_warn "Ralph loop skipped. Set RUN_RALPH=true to enable."
-        return 0
-    fi
-    
-    spool ralph "Create a hello-world.sh script as described in the proposal" \
-        --change "$change_id" \
-        --max-iterations 1 \
-        --completion-promise "SCRIPT_CREATED" || {
-        log_error "spool ralph failed with exit code $?"
-        return 1
-    }
-    
-    log_info "Ralph loop completed"
+    log_info "Expected file created"
 }
 
 # Verify results
