@@ -44,8 +44,7 @@ describe('top-level show command', () => {
       const stderr = err.stderr.toString();
       expect(stderr).toContain('Nothing to show.');
       expect(stderr).toContain('spool show <item>');
-      expect(stderr).toContain('spool change show');
-      expect(stderr).toContain('spool spec show');
+      expect(stderr).toContain('spool show (for interactive selection)');
     } finally {
       process.chdir(originalCwd);
       process.env = originalEnv;
