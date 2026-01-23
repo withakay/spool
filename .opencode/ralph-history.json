@@ -12,14 +12,27 @@
       "errors": [
         "\u001b[91m\u001b[1mError: \u001b[0mError: Token refresh failed: 401"
       ]
+    },
+    {
+      "iteration": 2,
+      "startedAt": "2026-01-23T23:28:54.020Z",
+      "endedAt": "2026-01-23T23:28:58.096Z",
+      "durationMs": 1908,
+      "toolsUsed": {},
+      "filesModified": [],
+      "exitCode": 1,
+      "completionDetected": false,
+      "errors": [
+        "\u001b[91m\u001b[1mError: \u001b[0mError: Token refresh failed: 401"
+      ]
     }
   ],
-  "totalDurationMs": 2270,
+  "totalDurationMs": 4178,
   "struggleIndicators": {
     "repeatedErrors": {
-      "\u001b[91m\u001b[1mError: \u001b[0mError: Token refresh failed: 401": 1
+      "\u001b[91m\u001b[1mError: \u001b[0mError: Token refresh failed: 401": 2
     },
-    "noProgressIterations": 1,
-    "shortIterations": 1
+    "noProgressIterations": 2,
+    "shortIterations": 2
   }
 }
