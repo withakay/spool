@@ -29,6 +29,8 @@ import {
   getFfChangeSkillTemplate,
   getSyncSpecsSkillTemplate,
   getArchiveChangeSkillTemplate,
+  // Slash commands
+  getSpoolCommandTemplate,
   type SkillTemplate,
 } from '../templates/skill-templates.js';
 
@@ -164,7 +166,7 @@ export class SkillsConfigurator implements ToolConfigurator {
     return [...coreSkills, ...experimentalSkills];
   }
   /**
-   * Install skills for the given category
+   * Install skills for given category
    */
   async installSkills(
     projectPath: string,
@@ -189,6 +191,63 @@ export class SkillsConfigurator implements ToolConfigurator {
     // Install each selected skill
     for (const skill of skillsToInstall) {
       await this.installSkill(skillsDir, skill, spoolDir);
+    }
+
+    // Install spool.md slash command for skill-first routing
+    await this.installSpoolSlashCommand(projectPath, spoolDir, toolId);
+  }
+
+  /**
+   * Install spool.md slash command for unified spool command routing
+   */
+  private async installSpoolSlashCommand(
+    projectPath: string,
+    spoolDir: string,
+    toolId: SkillsHarness = 'claude'
+  ): Promise<void> {
+    const commandFile = this.getSlashCommandFile(projectPath, toolId);
+    const commandDir = path.dirname(commandFile);
+
+    try {
+      // Create command directory
+      await FileSystemUtils.createDirectory(commandDir);
+
+      // Generate command template with spoolDir path replacement
+      const commandTemplate = getSpoolCommandTemplate(spoolDir);
+
+      // Write command file with YAML frontmatter and content
+      const commandContent = this.generateCommandFile(commandTemplate);
+      await FileSystemUtils.writeFile(commandFile, commandContent);
+    } catch (error) {
+      console.error(`Failed to install spool.md slash command: ${error}`);
+    }
+  }
+
+  /**
+   * Generate command file with YAML frontmatter
+   */
+  private generateCommandFile(template: any): string {
+    return `---
+description: ${template.description}
+---
+
+${template.content}
+`;
+  }
+
+  /**
+   * Get the slash command file path for a given tool
+   */
+  private getSlashCommandFile(projectPath: string, toolId: SkillsHarness): string {
+    switch (toolId) {
+      case 'claude':
+        return path.join(projectPath, '.claude', 'command', 'spool.md');
+      case 'opencode':
+        return path.join(projectPath, '.opencode', 'command', 'spool.md');
+      case 'codex':
+        return path.join(projectPath, '.codex', 'command', 'spool.md');
+      default:
+        throw new Error(`Unsupported tool: ${toolId}`);
     }
   }
 
