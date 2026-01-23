@@ -24,6 +24,7 @@ import { WorkflowCommand } from '../commands/workflow.js';
 import { registerSkillsCommands } from '../commands/skills.js';
 import { registerResearchCommand } from '../commands/research.js';
 import { SplitCommand } from '../commands/split.js';
+import { registerRalphCommand } from '../commands/ralph.js';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -368,6 +369,9 @@ registerSkillsCommands(program);
 
 // Register research command
 registerResearchCommand(program);
+
+// Register Ralph command
+registerRalphCommand(program);
 
 // Split command
 new SplitCommand(program);
