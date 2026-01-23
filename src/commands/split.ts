@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { getChangesPath, loadProjectConfig } from '../core/project-config.js';
 import { moveDeltaSpecs } from '../core/utils/delta-migration.js';
-import glob from 'fast-glob';
+import fastGlob from 'fast-glob';
 
 // Since createChangeDir is not exported or found, implementing a minimal version here
 // We can refactor later to share this logic
@@ -43,11 +43,11 @@ export class SplitCommand {
     const changesPath = getChangesPath();
     const projectRoot = process.cwd(); // simplified, usually we find root
 
-    // 1. Select Change if not provided
-    if (!changeId) {
-       const entries = await glob('*', { cwd: changesPath, onlyDirectories: true });
-       // Filter out archive and dot folders
-       const activeChanges = entries.filter(e => !e.startsWith('.') && e !== 'archive');
+     // 1. Select Change if not provided
+     if (!changeId) {
+        const entries = await fastGlob('*', { cwd: changesPath, onlyDirectories: true });
+        // Filter out archive and dot folders
+        const activeChanges = entries.filter((e: string) => !e.startsWith('.') && e !== 'archive');
 
        if (activeChanges.length === 0) {
          console.log(chalk.yellow('No changes found to split.'));
@@ -71,7 +71,7 @@ export class SplitCommand {
        return;
     }
 
-    const specFiles = await glob('**/*.md', { cwd: specsPath });
+     const specFiles = (await fastGlob('**/*.md', { cwd: specsPath })) as string[];
     
     if (specFiles.length <= 1) {
        console.log(chalk.yellow(`Change '${changeId}' has only ${specFiles.length} delta(s). Nothing to split.`));
@@ -81,7 +81,7 @@ export class SplitCommand {
     // 3. Select Deltas to Move
     const selectedSpecs = await checkbox({
       message: 'Select deltas (specs) to move to a new change:',
-      choices: specFiles.map(f => ({ name: f, value: f }))
+      choices: specFiles.map((f: string) => ({ name: f, value: f }))
     });
 
     if (selectedSpecs.length === 0) {
