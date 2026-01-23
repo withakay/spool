@@ -18,6 +18,7 @@ Create and manage Spool change proposals using the spec-driven workflow.
     ```bash
     spool list --json
     ```
+    - **Execute this command** to check for existing changes
     - If a similar change exists, suggest continuing that instead
     - Otherwise, proceed with creating a new proposal
 
@@ -39,43 +40,49 @@ Create and manage Spool change proposals using the spec-driven workflow.
      
      Then based on the response:
      - **Last worked-on**: Use that module ID directly
-     - **Create new**: Ask for the module name, then run:
-       ```bash
-       spool module new "<module-name>"
-       ```
-     - **Ungrouped**: Use module `000`
+      - **Create new**: Ask for the module name, then run:
+        ```bash
+        spool module new "<module-name>"
+        ```
+      - **Execute this command** to create the new module
+      - **Ungrouped**: Use module `000`
      
-     You can also list modules for reference:
-     ```bash
-     spool module list --json
-     ```
+      You can also list modules for reference:
+      ```bash
+      spool module list --json
+      ```
+      - **Execute this command** to list available modules
 
-   4. **Create the change directory (module-first)**
-     ```bash
-     spool new change "<name>" --module <module-id>
-     ```
-     - Use a kebab-case name derived from the user's request
+
+    4. **Create the change directory (module-first)**
+      ```bash
+      spool new change "<name>" --module <module-id>
+      ```
+      - **Execute this command** to create the change directory
+      - Use a kebab-case name derived from the user's request
      - Module ID can be in flexible format: `1`, `01`, `001` all work
      - This creates the scaffolded structure at `.spool/changes/<module-id>-NN_<name>/`
 
-   5. **Create the proposal artifact**
-     ```bash
-     spool instructions proposal --change "<change-id>"
-     ```
+    5. **Create the proposal artifact**
+      ```bash
+      spool instructions proposal --change "<change-id>"
+      ```
 
-    - Get the template and context for creating the proposal.md
+     - **Execute this command** to get the template and context
+     - Read the template and fill it out based on the user's request
     - Read the template and fill it out based on the user's request:
       - **Why**: What problem does this solve? What's the business value?
       - **What Changes**: High-level description of what will change
       - **Capabilities**: List of new/modified capabilities (each becomes a spec)
       - **Impact**: How this affects existing functionality, performance, etc.
 
-  6. **Show the proposal status**
-    ```bash
-    spool status --change "<change-id>"
-    ```
-    - Show that proposal is complete
-    - Indicate what's next (specs need to be created)
+   6. **Show the proposal status**
+     ```bash
+     spool status --change "<change-id>"
+     ```
+     - **Execute this command** to show proposal status
+     - Show that proposal is complete
+     - Indicate what's next (specs need to be created)
 
 
 
