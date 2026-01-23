@@ -902,6 +902,62 @@ After this invocation finishes, auto commit behavior must be considered reset. F
   };
 }
 
+/**
+ * Template for spool skill
+ * Unified entry point for spool commands with skill-first routing and CLI fallback
+ */
+export function getSpoolSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
+  const rawInstructions = `Route spool commands to the best handler.
+
+## Goal
+
+Users may type requests like \
+\`spool archive 001-03_add-spool-skill\` or \
+\`spool view 001-03_add-spool-skill\`.
+
+This skill MUST:
+1. Prefer matching spool-* skills (skill-first precedence)
+2. Fall back to the spool CLI when no matching skill is installed
+3. Preserve argument order and content
+
+## Input
+
+The requested command is provided either:
+- As plain text following the word "spool" in the user request, or
+- In the prompt arguments ($ARGUMENTS), or
+- In a <SpoolCommand> block
+
+## Steps
+
+1. **Parse** the command:
+   - Extract the primary command (first token) and the remaining args
+   - If no command is provided, output a concise error: "Command is required" and show a one-line usage example
+
+2. **Resolve skill target**:
+   - Build candidate skill id: \`spool-${'${command}'}\`
+   - Determine if that skill is installed/available in this harness
+     - OpenCode: check for a directory under \`.opencode/skill/\`
+     - Claude: check for a directory under \`.claude/skills/\`
+     - GitHub Copilot: check for a directory under \`.github/skills/\`
+     - Codex: skills are global; if unsure, assume not installed and use CLI fallback
+
+3. **Execute**:
+   - If matching skill exists: follow that skill's instructions, passing along the original args
+   - Otherwise: invoke the CLI using Bash:
+     - \`spool <command> <args...>\`
+
+4. **Error handling**:
+   - If the invoked skill fails: prefix with \`[spool-* skill error]\` and preserve the original error
+   - If the CLI fails: prefix with \`[spool CLI error]\` and preserve the original error
+`;
+
+  return {
+    name: 'spool',
+    description: 'Unified entry point for spool commands with intelligent skill-first routing and CLI fallback.',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir),
+  };
+}
+
 
 /**
  * Template for spool-proposal skill
@@ -1778,48 +1834,3 @@ If the skill is missing, install it first:
 \`spool skills install spool-archive-change\``
   };
 }
-
-/**
- * Template for /spool slash command
- * Unified entry point for spool commands with intelligent skill-first routing
- */
-export function getSpoolCommandTemplate(spoolDir: string = '.spool'): CommandTemplate {
-  const rawInstructions = `You are being asked to execute a spool command. Your job is to intelligently route the command to the appropriate handler.
-
-**Command to execute:** $ARGUMENTS
-
-## Routing Logic
-
-1. **Parse the command**: Extract the primary command and arguments from the input
-2. **Check for spool-* skill**: Determine if there's a matching spool-* skill installed
-3. **Route accordingly**:
-   - If matching spool-* skill exists → Use the Task tool to invoke that skill with all arguments
-   - If no matching skill → Use the Bash tool to invoke the spool CLI with all arguments
-
-**Important**: Skills take precedence over the CLI. If both exist, use the skill.
-
-## Examples
-
-- Input: \`archive 123-45\` → Check for \`spool-archive\` skill, use it if available, otherwise CLI
-- Input: \`status\` → Check for \`spool-status\` skill, use it if available, otherwise CLI
-- Input: \`view change-123\` → Check for \`spool-view\` skill, use it if available, otherwise CLI
-
-## How to Check for Skills
-
-List available skills and check if a matching spool-* skill exists. You can do this by checking the \`.opencode/skill/\` directory or by attempting to use the skill.
-
-## Error Handling
-
-When invoking skills or CLI, capture any errors and report them with clear context:
-- \`[spool-* skill error]: <error message>\` for skill errors
-- \`[spool CLI error]: <error message>\` for CLI errors`;
-
-  return {
-    name: 'Spool',
-    description: 'Unified entry point for spool commands with intelligent skill-first routing',
-    category: 'Workflow',
-    tags: ['workflow', 'spool', 'routing'],
-    content: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
-  };
-}
-
