@@ -905,13 +905,13 @@ After this invocation finishes, auto commit behavior must be considered reset. F
 
 /**
  * Template for spool-proposal skill
- * Creates and manages Spool change proposals
+ * Creates complete Spool change proposals with all artifacts
  */
 export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-proposal',
-    description: 'Create and manage Spool change proposals. Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
-    instructions: `Create and manage Spool change proposals using the spec-driven workflow.
+    description: 'Create complete Spool change proposals with all artifacts (proposal, specs, design, tasks). Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
+    instructions: `Create complete Spool change proposals using the spec-driven workflow.
 
 **Input**: The user's request for a change they want to make to the project.
 
@@ -960,22 +960,59 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
       - **Capabilities**: List of new/modified capabilities (each becomes a spec)
       - **Impact**: How this affects existing functionality, performance, etc.
 
-  6. **Show the proposal status**
+  6. **Create spec files for each capability**
+     - Read the proposal.md to extract the **Capabilities** list
+     - For each capability in the list:
+       1. Create directory: \`mkdir -p .spool/changes/<change-id>/specs/<capability-name>\`
+       2. Get spec template:
+          \`\`\`bash
+          spool instructions spec --change "<change-id>"
+          \`\`\`
+       3. Create \`specs/<capability-name>/spec.md\`:
+          - **Purpose**: What is this capability? What problem does it solve?
+          - **Requirements**: List of requirements with scenarios (Given/When/Then format)
+          - Each requirement MUST include at least one \`#### Scenario:\` block
+
+  7. **Create the design artifact**
+     \`\`\`bash
+     spool instructions design --change "<change-id>"
+     \`\`\`
+    - Get the template and context for creating the design.md
+    - Read the template and fill it out based on the proposal and specs:
+      - **Overview**: High-level summary of the change
+      - **Architecture**: System components and their interactions
+      - **Implementation Strategy**: How to implement (step-by-step)
+      - **What NOT to Change**: Explicit list of what to avoid modifying
+      - **Testing Strategy**: How to verify the implementation
+
+  8. **Create the tasks artifact**
+     \`\`\`bash
+     spool instructions tasks --change "<change-id>"
+     \`\`\`
+    - Get the template and context for creating the tasks.md
+    - Read the template and break down into actionable tasks:
+      - Organize by phases (Phase 1, Phase 2, etc.)
+      - Each task should be a checkbox item: \`- [ ] <task description>\`
+      - Include tasks for: implementation, testing, validation, documentation
+      - Reference specific files where applicable
+
+  9. **Show final status**
     \`\`\`bash
     spool status --change "<change-id>"
     \`\`\`
-    - Show that proposal is complete
-    - Indicate what's next (specs need to be created)
+    - Show that all artifacts are complete
+    - Indicate the change is ready for implementation or review
 
 
 
 **Output**
 
-After completing the proposal, summarize:
+After completing all artifacts, summarize:
 - Change name and location
 - Proposal summary (Why, What Changes, Capabilities, Impact)
-- Next steps: "Ready to create specs for each capability"
-- Prompt: "Continue with specs, or want to review the proposal first?"
+- Created artifacts: proposal.md, N spec files, design.md, tasks.md
+- Next steps: "All artifacts created! Ready to implement with \`spool apply\` or request review/iteration"
+- Prompt: "Ready to implement, or want to review and iterate on the artifacts?"
 
 **Guidelines for Good Proposals**
 
@@ -984,11 +1021,34 @@ After completing the proposal, summarize:
 - **Capabilities** should be specific: Each capability should be independently testable
 - **Impact** should be realistic: Performance impact? Breaking changes? Migration needed?
 
+**Spec Creation Guidelines**
+
+- Each capability MUST have a corresponding spec file in \`specs/<capability-name>/spec.md\`
+- Specs MUST include **Purpose** and **Requirements** sections
+- Each requirement MUST include at least one \`#### Scenario:\` block with Given/When/Then format
+- Specs should be detailed enough for independent testing
+
+**Design Creation Guidelines**
+
+- Design should reference specific files that will be modified
+- Include clear step-by-step implementation phases
+- Identify risks and mitigation strategies
+- Document what NOT to change to avoid scope creep
+
+**Tasks Creation Guidelines**
+
+- Tasks should be actionable and checkable (each item is a checkbox)
+- Break down work into logical phases
+- Include validation tasks (run tests, verify implementation)
+- Reference specific files and line numbers where possible
+
 **Guardrails**
-- Don't create specs yet - just the proposal
+- Create ALL artifacts in one workflow (proposal, specs, design, tasks)
 - If the request is too vague, ask for clarification before creating
 - If similar work exists, suggest collaborating or continuing existing work
-- Ensure each capability listed could reasonably become a separate spec file`
+- Ensure each capability listed has a corresponding spec file
+- Don't skip any artifact - all four are required for a complete proposal
+- After creating all artifacts, offer to iterate based on user feedback`
   };
 }
 
@@ -1707,10 +1767,10 @@ If the skill is missing, install it first:
 export function getSpoolArchiveChangeCommandTemplate(): CommandTemplate {
   return {
     name: 'Spool Archive Change',
-    description: 'Archive a completed change in the experimental workflow',
+    description: 'Archive a completed change in experimental workflow',
     category: 'Workflow',
     tags: ['workflow', 'archive', 'experimental'],
-    content: `Use the \`spool-archive-change\` skill.
+    content: `Use \`spool-archive-change\` skill.
 
 Follow the skill instructions exactly.
 
@@ -1718,3 +1778,48 @@ If the skill is missing, install it first:
 \`spool skills install spool-archive-change\``
   };
 }
+
+/**
+ * Template for /spool slash command
+ * Unified entry point for spool commands with intelligent skill-first routing
+ */
+export function getSpoolCommandTemplate(spoolDir: string = '.spool'): CommandTemplate {
+  const rawInstructions = `You are being asked to execute a spool command. Your job is to intelligently route the command to the appropriate handler.
+
+**Command to execute:** $ARGUMENTS
+
+## Routing Logic
+
+1. **Parse the command**: Extract the primary command and arguments from the input
+2. **Check for spool-* skill**: Determine if there's a matching spool-* skill installed
+3. **Route accordingly**:
+   - If matching spool-* skill exists → Use the Task tool to invoke that skill with all arguments
+   - If no matching skill → Use the Bash tool to invoke the spool CLI with all arguments
+
+**Important**: Skills take precedence over the CLI. If both exist, use the skill.
+
+## Examples
+
+- Input: \`archive 123-45\` → Check for \`spool-archive\` skill, use it if available, otherwise CLI
+- Input: \`status\` → Check for \`spool-status\` skill, use it if available, otherwise CLI
+- Input: \`view change-123\` → Check for \`spool-view\` skill, use it if available, otherwise CLI
+
+## How to Check for Skills
+
+List available skills and check if a matching spool-* skill exists. You can do this by checking the \`.opencode/skill/\` directory or by attempting to use the skill.
+
+## Error Handling
+
+When invoking skills or CLI, capture any errors and report them with clear context:
+- \`[spool-* skill error]: <error message>\` for skill errors
+- \`[spool CLI error]: <error message>\` for CLI errors`;
+
+  return {
+    name: 'Spool',
+    description: 'Unified entry point for spool commands with intelligent skill-first routing',
+    category: 'Workflow',
+    tags: ['workflow', 'spool', 'routing'],
+    content: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
+  };
+}
+
