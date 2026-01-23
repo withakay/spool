@@ -12,7 +12,7 @@ Validation output SHALL include specific guidance to fix each error, including e
   - Explain that change specs must include `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements`, or `## RENAMED Requirements`
   - Remind authors that files must live under `.spool/changes/{id}/specs/<capability>/spec.md`
   - Include an explicit note: "Spec delta files cannot start with titles before the operation headers"
-  - Suggest running `spool change show {id} --json --deltas-only` for debugging
+  - Suggest running `spool show {id} --json --deltas-only` for debugging
 
 #### Scenario: Missing required sections
 - **WHEN** a required section is missing
@@ -53,14 +53,16 @@ Error, warning, and info messages SHALL include:
 - **AND** use `.spool/` for all file path references
 
 ### Requirement: Invalid results SHALL include a Next steps footer in human-readable output
+
 The CLI SHALL append a Next steps footer when the item is invalid and not using `--json`, including:
 - Summary line with counts
 - Top-3 guidance bullets (contextual to the most frequent or blocking errors)
 - A suggestion to re-run with `--json` and/or the debug command
 
 #### Scenario: Change invalid summary
+
 - **WHEN** a change validation fails
-- **THEN** print "Next steps" with 2-3 targeted bullets and suggest `spool change show <id> --json --deltas-only`
+- **THEN** print "Next steps" with 2-3 targeted bullets and suggest `spool show <id> --json --deltas-only`
 
 ### Requirement: Top-level validate command
 
@@ -168,33 +170,13 @@ Where `Issue` follows the existing per-item validation report shape `{ level: "E
 
 The validate command SHALL handle ambiguous names and explicit type overrides to ensure clear, deterministic behavior.
 
-#### Scenario: Direct item validation with automatic type detection
-
-- **WHEN** executing `spool validate <item-name>`
-- **THEN** if `<item-name>` uniquely matches a change or a spec, validate that item
-
 #### Scenario: Ambiguity between change and spec names
 
 - **GIVEN** `<item-name>` exists both as a change and as a spec
 - **WHEN** executing `spool validate <item-name>`
 - **THEN** print an ambiguity error explaining both matches
-- **AND** suggest passing `--type change` or `--type spec`, or using `spool change validate` / `spool spec validate`
+- **AND** suggest passing `--type change` or `--type spec`
 - **AND** exit with code 1 without performing validation
-
-#### Scenario: Unknown item name
-
-- **WHEN** the `<item-name>` matches neither a change nor a spec
-- **THEN** print a not-found error
-- **AND** show nearest-match suggestions when available
-- **AND** exit with code 1
-
-#### Scenario: Explicit type override
-
-- **WHEN** executing `spool validate --type change <item>`
-- **THEN** treat `<item>` as a change ID and validate it (skipping auto-detection)
-
-- **WHEN** executing `spool validate --type spec <item>`
-- **THEN** treat `<item>` as a spec ID and validate it (skipping auto-detection)
 
 ### Requirement: Interactivity controls
 

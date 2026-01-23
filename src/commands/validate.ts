@@ -176,7 +176,7 @@ export class ValidateCommand {
 
     if (!opts.typeOverride && isChange && isSpec) {
       console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
-      console.error('Pass --type change|spec, or use: spool change validate / spool spec validate');
+      console.error('Pass --type change|spec, or use: spool validate --changes / spool validate --specs');
       process.exitCode = 1;
       return;
     }
@@ -263,7 +263,7 @@ export class ValidateCommand {
     if (type === 'change') {
       bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
-      bullets.push('- Debug parsed deltas: spool change show <id> --json --deltas-only');
+      bullets.push('- Debug parsed deltas: spool show <id> --json --deltas-only');
     } else if (type === 'spec') {
       bullets.push('- Ensure spec includes ## Purpose and ## Requirements sections');
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
@@ -275,7 +275,7 @@ export class ValidateCommand {
       bullets.push('- Re-run with --json to see structured report');
     }
     console.error('Next steps:');
-    bullets.forEach(b => console.error(`  ${b}`));
+    void bullets.forEach(b => console.error(`  ${b}`));
   }
 
   private async runBulkValidation(scope: { changes: boolean; specs: boolean; modules?: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
