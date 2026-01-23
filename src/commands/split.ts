@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { getChangesPath, loadProjectConfig } from '../core/project-config.js';
 import { moveDeltaSpecs } from '../core/utils/delta-migration.js';
-import { glob } from 'fast-glob';
+import glob from 'fast-glob';
 
 // Since createChangeDir is not exported or found, implementing a minimal version here
 // We can refactor later to share this logic
