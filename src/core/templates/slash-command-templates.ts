@@ -7,7 +7,8 @@ export type CoreSlashCommandId = 'proposal' | 'apply' | 'archive';
 export type SlashCommandId =
   | CoreSlashCommandId
   | 'research'
-  | 'review';
+  | 'review'
+  | 'spool';
 
 const skillDrivenBody = (
   skillId: string,
@@ -58,12 +59,18 @@ const reviewBody = skillDrivenBody(
   '- The change ID or review target is provided in the prompt arguments or <ChangeId> block.'
 );
 
+const spoolBody = skillDrivenBody(
+  'spool',
+  '- The spool command and arguments are provided in the prompt arguments or <SpoolCommand> block.'
+);
+
 export const slashCommandBodies: Record<SlashCommandId, string> = {
   proposal: proposalBody,
   apply: applyBody,
   archive: archiveBody,
   research: researchBody,
   review: reviewBody,
+  spool: spoolBody,
 };
 
 export function getSlashCommandBody(id: SlashCommandId, spoolDir: string = '.spool'): string {
