@@ -3,7 +3,6 @@ import { spawn, ChildProcess } from 'child_process';
 import { AgentHarness, RalphRunConfig } from '../types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as os from 'os';
 
 export class OpenCodeHarness extends EventEmitter implements AgentHarness {
   name = 'opencode';
@@ -113,7 +112,6 @@ export class OpenCodeHarness extends EventEmitter implements AgentHarness {
     // Ensure config directory exists
     await fs.mkdir(configDir, { recursive: true });
     
-    // Build config with auto-approve permissions
     const config = {
       $schema: 'https://opencode.ai/config.json',
       permission: {

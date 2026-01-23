@@ -16,6 +16,7 @@ export const EXTENDED_COMMANDS: SlashCommandId[] = [
   ...CORE_COMMANDS,
   'research',
   'review',
+  'spool',
 ];
 
 export abstract class SlashCommandConfigurator {

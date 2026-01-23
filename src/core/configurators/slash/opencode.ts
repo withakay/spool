@@ -13,6 +13,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   archive: `${OPENCODE_COMMANDS_PATH}/spool-archive.md`,
   research: `${OPENCODE_COMMANDS_PATH}/spool-research.md`,
   review: `${OPENCODE_COMMANDS_PATH}/spool-review.md`,
+  spool: `${OPENCODE_COMMANDS_PATH}/spool.md`,
 };
 
 const FRONTMATTER_TEMPLATES: Record<SlashCommandId, string> = {
@@ -54,6 +55,14 @@ Review the following change or scope using the Spool review skill instructions.
 <ChangeId>
   $ARGUMENTS
 </ChangeId>
+`,
+  spool: `---
+description: Route spool commands via the spool skill (skill-first, CLI fallback).
+---
+The user has requested the following spool command.
+<SpoolCommand>
+  $ARGUMENTS
+</SpoolCommand>
 `,
 };
 
@@ -108,10 +117,11 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
    */
   private async cleanupLegacyFiles(projectPath: string): Promise<void> {
     for (const id of this.getSupportedCommands()) {
+      const legacyFileName = id === 'spool' ? 'spool.md' : `spool-${id}.md`;
       const legacyPath = FileSystemUtils.joinPath(
         projectPath,
         LEGACY_COMMANDS_PATH,
-        `spool-${id}.md`
+        legacyFileName
       );
       if (await FileSystemUtils.fileExists(legacyPath)) {
         await FileSystemUtils.deleteFile(legacyPath);
@@ -130,10 +140,11 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
   private async migrateLegacyFiles(projectPath: string, spoolDir: string): Promise<void> {
     for (const target of this.getTargets()) {
       const correctPath = FileSystemUtils.joinPath(projectPath, target.path);
+      const legacyFileName = target.id === 'spool' ? 'spool.md' : `spool-${target.id}.md`;
       const legacyPath = FileSystemUtils.joinPath(
         projectPath,
         LEGACY_COMMANDS_PATH,
-        `spool-${target.id}.md`
+        legacyFileName
       );
 
       // If file exists at legacy path but not at correct path, generate at correct path
