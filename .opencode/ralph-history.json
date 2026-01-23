@@ -1,0 +1,25 @@
+{
+  "iterations": [
+    {
+      "iteration": 1,
+      "startedAt": "2026-01-23T23:28:46.085Z",
+      "endedAt": "2026-01-23T23:28:50.565Z",
+      "durationMs": 2270,
+      "toolsUsed": {},
+      "filesModified": [],
+      "exitCode": 1,
+      "completionDetected": false,
+      "errors": [
+        "\u001b[91m\u001b[1mError: \u001b[0mError: Token refresh failed: 401"
+      ]
+    }
+  ],
+  "totalDurationMs": 2270,
+  "struggleIndicators": {
+    "repeatedErrors": {
+      "\u001b[91m\u001b[1mError: \u001b[0mError: Token refresh failed: 401": 1
+    },
+    "noProgressIterations": 1,
+    "shortIterations": 1
+  }
+}

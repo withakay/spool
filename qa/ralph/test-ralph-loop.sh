@@ -120,6 +120,8 @@ run_proposal_loop() {
     output=$(spool ralph "Create a full change proposal for $change_id using the spec-driven workflow. Generate proposal.md, any required specs, design.md if needed, and tasks.md. Use the spool-ff-change skill." \
         --change "$change_id" \
         --max-iterations 2 \
+        --allow-all \
+        --no-commit \
         --completion-promise "DONE" 2>&1)
     local exit_code=$?
     set -e
@@ -154,6 +156,8 @@ run_apply_loop() {
     output=$(spool ralph "Implement the tasks in tasks.md for $change_id. Create hello-world.sh and mark tasks complete." \
         --change "$change_id" \
         --max-iterations 2 \
+        --allow-all \
+        --no-commit \
         --completion-promise "DONE" 2>&1)
     local exit_code=$?
     set -e

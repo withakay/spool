@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "iteration": 1,
+  "minIterations": 1,
+  "maxIterations": 0,
+  "completionPromise": "COMPLETE",
+  "prompt": "We are trying to integrate the features in /Users/jack/Code/withakay/opencode-ralph-wiggum into the Spool project. The aim is to be able to create change proposals and then run \n=== Ralph Loop Iteration 1 === or similar to have spool loop over the problem until it is done. A fair amount of work has already been done but there are lots of issues. There is a test script in the qa folder that should made to run wthout faking or mocking",
+  "startedAt": "2026-01-23T23:28:43.887Z",
+  "model": ""
+}
