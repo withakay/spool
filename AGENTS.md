@@ -56,3 +56,36 @@ All Makefile commands use pnpm internally.
 This differs from other tools like Claude Code which use plural forms (`.claude/skills/`, `.claude/commands/`).
 
 When writing tests or code that references OpenCode paths, always use the singular form.
+
+## Markdown Templating
+
+**IMPORTANT**: When the proposal or specs mention installation via `spool init`, this means the artifact should be:
+- Templated in TypeScript using the template system
+- Path-aware (using `replaceHardcodedDotSpoolPaths` for `.spool/` path normalization)
+- Installed via the appropriate configurator (e.g., `SkillsConfigurator`)
+
+**Pattern**: Skills use `SkillTemplate` interface, slash commands use `CommandTemplate` interface:
+```typescript
+// Skills - src/core/templates/skill-templates.ts
+export function getExampleSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
+  return {
+    name: 'Example Skill',
+    description: '...',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
+  };
+}
+
+// Slash Commands - src/core/templates/skill-templates.ts
+export function getExampleCommandTemplate(spoolDir: string = '.spool'): CommandTemplate {
+  return {
+    name: 'Example Command',
+    description: '...',
+    category: 'Workflow',
+    tags: ['example'],
+    content: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
+  };
+}
+```
+
+**Do not**: Direct file copies or hardcoded `.spool/` paths in install logic
+**Do**: Use template functions with `spoolDir` parameter for path normalization

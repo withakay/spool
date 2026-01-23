@@ -81,7 +81,7 @@ After deployment, create separate PR to:
 
 ### Search Guidance
 - Enumerate specs: `spool spec list --long` (or `--json` for scripts)
-- Enumerate changes: `spool list` (or `spool change list --json` - deprecated but available)
+- Enumerate changes: `spool list` (or `--json` for scripts)
 - Show details:
   - Spec: `spool show <spec-id> --type spec` (use `--json` for filters)
   - Change: `spool show <change-id> --json --deltas-only`
