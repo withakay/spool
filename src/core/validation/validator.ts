@@ -9,6 +9,7 @@ import {
   Change,
   Module,
   parseModularChangeName,
+  LEGACY_CHANGE_PATTERN,
   MIN_MODULE_PURPOSE_LENGTH,
 } from '../schemas/index.js';
 import { MarkdownParser } from '../parsers/markdown-parser.js';
@@ -386,19 +387,48 @@ export class Validator {
 
   private async applyModuleGroupingRules(changeId: string): Promise<ValidationIssue[]> {
     const issues: ValidationIssue[] = [];
-    const parsed = parseModularChangeName(changeId);
 
-    if (!parsed) {
-      issues.push({
-        level: 'ERROR',
-        path: 'module',
-        message: `${VALIDATION_MESSAGES.CHANGE_LEGACY_ID}: ${changeId}`,
-      });
-      return issues;
-    }
+    // Only enforce grouping rules when the project defines modules.
+    const moduleIds = await getModuleIds();
+    if (moduleIds.length === 0) return issues;
+
+    const parsed = parseModularChangeName(changeId);
 
     const changeIndex = await getModuleChangeIndex();
     const modules = changeIndex.get(changeId) ?? [];
+
+    if (!parsed) {
+      // Legacy ids (e.g. "c1") are allowed in non-strict mode, but we still
+      // expect them to be listed under exactly one module when modules exist.
+      // In strict mode, treat legacy ids as errors.
+      if (LEGACY_CHANGE_PATTERN.test(changeId)) {
+        issues.push({
+          level: this.strictMode ? 'ERROR' : 'WARNING',
+          path: 'module',
+          message: `${VALIDATION_MESSAGES.CHANGE_LEGACY_ID}: ${changeId}`,
+        });
+      }
+
+      if (modules.length === 0) {
+        issues.push({
+          level: 'ERROR',
+          path: 'module',
+          message: `${VALIDATION_MESSAGES.CHANGE_NOT_IN_MODULE}: ${changeId}`,
+        });
+        return issues;
+      }
+
+      if (modules.length > 1) {
+        issues.push({
+          level: 'ERROR',
+          path: 'module',
+          message: `${VALIDATION_MESSAGES.CHANGE_MULTIPLE_MODULES}: ${modules.join(', ')}`,
+        });
+        return issues;
+      }
+
+      return issues;
+    }
 
     if (modules.length === 0) {
       issues.push({

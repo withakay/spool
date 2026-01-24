@@ -3,6 +3,8 @@ import {
   Module,
   ModuleChangeEntry,
   parseModuleName,
+  MODULAR_CHANGE_PATTERN,
+  LEGACY_CHANGE_PATTERN,
   MODULE_ID_PATTERN,
 } from '../schemas/index.js';
 
@@ -125,6 +127,25 @@ export class ModuleParser extends MarkdownParser {
           id: changeId,
           planned,
           completed,
+        });
+
+        continue;
+      }
+
+      // Also support simple bullet syntax: - change-id
+      // (used by some older module.md files and tests)
+      const bulletMatch = line.match(/^\s*[-*]\s+(\S+)(?:\s+\(planned\))?/);
+      if (bulletMatch) {
+        const changeId = bulletMatch[1].trim();
+        if (!MODULAR_CHANGE_PATTERN.test(changeId) && !LEGACY_CHANGE_PATTERN.test(changeId)) {
+          continue;
+        }
+
+        const planned = line.toLowerCase().includes('(planned)');
+        changes.push({
+          id: changeId,
+          planned,
+          completed: false,
         });
       }
     }

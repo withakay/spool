@@ -5,6 +5,7 @@ import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getSpecIds, getModuleInfo } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import { getChangesPath, getSpecsPath } from '../core/project-config.js';
+import { parseModularChangeName } from '../core/schemas/index.js';
 import { SplitCommand } from './split.js';
 import { confirm } from '@inquirer/prompts';
 import { Command } from 'commander';
@@ -42,7 +43,7 @@ export class ValidateCommand {
       await this.runBulkValidation({
         changes: !!options.all || !!options.changes,
         specs: !!options.all || !!options.specs,
-        modules: !!options.all || !!options.modules,
+        modules: !!options.modules,
       }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: resolveNoInteractive(options) });
       return;
     }
@@ -161,14 +162,30 @@ export class ValidateCommand {
 
   private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean; noInteractive?: boolean }): Promise<void> {
     const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
-    const isChange = changes.includes(itemName);
+    const changeMatches = changes.includes(itemName)
+      ? [itemName]
+      : changes.filter(changeId => parseModularChangeName(changeId)?.name === itemName);
+
+    const isChange = changeMatches.length > 0;
     const isSpec = specs.includes(itemName);
+
+    if (!opts.typeOverride && isChange && isSpec) {
+      console.error(
+        `Ambiguous item '${itemName}' matches both a change (${changeMatches.join(', ')}) and a spec (${itemName}).`,
+      );
+      console.error("Use '--type change' or '--type spec' to disambiguate, or pass the full change id.");
+      process.exitCode = 1;
+      return;
+    }
 
     const type = opts.typeOverride ?? (isChange ? 'change' : isSpec ? 'spec' : undefined);
 
     if (!type) {
       console.error(`Unknown item '${itemName}'`);
-      const suggestions = nearestMatches(itemName, [...changes, ...specs]);
+      const changeNames = changes
+        .map(c => parseModularChangeName(c)?.name)
+        .filter((n): n is string => Boolean(n));
+      const suggestions = nearestMatches(itemName, [...changes, ...changeNames, ...specs]);
       if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
@@ -177,6 +194,34 @@ export class ValidateCommand {
     if (!opts.typeOverride && isChange && isSpec) {
       console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
       console.error('Pass --type change|spec, or use: spool validate --changes / spool validate --specs');
+      process.exitCode = 1;
+      return;
+    }
+
+    if (type === 'change') {
+      if (changeMatches.length === 0) {
+        console.error(`Unknown change '${itemName}'`);
+        const suggestions = nearestMatches(itemName, changes);
+        if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
+        process.exitCode = 1;
+        return;
+      }
+
+      if (changeMatches.length > 1) {
+        console.error(`Ambiguous change '${itemName}' matches multiple changes: ${changeMatches.join(', ')}`);
+        console.error('Pass the full change id (e.g., 001-02_name).');
+        process.exitCode = 1;
+        return;
+      }
+
+      await this.validateByType('change', changeMatches[0], opts);
+      return;
+    }
+
+    if (type === 'spec' && !isSpec) {
+      console.error(`Unknown spec '${itemName}'`);
+      const suggestions = nearestMatches(itemName, specs);
+      if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
     }
@@ -275,7 +320,9 @@ export class ValidateCommand {
       bullets.push('- Re-run with --json to see structured report');
     }
     console.error('Next steps:');
-    void bullets.forEach(b => console.error(`  ${b}`));
+    for (const b of bullets) {
+      console.error(`  ${b}`);
+    }
   }
 
   private async runBulkValidation(scope: { changes: boolean; specs: boolean; modules?: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
