@@ -75,18 +75,20 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
     const startTime = Date.now();
     let completionPromiseFound = false;
 
+    const onStdout = (data: string) => {
+      if (data.includes(`<promise>${completionPromise}</promise>`)) {
+        completionPromiseFound = true;
+      }
+    };
+
     try {
-      agentHarness.on('stdout', (data: string) => {
-        if (data.includes(`<promise>${completionPromise}</promise>`)) {
-          completionPromiseFound = true;
-        }
-      });
-
+      agentHarness.on('stdout', onStdout);
       await agentHarness.run(runConfig);
-
     } catch (error) {
       console.error(`Error in iteration ${i}:`, error);
       throw error;
+    } finally {
+      agentHarness.off('stdout', onStdout);
     }
 
     const duration = Date.now() - startTime;
@@ -153,8 +155,9 @@ async function showStatus(changeId?: string): Promise<void> {
   
   if (state.history.length > 0) {
     console.log('\nRecent iterations:');
-    state.history.slice(-5).forEach((entry, idx) => {
-      const iterationNum = state.history.length - 5 + idx + 1;
+    const startIndex = Math.max(0, state.history.length - 5);
+    state.history.slice(startIndex).forEach((entry, idx) => {
+      const iterationNum = startIndex + idx + 1;
       console.log(`  ${iterationNum}. ${new Date(entry.timestamp).toLocaleString()} - ${entry.duration}ms - Promise: ${entry.completionPromiseFound} - Changes: ${entry.fileChangesCount}`);
     });
   }
@@ -163,7 +166,7 @@ async function showStatus(changeId?: string): Promise<void> {
 async function countChangedFiles(): Promise<number> {
   const { execSync } = await import('child_process');
   try {
-    const output = execSync('git diff --name-only', { encoding: 'utf-8' });
+    const output = execSync('git status --porcelain', { encoding: 'utf-8' });
     return output.trim().split('\n').filter(Boolean).length;
   } catch {
     return 0;
@@ -173,7 +176,9 @@ async function countChangedFiles(): Promise<number> {
 async function commitChanges(iteration: number): Promise<void> {
   const { execSync } = await import('child_process');
   try {
-    const changes = execSync('git diff --name-only', { encoding: 'utf-8' });
+    execSync('git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
+
+    const changes = execSync('git status --porcelain', { encoding: 'utf-8' });
     if (!changes.trim()) {
       return;
     }
