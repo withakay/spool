@@ -208,7 +208,7 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     name: 'list',
-    description: 'List items (changes by default). Use --specs to list specs.',
+    description: 'List items (changes by default). Use --specs or --modules to list other items.',
     flags: [
       {
         name: 'specs',
@@ -217,6 +217,10 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
       {
         name: 'changes',
         description: 'List changes explicitly (default)',
+      },
+      {
+        name: 'modules',
+        description: 'List modules instead of changes',
       },
       {
         name: 'sort',

@@ -201,29 +201,29 @@ export function getNewChangeSkillTemplate(spoolDir: string = '.spool'): SkillTem
 
    **Otherwise**: Omit \`--schema\` to use the default.
 
- 3. **Pick or create a module**
+  3. **Pick or create a module**
    \`\`\`bash
-   spool module list --json
+   spool list --modules --json
    \`\`\`
    - If the request maps to an existing module, use that module ID
    - If this is a small, ungrouped task, default to module \`000\`
    - If no module fits, create one:
-     \`\`\`bash
-     spool module new "<module-name>"
-     \`\`\`
+      \`\`\`bash
+      spool create module "<module-name>"
+      \`\`\`
    - Capture the module ID for the new change
 
- 4. **Create the change directory (module-first)**
-   \`\`\`bash
-   spool x-new change "<name>" --module <module-id>
-   \`\`\`
+  4. **Create the change directory (module-first)**
+    \`\`\`bash
+    spool create change "<name>" --module <module-id>
+    \`\`\`
    Add \`--schema <name>\` only if the user requested a specific workflow.
    This creates a scaffolded change at \`.spool/changes/<module-id>-NN_<name>/\` with the selected schema.
 
- 5. **Show the artifact status**
-   \`\`\`bash
-   spool x-status --change "<change-id>"
-   \`\`\`
+  5. **Show the artifact status**
+    \`\`\`bash
+    spool status --change "<change-id>"
+    \`\`\`
    This shows which artifacts need to be created and which are ready (dependencies satisfied).
 
  6. **Get instructions for the first artifact**
@@ -555,28 +555,28 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
  
     **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
  
- 2. **Pick or create a module**
-    \`\`\`bash
-    spool module list --json
-    \`\`\`
+  2. **Pick or create a module**
+     \`\`\`bash
+     spool list --modules --json
+     \`\`\`
     - If the request maps to an existing module, use that module ID
     - If this is a small, ungrouped task, default to module \`000\`
     - If no module fits, create one:
       \`\`\`bash
-      spool module new "<module-name>"
+      spool create module "<module-name>"
       \`\`\`
     - Capture the module ID for the new change
  
  3. **Create the change directory (module-first)**
     \`\`\`bash
-    spool x-new change "<name>" --module <module-id>
+    spool create change "<name>" --module <module-id>
     \`\`\`
     This creates a scaffolded change at \`.spool/changes/<module-id>-NN_<name>/\`.
  
-  4. **Get the artifact build order**
-    \`\`\`bash
-    spool x-status --change "<change-id>" --json
-    \`\`\`
+   4. **Get the artifact build order**
+     \`\`\`bash
+     spool status --change "<change-id>" --json
+     \`\`\`
  
     Parse the JSON to get:
     - \`applyRequires\`: array of artifact IDs needed before implementation (e.g., \`["tasks"]\`)
@@ -605,7 +605,7 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
       - Show brief progress: "✓ Created <artifact-id>"
 
    b. **Continue until all \`applyRequires\` artifacts are complete**
-      - After creating each artifact, re-run \`spool x-status --change "<change-id>" --json\`
+       - After creating each artifact, re-run \`spool status --change "<change-id>" --json\`
       - Check if every artifact ID in \`applyRequires\` has \`status: "done"\` in the artifacts array
       - Stop when all \`applyRequires\` artifacts are done
 
@@ -613,10 +613,10 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
       - Use **AskUserQuestion tool** to clarify
       - Then continue with creation
 
-5. **Show final status**
-   \`\`\`bash
-   spool x-status --change "<change-id>"
-   \`\`\`
+ 5. **Show final status**
+    \`\`\`bash
+    spool status --change "<change-id>"
+    \`\`\`
 
 **Output**
 
@@ -831,7 +831,7 @@ When invoking this skill, check for these parameters in context:
    - Use AskUserQuestion to select a change (recommended: most recently modified)
 
    Then inspect the change:
-   - \`spool x-status --change "<change-id>"\`
+    - \`spool status --change "<change-id>"\`
    - If available, prefer \`--json\` and parse it
 
 3. Confirm the change is in a good commit state:
@@ -913,7 +913,7 @@ export function getSpoolSkillTemplate(spoolDir: string = '.spool'): SkillTemplat
 
 Users may type requests like \
 \`spool archive 001-03_add-spool-skill\` or \
-\`spool view 001-03_add-spool-skill\`.
+\`spool dashboard\`.
 
 This skill MUST:
 1. Prefer matching spool-* skills (skill-first precedence)
@@ -1054,7 +1054,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
   9. **Show final status**
     \`\`\`bash
-    spool x-status --change "<change-id>"
+    spool status --change "<change-id>"
     \`\`\`
     - Show that all artifacts are complete
     - Indicate the change is ready for implementation or review
@@ -1692,7 +1692,7 @@ export function getArchiveChangeSkillTemplate(spoolDir: string = '.spool'): Skil
 
 2. **Check artifact completion status**
 
-   Run \`spool x-status --change "<change-id>" --json\` to check artifact completion.
+    Run \`spool status --change "<change-id>" --json\` to check artifact completion.
 
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used
@@ -1790,7 +1790,7 @@ All artifacts complete. All tasks complete.
 
 **Guardrails**
 - Always prompt for change selection if not provided
-- Use artifact graph (spool x-status --json) for completion checking
+ - Use artifact graph (spool status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
 - Preserve .spool.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened

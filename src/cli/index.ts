@@ -125,15 +125,17 @@ program
 
 const listCmd = program
   .command('list')
-  .description('List items (changes by default). Use --specs to list specs.')
+  .description('List items (changes by default). Use --specs or --modules to list other items.')
   .option('--specs', 'List specs instead of changes')
   .option('--changes', 'List changes explicitly (default)')
+  .option('--modules', 'List modules instead of changes')
   .option('--sort <order>', 'Sort order: "recent" (default) or "name"', 'recent')
   .option('--json', 'Output as JSON (for programmatic use)')
-  .action(async (options?: { specs?: boolean; changes?: boolean; sort?: string; json?: boolean }) => {
+  .action(async (options?: { specs?: boolean; changes?: boolean; modules?: boolean; sort?: string; json?: boolean }) => {
     try {
       const listCommand = new ListCommand();
-      const mode: 'changes' | 'specs' = options?.specs ? 'specs' : 'changes';
+      const mode: 'changes' | 'specs' | 'modules' =
+        options?.modules ? 'modules' : options?.specs ? 'specs' : 'changes';
       const sort = options?.sort === 'name' ? 'name' : 'recent';
       await listCommand.execute('.', mode, { sort, json: options?.json });
     } catch (error) {

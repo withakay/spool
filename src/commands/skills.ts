@@ -246,7 +246,7 @@ export function registerSkillsCommands(program: Command): void {
     .description('Manage Spool Agent Skills (core workflows and experimental OPSX) (deprecated)');
 
   skillsCmd.hook('preAction', () => {
-    console.error('Warning: The "spool skills ..." commands are deprecated. Prefer verb-first commands (e.g., "spool list skills", "spool install skills", "spool uninstall skills", "spool list skills --installed").');
+    console.error('Warning: The "spool skills ..." commands are deprecated. Skills are installed/updated by "spool init" and "spool update".');
   });
     
   // List command
