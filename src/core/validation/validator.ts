@@ -289,26 +289,21 @@ export class Validator {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
     }
 
-    if (totalDeltas > 10) { // Using hardcoded value or should import MAX_DELTAS_PER_CHANGE? Imported in next step if needed
-       // Check if ignored in config
-       // We don't have access to config here directly usually, unless passed in or read.
-       // The spec says: "The validator should check if the change ID is present in the `ignore_warnings` list in `.spool.yaml` (or passed via config)."
-       // Validator doesn't seem to take config currently.
-       // Let's defer config check to the caller or add it?
-       // For now, let's just emit the warning with metadata.
-       
+     if (totalDeltas > 10) {
+       // Suggest splitting large changes, but do not fail validation (even in strict mode).
+       // This is advisory and should not block workflows like CI.
        issues.push({
-         level: 'WARNING',
+         level: 'INFO',
          path: 'file',
          message: VALIDATION_MESSAGES.CHANGE_TOO_MANY_DELTAS,
          metadata: {
            type: 'too_many_deltas',
            count: totalDeltas,
            threshold: 10,
-           remediation: 'split'
-         }
+           remediation: 'split',
+         },
        });
-    }
+     }
 
     return this.createReport(issues);
   }

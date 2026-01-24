@@ -13,9 +13,9 @@ import { ChangeCommand } from '../commands/change.js';
 import { ValidateCommand } from '../commands/validate.js';
 import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
-import { registerConfigCommand } from '../commands/config.js';
+import { ConfigCommand, registerConfigCommand } from '../commands/config.js';
 import { registerArtifactWorkflowCommands } from '../commands/artifact-workflow.js';
-import { registerModuleCommand } from '../commands/module.js';
+import { ModuleCommand, registerModuleCommand } from '../commands/module.js';
 import { StateCommand } from '../commands/state.js';
 import { PlanCommand } from '../commands/plan.js';
 import { TasksCommand } from '../commands/tasks.js';
@@ -129,7 +129,7 @@ program
     }
   });
 
-program
+const listCmd = program
   .command('list')
   .description('List items (changes by default). Use --specs to list specs.')
   .option('--specs', 'List specs instead of changes')
@@ -149,8 +149,12 @@ program
     }
   });
 
+// NOTE: legacy list subcommands (config/module/skills) were removed from the
+// supported CLI surface. Use `spool config ...`, `spool create module ...`,
+// `spool show module ...`, `spool validate module ...`.
+
 program
-  .command('view')
+  .command('dashboard')
   .description('Display an interactive dashboard of specs and changes')
   .action(async () => {
     try {
@@ -163,10 +167,25 @@ program
     }
   });
 
+program
+  .command('view', { hidden: true })
+  .description('Display an interactive dashboard of specs and changes (deprecated)')
+  .action(async () => {
+    try {
+      console.error('Warning: "spool view" is deprecated. Use "spool dashboard" instead.');
+      const viewCommand = new ViewCommand();
+      await viewCommand.execute('.');
+    } catch (error) {
+      console.log(); // Empty line for spacing
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Change command with subcommands
 const changeCmd = program
-  .command('change')
-  .description('Manage Spool change proposals');
+  .command('change', { hidden: true })
+  .description('Manage Spool change proposals (deprecated)');
 
 // Deprecation notice for noun-based commands
 changeCmd.hook('preAction', () => {
@@ -246,8 +265,224 @@ registerSpecCommand(program);
 registerConfigCommand(program);
 registerModuleCommand(program);
 
+// create
+const createCmd = program
+  .command('create')
+  .description('Create items');
+
+createCmd
+  .command('module [name]')
+  .description('Create a new module')
+  .option('--scope <capabilities>', 'Comma-separated list of capabilities (default: "*" for unrestricted)')
+  .option('--depends-on <modules>', 'Comma-separated list of module IDs this depends on')
+  .action(async (name?: string, options?: { scope?: string; dependsOn?: string }) => {
+    try {
+      const moduleCommand = new ModuleCommand();
+      await moduleCommand.new(name, options ?? {});
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// get
+const getCmd = program
+  .command('get', { hidden: true })
+  .description('Get a value (deprecated)');
+
+getCmd
+  .command('config <key>')
+  .description('Get a configuration value')
+  .option('--scope <scope>', 'Config scope (only "global" supported currently)')
+  .action((key: string, options: { scope?: string }) => {
+    try {
+      console.error('Warning: "spool get config" is deprecated. Use "spool config get" instead.');
+      const cmd = new ConfigCommand();
+      cmd.get(key, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// set
+const setCmd = program
+  .command('set', { hidden: true })
+  .description('Set a value (deprecated)');
+
+setCmd
+  .command('config <key> <value>')
+  .description('Set a configuration value')
+  .option('--string', 'Force value to be stored as string')
+  .option('--allow-unknown', 'Allow setting unknown keys')
+  .option('--scope <scope>', 'Config scope (only "global" supported currently)')
+  .action((key: string, value: string, options: { string?: boolean; allowUnknown?: boolean; scope?: string }) => {
+    try {
+      console.error('Warning: "spool set config" is deprecated. Use "spool config set" instead.');
+      const cmd = new ConfigCommand();
+      cmd.set(key, value, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// unset
+const unsetCmd = program
+  .command('unset', { hidden: true })
+  .description('Unset a value (deprecated)');
+
+unsetCmd
+  .command('config <key>')
+  .description('Unset a configuration value (revert to default)')
+  .option('--scope <scope>', 'Config scope (only "global" supported currently)')
+  .action((key: string, options: { scope?: string }) => {
+    try {
+      console.error('Warning: "spool unset config" is deprecated. Use "spool config unset" instead.');
+      const cmd = new ConfigCommand();
+      cmd.unset(key, options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// reset
+const resetCmd = program
+  .command('reset', { hidden: true })
+  .description('Reset items (deprecated)');
+
+resetCmd
+  .command('config')
+  .description('Reset configuration to defaults')
+  .option('--all', 'Reset all configuration (required)')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--scope <scope>', 'Config scope (only "global" supported currently)')
+  .action(async (options: { all?: boolean; yes?: boolean; scope?: string }) => {
+    try {
+      console.error('Warning: "spool reset config" is deprecated. Use "spool config reset" instead.');
+      const cmd = new ConfigCommand();
+      await cmd.reset(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// edit
+const editCmd = program
+  .command('edit', { hidden: true })
+  .description('Edit items (deprecated)');
+
+editCmd
+  .command('config')
+  .description('Open configuration in $EDITOR')
+  .option('--scope <scope>', 'Config scope (only "global" supported currently)')
+  .action(async (options: { scope?: string }) => {
+    try {
+      console.error('Warning: "spool edit config" is deprecated. Use "spool config edit" instead.');
+      const cmd = new ConfigCommand();
+      await cmd.edit(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// path
+const pathCmd = program
+  .command('path', { hidden: true })
+  .description('Show paths (deprecated)');
+
+pathCmd
+  .command('config')
+  .description('Show config file location')
+  .option('--scope <scope>', 'Config scope (only "global" supported currently)')
+  .action((options: { scope?: string }) => {
+    try {
+      console.error('Warning: "spool path config" is deprecated. Use "spool config paths" instead.');
+      const cmd = new ConfigCommand();
+      cmd.paths(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// generate
+const generateCmd = program
+  .command('generate', { hidden: true })
+  .description('Generate outputs (deprecated)');
+
+generateCmd
+  .command('completion [shell]')
+  .description('Generate completion script for a shell (outputs to stdout)')
+  .action(async (shell?: string) => {
+    try {
+      console.error('Warning: "spool generate completion" is deprecated. Use "spool completions generate" instead.');
+      const completionCommand = new CompletionCommand();
+      await completionCommand.generate({ shell });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// install
+const installCmd = program
+  .command('install', { hidden: true })
+  .description('Install items (deprecated)');
+
+installCmd
+  .command('completion [shell]')
+  .description('Install completion script for a shell')
+  .option('--verbose', 'Show detailed installation output')
+  .action(async (shell?: string, options?: { verbose?: boolean }) => {
+    try {
+      console.error('Warning: "spool install completion" is deprecated. Use "spool completions install" instead.');
+      const completionCommand = new CompletionCommand();
+      await completionCommand.install({ shell, verbose: options?.verbose });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// uninstall
+const uninstallCmd = program
+  .command('uninstall', { hidden: true })
+  .description('Uninstall items (deprecated)');
+
+uninstallCmd
+  .command('completion [shell]')
+  .description('Uninstall completion script for a shell')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .action(async (shell?: string, options?: { yes?: boolean }) => {
+    try {
+      console.error('Warning: "spool uninstall completion" is deprecated. Use "spool completions uninstall" instead.');
+      const completionCommand = new CompletionCommand();
+      await completionCommand.uninstall({ shell, yes: options?.yes });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// NOTE: legacy skills installation commands were removed from the supported
+// CLI surface. Skills are installed/refreshed by `spool init` and `spool update`.
+
 // Top-level validate command
-program
+const validateCmd = program
   .command('validate [item-name]')
   .description('Validate changes, specs, and modules')
   .option('--all', 'Validate all changes, specs, and modules')
@@ -271,8 +506,29 @@ program
     }
   });
 
+// validate module
+validateCmd
+  .command('module [module-id]')
+  .description('Validate a module')
+  .option('--strict', 'Enable strict validation mode')
+  .option('--json', 'Output as JSON')
+  .option('--with-changes', 'Also validate all changes in the module')
+  .action(async (moduleId?: string, options?: { strict?: boolean; json?: boolean; withChanges?: boolean }) => {
+    try {
+      const moduleCommand = new ModuleCommand();
+      await moduleCommand.validate(moduleId, options);
+      if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
+        process.exit(process.exitCode);
+      }
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Top-level show command
-program
+const showCmd = program
   .command('show [item-name]')
   .description('Show a change or spec')
   .option('--json', 'Output as JSON')
@@ -298,10 +554,87 @@ program
     }
   });
 
+// show module
+showCmd
+  .command('module [module-id]')
+  .description('Show module details')
+  .option('--json', 'Output as JSON')
+  .option('--no-interactive', 'Disable interactive prompts')
+  .action(async (moduleId?: string, options?: { json?: boolean; noInteractive?: boolean }) => {
+    try {
+      const moduleCommand = new ModuleCommand();
+      await moduleCommand.show(moduleId, {
+        json: options?.json,
+        noInteractive: options?.noInteractive,
+      });
+      if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
+        process.exit(process.exitCode);
+      }
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 // Completion command with subcommands
 const completionCmd = program
-  .command('completion')
+  .command('completion', { hidden: true })
+  .description('Manage shell completions for Spool CLI (deprecated)');
+
+// Deprecation notice for noun-based commands
+completionCmd.hook('preAction', () => {
+  console.error('Warning: The "spool completion ..." commands are deprecated. Use "spool completions ..." instead.');
+});
+
+// Completions (preferred)
+const completionsCmd = program
+  .command('completions')
   .description('Manage shell completions for Spool CLI');
+
+completionsCmd
+  .command('generate [shell]')
+  .description('Generate completion script for a shell (outputs to stdout)')
+  .action(async (shell?: string) => {
+    try {
+      const completionCommand = new CompletionCommand();
+      await completionCommand.generate({ shell });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+completionsCmd
+  .command('install [shell]')
+  .description('Install completion script for a shell')
+  .option('--verbose', 'Show detailed installation output')
+  .action(async (shell?: string, options?: { verbose?: boolean }) => {
+    try {
+      const completionCommand = new CompletionCommand();
+      await completionCommand.install({ shell, verbose: options?.verbose });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+completionsCmd
+  .command('uninstall [shell]')
+  .description('Uninstall completion script for a shell')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .action(async (shell?: string, options?: { yes?: boolean }) => {
+    try {
+      const completionCommand = new CompletionCommand();
+      await completionCommand.uninstall({ shell, yes: options?.yes });
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
 
 completionCmd
   .command('generate [shell]')

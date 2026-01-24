@@ -120,8 +120,8 @@ export class SpecCommand {
 
 export function registerSpecCommand(rootProgram: typeof program) {
   const specCommand = rootProgram
-    .command('spec')
-    .description('Manage and view Spool specifications');
+    .command('spec', { hidden: true })
+    .description('Manage and view Spool specifications (deprecated)');
 
   // Deprecation notice for noun-based commands
   specCommand.hook('preAction', () => {
@@ -193,7 +193,9 @@ export function registerSpecCommand(rootProgram: typeof program) {
             return;
           }
           if (!options.long) {
-            specs.forEach(spec => console.log(spec.id));
+            specs.forEach((spec) => {
+              console.log(spec.id);
+            });
             return;
           }
           specs.forEach(spec => {

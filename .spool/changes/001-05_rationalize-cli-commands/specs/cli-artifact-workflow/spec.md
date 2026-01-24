@@ -8,7 +8,7 @@ The system SHALL display artifact completion status for a change, including scaf
 
 #### Scenario: Show status with all states
 
-- **WHEN** user runs `spool x-status --change <id>`
+- **WHEN** user runs `spool status --change <id>`
 - **THEN** the system displays each artifact with status indicator:
   - `[x]` for completed artifacts
   - `[ ]` for ready artifacts
@@ -16,37 +16,37 @@ The system SHALL display artifact completion status for a change, including scaf
 
 #### Scenario: Status shows completion summary
 
-- **WHEN** user runs `spool x-status --change <id>`
+- **WHEN** user runs `spool status --change <id>`
 - **THEN** output includes completion percentage and count (e.g., "2/4 artifacts complete")
 
 #### Scenario: Status JSON output
 
-- **WHEN** user runs `spool x-status --change <id> --json`
+- **WHEN** user runs `spool status --change <id> --json`
 - **THEN** the system outputs JSON with changeName, schemaName, isComplete, and artifacts array
 
 #### Scenario: Status JSON includes apply requirements
 
-- **WHEN** user runs `spool x-status --change <id> --json`
+- **WHEN** user runs `spool status --change <id> --json`
 - **THEN** the system outputs JSON with:
   - `changeName`, `schemaName`, `isComplete`, `artifacts` array
   - `applyRequires`: array of artifact IDs needed for apply phase
 
 #### Scenario: Status on scaffolded change
 
-- **WHEN** user runs `spool x-status --change <id>` on a change with no artifacts
+- **WHEN** user runs `spool status --change <id>` on a change with no artifacts
 - **THEN** system displays all artifacts with their status
 - **AND** root artifacts (no dependencies) show as ready `[ ]`
 - **AND** dependent artifacts show as blocked `[-]`
 
 #### Scenario: Missing change parameter
 
-- **WHEN** user runs `spool x-status` without `--change`
+- **WHEN** user runs `spool status` without `--change`
 - **THEN** the system displays an error with list of available changes
 - **AND** includes scaffolded changes (directories without proposal.md)
 
 #### Scenario: Unknown change
 
-- **WHEN** user runs `spool x-status --change unknown-id`
+- **WHEN** user runs `spool status --change unknown-id`
 - **AND** directory `spool/changes/unknown-id/` does not exist
 - **THEN** the system displays an error listing all available change directories
 
@@ -130,7 +130,7 @@ The system SHALL support custom schema selection for workflow commands.
 - **THEN** the system uses the "spec-driven" schema
 
 #### Scenario: Custom schema
-- **WHEN** user runs `spool x-status --change <id> --schema tdd`
+- **WHEN** user runs `spool status --change <id> --schema tdd`
 - **THEN** the system uses the specified schema for artifact graph
 
 #### Scenario: Unknown schema
@@ -145,12 +145,12 @@ The system SHALL implement artifact workflow commands in isolation for easy remo
 - **THEN** all commands are in `src/commands/artifact-workflow.ts`
 
 #### Scenario: Help text marking
-- **WHEN** user runs `--help` on any artifact workflow command
-- **THEN** help text indicates the command is experimental
+-- **WHEN** user runs `--help` on any `x-*` artifact workflow command
+-- **THEN** help text indicates the command is experimental
 
 #### Scenario: Command naming indicates experimental
-- **WHEN** artifact workflow commands are exposed
-- **THEN** they are named using the `x-` prefix (e.g., `spool x-status`, `spool x-instructions`)
+-- **WHEN** experimental artifact workflow commands are exposed
+-- **THEN** they are named using the `x-` prefix (e.g., `spool x-instructions`)
 
 ### Requirement: Apply Instructions Command
 
@@ -158,7 +158,7 @@ The system SHALL generate schema-aware apply instructions via `spool x-instructi
 
 #### Scenario: Generate apply instructions
 
-- **WHEN** user runs `spool x-instructions apply --change <id>`
+-- **WHEN** user runs `spool x-instructions apply --change <id>`
 - **AND** all required artifacts (per schema's `apply.requires`) exist
 - **THEN** the system outputs:
   - Context files from all existing artifacts
@@ -167,14 +167,14 @@ The system SHALL generate schema-aware apply instructions via `spool x-instructi
 
 #### Scenario: Apply blocked by missing artifacts
 
-- **WHEN** user runs `spool x-instructions apply --change <id>`
+-- **WHEN** user runs `spool x-instructions apply --change <id>`
 - **AND** required artifacts are missing
 - **THEN** the system indicates apply is blocked
 - **AND** lists which artifacts must be created first
 
 #### Scenario: Apply instructions JSON output
 
-- **WHEN** user runs `spool x-instructions apply --change <id> --json`
+-- **WHEN** user runs `spool x-instructions apply --change <id> --json`
 - **THEN** the system outputs JSON with:
   - `contextFiles`: array of paths to existing artifacts
   - `instruction`: the apply instruction text

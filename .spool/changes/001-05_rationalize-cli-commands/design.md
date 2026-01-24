@@ -1,64 +1,108 @@
 ## Context
 
-The Spool CLI currently exposes multiple experimental or one-off commands at the top level (e.g., `status`, `instructions`, `templates`, `schemas`, `new`, `artifact-experimental-setup`, `spool-research`, `ralph|loop`). This pollutes `spool --help`, creates inconsistent naming, and makes it harder to promote or remove experimental functionality.
+The Spool CLI has drifted into an overly broad and inconsistent surface:
 
-Separately, shell completion is generated from a static registry (`src/core/completions/command-registry.ts`), which has drifted from the real CLI surface.
+- many top-level verbs (including config and completion verbs)
+- noun-group command families (`config`, `module`, `completion`, `skills`, plus deprecated `spec`/`change`)
+- experimental `x-*` commands visible in help
 
-This change standardizes how experimental commands are named and ensures the completion registry reflects the visible CLI.
+This makes the CLI harder to learn and document, and it increases the likelihood that shell completion drifts from the actual UX.
+
+We want a small, stable help surface with clear deprecation and visibility rules.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Establish a single experimental naming convention: `spool x-<command>`
-- Remove experimental commands from top-level help output by renaming them to `x-*`
-- Preserve usability for existing users via a transition period (deprecated, hidden aliases)
-- Align completion generation with the actual CLI surface shown in `spool --help`
+- Make `spool --help` small and stable
+- Keep the existing core UX (`init/update/list/show/validate/archive/split/...`) as the primary UX
+- Keep experimental commands callable but hidden by default; only `x-templates` and `x-schemas` remain visible
+- Remove skills as a user-facing CLI surface; skills are refreshed via `spool init` and `spool update`
+- Align completion generation with the visible CLI surface
 
 **Non-Goals:**
-- Auto-generating completions from Commander at runtime
-- Removing or redesigning the underlying artifact workflow, research, or ralph implementations
-- Defining long-term policies for promoting experimental commands to stable (only provide a naming path)
+- Redesigning Spool behavior (this change is command-surface only)
+- Auto-generating completions directly from Commander
+- Defining the long-term policy for promoting experimental commands to stable (only provide a consistent naming path)
 
 ## Decisions
 
-- **Experimental command naming**: experimental commands are hyphen-prefixed as `x-*` (e.g., `x-status`, `x-instructions`, `x-templates`).
-- **Help output cleanliness**: legacy names remain callable but SHOULD be hidden from `spool --help`.
-- **Backward compatibility**: keep legacy entrypoints as deprecated aliases implemented as separate `hidden` commands that:
+### Stable surface first
+
+- `spool --help` is the only supported public UX.
+- Deprecated and internal commands remain callable for compatibility, but are hidden from help and excluded from shell completions.
+
+### Deprecation + visibility policy
+
+- Preferred commands SHOULD be the ones shown in `spool --help`.
+- Deprecated shims:
+  - remain callable
   - print a deprecation warning to stderr
-  - delegate to the same underlying handler as the `x-*` command
-- **Completions reflect help surface**: completion registry will include the visible commands (including `x-*`), but will NOT intentionally expose hidden/deprecated legacy names.
+  - are hidden from help and omitted from completion suggestions
 
-### Command mapping
+### Experimental commands
 
-- Artifact workflow:
-  - `status` -> `x-status` (hidden deprecated: `status`)
-  - `instructions` -> `x-instructions` (hidden deprecated: `instructions`)
-  - `templates` -> `x-templates` (hidden deprecated: `templates`)
-  - `schemas` -> `x-schemas` (hidden deprecated: `schemas`)
-  - `new` -> `x-new` (hidden deprecated: `new`)
-  - `artifact-experimental-setup` -> `x-artifact-experimental-setup` (hidden deprecated: `artifact-experimental-setup`)
-- Research:
-  - `spool-research` -> `x-research` (hidden deprecated: `spool-research`)
-- Ralph:
-  - `ralph|loop` -> `x-ralph` (hidden deprecated: `ralph`, `loop`)
+- **Experimental command naming**: `x-*`.
+- **Visibility**:
+  - only `x-templates` and `x-schemas` are visible in `spool --help`
+  - other `x-*` commands remain callable but hidden
+- **Backward compatibility**: keep legacy entrypoints as hidden deprecated wrappers that delegate to the same handler.
+- **Completions**: include visible commands only.
+
+## Command mapping
+
+The target UX is to make every command read like “do the verb to the noun”.
+
+**Stable commands (visible in help)**
+
+- `spool init`, `spool update`
+- `spool dashboard`
+- `spool status`, `spool ralph`
+- `spool create`, `spool list`, `spool show`, `spool validate`, `spool archive`, `spool split`
+- `spool config <subcommand>`
+- `spool completions <subcommand>`
+
+**Experimental commands (`x-*`)**
+
+- visible: `spool x-templates`, `spool x-schemas`
+- hidden but callable:
+  - `spool x-instructions`
+  - `spool x-artifact-experimental-setup`
+  - `spool x-research`
+  - `spool x-status` (deprecated; prefer `spool status`)
+  - `spool x-ralph` (deprecated; prefer `spool ralph`)
+
+**Stable groups**
+
+- Config (preferred): `spool config paths|get|set|list|unset|reset|edit`
+- Completions (preferred): `spool completions generate|install|uninstall`
+
+**Deprecated legacy noun commands (hidden shims)**
+
+- `spool spec ...` (hidden deprecated shim; prefer `spool show`, `spool validate --specs`, `spool list --specs`)
+- `spool change ...` (hidden deprecated shim; prefer `spool show`, `spool validate --changes`, `spool list`)
+- `spool view` (hidden deprecated shim; prefer `spool dashboard`)
+- `spool completion ...` (hidden deprecated shim; prefer `spool completions ...`)
+- `spool skills ...` (hidden deprecated shim; no replacement; use `spool init`/`spool update`)
+- legacy verb shims (`get/set/unset/reset/edit/path/generate/install/uninstall`) are hidden deprecated shims that point to `spool config ...` or `spool completions ...`.
 
 ## Risks / Trade-offs
 
-- **User scripts may break** if they depend on legacy commands and we remove them too early -> keep deprecated hidden aliases for at least one release cycle.
-- **Two entrypoints per command** increases registration code slightly -> keep handlers shared and wrappers thin.
-- **Completion expectations**: users may expect deprecated names to autocomplete -> intentionally omit hidden commands from completions to push adoption.
+- **User scripts may break** if we remove deprecated noun-group commands too quickly -> keep shims for at least one release.
+- **Temporary surface area increase** during transition -> hide deprecated shims from help and completions.
+- **Parsing ambiguity**: adding `spool show module <id>` introduces an extra parsing path for `show` -> treat the noun positional set (`module`) as a reserved first argument.
 
 ## Migration Plan
 
-1. Add `x-*` commands and update help output to only expose the `x-*` names for experimental commands.
-2. Keep legacy commands as hidden wrappers that print a deprecation warning.
-3. Update completion registry to include the new `x-*` commands and any other visible commands missing from the registry.
-4. Update documentation/tests that reference legacy entrypoints (notably any QA scripts referencing `spool ralph`).
-5. After a deprecation period, remove legacy wrappers.
+1. Define the stable help surface and encode it in the change spec.
+2. Hide deprecated shims and internal commands from help and completions.
+3. Flip `status` and `ralph` to stable (and make `x-status`/`x-ralph` deprecated hidden aliases).
+4. Make `spool update` refresh installed skills.
+5. Update completion registry to match the preferred visible surface.
+6. Update docs/tests that reference legacy entrypoints.
+7. After a deprecation period, remove deprecated wrappers.
 
-Rollback: revert command registrations to their original names (no data migration required).
+Rollback: keep the old command registrations and remove the new verb-first equivalents (no data migration).
 
 ## Open Questions
 
-- What is the deprecation window for legacy command names (one minor release vs longer)?
-- Should `skills` help text be updated to remove legacy “OPSX” phrasing as part of this change or a follow-up?
+- (none)

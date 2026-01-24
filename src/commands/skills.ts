@@ -1,6 +1,6 @@
 /**
  * Skills Command
- * 
+ *
  * Manages Spool Agent Skills installation and configuration.
  */
 
@@ -77,10 +77,10 @@ async function listAvailableSkills(): Promise<void> {
     
     console.log();
     console.log(chalk.gray('Usage:'));
-    console.log(`  ${chalk.cyan('spool skills install <skill-id>,<skill-id>,...')} - Install specific skills`);
-    console.log(`  ${chalk.cyan('spool skills install --all')} - Install all skills`);
-    console.log(`  ${chalk.cyan('spool skills list')} - Show available skills`);
-    console.log(`  ${chalk.cyan('spool skills uninstall <skill-id>,<skill-id>,...')} - Remove specific skills`);
+    console.log(`  ${chalk.cyan('spool install skills <skill-id>...')} - Install specific skills`);
+    console.log(`  ${chalk.cyan('spool install skills --all')} - Install all skills`);
+    console.log(`  ${chalk.cyan('spool list skills')} - Show available skills`);
+    console.log(`  ${chalk.cyan('spool uninstall skills <skill-id>...')} - Remove specific skills`);
     
   } catch (error) {
     spinner.fail('Failed to load skills');
@@ -144,7 +144,7 @@ async function listInstalledSkills(toolId: SkillsHarness): Promise<void> {
     }
     
     console.log();
-    console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see all available skills.'));
+    console.log(chalk.gray('Use ') + chalk.cyan('spool list skills') + chalk.gray(' to see all available skills.'));
     
   } catch (error) {
     spinner.fail('Failed to check installed skills');
@@ -194,20 +194,68 @@ async function uninstallSkills(skillIds: string[], toolId: SkillsHarness): Promi
   }
 }
 
+export class SkillsCommand {
+  async list(): Promise<void> {
+    await listAvailableSkills();
+  }
+
+  async status(options: { tool?: string } = {}): Promise<void> {
+    const toolId = normalizeToolId(options.tool);
+    await listInstalledSkills(toolId);
+  }
+
+  async install(skills: string[], options: { all?: boolean; tool?: string } = {}): Promise<void> {
+    const toolId = normalizeToolId(options.tool);
+    if (options.all) {
+      const configurator = new SkillsConfigurator();
+      const availableSkills = configurator.getAvailableSkills();
+      const skillIds = availableSkills.map((skill) => skill.id);
+      await installSkills(skillIds, toolId);
+      return;
+    }
+
+    if (skills.length > 0) {
+      await installSkills(skills, toolId);
+      return;
+    }
+
+    console.log(chalk.yellow('Error: Please specify skill IDs to install or use --all.'));
+    console.log(chalk.gray('Use ') + chalk.cyan('spool list skills') + chalk.gray(' to see available skills.'));
+    process.exit(1);
+  }
+
+  async uninstall(skills: string[], options: { tool?: string } = {}): Promise<void> {
+    const toolId = normalizeToolId(options.tool);
+    if (skills.length > 0) {
+      await uninstallSkills(skills, toolId);
+      return;
+    }
+
+    console.log(chalk.yellow('Error: Please specify skill IDs to uninstall.'));
+    console.log(chalk.gray('Use ') + chalk.cyan('spool list skills --installed') + chalk.gray(' to see installed skills.'));
+    process.exit(1);
+  }
+}
+
 /**
  * Register skills commands on the main program
  */
 export function registerSkillsCommands(program: Command): void {
   const skillsCmd = program
-    .command('skills')
-    .description('Manage Spool Agent Skills (core workflows and experimental OPSX)');
+    .command('skills', { hidden: true })
+    .description('Manage Spool Agent Skills (core workflows and experimental OPSX) (deprecated)');
+
+  skillsCmd.hook('preAction', () => {
+    console.error('Warning: The "spool skills ..." commands are deprecated. Prefer verb-first commands (e.g., "spool list skills", "spool install skills", "spool uninstall skills", "spool list skills --installed").');
+  });
     
   // List command
   skillsCmd
     .command('list')
     .description('List all available Spool skills')
     .action(async () => {
-      await listAvailableSkills();
+      const cmd = new SkillsCommand();
+      await cmd.list();
     });
   
   // Install command
@@ -217,20 +265,8 @@ export function registerSkillsCommands(program: Command): void {
     .option('--all', 'Install all available skills')
     .option('--tool <toolId>', 'Target tool (claude, opencode, codex, github-copilot)', 'claude')
     .action(async (skills: string[], options: { all?: boolean; tool?: string }) => {
-      const toolId = normalizeToolId(options.tool);
-      if (options.all) {
-        // Install all available skills
-        const configurator = new SkillsConfigurator();
-        const availableSkills = configurator.getAvailableSkills();
-        const skillIds = availableSkills.map(skill => skill.id);
-        await installSkills(skillIds, toolId);
-      } else if (skills.length > 0) {
-        await installSkills(skills, toolId);
-      } else {
-        console.log(chalk.yellow('Error: Please specify skill IDs to install or use --all.'));
-        console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see available skills.'));
-        process.exit(1);
-      }
+      const cmd = new SkillsCommand();
+      await cmd.install(skills, options);
     });
   
   // Uninstall command
@@ -239,14 +275,8 @@ export function registerSkillsCommands(program: Command): void {
     .description('Remove specified Spool skills')
     .option('--tool <toolId>', 'Target tool (claude, opencode, codex, github-copilot)', 'claude')
     .action(async (skills: string[], options: { tool?: string }) => {
-      const toolId = normalizeToolId(options.tool);
-      if (skills.length > 0) {
-        await uninstallSkills(skills, toolId);
-      } else {
-        console.log(chalk.yellow('Error: Please specify skill IDs to uninstall.'));
-        console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see installed skills.'));
-        process.exit(1);
-      }
+      const cmd = new SkillsCommand();
+      await cmd.uninstall(skills, options);
     });
   
   // Status command
@@ -255,7 +285,7 @@ export function registerSkillsCommands(program: Command): void {
     .description('Show currently installed Spool skills')
     .option('--tool <toolId>', 'Target tool (claude, opencode, codex, github-copilot)', 'claude')
     .action(async (options: { tool?: string }) => {
-      const toolId = normalizeToolId(options.tool);
-      await listInstalledSkills(toolId);
+      const cmd = new SkillsCommand();
+      await cmd.status(options);
     });
 }
