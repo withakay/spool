@@ -33,7 +33,8 @@ export function registerRalphCommand(program: Command): void {
           maxIterations: options.maxIterations ? parseInt(options.maxIterations, 10) : undefined,
           completionPromise: options.completionPromise,
           allowAll: options.allowAll || options.yolo || options.dangerouslyAllowAll,
-          noCommit: options.noCommit,
+          // Commander stores `--no-commit` as `options.commit === false`.
+          noCommit: options.commit === false,
           status: options.status,
           addContext: options.addContext,
           clearContext: options.clearContext,
