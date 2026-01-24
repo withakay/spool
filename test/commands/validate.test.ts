@@ -9,10 +9,28 @@ describe('top-level validate command', () => {
   const testDir = path.join(projectRoot, 'test-validate-command-tmp');
   const changesDir = getChangesPath(testDir);
   const specsDir = getSpecsPath(testDir);
+  const modulesDir = path.join(testDir, '.spool', 'modules');
 
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
+    await fs.mkdir(path.join(modulesDir, '000_ungrouped'), { recursive: true });
+    
+    // Create module file that lists all test changes (with required Purpose and Scope sections)
+    const moduleContent = `# Module 000: Ungrouped
+
+## Purpose
+A module for ungrouped test changes.
+
+## Scope
+- *
+
+## Changes
+- 000-01_c1
+- 000-02_dup
+- 000-03_crlf-change
+`;
+    await fs.writeFile(path.join(modulesDir, '000_ungrouped', 'module.md'), moduleContent, 'utf-8');
 
     // Create a valid spec
     const specContent = [
@@ -32,10 +50,12 @@ describe('top-level validate command', () => {
     await fs.mkdir(path.join(specsDir, 'alpha'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'alpha', 'spec.md'), specContent, 'utf-8');
 
-    // Create a simple change with bullets (parser supports this)
+    // Create a simple change with bullets (parser supports this) - use modular naming
     const changeContent = `# Test Change\n\n## Why\nBecause reasons that are sufficiently long for validation.\n\n## What Changes\n- **alpha:** Add something`;
-    await fs.mkdir(path.join(changesDir, 'c1'), { recursive: true });
-    await fs.writeFile(path.join(changesDir, 'c1', 'proposal.md'), changeContent, 'utf-8');
+    await fs.mkdir(path.join(changesDir, '000-01_c1'), { recursive: true });
+    await fs.writeFile(path.join(changesDir, '000-01_c1', 'proposal.md'), changeContent, 'utf-8');
+    // Create .spool.yaml file required for validation
+    await fs.writeFile(path.join(changesDir, '000-01_c1', '.spool.yaml'), 'version: "1.0.0"', 'utf-8');
     const deltaContent = [
       '## ADDED Requirements',
       '### Requirement: Validator SHALL support alpha change deltas',
@@ -46,14 +66,15 @@ describe('top-level validate command', () => {
       '- **WHEN** spool validate runs',
       '- **THEN** the validator reports the change as valid',
     ].join('\n');
-    const c1DeltaDir = path.join(changesDir, 'c1', 'specs', 'alpha');
+    const c1DeltaDir = path.join(changesDir, '000-01_c1', 'specs', 'alpha');
     await fs.mkdir(c1DeltaDir, { recursive: true });
     await fs.writeFile(path.join(c1DeltaDir, 'spec.md'), deltaContent, 'utf-8');
 
-    // Duplicate name for ambiguity test
-    await fs.mkdir(path.join(changesDir, 'dup'), { recursive: true });
-    await fs.writeFile(path.join(changesDir, 'dup', 'proposal.md'), changeContent, 'utf-8');
-    const dupDeltaDir = path.join(changesDir, 'dup', 'specs', 'dup');
+    // Duplicate name for ambiguity test - use modular naming
+    await fs.mkdir(path.join(changesDir, '000-02_dup'), { recursive: true });
+    await fs.writeFile(path.join(changesDir, '000-02_dup', 'proposal.md'), changeContent, 'utf-8');
+    await fs.writeFile(path.join(changesDir, '000-02_dup', '.spool.yaml'), 'version: "1.0.0"', 'utf-8');
+    const dupDeltaDir = path.join(changesDir, '000-02_dup', 'specs', 'dup');
     await fs.mkdir(dupDeltaDir, { recursive: true });
     await fs.writeFile(path.join(dupDeltaDir, 'spec.md'), deltaContent, 'utf-8');
     await fs.mkdir(path.join(specsDir, 'dup'), { recursive: true });
@@ -91,13 +112,14 @@ describe('top-level validate command', () => {
   });
 
   it('errors on ambiguous item names and suggests type override', async () => {
+    // 'dup' appears both as a spec and as a change spec - should be ambiguous
     const result = await runCLI(['validate', 'dup'], { cwd: testDir });
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('Ambiguous item');
   });
 
   it('accepts change proposals saved with CRLF line endings', async () => {
-    const changeId = 'crlf-change';
+    const changeId = '000-03_crlf-change';
     const toCrlf = (segments: string[]) => segments.join('\n').replace(/\n/g, '\r\n');
 
     const crlfContent = toCrlf([
@@ -112,6 +134,8 @@ describe('top-level validate command', () => {
 
     await fs.mkdir(path.join(changesDir, changeId), { recursive: true });
     await fs.writeFile(path.join(changesDir, changeId, 'proposal.md'), crlfContent, 'utf-8');
+    // Create .spool.yaml file required for validation
+    await fs.writeFile(path.join(changesDir, changeId, '.spool.yaml'), 'version: "1.0.0"', 'utf-8');
 
     const deltaContent = toCrlf([
       '## ADDED Requirements',

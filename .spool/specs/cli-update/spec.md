@@ -99,7 +99,7 @@ The update command SHALL refresh existing slash command files for configured too
 - **AND** skip creating missing files during update
 
 #### Scenario: Updating slash commands for OpenCode
-- **WHEN** `.opencode/command/` contains `spool-proposal.md`, `spool-apply.md`, and `spool-archive.md`
+- **WHEN** `.opencode/commands/` contains `spool-proposal.md`, `spool-apply.md`, and `spool-archive.md`
 - **THEN** refresh each file using shared templates
 - **AND** ensure templates include instructions for the relevant workflow stage
 - **AND** ensure the archive command includes `$ARGUMENTS` placeholder in frontmatter for accepting change ID arguments

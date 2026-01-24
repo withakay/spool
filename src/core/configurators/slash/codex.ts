@@ -12,6 +12,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   archive: ".codex/prompts/spool-archive.md",
   research: ".codex/prompts/spool-research.md",
   review: ".codex/prompts/spool-review.md",
+  spool: ".codex/prompts/spool.md",
 };
 
 export class CodexSlashCommandConfigurator extends SlashCommandConfigurator {
@@ -57,6 +58,12 @@ export class CodexSlashCommandConfigurator extends SlashCommandConfigurator {
       review: `---
  description: Conduct adversarial review via Spool review skill.
  argument-hint: change-id
+ ---
+ 
+ $ARGUMENTS`,
+      spool: `---
+ description: Route spool commands via the spool skill (skill-first, CLI fallback).
+ argument-hint: spool command
  ---
  
  $ARGUMENTS`,

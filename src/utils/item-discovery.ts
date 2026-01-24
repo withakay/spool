@@ -7,6 +7,7 @@ import {
   isModularChange,
   getModuleIdFromChange,
 } from '../core/schemas/index.js';
+import { parseModuleId, parseChangeId } from './id-parser.js';
 import {
   getModulesPath,
   getChangesPath,
@@ -186,5 +187,119 @@ export async function getModuleChangeIndex(root: string = process.cwd()): Promis
   }));
 
   return changeMap;
+}
+
+/**
+ * Resolve a flexible module ID to its canonical folder name.
+ * Accepts: "1", "01", "001", "001_my-module"
+ * Returns: "001_my-module" (the actual folder name)
+ */
+export async function resolveModuleId(flexibleId: string, root: string = process.cwd()): Promise<string | null> {
+  const parsed = parseModuleId(flexibleId);
+  if (!parsed.success) {
+    return null;
+  }
+  
+  const moduleInfo = await getModuleById(parsed.moduleId, root);
+  return moduleInfo?.fullName ?? null;
+}
+
+/**
+ * Resolve a flexible change ID to its canonical folder name.
+ * Accepts: "1-2_bar", "001-02_bar", "1-00003_bar"
+ * Returns: "001-02_bar" (the actual folder name, if it exists)
+ */
+export async function resolveChangeId(flexibleId: string, root: string = process.cwd()): Promise<string | null> {
+  const parsed = parseChangeId(flexibleId);
+  if (!parsed.success) {
+    return null;
+  }
+  
+  // Look for exact match in active changes
+  const activeChanges = await getActiveChangeIds(root);
+  
+  // First try exact canonical match
+  if (activeChanges.includes(parsed.canonical)) {
+    return parsed.canonical;
+  }
+  
+  // Then look for a match by module and change number (name might differ in folder)
+  for (const changeId of activeChanges) {
+    const changeParsed = parseModularChangeName(changeId);
+    if (changeParsed && 
+        changeParsed.moduleId === parsed.moduleId && 
+        changeParsed.changeNum === parsed.changeNum) {
+      return changeId;
+    }
+  }
+  
+  // Also check archived changes
+  const archivedChanges = await getArchivedChangeIds(root);
+  for (const changeId of archivedChanges) {
+    // Archived changes may have date prefix, so extract the change part
+    const match = changeId.match(/(\d{3}-\d{2}_[a-z][a-z0-9-]*)$/);
+    if (match) {
+      const changeParsed = parseModularChangeName(match[1]);
+      if (changeParsed && 
+          changeParsed.moduleId === parsed.moduleId && 
+          changeParsed.changeNum === parsed.changeNum) {
+        return changeId;
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Resolve a flexible change ID, throwing an error if not found.
+ * Provides helpful error messages with suggestions.
+ */
+export async function resolveChangeIdOrThrow(flexibleId: string, root: string = process.cwd()): Promise<string> {
+  const parsed = parseChangeId(flexibleId);
+  if (!parsed.success) {
+    throw new Error(parsed.hint ? `${parsed.error}. ${parsed.hint}` : parsed.error);
+  }
+  
+  const resolved = await resolveChangeId(flexibleId, root);
+  if (!resolved) {
+    const activeChanges = await getActiveChangeIds(root);
+    const suggestions = activeChanges
+      .filter(c => c.startsWith(parsed.moduleId))
+      .slice(0, 3);
+    
+    let errorMsg = `Change "${parsed.canonical}" not found`;
+    if (suggestions.length > 0) {
+      errorMsg += `. Did you mean: ${suggestions.join(', ')}?`;
+    }
+    throw new Error(errorMsg);
+  }
+  
+  return resolved;
+}
+
+/**
+ * Resolve a flexible module ID, throwing an error if not found.
+ * Provides helpful error messages with suggestions.
+ */
+export async function resolveModuleIdOrThrow(flexibleId: string, root: string = process.cwd()): Promise<ModuleInfo> {
+  const parsed = parseModuleId(flexibleId);
+  if (!parsed.success) {
+    throw new Error(parsed.hint ? `${parsed.error}. ${parsed.hint}` : parsed.error);
+  }
+  
+  const moduleInfo = await getModuleById(parsed.moduleId, root);
+  if (!moduleInfo) {
+    const modules = await getModuleInfo(root);
+    const suggestions = modules.slice(0, 3).map(m => m.fullName);
+    
+    let errorMsg = `Module "${parsed.moduleId}" not found`;
+    if (suggestions.length > 0) {
+      errorMsg += `. Available modules: ${suggestions.join(', ')}`;
+    }
+    throw new Error(errorMsg);
+  }
+  
+  return moduleInfo;
 }
 

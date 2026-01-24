@@ -7,7 +7,8 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   apply: '.github/prompts/spool-apply.prompt.md',
   archive: '.github/prompts/spool-archive.prompt.md',
   research: '.github/prompts/spool-research.prompt.md',
-  review: '.github/prompts/spool-review.prompt.md'
+  review: '.github/prompts/spool-review.prompt.md',
+  spool: '.github/prompts/spool.prompt.md'
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
@@ -33,6 +34,11 @@ const FRONTMATTER: Record<SlashCommandId, string> = {
  $ARGUMENTS`,
   review: `---
  description: Conduct adversarial review via Spool review skill.
+ ---
+ 
+  $ARGUMENTS`,
+  spool: `---
+ description: Route spool commands via the spool skill (skill-first, CLI fallback).
  ---
  
  $ARGUMENTS`

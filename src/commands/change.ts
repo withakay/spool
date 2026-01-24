@@ -5,7 +5,7 @@ import { Validator } from '../core/validation/validator.js';
 import { ChangeParser } from '../core/parsers/change-parser.js';
 import { Change } from '../core/schemas/index.js';
 import { isInteractive } from '../utils/interactive.js';
-import { getActiveChangeIds } from '../utils/item-discovery.js';
+import { getActiveChangeIds, resolveChangeId } from '../utils/item-discovery.js';
 import { getChangesPath } from '../core/project-config.js';
 
 // Constants for better maintainability
@@ -51,6 +51,12 @@ export class ChangeCommand {
       }
     }
 
+    // Resolve flexible ID to canonical folder name
+    const resolvedName = await resolveChangeId(changeName, process.cwd());
+    if (resolvedName) {
+      changeName = resolvedName;
+    }
+    
     const proposalPath = path.join(changesPath, changeName, 'proposal.md');
 
     try {
@@ -206,6 +212,12 @@ export class ChangeCommand {
         process.exitCode = 1;
         return;
       }
+    }
+    
+    // Resolve flexible ID to canonical folder name
+    const resolvedName = await resolveChangeId(changeName, process.cwd());
+    if (resolvedName) {
+      changeName = resolvedName;
     }
     
     const changeDir = path.join(changesPath, changeName);

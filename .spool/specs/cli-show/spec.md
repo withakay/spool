@@ -19,7 +19,7 @@ The CLI SHALL provide a top-level `show` command for displaying changes and spec
 - **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `SPOOL_INTERACTIVE=0`
 - **WHEN** executing `spool show` without arguments
 - **THEN** do not prompt
-- **AND** print a helpful hint with examples for `spool show <item>` or `spool change/spec show`
+- **AND** print a helpful hint with examples for `spool show <item>`
 - **AND** exit with code 1
 
 #### Scenario: Direct item display
@@ -33,7 +33,7 @@ The CLI SHALL provide a top-level `show` command for displaying changes and spec
 
 - **WHEN** executing `spool show <item-name>`
 - **THEN** if `<item-name>` uniquely matches a change or a spec, show that item
-- **AND** if it matches both, print an ambiguity error and suggest `--type change|spec` or using `spool change show`/`spool spec show`
+- **AND** if it matches both, print an ambiguity error and suggest `--type change|spec` or using `spool show --type change <item>` / `spool show --type spec <item>`
 - **AND** if it matches neither, print not-found with nearest-match suggestions
 
 #### Scenario: Explicit type override
@@ -66,20 +66,20 @@ The show command SHALL support various output formats consistent with existing c
 
 ### Requirement: Interactivity controls
 
-- The CLI SHALL respect `--no-interactive` to disable prompts.
-- The CLI SHALL respect `SPOOL_INTERACTIVE=0` to disable prompts globally.
-- Interactive prompts SHALL only be shown when stdin is a TTY and interactivity is not disabled.
+The show command SHALL NOT show interactive prompts in non-interactive environments and MUST support type detection.
 
-#### Scenario: Change-specific options
+#### Scenario: Non-interactive environments do not prompt
 
-- **WHEN** showing a change with `spool show <change-name> --deltas-only`
-- **THEN** display only the deltas in JSON format
-- **AND** maintain compatibility with existing change show options
+- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `SPOOL_INTERACTIVE=0`
+- **WHEN** executing `spool show` without arguments
+- **THEN** do not prompt
+- **AND** print a helpful hint with examples for `spool show <item>`
+- **AND** exit with code 1
 
-#### Scenario: Spec-specific options  
+#### Scenario: Type detection and ambiguity handling
 
-- **WHEN** showing a spec with `spool show <spec-id> --requirements`
-- **THEN** display only requirements in JSON format
-- **AND** support other spec options (--no-scenarios, -r)
-- **AND** maintain compatibility with existing spec show options
+- **WHEN** executing `spool show <item-name>`
+- **THEN** if `<item-name>` uniquely matches a change or a spec, show that item
+- **AND** if it matches both, print an ambiguity error and suggest `--type change|spec` or using `spool show --type change <item>` / `spool show --type spec <item>`
+- **AND** if it matches neither, print not-found with nearest-match suggestions
 

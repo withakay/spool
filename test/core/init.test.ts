@@ -185,12 +185,17 @@ describe('InitCommand', () => {
         testDir,
         '.claude/commands/spool/review.md'
       );
+      const claudeSpool = path.join(
+        testDir,
+        '.claude/commands/spool/spool.md'
+      );
 
       expect(await fileExists(claudeProposal)).toBe(true);
       expect(await fileExists(claudeApply)).toBe(true);
       expect(await fileExists(claudeArchive)).toBe(true);
       expect(await fileExists(claudeResearch)).toBe(true);
       expect(await fileExists(claudeReview)).toBe(true);
+      expect(await fileExists(claudeSpool)).toBe(true);
 
       const proposalContent = await fs.readFile(claudeProposal, 'utf-8');
       expect(proposalContent).toContain('name: Spool: Proposal');
@@ -209,6 +214,11 @@ describe('InitCommand', () => {
       const reviewContent = await fs.readFile(claudeReview, 'utf-8');
       expect(reviewContent).toContain('name: Spool: Review');
       expect(reviewContent).toContain('Use the Spool agent skill');
+
+      const spoolContent = await fs.readFile(claudeSpool, 'utf-8');
+      expect(spoolContent).toContain('name: Spool: Spool');
+      expect(spoolContent).toContain('<!-- SPOOL:START -->');
+      expect(spoolContent).toContain('Use the Spool agent skill');
     });
 
     it('should create OpenCode slash command files with templates', async () => {
@@ -236,12 +246,14 @@ describe('InitCommand', () => {
         testDir,
         '.opencode/command/spool-review.md'
       );
+      const openCodeSpool = path.join(testDir, '.opencode/command/spool.md');
 
       expect(await fileExists(openCodeProposal)).toBe(true);
       expect(await fileExists(openCodeApply)).toBe(true);
       expect(await fileExists(openCodeArchive)).toBe(true);
       expect(await fileExists(openCodeResearch)).toBe(true);
       expect(await fileExists(openCodeReview)).toBe(true);
+      expect(await fileExists(openCodeSpool)).toBe(true);
 
       const proposalContent = await fs.readFile(openCodeProposal, 'utf-8');
       expect(proposalContent).toContain(
@@ -254,6 +266,12 @@ describe('InitCommand', () => {
 
       const reviewContent = await fs.readFile(openCodeReview, 'utf-8');
       expect(reviewContent).toContain('Spool review skill');
+
+      const spoolContent = await fs.readFile(openCodeSpool, 'utf-8');
+      expect(spoolContent).toContain('<!-- SPOOL:START -->');
+      expect(spoolContent).toContain('Use the Spool agent skill');
+      expect(spoolContent).toContain('<SpoolCommand>');
+      expect(spoolContent).toContain('</SpoolCommand>');
     });
 
     it('should create Codex prompts with templates and placeholders', async () => {
@@ -281,12 +299,14 @@ describe('InitCommand', () => {
         testDir,
         '.codex/prompts/spool-review.md'
       );
+      const spoolPath = path.join(testDir, '.codex/prompts/spool.md');
 
       expect(await fileExists(proposalPath)).toBe(true);
       expect(await fileExists(applyPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
       expect(await fileExists(researchPath)).toBe(true);
       expect(await fileExists(reviewPath)).toBe(true);
+      expect(await fileExists(spoolPath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
       expect(proposalContent).toContain('argument-hint: request or feature description');
@@ -297,6 +317,11 @@ describe('InitCommand', () => {
 
       const reviewContent = await fs.readFile(reviewPath, 'utf-8');
       expect(reviewContent).toContain('Spool review skill');
+
+      const spoolContent = await fs.readFile(spoolPath, 'utf-8');
+      expect(spoolContent).toContain('argument-hint: spool command');
+      expect(spoolContent).toContain('$ARGUMENTS');
+      expect(spoolContent).toContain('<!-- SPOOL:START -->');
     });
 
     it('should create GitHub Copilot prompt files with templates', async () => {
@@ -324,12 +349,14 @@ describe('InitCommand', () => {
         testDir,
         '.github/prompts/spool-review.prompt.md'
       );
+      const spoolPath = path.join(testDir, '.github/prompts/spool.prompt.md');
 
       expect(await fileExists(proposalPath)).toBe(true);
       expect(await fileExists(applyPath)).toBe(true);
       expect(await fileExists(archivePath)).toBe(true);
       expect(await fileExists(researchPath)).toBe(true);
       expect(await fileExists(reviewPath)).toBe(true);
+      expect(await fileExists(spoolPath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
       expect(proposalContent).toContain('description: Scaffold a new Spool change and validate strictly.');
@@ -340,6 +367,11 @@ describe('InitCommand', () => {
 
       const reviewContent = await fs.readFile(reviewPath, 'utf-8');
       expect(reviewContent).toContain('Spool review skill');
+
+      const spoolContent = await fs.readFile(spoolPath, 'utf-8');
+      expect(spoolContent).toContain('description: Route spool commands via the spool skill');
+      expect(spoolContent).toContain('$ARGUMENTS');
+      expect(spoolContent).toContain('<!-- SPOOL:START -->');
     });
 
     it('should add new tool when Spool already exists', async () => {
@@ -467,11 +499,15 @@ describe('InitCommand', () => {
         testDir,
         '.github/prompts/spool-proposal.prompt.md'
       );
+      const openCodeSpool = path.join(testDir, '.opencode/command/spool.md');
+      const claudeSpool = path.join(testDir, '.claude/commands/spool/spool.md');
 
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(openCodeProposal)).toBe(true);
       expect(await fileExists(codexProposal)).toBe(true);
       expect(await fileExists(copilotProposal)).toBe(true);
+      expect(await fileExists(openCodeSpool)).toBe(true);
+      expect(await fileExists(claudeSpool)).toBe(true);
     });
 
     it('should select specific tools with --tools option', async () => {

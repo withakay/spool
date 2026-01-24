@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
@@ -9,6 +9,25 @@ import {
   ChangeSchema,
   DeltaSchema 
 } from '../../src/core/schemas/index.js';
+import * as itemDiscovery from '../../src/utils/item-discovery.js';
+
+// Mock getModuleChangeIndex to return empty for unit tests
+vi.mock('../../src/utils/item-discovery.js', async (importOriginal) => {
+  const original = await importOriginal<typeof itemDiscovery>();
+  return {
+    ...original,
+    getModuleChangeIndex: vi.fn().mockImplementation(async () => {
+      // Return a mock map that includes test change IDs
+      const map = new Map<string, string[]>();
+      map.set('000-01_test-change', ['000']);
+      map.set('000-02_test-change', ['000']);
+      map.set('000-03_test-change', ['000']);
+      map.set('000-04_test-change', ['000']);
+      map.set('000-05_test-change-mixed-case', ['000']);
+      return map;
+    }),
+  };
+});
 
 describe('Validation Schemas', () => {
   describe('ScenarioSchema', () => {
@@ -341,7 +360,7 @@ Then result`;
 
   describe('validateChangeDeltaSpecs with metadata', () => {
     it('should validate requirement with metadata before SHALL/MUST text', async () => {
-      const changeDir = path.join(testDir, 'test-change');
+      const changeDir = path.join(testDir, '000-01_test-change');
       const specsDir = path.join(changeDir, 'specs', 'test-spec');
       await fs.mkdir(specsDir, { recursive: true });
 
@@ -371,7 +390,7 @@ The system MUST implement a circuit breaker with three states.
     });
 
     it('should validate requirement with SHALL in text but not in header', async () => {
-      const changeDir = path.join(testDir, 'test-change-2');
+      const changeDir = path.join(testDir, '000-02_test-change');
       const specsDir = path.join(changeDir, 'specs', 'test-spec');
       await fs.mkdir(specsDir, { recursive: true });
 
@@ -401,7 +420,7 @@ The system SHALL handle all errors gracefully.
     });
 
     it('should fail when requirement text lacks SHALL/MUST', async () => {
-      const changeDir = path.join(testDir, 'test-change-3');
+      const changeDir = path.join(testDir, '000-03_test-change');
       const specsDir = path.join(changeDir, 'specs', 'test-spec');
       await fs.mkdir(specsDir, { recursive: true });
 
@@ -431,7 +450,7 @@ The system will log all events.
     });
 
     it('should handle requirements without metadata fields', async () => {
-      const changeDir = path.join(testDir, 'test-change-4');
+      const changeDir = path.join(testDir, '000-04_test-change');
       const specsDir = path.join(changeDir, 'specs', 'test-spec');
       await fs.mkdir(specsDir, { recursive: true });
 
@@ -458,7 +477,7 @@ The system SHALL implement this feature.
     });
 
     it('should treat delta headers case-insensitively', async () => {
-      const changeDir = path.join(testDir, 'test-change-mixed-case');
+      const changeDir = path.join(testDir, '000-05_test-change-mixed-case');
       const specsDir = path.join(changeDir, 'specs', 'test-spec');
       await fs.mkdir(specsDir, { recursive: true });
 

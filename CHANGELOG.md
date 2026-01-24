@@ -8,7 +8,7 @@
 
   - **Continue IDE support** – Spool now generates slash commands for [Continue](https://continue.dev/), expanding editor integration options alongside Cursor, Windsurf, Claude Code, and others
   - **Shell completions for Bash, Fish, and PowerShell** – Run `spool completion install` to set up tab completion in your preferred shell
-  - **`/opsx:explore` command** – A new thinking partner mode for exploring ideas and investigating problems before committing to changes
+  - **`/spool-explore` command** – A new thinking partner mode for exploring ideas and investigating problems before committing to changes
   - **Codebuddy slash command improvements** – Updated frontmatter format for better compatibility
 
   ### Bug Fixes
@@ -28,9 +28,9 @@
 
   **New Commands:**
 
-  - `/opsx:ff` - Fast-forward through artifact creation, generating all needed artifacts in one go
-  - `/opsx:sync` - Sync delta specs from a change to main specs
-  - `/opsx:archive` - Archive completed changes with smart sync check
+  - `/spool-ff-change` - Fast-forward through artifact creation, generating all needed artifacts in one go
+  - `/spool-sync-specs` - Sync delta specs from a change to main specs
+  - `/spool-archive-change` - Archive completed changes with smart sync check
 
   **Artifact Workflow Enhancements:**
 

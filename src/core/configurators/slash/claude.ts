@@ -7,6 +7,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   archive: '.claude/commands/spool/archive.md',
   research: '.claude/commands/spool/research.md',
   review: '.claude/commands/spool/review.md',
+  spool: '.claude/commands/spool/spool.md',
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
@@ -39,6 +40,12 @@ name: Spool: Review
 description: Conduct adversarial review via Spool review skill.
 category: Spool
 tags: [spool, review]
+---`,
+  spool: `---
+name: Spool: Spool
+description: Route spool commands via the spool skill (skill-first, CLI fallback).
+category: Spool
+tags: [spool, routing]
 ---`,
 };
 

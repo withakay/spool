@@ -99,7 +99,7 @@ export class ShowCommand {
 
     if (!params.typeOverride && isChange && isSpec) {
       console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
-      console.error('Pass --type change|spec, or use: spool change show / spool spec show');
+      console.error('Pass --type change|spec, or use: spool show <item> --type change / spool show <item> --type spec');
       process.exitCode = 1;
       return;
     }
@@ -117,8 +117,7 @@ export class ShowCommand {
   private printNonInteractiveHint(): void {
     console.error('Nothing to show. Try one of:');
     console.error('  spool show <item>');
-    console.error('  spool change show');
-    console.error('  spool spec show');
+    console.error('  spool show (for interactive selection)');
     console.error('Or run in an interactive terminal.');
   }
 

@@ -146,8 +146,14 @@ vite.config.ts.timestamp-*
 CLAUDE.md
 .DS_Store
 
+# Spool local state (do not track)
+.spool/.state/
+
 # Pnpm
 .pnpm-store/
 
 # Temp
 /temp/
+/tmp/
+/demo/
+/qa/ralph/demo/

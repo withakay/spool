@@ -16,6 +16,7 @@ import { FileSystemUtils } from '../utils/file-system.js';
 import { TemplateManager, ProjectContext, PlanningContext } from './templates/index.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
+import { getSplash } from './ui/splash.js';
 import {
   SpoolConfig,
   AI_TOOLS,
@@ -1007,26 +1008,8 @@ export class InitCommand {
   }
 
   private renderBanner(_extendMode: boolean): void {
-    const rows = ['', '', '', '', ''];
-    for (const char of 'SPOOL') {
-      const glyph = LETTER_MAP[char] ?? LETTER_MAP[' '];
-      for (let i = 0; i < rows.length; i += 1) {
-        rows[i] += `${glyph[i]}  `;
-      }
-    }
-
-    const rowStyles = [
-      PALETTE.white,
-      PALETTE.lightGray,
-      PALETTE.midGray,
-      PALETTE.lightGray,
-      PALETTE.white,
-    ];
-
     console.log();
-    rows.forEach((row, index) => {
-      console.log(rowStyles[index](row.replace(/\s+$/u, '')));
-    });
+    console.log(PALETTE.white(getSplash().trim()));
     console.log();
     console.log(PALETTE.white('Welcome to Spool!'));
     console.log();

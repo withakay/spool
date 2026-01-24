@@ -102,14 +102,14 @@ jobs:
             ### Minor Changes
             - 8dfd824: Add OPSX experimental workflow commands and enhanced artifact system
               **New Commands:**
-              - `/opsx:ff` - Fast-forward through artifact creation
+              - `/spool-ff-change` - Fast-forward through artifact creation
             ```
 
             After (polished-notes.md):
             ```
             ### New
 
-            - **Fast-forward mode** - Generate all planning artifacts at once with `/opsx:ff`. Useful when you already know what you're building.
+            - **Fast-forward mode** - Generate all planning artifacts at once with `/spool-ff-change`. Useful when you already know what you're building.
             ```
 
             After (release-title.txt):

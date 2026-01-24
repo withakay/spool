@@ -105,7 +105,7 @@ This tells you:
 Think freely. When insights crystallize, you might offer:
 
 - "This feels solid enough to start a change. Want me to create one?"
-  → Can transition to \`/opsx:new\` or \`/opsx:ff\`
+  → Can transition to \`/spool-new-change\` or \`/spool-ff-change\`
 - Or keep exploring - no pressure to formalize
 
 ### When a change exists
@@ -145,8 +145,8 @@ The user decides when to stop. Common signals:
 If valuable insights emerged, you might offer:
 
 > "This was useful. Want me to:
-> - Create a change: /opsx:new <name>
-> - Fast-forward to tasks: /opsx:ff <name>
+> - Create a change: /spool-new-change <name>
+> - Fast-forward to tasks: /spool-ff-change <name>
 > - Keep exploring: just keep talking"
 
 But this summary is optional. Sometimes the thinking IS the value.
@@ -172,7 +172,7 @@ But this summary is optional. Sometimes the thinking IS the value.
 
 /**
  * Template for spool-new-change skill
- * Based on /opsx:new command
+ * Based on /spool-new-change command
  */
 export function getNewChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   const rawInstructions = `Start a new change using the experimental artifact-driven approach.
@@ -262,7 +262,7 @@ After completing the steps, summarize:
 
 /**
  * Template for spool-continue-change skill
- * Based on /opsx:continue command
+ * Based on /spool-continue-change command
  */
 export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
@@ -624,7 +624,7 @@ After completing all artifacts, summarize:
 - Change name and location
 - List of artifacts created with brief descriptions
 - What's ready: "All artifacts created! Ready for implementation."
-- Prompt: "Run \`/opsx:apply\` or ask me to implement to start working on the tasks."
+- Prompt: "Run \`/spool-apply-change\` or ask me to implement to start working on the tasks."
 
 **Artifact Creation Guidelines**
 
@@ -902,16 +902,72 @@ After this invocation finishes, auto commit behavior must be considered reset. F
   };
 }
 
+/**
+ * Template for spool skill
+ * Unified entry point for spool commands with skill-first routing and CLI fallback
+ */
+export function getSpoolSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
+  const rawInstructions = `Route spool commands to the best handler.
+
+## Goal
+
+Users may type requests like \
+\`spool archive 001-03_add-spool-skill\` or \
+\`spool view 001-03_add-spool-skill\`.
+
+This skill MUST:
+1. Prefer matching spool-* skills (skill-first precedence)
+2. Fall back to the spool CLI when no matching skill is installed
+3. Preserve argument order and content
+
+## Input
+
+The requested command is provided either:
+- As plain text following the word "spool" in the user request, or
+- In the prompt arguments ($ARGUMENTS), or
+- In a <SpoolCommand> block
+
+## Steps
+
+1. **Parse** the command:
+   - Extract the primary command (first token) and the remaining args
+   - If no command is provided, output a concise error: "Command is required" and show a one-line usage example
+
+2. **Resolve skill target**:
+   - Build candidate skill id: \`spool-${'${command}'}\`
+   - Determine if that skill is installed/available in this harness
+     - OpenCode: check for a directory under \`.opencode/skill/\`
+     - Claude: check for a directory under \`.claude/skills/\`
+     - GitHub Copilot: check for a directory under \`.github/skills/\`
+     - Codex: skills are global; if unsure, assume not installed and use CLI fallback
+
+3. **Execute**:
+   - If matching skill exists: follow that skill's instructions, passing along the original args
+   - Otherwise: invoke the CLI using Bash:
+     - \`spool <command> <args...>\`
+
+4. **Error handling**:
+   - If the invoked skill fails: prefix with \`[spool-* skill error]\` and preserve the original error
+   - If the CLI fails: prefix with \`[spool CLI error]\` and preserve the original error
+`;
+
+  return {
+    name: 'spool',
+    description: 'Unified entry point for spool commands with intelligent skill-first routing and CLI fallback.',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir),
+  };
+}
+
 
 /**
  * Template for spool-proposal skill
- * Creates and manages Spool change proposals
+ * Creates complete Spool change proposals with all artifacts
  */
 export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-proposal',
-    description: 'Create and manage Spool change proposals. Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
-    instructions: `Create and manage Spool change proposals using the spec-driven workflow.
+    description: 'Create complete Spool change proposals with all artifacts (proposal, specs, design, tasks). Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
+    instructions: `Create complete Spool change proposals using the spec-driven workflow.
 
 **Input**: The user's request for a change they want to make to the project.
 
@@ -960,22 +1016,59 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
       - **Capabilities**: List of new/modified capabilities (each becomes a spec)
       - **Impact**: How this affects existing functionality, performance, etc.
 
-  6. **Show the proposal status**
+  6. **Create spec files for each capability**
+     - Read the proposal.md to extract the **Capabilities** list
+     - For each capability in the list:
+       1. Create directory: \`mkdir -p .spool/changes/<change-id>/specs/<capability-name>\`
+       2. Get spec template:
+          \`\`\`bash
+          spool instructions spec --change "<change-id>"
+          \`\`\`
+       3. Create \`specs/<capability-name>/spec.md\`:
+          - **Purpose**: What is this capability? What problem does it solve?
+          - **Requirements**: List of requirements with scenarios (Given/When/Then format)
+          - Each requirement MUST include at least one \`#### Scenario:\` block
+
+  7. **Create the design artifact**
+     \`\`\`bash
+     spool instructions design --change "<change-id>"
+     \`\`\`
+    - Get the template and context for creating the design.md
+    - Read the template and fill it out based on the proposal and specs:
+      - **Overview**: High-level summary of the change
+      - **Architecture**: System components and their interactions
+      - **Implementation Strategy**: How to implement (step-by-step)
+      - **What NOT to Change**: Explicit list of what to avoid modifying
+      - **Testing Strategy**: How to verify the implementation
+
+  8. **Create the tasks artifact**
+     \`\`\`bash
+     spool instructions tasks --change "<change-id>"
+     \`\`\`
+    - Get the template and context for creating the tasks.md
+    - Read the template and break down into actionable tasks:
+      - Organize by phases (Phase 1, Phase 2, etc.)
+      - Each task should be a checkbox item: \`- [ ] <task description>\`
+      - Include tasks for: implementation, testing, validation, documentation
+      - Reference specific files where applicable
+
+  9. **Show final status**
     \`\`\`bash
     spool status --change "<change-id>"
     \`\`\`
-    - Show that proposal is complete
-    - Indicate what's next (specs need to be created)
+    - Show that all artifacts are complete
+    - Indicate the change is ready for implementation or review
 
 
 
 **Output**
 
-After completing the proposal, summarize:
+After completing all artifacts, summarize:
 - Change name and location
 - Proposal summary (Why, What Changes, Capabilities, Impact)
-- Next steps: "Ready to create specs for each capability"
-- Prompt: "Continue with specs, or want to review the proposal first?"
+- Created artifacts: proposal.md, N spec files, design.md, tasks.md
+- Next steps: "All artifacts created! Ready to implement with \`spool apply\` or request review/iteration"
+- Prompt: "Ready to implement, or want to review and iterate on the artifacts?"
 
 **Guidelines for Good Proposals**
 
@@ -984,11 +1077,34 @@ After completing the proposal, summarize:
 - **Capabilities** should be specific: Each capability should be independently testable
 - **Impact** should be realistic: Performance impact? Breaking changes? Migration needed?
 
+**Spec Creation Guidelines**
+
+- Each capability MUST have a corresponding spec file in \`specs/<capability-name>/spec.md\`
+- Specs MUST include **Purpose** and **Requirements** sections
+- Each requirement MUST include at least one \`#### Scenario:\` block with Given/When/Then format
+- Specs should be detailed enough for independent testing
+
+**Design Creation Guidelines**
+
+- Design should reference specific files that will be modified
+- Include clear step-by-step implementation phases
+- Identify risks and mitigation strategies
+- Document what NOT to change to avoid scope creep
+
+**Tasks Creation Guidelines**
+
+- Tasks should be actionable and checkable (each item is a checkbox)
+- Break down work into logical phases
+- Include validation tasks (run tests, verify implementation)
+- Reference specific files and line numbers where possible
+
 **Guardrails**
-- Don't create specs yet - just the proposal
+- Create ALL artifacts in one workflow (proposal, specs, design, tasks)
 - If the request is too vague, ask for clarification before creating
 - If similar work exists, suggest collaborating or continuing existing work
-- Ensure each capability listed could reasonably become a separate spec file`
+- Ensure each capability listed has a corresponding spec file
+- Don't skip any artifact - all four are required for a complete proposal
+- After creating all artifacts, offer to iterate based on user feedback`
   };
 }
 
@@ -1457,20 +1573,18 @@ export interface CommandTemplate {
 }
 
 /**
- * Template for /opsx:explore slash command
+ * Template for /spool-explore slash command
  * Explore mode - adaptive thinking partner
  */
-export function getOpsxExploreCommandTemplate(): CommandTemplate {
+export function getSpoolExploreCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Explore',
+    name: 'Spool Explore',
     description: 'Enter explore mode - think through ideas, investigate problems, clarify requirements',
     category: 'Workflow',
     tags: ['workflow', 'explore', 'experimental', 'thinking'],
-    content: `Use the \`spool-explore\` skill for OPSX explore mode.
+    content: `Use the \`spool-explore\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-explore/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-explore\``
@@ -1479,19 +1593,17 @@ If the skill is missing, install it first:
 
 
 /**
- * Template for /opsx:new slash command
+ * Template for /spool-new-change slash command
  */
-export function getOpsxNewCommandTemplate(): CommandTemplate {
+export function getSpoolNewChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: New',
-    description: 'Start a new change using the experimental artifact workflow (OPSX)',
+    name: 'Spool New Change',
+    description: 'Start a new change using the experimental artifact workflow',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-new-change\` skill to start a change in the OPSX workflow.
+    content: `Use the \`spool-new-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-new-change/SKILL.md\`
-- Follow the instructions exactly (module-first + CLI driven)
+Follow the skill instructions exactly (module-first + CLI driven).
 
 If the skill is missing, install it first:
 \`spool skills install spool-new-change\``
@@ -1499,19 +1611,17 @@ If the skill is missing, install it first:
 }
 
 /**
- * Template for /opsx:continue slash command
+ * Template for /spool-continue-change slash command
  */
-export function getOpsxContinueCommandTemplate(): CommandTemplate {
+export function getSpoolContinueChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Continue',
+    name: 'Spool Continue Change',
     description: 'Continue working on a change - create the next artifact (Experimental)',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-continue-change\` skill to advance the OPSX workflow.
+    content: `Use the \`spool-continue-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-continue-change/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-continue-change\``
@@ -1520,19 +1630,17 @@ If the skill is missing, install it first:
 
 
 /**
- * Template for /opsx:apply slash command
+ * Template for /spool-apply-change slash command
  */
-export function getOpsxApplyCommandTemplate(): CommandTemplate {
+export function getSpoolApplyChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Apply',
+    name: 'Spool Apply Change',
     description: 'Implement tasks from an Spool change (Experimental)',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-apply-change\` skill to implement tasks for an OPSX change.
+    content: `Use the \`spool-apply-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-apply-change/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-apply-change\``
@@ -1542,19 +1650,17 @@ If the skill is missing, install it first:
 
 
 /**
- * Template for /opsx:ff slash command
+ * Template for /spool-ff-change slash command
  */
-export function getOpsxFfCommandTemplate(): CommandTemplate {
+export function getSpoolFfChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Fast Forward',
+    name: 'Spool Fast Forward',
     description: 'Create a change and generate all artifacts needed for implementation in one go',
     category: 'Workflow',
     tags: ['workflow', 'artifacts', 'experimental'],
-    content: `Use the \`spool-ff-change\` skill to fast-forward artifact creation.
+    content: `Use the \`spool-ff-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-ff-change/SKILL.md\`
-- Follow the instructions exactly (module-first + CLI driven)
+Follow the skill instructions exactly (module-first + CLI driven).
 
 If the skill is missing, install it first:
 \`spool skills install spool-ff-change\``
@@ -1636,7 +1742,7 @@ export function getArchiveChangeSkillTemplate(spoolDir: string = '.spool'): Skil
       Would you like to sync now before archiving?
       \`\`\`
       - Use **AskUserQuestion tool** with options: "Sync now", "Archive without syncing"
-      - If user chooses sync, execute /opsx:sync logic (use the spool-sync-specs skill)
+      - If user chooses sync, use the \`spool-sync-specs\` skill
 
       **If already synced (all requirements found):**
       - Proceed without prompting (specs appear to be in sync)
@@ -1694,19 +1800,17 @@ All artifacts complete. All tasks complete.
 }
 
 /**
- * Template for /opsx:sync slash command
+ * Template for /spool-sync-specs slash command
  */
-export function getOpsxSyncCommandTemplate(): CommandTemplate {
+export function getSpoolSyncSpecsCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Sync',
+    name: 'Spool Sync Specs',
     description: 'Sync delta specs from a change to main specs',
     category: 'Workflow',
     tags: ['workflow', 'specs', 'experimental'],
-    content: `Use the \`spool-sync-specs\` skill to sync delta specs.
+    content: `Use the \`spool-sync-specs\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-sync-specs/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-sync-specs\``
@@ -1714,23 +1818,19 @@ If the skill is missing, install it first:
 }
 
 /**
- * Template for /opsx:archive slash command
+ * Template for /spool-archive-change slash command
  */
-export function getOpsxArchiveCommandTemplate(): CommandTemplate {
+export function getSpoolArchiveChangeCommandTemplate(): CommandTemplate {
   return {
-    name: 'OPSX: Archive',
-    description: 'Archive a completed change in the experimental workflow',
+    name: 'Spool Archive Change',
+    description: 'Archive a completed change in experimental workflow',
     category: 'Workflow',
     tags: ['workflow', 'archive', 'experimental'],
-    content: `Use the \`spool-archive-change\` skill to archive an OPSX change.
+    content: `Use \`spool-archive-change\` skill.
 
-Steps:
-- Open \`.claude/skills/spool-archive-change/SKILL.md\`
-- Follow the instructions exactly
+Follow the skill instructions exactly.
 
 If the skill is missing, install it first:
 \`spool skills install spool-archive-change\``
   };
 }
-
-
