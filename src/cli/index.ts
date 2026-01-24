@@ -16,12 +16,6 @@ import { CompletionCommand } from '../commands/completion.js';
 import { ConfigCommand, registerConfigCommand } from '../commands/config.js';
 import { registerArtifactWorkflowCommands } from '../commands/artifact-workflow.js';
 import { ModuleCommand, registerModuleCommand } from '../commands/module.js';
-import { StateCommand } from '../commands/state.js';
-import { PlanCommand } from '../commands/plan.js';
-import { TasksCommand } from '../commands/tasks.js';
-import { AgentConfigCommand } from '../commands/agent-config.js';
-import { WorkflowCommand } from '../commands/workflow.js';
-import { registerSkillsCommands } from '../commands/skills.js';
 import { registerResearchCommand } from '../commands/research.js';
 import { SplitCommand } from '../commands/split.js';
 import { registerRalphCommand } from '../commands/ralph.js';
@@ -269,6 +263,23 @@ registerModuleCommand(program);
 const createCmd = program
   .command('create')
   .description('Create items');
+
+createCmd
+  .command('change <name>')
+  .description('Create a new change')
+  .option('--description <text>', 'Description to add to README.md')
+  .option('--schema <name>', 'Workflow schema to use')
+  .option('--module <id>', 'Module ID to associate the change with (default: 000)')
+  .action(async (name: string, options?: { description?: string; schema?: string; module?: string }) => {
+    try {
+      const { createChangeCommand } = await import('../commands/artifact-workflow.js');
+      await createChangeCommand(name, options ?? {});
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
 
 createCmd
   .command('module [name]')
@@ -696,9 +707,6 @@ program
 
 // Register artifact workflow commands (experimental)
 registerArtifactWorkflowCommands(program);
-
-// Register skills commands
-registerSkillsCommands(program);
 
 // Register research command
 registerResearchCommand(program);

@@ -226,7 +226,7 @@ async function validateChangeExists(
   if (!changeName) {
     const available = await getAvailableChanges();
     if (available.length === 0) {
-      throw new Error('No changes found. Create one with: spool x-new change <name>');
+      throw new Error('No changes found. Create one with: spool create change <name>');
     }
     throw new Error(
       `Missing required option --change. Available changes:\n  ${available.join('\n  ')}`
@@ -260,7 +260,7 @@ async function validateChangeExists(
     const available = await getAvailableChanges();
     if (available.length === 0) {
       throw new Error(
-        `Change '${changeName}' not found. No changes exist. Create one with: spool x-new change <name>`
+        `Change '${changeName}' not found. No changes exist. Create one with: spool create change <name>`
       );
     }
     throw new Error(
@@ -848,13 +848,16 @@ async function templatesCommand(options: TemplatesOptions): Promise<void> {
 // New Change Command
 // -----------------------------------------------------------------------------
 
-interface NewChangeOptions {
+export interface CreateChangeOptions {
   description?: string;
   schema?: string;
   module?: string;
 }
 
-async function newChangeCommand(name: string | undefined, options: NewChangeOptions): Promise<void> {
+export async function createChangeCommand(
+  name: string | undefined,
+  options: CreateChangeOptions
+): Promise<void> {
   if (!name) {
     throw new Error('Missing required argument <name>');
   }
@@ -895,6 +898,10 @@ async function newChangeCommand(name: string | undefined, options: NewChangeOpti
     spinner.fail(`Failed to create change '${name}'`);
     throw error;
   }
+}
+
+async function newChangeCommand(name: string | undefined, options: CreateChangeOptions): Promise<void> {
+  await createChangeCommand(name, options);
 }
 
 // -----------------------------------------------------------------------------
@@ -1094,21 +1101,21 @@ export function registerArtifactWorkflowCommands(program: Command): void {
   };
 
   program
-    .command('x-status')
-    .description('[Experimental] Display artifact completion status for a change')
+    .command('status')
+    .description('Display artifact completion status for a change')
     .option('--change <id>', 'Change name to show status for')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
     .action(runStatus);
 
   program
-    .command('status', { hidden: true })
-    .description('[Experimental] Display artifact completion status for a change')
+    .command('x-status', { hidden: true })
+    .description('Display artifact completion status for a change (deprecated)')
     .option('--change <id>', 'Change name to show status for')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
     .action(async (options: StatusOptions) => {
-      warnDeprecated('spool status', 'spool x-status');
+      warnDeprecated('spool x-status', 'spool status');
       await runStatus(options);
     });
 
@@ -1129,7 +1136,7 @@ export function registerArtifactWorkflowCommands(program: Command): void {
   };
 
   program
-    .command('x-instructions [artifact]')
+    .command('x-instructions [artifact]', { hidden: true })
     .description('[Experimental] Output enriched instructions for creating an artifact or applying tasks')
     .option('--change <id>', 'Change name')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
@@ -1202,7 +1209,9 @@ export function registerArtifactWorkflowCommands(program: Command): void {
     });
 
   // New command group with change subcommand
-  const newCmd = program.command('x-new').description('[Experimental] Create new items');
+  const newCmd = program
+    .command('x-new', { hidden: true })
+    .description('[Experimental] Create new items');
 
   newCmd
     .command('change <name>')
@@ -1210,7 +1219,7 @@ export function registerArtifactWorkflowCommands(program: Command): void {
     .option('--description <text>', 'Description to add to README.md')
     .option('--schema <name>', `Workflow schema to use (default: ${DEFAULT_SCHEMA})`)
     .option('--module <id>', 'Module ID to associate the change with (default: 000)')
-    .action(async (name: string, options: NewChangeOptions) => {
+    .action(async (name: string, options: CreateChangeOptions) => {
       try {
         await newChangeCommand(name, options);
       } catch (error) {
@@ -1230,8 +1239,8 @@ export function registerArtifactWorkflowCommands(program: Command): void {
     .option('--description <text>', 'Description to add to README.md')
     .option('--schema <name>', `Workflow schema to use (default: ${DEFAULT_SCHEMA})`)
     .option('--module <id>', 'Module ID to associate the change with (default: 000)')
-    .action(async (name: string, options: NewChangeOptions) => {
-      warnDeprecated('spool new change', 'spool x-new change');
+    .action(async (name: string, options: CreateChangeOptions) => {
+      warnDeprecated('spool new change', 'spool create change');
       try {
         await newChangeCommand(name, options);
       } catch (error) {
@@ -1253,7 +1262,7 @@ export function registerArtifactWorkflowCommands(program: Command): void {
   };
 
   program
-    .command('x-artifact-experimental-setup')
+    .command('x-artifact-experimental-setup', { hidden: true })
     .description('[Experimental] Setup Agent Skills for the experimental artifact workflow')
     .action(runArtifactExperimentalSetup);
 

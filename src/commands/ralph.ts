@@ -65,16 +65,16 @@ export function registerRalphCommand(program: Command): void {
   };
 
   // Visible command
-  registerRalphFlags(program.command('x-ralph [prompt]')).action(runRalph);
+  registerRalphFlags(program.command('ralph [prompt]')).action(runRalph);
 
   // Deprecated wrappers
-  registerRalphFlags(program.command('ralph [prompt]', { hidden: true })).action(async (prompt: string | undefined, options: any) => {
-    console.error('Warning: "spool ralph" is deprecated. Use "spool x-ralph" instead.');
+  registerRalphFlags(program.command('x-ralph [prompt]', { hidden: true })).action(async (prompt: string | undefined, options: any) => {
+    console.error('Warning: "spool x-ralph" is deprecated. Use "spool ralph" instead.');
     await runRalph(prompt, options);
   });
 
   registerRalphFlags(program.command('loop [prompt]', { hidden: true })).action(async (prompt: string | undefined, options: any) => {
-    console.error('Warning: "spool loop" is deprecated. Use "spool x-ralph" instead.');
+    console.error('Warning: "spool loop" is deprecated. Use "spool ralph" instead.');
     await runRalph(prompt, options);
   });
 }

@@ -265,7 +265,7 @@ export function registerResearchCommand(program: Command): void {
   };
 
   program
-    .command('x-research [type] [topic]')
+    .command('x-research [type] [topic]', { hidden: true })
     .description('Conduct structured research - single entrypoint for all research types')
     .option('--type <type>', 'Research type: summary, stack, features, architecture, pitfalls')
     .option('--topic <topic>', 'Research topic or question')

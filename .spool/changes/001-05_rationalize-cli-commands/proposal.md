@@ -1,41 +1,46 @@
 ## Why
 
-The Spool CLI has drifted into a mixed command surface (some verb-first commands like `list/show/validate`, some noun-group commands like `config/module/completion`, plus scattered experimental commands). This makes the CLI harder to learn, harder to document, and easy for shell completion to fall out of sync.
+The Spool CLI has drifted into a mixed and overly broad command surface (top-level verbs, noun-group commands, and experimental `x-*` commands visible in help). This makes the CLI harder to learn, harder to document, and easy for shell completion to fall out of sync.
 
-We want one predictable, modern CLI grammar across the *entire* surface: `spool <verb> <noun> ...` (with the noun often being implied, or expressed via a flag).
+We want a small, intentional stable CLI surface that is the only supported UX shown in `spool --help`, while keeping hidden deprecated compatibility shims callable.
 
 ## What Changes
 
-- Confirm and standardize the global CLI grammar as **verb-first**: `spool <verb> <noun> ...`.
-- Keep `spool list/show/validate/archive/split/init/update/view` as the primary UX.
-- Continue rationalizing experimental commands under `x-*` (already the chosen experimental naming convention).
-- Introduce (and document) verb-noun equivalents for remaining noun-group command families, while keeping the existing noun-group forms as deprecated compatibility shims for at least one release:
-  - `spool module ...` -> `spool <verb> module ...` (e.g., `spool list module`, `spool new module`, `spool show module <id>`, `spool validate module <id>`)
-  - `spool config ...` -> `spool <verb> config ...` (e.g., `spool get config <key>`, `spool set config <key> <value>`, `spool list config`, `spool edit config`)
-  - `spool completion ...` -> `spool <verb> completion ...` (e.g., `spool generate completion zsh`, `spool install completion zsh`, `spool uninstall completion zsh`)
-  - `spool skills ...` -> `spool <verb> skills ...` (e.g., `spool list skills`, `spool install skills <skills...>`, `spool status skills`)
-- Treat legacy noun-based entrypoints (`spool spec ...`, `spool change ...`) the same way: keep them callable as deprecated shims but hide them from the preferred help/completion surface.
-- Align shell completion with the actual exposed command surface (stable + experimental + legacy shims where appropriate).
+- Lock the stable help surface to a small set of intentional top-level commands:
+  - `init`, `update`
+  - `dashboard`
+  - `status`, `ralph`
+  - `create`, `list`, `show`, `validate`, `archive`, `split`
+  - `config`, `completions`
+- Keep only two experimental commands visible in help:
+  - `x-templates`, `x-schemas`
+- Keep deprecated and internal commands callable (hidden from help and omitted from completions) with clear warnings:
+  - legacy noun groups: `change`, `spec`, `module`, `completion`, `skills`, `view`
+  - legacy verb shims: `get`, `set`, `unset`, `reset`, `edit`, `path`, `generate`, `install`, `uninstall`
+  - all other `x-*` commands
+- Remove skills as a user-facing CLI surface; skills are refreshed via `spool init` and `spool update`.
+- Align shell completion generation with the visible stable surface.
 
 ## Capabilities
 
 ### New Capabilities
-- `cli-module`: specify the module CLI surface (including verb-first equivalents)
-- `cli-skills`: specify the skills CLI surface (including verb-first equivalents)
+- `cli-surface`: codify the stable CLI help surface and shim policy
 
 ### Modified Capabilities
 - `cli-artifact-workflow`: expose artifact workflow commands under the `x-*` experimental naming convention; define compatibility/alias expectations for the old names.
 - `cli-research`: align the research CLI entrypoint with the experimental naming convention (`x-research`) instead of a bespoke `spool-research` command.
-- `cli-completion`: ensure completions are generated for the full exposed command surface, including experimental `x-*` commands.
+- `cli-completion`: ensure completions are generated for the preferred visible command surface.
 - `experimental-workflow-commands`: align any references to `artifact-experimental-setup` with `x-artifact-experimental-setup` (and document compatibility behavior).
 - `qa-testing-area`: update any documented invocations of `spool ralph` to reflect the supported experimental naming and/or alias behavior.
-- `projector-conventions`: codify the single global CLI grammar as `spool <verb> <noun> ...` and broaden the deprecation policy beyond only `spec/change`.
-- `cli-config`: add verb-first equivalents for config operations while keeping `spool config ...` as deprecated compatibility.
-- `cli-change`: treat `spool change ...` as a deprecated noun-based entrypoint (callable, warned, hidden).
-- `cli-spec`: treat `spool spec ...` as a deprecated noun-based entrypoint (callable, warned, hidden).
+- `projector-conventions`: codify the stable-first CLI policy and deprecation rules.
+- `cli-config`: keep config operations under `spool config ...` and deprecate old verb shims.
+- `cli-skills`: confirm skills are not part of the supported CLI UX.
+- `cli-change`: keep `spool change ...` callable but hidden and deprecated.
+- `cli-spec`: keep `spool spec ...` callable but hidden and deprecated.
+- `cli-module`: keep `spool module ...` callable but hidden and deprecated; modules remain accessible via stable verbs/flags where supported.
 
 ## Impact
 
-- CLI UX: consistent verb-first command grammar across the CLI; experimental commands remain clearly isolated under `x-*`.
-- Compatibility: existing invocations will continue to work during a deprecation window (warnings + migration hints); help + completions will prioritize the preferred verb-first forms.
-- Code: command registration and completion registry will be updated to expose verb-first forms and keep deprecated shims as thin wrappers.
+- CLI UX: `spool --help` becomes small and stable; experimental commands no longer pollute the primary help surface.
+- Compatibility: existing invocations continue to work during a deprecation window (warnings + migration hints); help + completions prioritize the preferred surface.
+- Code: command registration and completion registry are updated to match the preferred surface; hidden shims remain callable.
