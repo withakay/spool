@@ -4,9 +4,16 @@ set -euo pipefail
 # Integration test for Spool Ralph
 # Simulates real-world usage: create demo project, run spool ralph, verify output
 
-SPOOL_VERSION="0.20.3-local.20260123000000"
-DEMO_DIR_PREFIX="demo"
+EXPECTED_SPOOL_VERSION="${EXPECTED_SPOOL_VERSION:-}"
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+REPO_ROOT=$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || (cd "$SCRIPT_DIR/../.." && pwd -P))
+
+DEMO_DIR_PREFIX="${DEMO_DIR_PREFIX:-$REPO_ROOT/qa/ralph/demo}"
 SCRIPT_NAME="test-ralph-loop.sh"
+
+RALPH_HARNESS="${RALPH_HARNESS:-opencode}"
+RALPH_MODEL="${RALPH_MODEL:-}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -54,31 +61,37 @@ check_spool_version() {
     local installed_version=$(spool --version 2>/dev/null || echo "unknown")
     log_info "Installed spool version: $installed_version"
 
-    # For local dev, just warn if versions don't match exactly
-    if [[ "$installed_version" != "$SPOOL_VERSION" ]]; then
-        log_warn "Spool version mismatch. Expected: $SPOOL_VERSION, Got: $installed_version"
-        log_warn "Continuing anyway for local development..."
+    if [[ -n "$EXPECTED_SPOOL_VERSION" ]] && [[ "$installed_version" != "$EXPECTED_SPOOL_VERSION" ]]; then
+        log_warn "Spool version mismatch. Expected: $EXPECTED_SPOOL_VERSION, Got: $installed_version"
+        log_warn "Continuing anyway (set EXPECTED_SPOOL_VERSION to enforce)."
     fi
 }
 
 # Generate random name
 generate_random_name() {
-    # Use openssl or /dev/urandom
     if command -v openssl &> /dev/null; then
         openssl rand -hex 4
-    else
-        cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 8
+        return
     fi
+
+    if command -v uuidgen &> /dev/null; then
+        uuidgen | tr -d '-' | head -c 8
+        return
+    fi
+
+    python - <<'PY'
+import secrets
+print(secrets.token_hex(4))
+PY
 }
 
 # Setup demo environment
 setup_demo() {
     local random_name=$(generate_random_name)
-    local base_dir=$(pwd -P)
-    DEMO_DIR="$DEMO_DIR_PREFIX/ralph-$random_name"
+    local base_dir="$REPO_ROOT"
 
-    # Convert to absolute path
-    DEMO_DIR="$base_dir/$DEMO_DIR"
+    mkdir -p "$DEMO_DIR_PREFIX"
+    DEMO_DIR="$DEMO_DIR_PREFIX/ralph-$random_name"
 
     log_info "Creating demo environment: $DEMO_DIR"
     mkdir -p "$DEMO_DIR"
@@ -117,9 +130,18 @@ run_proposal_loop() {
     # Run ralph with prompt to create proposal artifacts
     local output
     set +e
+    local model_args=()
+    if [[ -n "$RALPH_MODEL" ]]; then
+        model_args=(--model "$RALPH_MODEL")
+    fi
+
     output=$(spool ralph "Create a full change proposal for $change_id using the spec-driven workflow. Generate proposal.md, any required specs, design.md if needed, and tasks.md. Use the spool-ff-change skill." \
         --change "$change_id" \
+        --harness "$RALPH_HARNESS" \
+        "${model_args[@]}" \
         --max-iterations 2 \
+        --allow-all \
+        --no-commit \
         --completion-promise "DONE" 2>&1)
     local exit_code=$?
     set -e
@@ -128,7 +150,7 @@ run_proposal_loop() {
     if echo "$output" | grep -q "Token refresh failed\|401\|authentication"; then
         log_error "OpenCode authentication error detected"
         log_error "Ralph requires authenticated OpenCode to run"
-        log_error "Please run 'opencode login' first, then retry this test"
+        log_error "Please run 'opencode auth login' first, then retry this test"
         return 2
     fi
 
@@ -151,9 +173,18 @@ run_apply_loop() {
 
     local output
     set +e
+    local model_args=()
+    if [[ -n "$RALPH_MODEL" ]]; then
+        model_args=(--model "$RALPH_MODEL")
+    fi
+
     output=$(spool ralph "Implement the tasks in tasks.md for $change_id. Create hello-world.sh and mark tasks complete." \
         --change "$change_id" \
+        --harness "$RALPH_HARNESS" \
+        "${model_args[@]}" \
         --max-iterations 2 \
+        --allow-all \
+        --no-commit \
         --completion-promise "DONE" 2>&1)
     local exit_code=$?
     set -e
@@ -161,7 +192,7 @@ run_apply_loop() {
     if echo "$output" | grep -q "Token refresh failed\|401\|authentication"; then
         log_error "OpenCode authentication error detected"
         log_error "Ralph requires authenticated OpenCode to run"
-        log_error "Please run 'opencode login' first, then retry this test"
+        log_error "Please run 'opencode auth login' first, then retry this test"
         return 2
     fi
 
