@@ -3,6 +3,7 @@ import { spawn, ChildProcess } from 'child_process';
 import { AgentHarness, RalphRunConfig } from '../types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 
 export class OpenCodeHarness extends EventEmitter implements AgentHarness {
   name = 'opencode';
@@ -10,6 +11,7 @@ export class OpenCodeHarness extends EventEmitter implements AgentHarness {
   private stdoutBuffer = '';
   private stderrBuffer = '';
   private configPath: string | null = null;
+  private configDir: string | null = null;
 
   async run(config: RalphRunConfig): Promise<void> {
     const args = ['run'];
@@ -24,8 +26,10 @@ export class OpenCodeHarness extends EventEmitter implements AgentHarness {
 
     // Generate temporary config for non-interactive mode
     if (config.interactive === false) {
-      this.configPath = await this.ensureOpenCodeConfig(config.cwd);
-      env.OPENCODE_CONFIG = this.configPath;
+      const tempConfig = await this.ensureOpenCodeConfig();
+      this.configDir = tempConfig.configDir;
+      this.configPath = tempConfig.configPath;
+      env.OPENCODE_CONFIG = tempConfig.configPath;
     }
 
     return new Promise((resolve, reject) => {
@@ -66,6 +70,17 @@ export class OpenCodeHarness extends EventEmitter implements AgentHarness {
           }
         }
 
+        if (this.configDir) {
+          try {
+            await fs.rm(this.configDir, { recursive: true, force: true });
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
+
+        this.configPath = null;
+        this.configDir = null;
+
         if (code === 0) {
           resolve();
         } else {
@@ -84,6 +99,17 @@ export class OpenCodeHarness extends EventEmitter implements AgentHarness {
             // Ignore cleanup errors
           }
         }
+
+        if (this.configDir) {
+          try {
+            await fs.rm(this.configDir, { recursive: true, force: true });
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
+
+        this.configPath = null;
+        this.configDir = null;
         
         reject(error);
       });
@@ -105,12 +131,9 @@ export class OpenCodeHarness extends EventEmitter implements AgentHarness {
     return this.stderrBuffer;
   }
 
-  private async ensureOpenCodeConfig(cwd: string): Promise<string> {
-    const configDir = path.join(cwd, '.opencode');
+  private async ensureOpenCodeConfig(): Promise<{ configDir: string; configPath: string }> {
+    const configDir = await fs.mkdtemp(path.join(os.tmpdir(), 'spool-opencode-'));
     const configPath = path.join(configDir, 'ralph-spool.config.json');
-    
-    // Ensure config directory exists
-    await fs.mkdir(configDir, { recursive: true });
     
     const config = {
       $schema: 'https://opencode.ai/config.json',
@@ -134,6 +157,6 @@ export class OpenCodeHarness extends EventEmitter implements AgentHarness {
     };
     
     await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8');
-    return configPath;
+    return { configDir, configPath };
   }
 }
