@@ -11,3 +11,4 @@
 - [ ] 001-02_interactive-splitting
 - [ ] 001-03_add-spool-skill
 - [ ] 001-04_prevent-archive-unfinished-changes
+- [ ] 001-05_rationalize-cli-commands

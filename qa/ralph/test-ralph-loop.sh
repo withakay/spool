@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Integration test for Spool Ralph
-# Simulates real-world usage: create demo project, run spool ralph, verify output
+# Simulates real-world usage: create demo project, run spool x-ralph, verify output
 
 EXPECTED_SPOOL_VERSION="${EXPECTED_SPOOL_VERSION:-}"
 
@@ -108,7 +108,7 @@ setup_demo() {
     # Create a simple change via CLI
     log_info "Creating change via spool CLI..."
     local change_output
-    change_output=$(spool new change "hello-world-test" --module 000 2>&1)
+    change_output=$(spool x-new change "hello-world-test" --module 000 2>&1)
     if [[ "$change_output" =~ Created\ change\ \'([^\']+)\' ]]; then
         CHANGE_ID="${BASH_REMATCH[1]}"
     else
@@ -125,7 +125,7 @@ setup_demo() {
 run_proposal_loop() {
     local change_id="$1"
 
-    log_info "Running spool ralph to create proposal: $change_id"
+    log_info "Running spool x-ralph to create proposal: $change_id"
 
     # Run ralph with prompt to create proposal artifacts
     local output
@@ -135,7 +135,7 @@ run_proposal_loop() {
         model_args=(--model "$RALPH_MODEL")
     fi
 
-    output=$(spool ralph "Create a full change proposal for $change_id using the spec-driven workflow. Generate proposal.md, any required specs, design.md if needed, and tasks.md. Use the spool-ff-change skill." \
+    output=$(spool x-ralph "Create a full change proposal for $change_id using the spec-driven workflow. Generate proposal.md, any required specs, design.md if needed, and tasks.md. Use the spool-ff-change skill." \
         --change "$change_id" \
         --harness "$RALPH_HARNESS" \
         "${model_args[@]}" \
@@ -156,7 +156,7 @@ run_proposal_loop() {
 
     # Check for other errors
     if [ $exit_code -ne 0 ]; then
-        log_error "spool ralph failed with exit code $exit_code"
+        log_error "spool x-ralph failed with exit code $exit_code"
         log_error "Output:"
         printf '%s\n' "$output" | head -20
         return 1
@@ -169,7 +169,7 @@ run_proposal_loop() {
 run_apply_loop() {
     local change_id="$1"
 
-    log_info "Running spool ralph to implement tasks: $change_id"
+    log_info "Running spool x-ralph to implement tasks: $change_id"
 
     local output
     set +e
@@ -178,7 +178,7 @@ run_apply_loop() {
         model_args=(--model "$RALPH_MODEL")
     fi
 
-    output=$(spool ralph "Implement the tasks in tasks.md for $change_id. Create hello-world.sh and mark tasks complete." \
+    output=$(spool x-ralph "Implement the tasks in tasks.md for $change_id. Create hello-world.sh and mark tasks complete." \
         --change "$change_id" \
         --harness "$RALPH_HARNESS" \
         "${model_args[@]}" \
@@ -197,7 +197,7 @@ run_apply_loop() {
     fi
 
     if [ $exit_code -ne 0 ]; then
-        log_error "spool ralph failed with exit code $exit_code"
+        log_error "spool x-ralph failed with exit code $exit_code"
         log_error "Output:"
         printf '%s\n' "$output" | head -20
         return 1

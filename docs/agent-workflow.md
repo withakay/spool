@@ -34,8 +34,8 @@ Creates a new change with a structured proposal document.
 **What it does:**
 1. Checks for existing similar changes
 2. Selects or creates a module
-3. Creates the change directory with `spool new change "<name>" --module <id>`
-4. Generates proposal.md using `spool instructions proposal --change "<id>"`
+3. Creates the change directory with `spool x-new change "<name>" --module <id>`
+4. Generates proposal.md using `spool x-instructions proposal --change "<id>"`
 
 **Proposal structure:**
 - **Why** - What problem does this solve? Who benefits?
@@ -43,7 +43,7 @@ Creates a new change with a structured proposal document.
 - **Capabilities** - List of features (each becomes a spec)
 - **Impact** - Effects on existing functionality, performance, breaking changes
 
-### 2. Research (`/spool-research`)
+### 2. Research (`spool x-research`)
 
 Conducts structured investigation before implementation.
 
@@ -199,11 +199,11 @@ The system tracks your last-used module in `.spool/.state/session.json`.
 | Command | Purpose |
 |---------|---------|
 | `spool list --json` | List all changes |
-| `spool status --change <id>` | Show change status and artifacts |
+| `spool x-status --change <id>` | Show change status and artifacts |
 | `spool module list` | List modules |
 | `spool module new "<name>"` | Create new module |
-| `spool new change "<name>" --module <id>` | Create new change |
-| `spool instructions <action> --change <id>` | Get action instructions |
+| `spool x-new change "<name>" --module <id>` | Create new change |
+| `spool x-instructions <action> --change <id>` | Get action instructions |
 | `spool validate --changes <id>` | Validate change |
 | `spool archive <name>` | Archive completed change |
 

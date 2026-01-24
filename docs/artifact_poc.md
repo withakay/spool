@@ -317,8 +317,8 @@ if (exists(artifactPath)) {
 **CLI layer:** Always deterministic - requires explicit `--change` parameter.
 
 ```
-spool status --change add-auth     # explicit, works
-spool status                        # error: "No change specified"
+spool x-status --change add-auth     # explicit, works
+spool x-status                        # error: "No change specified"
 ```
 
 **Agent layer:** Infers from conversation, confirms if uncertain, passes explicit `--change`.

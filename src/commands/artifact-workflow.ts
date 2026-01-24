@@ -226,7 +226,7 @@ async function validateChangeExists(
   if (!changeName) {
     const available = await getAvailableChanges();
     if (available.length === 0) {
-      throw new Error('No changes found. Create one with: spool new change <name>');
+      throw new Error('No changes found. Create one with: spool x-new change <name>');
     }
     throw new Error(
       `Missing required option --change. Available changes:\n  ${available.join('\n  ')}`
@@ -260,7 +260,7 @@ async function validateChangeExists(
     const available = await getAvailableChanges();
     if (available.length === 0) {
       throw new Error(
-        `Change '${changeName}' not found. No changes exist. Create one with: spool new change <name>`
+        `Change '${changeName}' not found. No changes exist. Create one with: spool x-new change <name>`
       );
     }
     throw new Error(
@@ -1078,78 +1078,131 @@ async function schemasCommand(options: SchemasOptions): Promise<void> {
  * All commands are marked as experimental in their help text.
  */
 export function registerArtifactWorkflowCommands(program: Command): void {
+  const warnDeprecated = (oldCommand: string, newCommand: string): void => {
+    console.error(`Warning: "${oldCommand}" is deprecated. Use "${newCommand}" instead.`);
+  };
+
   // Status command
+  const runStatus = async (options: StatusOptions) => {
+    try {
+      await statusCommand(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  };
+
   program
-    .command('status')
+    .command('x-status')
+    .description('[Experimental] Display artifact completion status for a change')
+    .option('--change <id>', 'Change name to show status for')
+    .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
+    .option('--json', 'Output as JSON')
+    .action(runStatus);
+
+  program
+    .command('status', { hidden: true })
     .description('[Experimental] Display artifact completion status for a change')
     .option('--change <id>', 'Change name to show status for')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
     .action(async (options: StatusOptions) => {
-      try {
-        await statusCommand(options);
-      } catch (error) {
-        console.log();
-        ora().fail(`Error: ${(error as Error).message}`);
-        process.exit(1);
-      }
+      warnDeprecated('spool status', 'spool x-status');
+      await runStatus(options);
     });
 
   // Instructions command
+  const runInstructions = async (artifactId: string | undefined, options: InstructionsOptions) => {
+    try {
+      // Special case: "apply" is not an artifact, but a command to get apply instructions
+      if (artifactId === 'apply') {
+        await applyInstructionsCommand(options);
+      } else {
+        await instructionsCommand(artifactId, options);
+      }
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  };
+
   program
-    .command('instructions [artifact]')
+    .command('x-instructions [artifact]')
+    .description('[Experimental] Output enriched instructions for creating an artifact or applying tasks')
+    .option('--change <id>', 'Change name')
+    .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
+    .option('--json', 'Output as JSON')
+    .action(runInstructions);
+
+  program
+    .command('instructions [artifact]', { hidden: true })
     .description('[Experimental] Output enriched instructions for creating an artifact or applying tasks')
     .option('--change <id>', 'Change name')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
     .action(async (artifactId: string | undefined, options: InstructionsOptions) => {
-      try {
-        // Special case: "apply" is not an artifact, but a command to get apply instructions
-        if (artifactId === 'apply') {
-          await applyInstructionsCommand(options);
-        } else {
-          await instructionsCommand(artifactId, options);
-        }
-      } catch (error) {
-        console.log();
-        ora().fail(`Error: ${(error as Error).message}`);
-        process.exit(1);
-      }
+      warnDeprecated('spool instructions', 'spool x-instructions');
+      await runInstructions(artifactId, options);
     });
 
   // Templates command
+  const runTemplates = async (options: TemplatesOptions) => {
+    try {
+      await templatesCommand(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  };
+
   program
-    .command('templates')
+    .command('x-templates')
+    .description('[Experimental] Show resolved template paths for all artifacts in a schema')
+    .option('--schema <name>', `Schema to use (default: ${DEFAULT_SCHEMA})`)
+    .option('--json', 'Output as JSON mapping artifact IDs to template paths')
+    .action(runTemplates);
+
+  program
+    .command('templates', { hidden: true })
     .description('[Experimental] Show resolved template paths for all artifacts in a schema')
     .option('--schema <name>', `Schema to use (default: ${DEFAULT_SCHEMA})`)
     .option('--json', 'Output as JSON mapping artifact IDs to template paths')
     .action(async (options: TemplatesOptions) => {
-      try {
-        await templatesCommand(options);
-      } catch (error) {
-        console.log();
-        ora().fail(`Error: ${(error as Error).message}`);
-        process.exit(1);
-      }
+      warnDeprecated('spool templates', 'spool x-templates');
+      await runTemplates(options);
     });
 
   // Schemas command
+  const runSchemas = async (options: SchemasOptions) => {
+    try {
+      await schemasCommand(options);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  };
+
   program
-    .command('schemas')
+    .command('x-schemas')
+    .description('[Experimental] List available workflow schemas with descriptions')
+    .option('--json', 'Output as JSON (for agent use)')
+    .action(runSchemas);
+
+  program
+    .command('schemas', { hidden: true })
     .description('[Experimental] List available workflow schemas with descriptions')
     .option('--json', 'Output as JSON (for agent use)')
     .action(async (options: SchemasOptions) => {
-      try {
-        await schemasCommand(options);
-      } catch (error) {
-        console.log();
-        ora().fail(`Error: ${(error as Error).message}`);
-        process.exit(1);
-      }
+      warnDeprecated('spool schemas', 'spool x-schemas');
+      await runSchemas(options);
     });
 
   // New command group with change subcommand
-  const newCmd = program.command('new').description('[Experimental] Create new items');
+  const newCmd = program.command('x-new').description('[Experimental] Create new items');
 
   newCmd
     .command('change <name>')
@@ -1167,17 +1220,48 @@ export function registerArtifactWorkflowCommands(program: Command): void {
       }
     });
 
-  // Artifact experimental setup command
-  program
-    .command('artifact-experimental-setup')
-    .description('[Experimental] Setup Agent Skills for the experimental artifact workflow')
-    .action(async () => {
+  const legacyNewCmd = program
+    .command('new', { hidden: true })
+    .description('[Experimental] Create new items');
+
+  legacyNewCmd
+    .command('change <name>')
+    .description('[Experimental] Create a new change directory')
+    .option('--description <text>', 'Description to add to README.md')
+    .option('--schema <name>', `Workflow schema to use (default: ${DEFAULT_SCHEMA})`)
+    .option('--module <id>', 'Module ID to associate the change with (default: 000)')
+    .action(async (name: string, options: NewChangeOptions) => {
+      warnDeprecated('spool new change', 'spool x-new change');
       try {
-        await artifactExperimentalSetupCommand();
+        await newChangeCommand(name, options);
       } catch (error) {
         console.log();
         ora().fail(`Error: ${(error as Error).message}`);
         process.exit(1);
       }
+    });
+
+  // Artifact experimental setup command
+  const runArtifactExperimentalSetup = async () => {
+    try {
+      await artifactExperimentalSetupCommand();
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  };
+
+  program
+    .command('x-artifact-experimental-setup')
+    .description('[Experimental] Setup Agent Skills for the experimental artifact workflow')
+    .action(runArtifactExperimentalSetup);
+
+  program
+    .command('artifact-experimental-setup', { hidden: true })
+    .description('[Experimental] Setup Agent Skills for the experimental artifact workflow')
+    .action(async () => {
+      warnDeprecated('spool artifact-experimental-setup', 'spool x-artifact-experimental-setup');
+      await runArtifactExperimentalSetup();
     });
 }

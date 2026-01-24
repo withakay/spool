@@ -7,7 +7,6 @@ import { nearestMatches } from '../utils/match.js';
 import { getChangesPath, getSpecsPath } from '../core/project-config.js';
 import { parseModularChangeName } from '../core/schemas/index.js';
 import { SplitCommand } from './split.js';
-import { confirm } from '@inquirer/prompts';
 import { Command } from 'commander';
 
 type ItemType = 'change' | 'spec' | 'module';
@@ -249,6 +248,7 @@ export class ValidateCommand {
 
         if (splitIssue) {
           console.log('\n'); // Spacing
+          const { confirm } = await import('@inquirer/prompts');
           const shouldSplit = await confirm({
             message: `Change '${id}' has ${splitIssue.metadata!.count} deltas (max ${splitIssue.metadata!.threshold}). Would you like to split it now?`,
             default: true

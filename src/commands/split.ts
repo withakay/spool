@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { select, checkbox, input } from '@inquirer/prompts';
 import chalk from 'chalk';
 import path from 'path';
 import fs from 'fs/promises';
@@ -38,6 +37,8 @@ export class SplitCommand {
   }
 
   async execute(changeId?: string) {
+    const { select, checkbox, input } = await import('@inquirer/prompts');
+
     // We need project root to get config. Assuming CWD is project root or inside it.
     // getChangesPath defaults to CWD.
     const changesPath = getChangesPath();

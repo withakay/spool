@@ -20,7 +20,7 @@
   - Use regex patterns to handle all input variations
 - **Verify**: `pnpm test src/utils/id-parser.test.ts`
 - **Done When**: Parser functions exported and handle all documented input formats
-- **Status**: [x] complete
+- [x] Task 1.1 complete
 
 ### Task 1.2: Write comprehensive parser tests
 - **Files**: `src/utils/id-parser.test.ts`
@@ -33,7 +33,7 @@
   - Edge cases: empty string, null, excessive padding
 - **Verify**: `pnpm test src/utils/id-parser.test.ts --coverage`
 - **Done When**: All tests pass, coverage >= 90%
-- **Status**: [x] complete
+- [x] Task 1.2 complete
 
 ---
 
@@ -52,7 +52,7 @@
   - `spool new change --module`
 - **Verify**: `pnpm test && spool status --change 1-1_flexible-id-parsing`
 - **Done When**: All commands accept flexible ID formats
-- **Status**: [x] complete
+- [x] Task 2.1 complete
 
 ### Task 2.2: Add last-worked-on module tracking
 - **Files**: `src/state/last-module.ts`, `src/commands/change.ts`
@@ -64,7 +64,7 @@
   - Use project-local storage (`.spool/.state` or similar)
 - **Verify**: `pnpm test src/state/last-module.test.ts`
 - **Done When**: Last module ID persisted and retrievable
-- **Status**: [x] complete
+- [x] Task 2.2 complete
 
 ---
 
@@ -80,7 +80,7 @@
   - Include example prompts and expected responses
 - **Verify**: Manual review of skill file
 - **Done When**: Skill documents interactive module selection flow
-- **Status**: [x] complete
+- [x] Task 3.1 complete
 
 ---
 
@@ -96,7 +96,7 @@
   - Document interactive module selection in Proposal section
 - **Verify**: Manual review of docs
 - **Done When**: Documentation covers all new features
-- **Status**: [x] complete
+- [x] Task 4.1 complete
 
 ---
 
@@ -112,7 +112,7 @@
   - `pnpm build` - builds successfully
 - **Verify**: `pnpm test && pnpm lint && pnpm build`
 - **Done When**: All checks pass
-- **Status**: [x] complete
+- [x] Task 5.1 complete
 
 ### Task 5.2: End-to-end verification
 - **Files**: None (manual testing)
@@ -124,7 +124,7 @@
   - Verify documentation renders correctly
 - **Verify**: Manual testing
 - **Done When**: All scenarios work as documented
-- **Status**: [x] complete
+- [x] Task 5.2 complete
 
 ---
 
