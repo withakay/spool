@@ -41,7 +41,7 @@ describe('buildUpdatedSpec', () => {
         await expect(buildUpdatedSpec(update as any, 'test-change')).rejects.toThrow(/RENAMED operations require an existing spec/);
     });
 
-    it('should treat MODIFIED as ADDED for new spec', async () => {
+    it('should throw error for MODIFIED on new spec', async () => {
         // Write content with MODIFIED section
         const content = `## MODIFIED Requirements
 
@@ -58,10 +58,9 @@ Content
             exists: false
         };
 
-        const result = await buildUpdatedSpec(update as any, 'test-change');
-        
-        expect(result.rebuilt).toContain('### Requirement: My Req');
-        expect(result.rebuilt).toContain('Content');
+        await expect(buildUpdatedSpec(update as any, 'test-change')).rejects.toThrow(
+            /only ADDED requirements are allowed for new specs/i
+        );
     });
 
     it('should still throw for MODIFIED on existing spec if req missing', async () => {
