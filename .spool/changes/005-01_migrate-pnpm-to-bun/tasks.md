@@ -29,7 +29,7 @@
   - Verify `bun.lock` is created and `pnpm-lock.yaml` is unchanged
 - **Verify**: `ls bun.lock` shows the file exists
 - **Done When**: `bun.lock` exists and dependencies are installed in `node_modules/`
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.3: Validate build workflow with Bun
 - **Files**: `dist/` (build output)
@@ -40,7 +40,7 @@
   - Verify no differences in generated code
 - **Verify**: `bun run build` completes successfully
 - **Done When**: Build succeeds and artifacts match pnpm baseline
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.4: Validate test workflow with Bun
 - **Files**: None (test execution)
@@ -51,7 +51,7 @@
   - Run `bun run test:coverage` to generate coverage
 - **Verify**: `bun run test` shows all tests passing
 - **Done When**: All tests pass with same results as pnpm
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.5: Validate lint workflow with Bun
 - **Files**: None (linting execution)
@@ -61,7 +61,7 @@
   - Verify no new linting errors
 - **Verify**: `bun run lint` completes without errors
 - **Done When**: Linting passes with same results as pnpm
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.6: Commit bun.lock
 - **Files**: `bun.lock`
@@ -71,7 +71,7 @@
   - Commit with message: "chore: add bun.lock (migrated from pnpm)"
 - **Verify**: `git log -1` shows the commit
 - **Done When**: `bun.lock` is committed to git
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
