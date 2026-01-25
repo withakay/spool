@@ -1102,7 +1102,7 @@ export function registerArtifactWorkflowCommands(program: Command): void {
 
   program
     .command('status')
-    .description('Display artifact completion status for a change')
+    .description('[Experimental] Display artifact completion status for a change')
     .option('--change <id>', 'Change name to show status for')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
@@ -1110,7 +1110,7 @@ export function registerArtifactWorkflowCommands(program: Command): void {
 
   program
     .command('x-status', { hidden: true })
-    .description('Display artifact completion status for a change (deprecated)')
+    .description('[Experimental] Display artifact completion status for a change (deprecated)')
     .option('--change <id>', 'Change name to show status for')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')

@@ -21,9 +21,10 @@ export function resolveNoInteractive(value?: boolean | InteractiveOptions): bool
 
 export function isInteractive(value?: boolean | InteractiveOptions): boolean {
   if (resolveNoInteractive(value)) return false;
+  // Allow callers (and tests) to force interactive mode even without a TTY.
+  if (process.env.SPOOL_INTERACTIVE === '1') return true;
   if (process.env.SPOOL_INTERACTIVE === '0') return false;
   // Respect the standard CI environment variable (set by GitHub Actions, GitLab CI, Travis, etc.)
   if ('CI' in process.env) return false;
   return !!process.stdin.isTTY;
 }
-

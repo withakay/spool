@@ -726,4 +726,5 @@ registerRalphCommand(program);
 // Split command
 new SplitCommand(program);
 
-program.parse();
+// Use parseAsync so async action handlers are awaited.
+await program.parseAsync(process.argv);

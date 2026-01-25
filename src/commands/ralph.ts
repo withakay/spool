@@ -16,6 +16,22 @@ export function registerRalphCommand(program: Command): void {
       // Resolve interactive mode
       const interactiveMode = isInteractive(options);
 
+      // In non-interactive mode we require an explicit target or an auxiliary flag.
+      // This avoids attempting discovery/prompts in CI and matches CLI contract.
+      const hasTargetOrAux =
+        !!options.change ||
+        !!options.module ||
+        !!options.status ||
+        !!options.addContext ||
+        !!options.clearContext;
+      if (!interactiveMode && !hasTargetOrAux) {
+        console.error(
+          'Either --change, --module, --status, --add-context, or --clear-context must be specified'
+        );
+        process.exitCode = 1;
+        return;
+      }
+
       // Resolve change and module IDs based on provided options
       const { changeId, moduleId } = await resolveTargeting(options, interactiveMode);
 
@@ -39,8 +55,9 @@ export function registerRalphCommand(program: Command): void {
 
       await runRalphLoop(ralphOptions);
     } catch (error) {
-      console.error('Error:', error);
-      process.exit(1);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(message);
+      process.exitCode = 1;
     }
   };
 
@@ -117,10 +134,7 @@ async function resolveTargeting(
     }
 
     if (candidates.length === 0) {
-      const errorMsg = moduleId 
-        ? `No changes found for module ${moduleId}. Please specify --change <id>.`
-        : 'No active changes found. Please specify --change <id> or create a change first.';
-      throw new Error(errorMsg);
+      throw new Error(moduleId ? `No changes found for module ${moduleId}` : 'No changes found');
     }
 
     if (candidates.length === 1) {
@@ -129,9 +143,9 @@ async function resolveTargeting(
       // Interactive selection
       const { select } = await import('@inquirer/prompts');
       changeId = await select({
-        message: moduleId 
-          ? `Multiple changes found for module ${moduleId}. Select one:`
-          : 'Multiple active changes found. Select one:',
+        message: moduleId
+          ? `Select a change from module ${moduleId}`
+          : 'Select a change to run Ralph against',
         choices: candidates.map(id => ({ name: id, value: id })),
       });
     } else {
@@ -140,6 +154,13 @@ async function resolveTargeting(
         ? `Multiple changes found for module ${moduleId}: ${candidates.join(', ')}. Use --change <id> to specify.`
         : `Multiple active changes found: ${candidates.join(', ')}. Use --change <id> to specify or add --module <id> to narrow down.`;
       throw new Error(errorMsg);
+    }
+
+    // If we selected (or auto-selected) a change and don't yet have a module ID,
+    // infer it from the chosen change.
+    if (changeId && !moduleId) {
+      const parsed = parseModularChangeName(changeId);
+      if (parsed) moduleId = parsed.moduleId;
     }
   }
 

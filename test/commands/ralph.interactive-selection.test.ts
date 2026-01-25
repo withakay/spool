@@ -88,7 +88,7 @@ describe('ralph command - interactive selection and module inference', () => {
 
       const result = await runCLI(['ralph', 'implement auth'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '1' }, // Force interactive mode
+        env: { SPOOL_INTERACTIVE: '1', SPOOL_RUN_CLI_IN_PROCESS: '1' }, // Force interactive mode
       });
 
       expect(result.exitCode).toBe(0);
@@ -124,7 +124,7 @@ describe('ralph command - interactive selection and module inference', () => {
 
       const result = await runCLI(['ralph', 'implement auth'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '1' },
+        env: { SPOOL_INTERACTIVE: '1', SPOOL_RUN_CLI_IN_PROCESS: '1' },
       });
 
       expect(result.exitCode).toBe(0);
@@ -144,7 +144,7 @@ describe('ralph command - interactive selection and module inference', () => {
     it('should show error when no changes exist and interactive', async () => {
       const result = await runCLI(['ralph', 'implement something'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '1' },
+        env: { SPOOL_INTERACTIVE: '1', SPOOL_RUN_CLI_IN_PROCESS: '1' },
       });
 
       expect(result.exitCode).toBe(1);
@@ -204,7 +204,7 @@ describe('ralph command - interactive selection and module inference', () => {
 
       const result = await runCLI(['ralph', '--module', '001', 'work on auth'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '1' },
+        env: { SPOOL_INTERACTIVE: '1', SPOOL_RUN_CLI_IN_PROCESS: '1' },
       });
 
       expect(result.exitCode).toBe(0);
@@ -227,13 +227,16 @@ describe('ralph command - interactive selection and module inference', () => {
     });
 
     it('should auto-select when only one change exists in module', async () => {
+      // Remove one of the module changes so only a single candidate remains
+      await fs.rm(path.join(getChangesPath(tempDir), '001-02_improve-login'), { recursive: true, force: true });
+
       // Mock ralph runner
       const { runRalphLoop } = await import('../../src/core/ralph/runner.js');
       vi.mocked(runRalphLoop).mockResolvedValueOnce(undefined);
 
       const result = await runCLI(['ralph', '--module', '001', 'improve auth'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '1' },
+        env: { SPOOL_INTERACTIVE: '1', SPOOL_RUN_CLI_IN_PROCESS: '1' },
       });
 
       expect(result.exitCode).toBe(0);
@@ -262,7 +265,7 @@ describe('ralph command - interactive selection and module inference', () => {
 
       const result = await runCLI(['ralph', '--module', '003', 'work on empty'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '1' },
+        env: { SPOOL_INTERACTIVE: '1', SPOOL_RUN_CLI_IN_PROCESS: '1' },
       });
 
       expect(result.exitCode).toBe(1);
@@ -274,7 +277,7 @@ describe('ralph command - interactive selection and module inference', () => {
     it('should show error when --change omitted in non-interactive mode', async () => {
       const result = await runCLI(['ralph', 'implement something'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '0' }, // Force non-interactive
+        env: { SPOOL_INTERACTIVE: '0', SPOOL_RUN_CLI_IN_PROCESS: '1' }, // Force non-interactive
       });
 
       expect(result.exitCode).toBe(1);
@@ -284,7 +287,7 @@ describe('ralph command - interactive selection and module inference', () => {
     it('should show error when --change omitted in CI environment', async () => {
       const result = await runCLI(['ralph', 'implement something'], {
         cwd: tempDir,
-        env: { CI: 'true' }, // CI environment forces non-interactive
+        env: { CI: 'true', SPOOL_RUN_CLI_IN_PROCESS: '1' }, // CI environment forces non-interactive
       });
 
       expect(result.exitCode).toBe(1);
@@ -319,7 +322,7 @@ describe('ralph command - interactive selection and module inference', () => {
 
       const result = await runCLI(['ralph', 'add auth system'], {
         cwd: tempDir,
-        env: { SPOOL_INTERACTIVE: '1' },
+        env: { SPOOL_INTERACTIVE: '1', SPOOL_RUN_CLI_IN_PROCESS: '1' },
       });
 
       expect(result.exitCode).toBe(0);
