@@ -352,15 +352,24 @@ const toolSelectionWizard = createPrompt<string[], ToolWizardConfig>(
 type InitCommandOptions = {
   prompt?: ToolSelectionPrompt;
   tools?: string;
+  force?: boolean;
+  confirmOverwrite?: (files: string[], projectPath: string) => Promise<boolean>;
 };
 
 export class InitCommand {
   private readonly prompt: ToolSelectionPrompt;
   private readonly toolsArg?: string;
+  private readonly force: boolean;
+  private readonly confirmOverwrite?: (
+    files: string[],
+    projectPath: string
+  ) => Promise<boolean>;
 
   constructor(options: InitCommandOptions = {}) {
     this.prompt = options.prompt ?? ((config) => toolSelectionWizard(config));
     this.toolsArg = options.tools;
+    this.force = options.force ?? false;
+    this.confirmOverwrite = options.confirmOverwrite;
   }
 
   async execute(targetPath: string): Promise<void> {
@@ -376,6 +385,8 @@ export class InitCommand {
 
     // Get configuration (after validation to avoid prompts if validation fails)
     const config = await this.getConfiguration(existingToolStates, extendMode);
+
+    await this.confirmUnmarkedToolFileOverwrites(projectPath, config.aiTools);
 
     const availableTools = AI_TOOLS.filter((tool) => tool.available);
     const selectedIds = new Set(config.aiTools);
@@ -449,6 +460,106 @@ export class InitCommand {
       rootStubStatus,
       spoolDir
     );
+  }
+
+  private async fileHasMarkers(absolutePath: string): Promise<boolean> {
+    try {
+      const content = await FileSystemUtils.readFile(absolutePath);
+      return (
+        content.includes(SPOOL_MARKERS.start) && content.includes(SPOOL_MARKERS.end)
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private async getUnmarkedToolFiles(
+    projectPath: string,
+    toolIds: string[]
+  ): Promise<string[]> {
+    const files = new Set<string>();
+
+    const maybeAdd = async (absolutePath: string) => {
+      if (!(await FileSystemUtils.fileExists(absolutePath))) {
+        return;
+      }
+      if (await this.fileHasMarkers(absolutePath)) {
+        return;
+      }
+      files.add(absolutePath);
+    };
+
+    // Root AGENTS.md stub is always managed by Spool.
+    const rootAgentsConfigurator = ToolRegistry.get('agents');
+    if (rootAgentsConfigurator?.configFileName) {
+      await maybeAdd(path.join(projectPath, rootAgentsConfigurator.configFileName));
+    }
+
+    for (const toolId of toolIds) {
+      const configurator = ToolRegistry.get(toolId);
+      if (configurator?.configFileName) {
+        await maybeAdd(path.join(projectPath, configurator.configFileName));
+      }
+
+      const slashConfigurator = SlashCommandRegistry.get(toolId);
+      if (slashConfigurator) {
+        for (const target of slashConfigurator.getTargets()) {
+          const absolutePath = slashConfigurator.resolveAbsolutePath(
+            projectPath,
+            target.id
+          );
+          await maybeAdd(absolutePath);
+        }
+      }
+    }
+
+    return Array.from(files).sort();
+  }
+
+  private async confirmUnmarkedToolFileOverwrites(
+    projectPath: string,
+    toolIds: string[]
+  ): Promise<void> {
+    if (this.force) {
+      return;
+    }
+
+    const unmarkedFiles = await this.getUnmarkedToolFiles(projectPath, toolIds);
+    if (unmarkedFiles.length === 0) {
+      return;
+    }
+
+    const proceed = this.confirmOverwrite
+      ? await this.confirmOverwrite(unmarkedFiles, projectPath)
+      : await this.defaultConfirmOverwrite(unmarkedFiles, projectPath);
+
+    if (!proceed) {
+      throw new Error(
+        'Init aborted. Re-run with --force to overwrite existing files.'
+      );
+    }
+  }
+
+  private async defaultConfirmOverwrite(
+    files: string[],
+    projectPath: string
+  ): Promise<boolean> {
+    console.log();
+    ora({ stream: process.stdout }).warn(
+      PALETTE.midGray(
+        '⚠ Existing tool files found without Spool markers. These will be overwritten:'
+      )
+    );
+    for (const file of files) {
+      console.log(PALETTE.midGray(`- ${path.relative(projectPath, file)}`));
+    }
+    console.log();
+
+    const { confirm } = await import('@inquirer/prompts');
+    return confirm({
+      message: 'Continue and overwrite these files?',
+      default: false,
+    });
   }
 
   private async validate(

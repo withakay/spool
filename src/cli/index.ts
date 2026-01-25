@@ -71,7 +71,11 @@ program
   .command('init [path]')
   .description('Initialize Spool in your project')
   .option('--tools <tools>', toolsOptionDescription)
-  .action(async (targetPath = '.', options?: { tools?: string }) => {
+  .option('-f, --force', 'Overwrite existing tool files without prompting')
+  .action(async (
+    targetPath = '.',
+    options?: { tools?: string; force?: boolean }
+  ) => {
     try {
       // Validate that the path is a valid directory
       const resolvedPath = path.resolve(targetPath);
@@ -95,6 +99,7 @@ program
       const { InitCommand } = await import('../core/init.js');
       const initCommand = new InitCommand({
         tools: options?.tools,
+        force: options?.force,
       });
       await initCommand.execute(targetPath);
     } catch (error) {

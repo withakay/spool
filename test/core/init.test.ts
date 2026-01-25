@@ -57,7 +57,10 @@ describe('InitCommand', () => {
     await fs.mkdir(testDir, { recursive: true });
     selectionQueue = [];
     mockPrompt.mockReset();
-    initCommand = new InitCommand({ prompt: mockPrompt });
+    initCommand = new InitCommand({
+      prompt: mockPrompt,
+      confirmOverwrite: async () => true,
+    });
 
     prevCodexHome = process.env.CODEX_HOME;
     process.env.CODEX_HOME = path.join(testDir, '.codex');
@@ -482,7 +485,10 @@ describe('InitCommand', () => {
 
   describe('non-interactive mode', () => {
     it('should select all available tools with --tools all option', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'all' });
+      const nonInteractiveCommand = new InitCommand({
+        tools: 'all',
+        confirmOverwrite: async () => true,
+      });
 
       await nonInteractiveCommand.execute(testDir);
 
@@ -511,7 +517,10 @@ describe('InitCommand', () => {
     });
 
     it('should select specific tools with --tools option', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'claude,codex' });
+      const nonInteractiveCommand = new InitCommand({
+        tools: 'claude,codex',
+        confirmOverwrite: async () => true,
+      });
 
       await nonInteractiveCommand.execute(testDir);
 
@@ -531,7 +540,10 @@ describe('InitCommand', () => {
     });
 
     it('should skip tool configuration with --tools none option', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'none' });
+      const nonInteractiveCommand = new InitCommand({
+        tools: 'none',
+        confirmOverwrite: async () => true,
+      });
 
       await nonInteractiveCommand.execute(testDir);
 
@@ -548,7 +560,10 @@ describe('InitCommand', () => {
     });
 
     it('should throw error for invalid tool names', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'invalid-tool' });
+      const nonInteractiveCommand = new InitCommand({
+        tools: 'invalid-tool',
+        confirmOverwrite: async () => true,
+      });
 
       await expect(nonInteractiveCommand.execute(testDir)).rejects.toThrow(
         /Invalid tool\(s\): invalid-tool\. Available values: /
@@ -556,7 +571,10 @@ describe('InitCommand', () => {
     });
 
     it('should handle comma-separated tool names with spaces', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'claude, codex' });
+      const nonInteractiveCommand = new InitCommand({
+        tools: 'claude, codex',
+        confirmOverwrite: async () => true,
+      });
 
       await nonInteractiveCommand.execute(testDir);
 
@@ -571,11 +589,77 @@ describe('InitCommand', () => {
     });
 
     it('should reject combining reserved keywords with explicit tool ids', async () => {
-      const nonInteractiveCommand = new InitCommand({ tools: 'all,claude' });
+      const nonInteractiveCommand = new InitCommand({
+        tools: 'all,claude',
+        confirmOverwrite: async () => true,
+      });
 
       await expect(nonInteractiveCommand.execute(testDir)).rejects.toThrow(
         /Cannot combine reserved values "all" or "none" with specific tool IDs/
       );
+    });
+  });
+
+  describe('unmarked file confirmation', () => {
+    it('should abort when user declines overwriting unmarked tool files', async () => {
+      const claudePath = path.join(testDir, 'CLAUDE.md');
+      await fs.writeFile(claudePath, '# My Custom Claude Instructions\n');
+
+      queueSelections('claude', DONE);
+
+      const confirmOverwrite = vi.fn(
+        async (_files: string[], _projectPath: string) => false
+      );
+      const cmd = new InitCommand({
+        prompt: mockPrompt,
+        confirmOverwrite,
+      });
+
+      await expect(cmd.execute(testDir)).rejects.toThrow(
+        /Init aborted\. Re-run with --force to overwrite existing files\./
+      );
+
+      expect(confirmOverwrite).toHaveBeenCalled();
+      const [files] = confirmOverwrite.mock.calls[0];
+      expect(files.some((file) => file.endsWith('CLAUDE.md'))).toBe(true);
+    });
+
+    it('should proceed when user confirms overwriting unmarked tool files', async () => {
+      const claudePath = path.join(testDir, 'CLAUDE.md');
+      await fs.writeFile(claudePath, '# My Custom Claude Instructions\n');
+
+      queueSelections('claude', DONE);
+
+      const cmd = new InitCommand({
+        prompt: mockPrompt,
+        confirmOverwrite: async () => true,
+      });
+
+      await cmd.execute(testDir);
+
+      const content = await fs.readFile(claudePath, 'utf-8');
+      expect(content).toContain('<!-- SPOOL:START -->');
+      expect(content).toContain('<!-- SPOOL:END -->');
+    });
+
+    it('should not prompt when --force is provided', async () => {
+      const claudePath = path.join(testDir, 'CLAUDE.md');
+      await fs.writeFile(claudePath, '# My Custom Claude Instructions\n');
+
+      queueSelections('claude', DONE);
+
+      const confirmOverwrite = vi.fn(
+        async (_files: string[], _projectPath: string) => true
+      );
+      const cmd = new InitCommand({
+        prompt: mockPrompt,
+        force: true,
+        confirmOverwrite,
+      });
+
+      await cmd.execute(testDir);
+
+      expect(confirmOverwrite).not.toHaveBeenCalled();
     });
   });
 
