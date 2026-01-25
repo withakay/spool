@@ -161,7 +161,7 @@
   - Check that `bun ci`, `bun run build`, `bun run test`, `bunx tsc --noEmit` all succeed
 - **Verify**: GitHub Actions shows green checkmarks on all matrix entries
 - **Done When**: CI passes on all platforms with Bun
-- **Status**: [ ] in-progress
+- **Status**: [x] complete
 
 ---
 
@@ -176,7 +176,7 @@
   - Example: Use `curl -fsSL https://bun.sh/install | bash && bun install`
 - **Verify**: Rebuild devcontainer and run `bun --version`
 - **Done When**: Devcontainer installs Bun and runs `bun install` successfully
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -191,7 +191,7 @@
   - Update example commands to use `bun run` and `bunx`
 - **Verify**: `grep -n "pnpm" README.md` shows minimal or no references (some historical refs acceptable)
 - **Done When**: README.md reflects Bun as the standard package manager
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 5.2: Update AGENTS.md
 - **Files**: `AGENTS.md`
@@ -201,7 +201,7 @@
   - Change Makefile note from "uses pnpm internally" to "uses Bun internally"
 - **Verify**: `grep -n "pnpm" AGENTS.md` shows updated references
 - **Done When**: AGENTS.md reflects Bun usage
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 5.3: Update other documentation and templates
 - **Files**: `docs/schema-customization.md`, `schemas/spec-driven/templates/tasks.md`, other docs
@@ -212,7 +212,7 @@
   - Leave historical `.spool/changes/archive/` references unchanged (optional cleanup)
 - **Verify**: `grep -r "pnpm" docs/ schemas/` shows minimal active references
 - **Done When**: Active documentation reflects Bun usage
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 

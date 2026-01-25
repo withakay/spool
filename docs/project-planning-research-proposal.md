@@ -299,7 +299,7 @@ Replace simple checklists with structured, verifiable tasks.
 - **Action**:
   Create TypeScript schema definition and SQL migration for users table.
   Include fields: id (uuid), email (unique), created_at, updated_at.
-- **Verify**: `pnpm db:migrate && pnpm test:schema`
+- **Verify**: `bun run db:migrate && bun run test:schema`
 - **Done When**: Migration runs successfully, schema types export correctly
 - **Status**: [ ] pending / [ ] in-progress / [x] complete
 
@@ -308,7 +308,7 @@ Replace simple checklists with structured, verifiable tasks.
 - **Dependencies**: None
 - **Action**:
   Create sessions and tokens tables for authentication.
-- **Verify**: `pnpm db:migrate`
+- **Verify**: `bun run db:migrate`
 - **Done When**: Tables created with foreign key to users
 - **Status**: [ ] pending
 
@@ -321,7 +321,7 @@ Replace simple checklists with structured, verifiable tasks.
 - **Dependencies**: Task 1.1, Task 1.2
 - **Action**:
   Create authentication service with login, logout, session management.
-- **Verify**: `pnpm test src/services/auth.test.ts`
+- **Verify**: `bun run test src/services/auth.test.ts`
 - **Done When**: All tests pass, service exports AuthService class
 - **Status**: [ ] pending
 

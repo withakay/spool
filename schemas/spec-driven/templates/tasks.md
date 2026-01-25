@@ -14,7 +14,7 @@
 - **Dependencies**: None
 - **Action**:
   <!-- Describe what should be implemented -->
-- **Verify**: <!-- command to verify, e.g., pnpm test:unit -->
+- **Verify**: <!-- command to verify, e.g., bun run test:unit -->
 - **Done When**: <!-- acceptance criteria, e.g., tests pass -->
 - **Status**: [ ] pending / [ ] in-progress / [x] complete
 

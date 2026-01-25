@@ -202,14 +202,14 @@ spool archive <change-id> -y
 - [ ] Run `spool init` and verify `.spool/planning/` + `.spool/research/` templates exist
 - [ ] Run `spool workflow init` and verify `.spool/workflows/*.yaml` are created
 - [ ] Verify research and review slash commands are available in at least one supported tool
-- [ ] Run `pnpm run build` (or `npm run build`) to verify TypeScript compilation
+- [ ] Run `bun run build` (or `npm run build`) to verify TypeScript compilation
 
 ## Contributing
 
 ```bash
-pnpm install
-pnpm run build
-pnpm test
+bun install
+bun run build
+bun run test
 ```
 
 ## License

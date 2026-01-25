@@ -44,7 +44,7 @@ make clean
 make help
 ```
 
-All Makefile commands use pnpm internally.
+All Makefile commands use Bun internally.
 
 ## OpenCode Path Convention
 
