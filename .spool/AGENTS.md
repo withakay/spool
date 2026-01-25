@@ -4,7 +4,7 @@ Instructions for AI coding assistants using Spool for spec-driven development.
 
 ## TL;DR Quick Checklist
 
-- Search existing work: `spool spec list --long`, `spool list`, `spool module list`
+- Search existing work: `spool list --specs`, `spool list`, `spool list --modules`
 - Decide scope: new capability vs modify existing capability
 - For large features (epics): Create a module to group related changes
 - Pick a unique `change-id`: For modular changes use `NNN-CC_name` format (e.g., `001-01_init-repo`)
@@ -80,7 +80,7 @@ After deployment, create separate PR to:
 - If request is ambiguous, ask 1–2 clarifying questions before scaffolding
 
 ### Search Guidance
-- Enumerate specs: `spool spec list --long` (or `--json` for scripts)
+- Enumerate specs: `spool list --specs` (or `--json` for scripts)
 - Enumerate changes: `spool list` (or `--json` for scripts)
 - Show details:
   - Spec: `spool show <spec-id> --type spec` (use `--json` for filters)
@@ -100,10 +100,10 @@ spool validate [item]       # Validate changes or specs
 spool archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
 
 # Module commands
-spool module list           # List all modules
-spool module new <name>     # Create a new module
-spool module show <id>      # Show module details
-spool module validate <id>  # Validate a module
+spool list --modules         # List all modules
+spool create module <name>   # Create a new module
+spool show module <id>       # Show module details
+spool validate module <id>   # Validate a module
 
 # Project management
 spool init [path]           # Initialize Spool
@@ -267,7 +267,7 @@ Modules group related changes into epics. Use modules for large features that sp
 ### Creating a Module
 
 ```bash
-spool module new project-setup
+spool create module project-setup
 # Creates: .spool/modules/001_project-setup/module.md
 ```
 
@@ -311,9 +311,9 @@ mkdir -p .spool/changes/001-01_init-repo/{specs/project-config}
 ### Module Validation
 
 ```bash
-spool module validate 001           # Validate module + scope
-spool module validate 001 --with-changes  # Also validate all changes
-spool validate --modules            # Validate all modules
+spool validate module 001                 # Validate module + scope
+spool validate module 001 --with-changes  # Also validate all changes
+spool validate --modules                  # Validate all modules
 ```
 
 ## Spec File Format
@@ -401,7 +401,7 @@ spool show [spec] --json -r 1
 
 ```bash
 # 1) Explore current state
-spool spec list --long
+spool list --specs
 spool list
 # Optional full-text search:
 # rg -n "Requirement:|Scenario:" .spool/specs

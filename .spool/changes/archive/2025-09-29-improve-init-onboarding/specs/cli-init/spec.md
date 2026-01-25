@@ -35,7 +35,7 @@ The command SHALL properly configure selected AI tools with Spool-specific instr
 Instructions for AI coding assistants using Spool for spec-driven development.
 
 ## TL;DR Quick Checklist
-- Search existing work: `spool spec list --long`, `spool list`
+- Search existing work: `spool list --specs`, `spool list`
 - Decide scope: new capability vs modify existing capability
 - Pick a unique `change-id`: verb-led kebab-case (`add-`, `update-`, `remove-`, `refactor-`)
 - Scaffold: `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas
@@ -89,4 +89,3 @@ The command SHALL provide clear, actionable next steps upon successful initializ
 - **AND** summarize which assistant files were created versus refreshed (e.g., `CLAUDE.md (created)`, `.cursor/commands/spool-apply.md (refreshed)`)
 - **AND** include copy-pasteable onboarding prompts for each configured assistant, replacing placeholder text ([YOUR FEATURE HERE]) with real guidance to customize
 - **AND** reference AGENTS.md-compatible assistants when no tool-specific file exists (e.g., when only AGENTS.md standard is selected)
-

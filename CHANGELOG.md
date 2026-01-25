@@ -285,7 +285,7 @@
 
 ### Minor Changes
 
-- ce5cead: - Add an `spool view` dashboard that rolls up spec counts and change progress at a glance
+- ce5cead: - Add an `spool dashboard` command that rolls up spec counts and change progress at a glance
   - Generate and update AI slash commands alongside the renamed `spool/AGENTS.md` instructions file
   - Remove the deprecated `spool diff` command and direct users to `spool show`
 

@@ -6,7 +6,7 @@ Users need a quick, at-a-glance overview of their Spool project status without r
 
 ## What Changes
 
-### Added `spool view` Command
+### Added `spool dashboard` Command
 
 The new command provides an interactive dashboard displaying:
 - Summary metrics (total specs, requirements, changes, task progress)
@@ -16,12 +16,12 @@ The new command provides an interactive dashboard displaying:
 
 ### Specifications Affected
 
-- **cli-view** (NEW): Complete specification for the view dashboard command
+- **cli-view** (NEW): Complete specification for the dashboard command
 
 ## Implementation Details
 
 ### File Structure
-- Created `/src/core/view.ts` implementing the `ViewCommand` class
+- Created `/src/core/view.ts` implementing the `ViewCommand` class (now surfaced as `spool dashboard`)
 - Registered command in `/src/cli/index.ts`
 - Reuses existing utilities from `task-progress.ts` and `MarkdownParser`
 

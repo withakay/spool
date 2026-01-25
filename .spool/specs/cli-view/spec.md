@@ -2,20 +2,22 @@
 
 ## Purpose
 
-The `spool view` command provides a comprehensive dashboard view of the Spool project state, displaying specifications, changes, and progress metrics in a unified, visually appealing format to help developers quickly understand project status.
+The `spool dashboard` command provides a comprehensive dashboard view of the Spool project state, displaying specifications, changes, and progress metrics in a unified, visually appealing format to help developers quickly understand project status.
+
+`spool view` remains callable as a hidden deprecated alias.
 ## Requirements
 ### Requirement: Dashboard Display
 
-The system SHALL provide a `view` command that displays a dashboard overview of specs and changes.
+The system SHALL provide a `dashboard` command that displays a dashboard overview of specs and changes.
 
 #### Scenario: Basic dashboard display
 
-- **WHEN** user runs `spool view`
+- **WHEN** user runs `spool dashboard`
 - **THEN** system displays a formatted dashboard with sections for summary, active changes, completed changes, and specifications
 
 #### Scenario: No Spool directory
 
-- **WHEN** user runs `spool view` in a directory without Spool
+- **WHEN** user runs `spool dashboard` in a directory without Spool
 - **THEN** system displays error message "✗ No spool directory found"
 
 ### Requirement: Summary Section
@@ -126,4 +128,3 @@ The dashboard SHALL display changes without tasks in a separate "Draft" section.
 
 - **WHEN** multiple draft changes exist
 - **THEN** system sorts them alphabetically by name
-

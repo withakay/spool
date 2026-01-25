@@ -54,7 +54,7 @@ When user selects "Create a new module", the system SHALL prompt for the module 
 
 #### Scenario: Module created with provided name
 - **WHEN** user provides module name "my-feature"
-- **THEN** system runs `spool module new "my-feature"` and uses resulting ID
+- **THEN** system runs `spool create module "my-feature"` and uses resulting ID
 
 ### Requirement: Update spool-proposal skill
 

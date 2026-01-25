@@ -20,7 +20,7 @@ The spool.md slash command MUST be automatically installed in the agent harness 
 The spool.md slash command SHALL parse commands in the format '/spool <command> [args...]' and invoke the spool skill with the extracted command and arguments.
 
 #### Scenario: Simple command parsing
-- **WHEN** user types '/spool view'
+- **WHEN** user types '/spool dashboard'
 - **THEN** slash command extracts command as 'view'
 - **AND** invokes spool skill with arguments ['view']
 - **AND** spool skill handles routing
@@ -63,7 +63,7 @@ The spool.md slash command SHALL integrate seamlessly with agent harnesses (e.g.
 - **AND** command appears in command list or help
 
 #### Scenario: Harness invokes slash command
-- **WHEN** user types '/spool view change-123'
+- **WHEN** user types '/spool dashboard change-123'
 - **THEN** harness routes to spool.md slash command
 - **AND** slash command invokes spool skill
 - **AND** output is returned to harness for display

@@ -13,7 +13,7 @@ if (progress.total === 0 || progress.completed === progress.total) {
 }
 ```
 
-Result: `spool new change foo && spool view` shows `foo` as "Completed" when it has no content.
+Result: `spool create change foo && spool dashboard` shows `foo` as "Completed" when it has no content.
 
 ### Bug 2: Artifact workflow commands can't find scaffolded changes
 

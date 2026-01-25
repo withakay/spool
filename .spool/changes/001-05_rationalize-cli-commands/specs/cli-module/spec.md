@@ -5,7 +5,7 @@
 The CLI SHALL expose verb-first command entrypoints for module operations, while keeping `spool module ...` as a deprecated compatibility shim.
 
 #### Scenario: List modules via verb-first command
-- **WHEN** user executes `spool list module`
+- **WHEN** user executes `spool list --modules`
 - **THEN** behavior matches `spool module list`
 
 #### Scenario: Create module via verb-first command

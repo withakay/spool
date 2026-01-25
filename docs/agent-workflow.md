@@ -15,7 +15,7 @@ A **change** is the fundamental unit of work in Spool. Each change lives in `.sp
 
 ### Modules
 
-Changes are organized into **modules** for grouping related work. Use `spool module list` to see existing modules, or `spool module new "<name>"` to create one. Use module `000` for small, ungrouped tasks.
+Changes are organized into **modules** for grouping related work. Use `spool list --modules` to see existing modules, or `spool create module "<name>"` to create one. Use module `000` for small, ungrouped tasks.
 
 ### Artifacts
 
@@ -34,7 +34,7 @@ Creates a new change with a structured proposal document.
 **What it does:**
 1. Checks for existing similar changes
 2. Selects or creates a module
-3. Creates the change directory with `spool x-new change "<name>" --module <id>`
+3. Creates the change directory with `spool create change "<name>" --module <id>`
 4. Generates proposal.md using `spool x-instructions proposal --change "<id>"`
 
 **Proposal structure:**
@@ -199,10 +199,10 @@ The system tracks your last-used module in `.spool/.state/session.json`.
 | Command | Purpose |
 |---------|---------|
 | `spool list --json` | List all changes |
-| `spool x-status --change <id>` | Show change status and artifacts |
-| `spool module list` | List modules |
-| `spool module new "<name>"` | Create new module |
-| `spool x-new change "<name>" --module <id>` | Create new change |
+| `spool status --change <id>` | Show change status and artifacts |
+| `spool list --modules` | List modules |
+| `spool create module "<name>"` | Create new module |
+| `spool create change "<name>" --module <id>` | Create new change |
 | `spool x-instructions <action> --change <id>` | Get action instructions |
 | `spool validate --changes <id>` | Validate change |
 | `spool archive <name>` | Archive completed change |

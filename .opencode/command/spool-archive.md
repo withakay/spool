@@ -13,7 +13,7 @@ Use the Spool agent skill `spool-archive` as the source of truth for this workfl
 **Instructions**
 Tell the model to use the `spool-archive` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
-**Guardrails**
-- If the `spool-archive` skill is missing or unavailable, ask the user to run `spool init` (or install it with `spool skills install spool-archive`), then stop.
+ **Guardrails**
+- If the `spool-archive` skill is missing or unavailable, ask the user to run `spool init` (or `spool update` if the project is already initialized), then stop.
 - Do not duplicate the full workflow here; defer to the skill guidance.
 <!-- SPOOL:END -->

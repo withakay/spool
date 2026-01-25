@@ -13,7 +13,7 @@ This document analyzes the complete user journey for working with schemas in Spo
 | Schema resolution (XDG) | 2-level: user override → package built-in |
 | Built-in schemas | `spec-driven`, `tdd` |
 | Artifact workflow commands | `status`, `next`, `instructions`, `templates` with `--schema` flag |
-| Change creation | `spool x-new change <name>` — no schema binding |
+| Change creation | `spool create change <name>` — no schema binding |
 
 ### What's Missing
 
@@ -34,18 +34,18 @@ This document analyzes the complete user journey for working with schemas in Spo
 
 **Today's experience:**
 ```bash
-spool x-new change add-auth
+spool create change add-auth
 # Creates directory, no schema info stored
 
-spool x-status --change add-auth
+spool status --change add-auth
 # Shows spec-driven artifacts (WRONG - user wanted TDD)
 
 # User realizes mistake...
-spool x-status --change add-auth --schema tdd
+spool status --change add-auth --schema tdd
 # Correct, but must remember --schema every time
 
 # 6 months later...
-spool x-status --change add-auth
+spool status --change add-auth
 # Wrong again - nobody remembers this was TDD
 ```
 
@@ -165,7 +165,7 @@ created: 2025-01-15T10:30:00Z
 description: Add user authentication system
 ```
 
-Binds a specific schema to a change. Created automatically by `spool x-new change`.
+Binds a specific schema to a change. Created automatically by `spool create change`.
 
 ### Schema Resolution Order
 
@@ -194,13 +194,13 @@ Project-local takes priority, enabling version-controlled custom schemas.
 
 ```bash
 # Uses project default (from config.yaml, or spec-driven)
-spool x-new change add-auth
+spool create change add-auth
 # Creates spool/changes/add-auth/change.yaml:
 #   schema: spec-driven
 #   created: 2025-01-15T10:30:00Z
 
 # Explicit schema for this change
-spool x-new change add-auth --schema tdd
+spool create change add-auth --schema tdd
 # Creates change.yaml with schema: tdd
 ```
 
@@ -208,12 +208,12 @@ spool x-new change add-auth --schema tdd
 
 ```bash
 # Auto-reads schema from change.yaml — no --schema needed
-spool x-status --change add-auth
+spool status --change add-auth
 # Output: "Change: add-auth (schema: tdd)"
 # Shows which artifacts are ready/blocked/done
 
 # Explicit override still works (with informational message)
-spool x-status --change add-auth --schema spec-driven
+spool status --change add-auth --schema spec-driven
 # "Note: change.yaml specifies 'tdd', using 'spec-driven' per --schema flag"
 ```
 
@@ -275,7 +275,7 @@ spool init
 **Solves:** "Forgot --schema", lost context, wrong results
 
 **Scope:**
-- Create `change.yaml` when running `spool x-new change`
+- Create `change.yaml` when running `spool create change`
 - Store `schema`, `created` timestamp
 - Modify workflow commands to read schema from `change.yaml`
 - `--schema` flag overrides (with informational message)

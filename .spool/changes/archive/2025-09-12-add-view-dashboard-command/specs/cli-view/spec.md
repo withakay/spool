@@ -4,16 +4,16 @@
 
 ### Requirement: Dashboard Display
 
-The system SHALL provide a `view` command that displays a dashboard overview of specs and changes.
+The system SHALL provide a `dashboard` command that displays a dashboard overview of specs and changes.
 
 #### Scenario: Basic dashboard display
 
-- **WHEN** user runs `spool view`
+- **WHEN** user runs `spool dashboard`
 - **THEN** system displays a formatted dashboard with sections for summary, active changes, completed changes, and specifications
 
 #### Scenario: No Spool directory
 
-- **WHEN** user runs `spool view` in a directory without Spool
+- **WHEN** user runs `spool dashboard` in a directory without Spool
 - **THEN** system displays error message "✗ No spool directory found"
 
 ### Requirement: Summary Section

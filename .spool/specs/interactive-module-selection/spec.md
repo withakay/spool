@@ -57,7 +57,7 @@ When user selects "Create a new module", the system SHALL prompt for the module 
 
 #### Scenario: Module created with provided name
 - **WHEN** user provides module name "my-feature"
-- **THEN** system runs `spool module new "my-feature"` and uses resulting ID
+- **THEN** system runs `spool create module "my-feature"` and uses resulting ID
 
 ### Requirement: Update spool-proposal skill
 
@@ -70,4 +70,3 @@ The `spool-proposal` skill file SHALL be updated to include the interactive modu
 #### Scenario: Skill documents all three options
 - **WHEN** reading skill documentation
 - **THEN** all three module selection options are documented
-

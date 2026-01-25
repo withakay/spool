@@ -107,19 +107,19 @@ The system SHALL show resolved template paths for all artifacts in a schema.
 The system SHALL create new change directories with validation.
 
 #### Scenario: Create valid change
-- **WHEN** user runs `spool x-new change add-feature`
-- **THEN** the system creates `spool/changes/add-feature/` directory
+- **WHEN** user runs `spool create change add-feature`
+- **THEN** the system creates `.spool/changes/add-feature/` directory
 
 #### Scenario: Invalid change name
-- **WHEN** user runs `spool x-new change "Add Feature"` with invalid name
+- **WHEN** user runs `spool create change "Add Feature"` with invalid name
 - **THEN** the system displays validation error with guidance
 
 #### Scenario: Duplicate change name
-- **WHEN** user runs `spool x-new change existing-change` for an existing change
+- **WHEN** user runs `spool create change existing-change` for an existing change
 - **THEN** the system displays an error indicating the change already exists
 
 #### Scenario: Create with description
-- **WHEN** user runs `spool x-new change add-feature --description "Add new feature"`
+- **WHEN** user runs `spool create change add-feature --description "Add new feature"`
 - **THEN** the system creates the change directory with description in README.md
 
 ### Requirement: Schema Selection
