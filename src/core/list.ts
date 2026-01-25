@@ -224,6 +224,14 @@ export class ListCommand {
       }
     }
 
+    if (json) {
+      const output = specs
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map((s) => ({ id: s.id, requirementCount: s.requirementCount }));
+      console.log(JSON.stringify({ specs: output }, null, 2));
+      return;
+    }
+
     specs.sort((a, b) => a.id.localeCompare(b.id));
     console.log('Specs:');
     const padding = '  ';
