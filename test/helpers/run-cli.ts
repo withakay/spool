@@ -59,7 +59,7 @@ export async function ensureCliBuilt() {
   }
 
   if (!buildPromise) {
-    buildPromise = runCommand('pnpm', ['run', 'build']).catch((error) => {
+    buildPromise = runCommand('bun', ['run', 'build']).catch((error) => {
       buildPromise = undefined;
       throw error;
     });

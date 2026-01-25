@@ -17,7 +17,7 @@
   - Verify installation: `bun --version`
 - **Verify**: `bun --version` shows installed version
 - **Done When**: Bun is available in PATH and version is displayed
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Clean working tree and generate bun.lock
 - **Files**: `bun.lock` (new), `pnpm-lock.yaml` (preserved)
@@ -88,7 +88,7 @@
   - Line 56: `release:ci`: Change `pnpm run check:pack-version && pnpm exec changeset publish` → `bun run check:pack-version && bunx changeset publish`
 - **Verify**: `grep -n "pnpm" package.json` shows no pnpm references in scripts
 - **Done When**: All pnpm commands in package.json scripts replaced with Bun equivalents
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.2: Update Makefile targets
 - **Files**: `Makefile`
@@ -101,7 +101,7 @@
     - Update commands to use Bun instead of pnpm
 - **Verify**: `make test`, `make lint`, `make build` all work correctly
 - **Done When**: All Makefile targets use Bun commands and execute successfully
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.3: Update test helper
 - **Files**: `test/helpers/run-cli.ts`
@@ -110,7 +110,7 @@
   - Line 62: Replace `runCommand('pnpm', ['run', 'build'])` → `runCommand('bun', ['run', 'build'])`
 - **Verify**: `grep -n "pnpm" test/helpers/run-cli.ts` shows no pnpm references
 - **Done When**: Test helper uses Bun for build command
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.4: Run tests to validate changes
 - **Files**: None (test execution)
@@ -120,7 +120,7 @@
   - Run `make test` to verify Makefile integration
 - **Verify**: `bun run test` and `make test` both pass
 - **Done When**: All tests pass after script updates
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
