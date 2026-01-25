@@ -77,10 +77,12 @@ async function listAvailableSkills(): Promise<void> {
     
     console.log();
     console.log(chalk.gray('Usage:'));
-    console.log(`  ${chalk.cyan('spool install skills <skill-id>...')} - Install specific skills`);
-    console.log(`  ${chalk.cyan('spool install skills --all')} - Install all skills`);
-    console.log(`  ${chalk.cyan('spool list skills')} - Show available skills`);
-    console.log(`  ${chalk.cyan('spool uninstall skills <skill-id>...')} - Remove specific skills`);
+    console.log(`  ${chalk.cyan('spool init')} - Install Spool instructions (including skills)`);
+    console.log(`  ${chalk.cyan('spool update')} - Refresh installed instructions (including skills)`);
+    console.log(chalk.gray('Legacy (deprecated):'));
+    console.log(`  ${chalk.cyan('spool skills list')} - Show available skills`);
+    console.log(`  ${chalk.cyan('spool skills install <skill-id>...')} - Install specific skills`);
+    console.log(`  ${chalk.cyan('spool skills uninstall <skill-id>...')} - Remove specific skills`);
     
   } catch (error) {
     spinner.fail('Failed to load skills');
@@ -144,7 +146,7 @@ async function listInstalledSkills(toolId: SkillsHarness): Promise<void> {
     }
     
     console.log();
-    console.log(chalk.gray('Use ') + chalk.cyan('spool list skills') + chalk.gray(' to see all available skills.'));
+    console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see all available skills.'));
     
   } catch (error) {
     spinner.fail('Failed to check installed skills');
@@ -220,7 +222,7 @@ export class SkillsCommand {
     }
 
     console.log(chalk.yellow('Error: Please specify skill IDs to install or use --all.'));
-    console.log(chalk.gray('Use ') + chalk.cyan('spool list skills') + chalk.gray(' to see available skills.'));
+    console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see available skills.'));
     process.exit(1);
   }
 
@@ -232,7 +234,7 @@ export class SkillsCommand {
     }
 
     console.log(chalk.yellow('Error: Please specify skill IDs to uninstall.'));
-    console.log(chalk.gray('Use ') + chalk.cyan('spool list skills --installed') + chalk.gray(' to see installed skills.'));
+    console.log(chalk.gray('Use ') + chalk.cyan('spool skills status --tool <toolId>') + chalk.gray(' to see installed skills.'));
     process.exit(1);
   }
 }

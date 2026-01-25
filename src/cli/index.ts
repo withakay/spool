@@ -14,6 +14,7 @@ import { ValidateCommand } from '../commands/validate.js';
 import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
 import { ConfigCommand, registerConfigCommand } from '../commands/config.js';
+import { registerSkillsCommands } from '../commands/skills.js';
 import { registerArtifactWorkflowCommands } from '../commands/artifact-workflow.js';
 import { ModuleCommand, registerModuleCommand } from '../commands/module.js';
 import { registerResearchCommand } from '../commands/research.js';
@@ -260,6 +261,7 @@ program
 registerSpecCommand(program);
 registerConfigCommand(program);
 registerModuleCommand(program);
+registerSkillsCommands(program);
 
 // create
 const createCmd = program
