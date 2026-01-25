@@ -792,6 +792,10 @@ function printApplyInstructionsText(instructions: ApplyInstructions): void {
   const {
     changeName,
     schemaName,
+    tracksFile,
+    tracksPath,
+    tracksFormat,
+    tracksDiagnostics,
     contextFiles,
     progress,
     tasks,
@@ -819,6 +823,20 @@ function printApplyInstructionsText(instructions: ApplyInstructions): void {
     console.log('### Context Files');
     for (const [artifactId, filePath] of contextFileEntries) {
       console.log(`- ${artifactId}: ${filePath}`);
+    }
+    console.log();
+  }
+
+  if (tracksFile && tracksPath) {
+    console.log('### Task Tracking');
+    console.log(`- file: ${tracksFile}`);
+    if (tracksFormat) console.log(`- format: ${tracksFormat}`);
+    console.log(`- path: ${tracksPath}`);
+    if (tracksDiagnostics && tracksDiagnostics.length > 0) {
+      const errors = tracksDiagnostics.filter((d) => d.level === 'error');
+      const warnings = tracksDiagnostics.filter((d) => d.level === 'warning');
+      if (errors.length > 0) console.log(`- errors: ${errors.length}`);
+      if (warnings.length > 0) console.log(`- warnings: ${warnings.length}`);
     }
     console.log();
   }

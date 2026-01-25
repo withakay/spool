@@ -1,5 +1,5 @@
 import { agentsTemplate } from './agents-template.js';
-import { projectTemplate, ProjectContext } from './project-template.js';
+import { ProjectContext, projectTemplate } from './project-template.js';
 
 export interface TemplateContext {
   spoolDir: string;
@@ -9,29 +9,30 @@ export type SpoolTemplateContext = ProjectContext & TemplateContext;
 export type SpoolPlanningTemplateContext = PlanningContext & TemplateContext;
 export type SpoolCommandTemplateContext = CommandContext & TemplateContext;
 export type SpoolResearchTemplateContext = ResearchContext & TemplateContext;
-import { claudeTemplate } from './claude-template.js';
+
 import { agentsRootStubTemplate } from './agents-root-stub.js';
-import { getSlashCommandBody, SlashCommandId } from './slash-command-templates.js';
+import { claudeTemplate } from './claude-template.js';
 import {
+  CommandContext,
+  CommandPromptId,
+  commandPromptDescriptions,
+  commandPrompts,
+} from './command-templates.js';
+import {
+  PlanningContext,
   projectPlanningTemplate,
   roadmapTemplate,
   stateTemplate,
-  PlanningContext,
 } from './planning-templates.js';
 import {
-  researchSummaryTemplate,
-  stackAnalysisTemplate,
-  featureLandscapeTemplate,
   architectureTemplate,
+  featureLandscapeTemplate,
   pitfallsTemplate,
   ResearchContext,
+  researchSummaryTemplate,
+  stackAnalysisTemplate,
 } from './research-templates.js';
-import {
-  commandPrompts,
-  commandPromptDescriptions,
-  CommandContext,
-  CommandPromptId,
-} from './command-templates.js';
+import { getSlashCommandBody, SlashCommandId } from './slash-command-templates.js';
 
 export interface Template<T = any> {
   path: string;
@@ -142,20 +143,16 @@ export class TemplateManager {
   }
 }
 
-export { ProjectContext } from './project-template.js';
+export { CommandContext, CommandPromptId } from './command-templates.js';
 export { PlanningContext } from './planning-templates.js';
+export { ProjectContext } from './project-template.js';
 export { ResearchContext } from './research-templates.js';
 export type {
-  SlashCommandId,
   CoreSlashCommandId,
+  SlashCommandId,
 } from './slash-command-templates.js';
 export {
   enhancedTasksTemplate,
-  taskItemTemplate,
-  parseTasksFile,
-  serializeTasksFile,
   type TasksContext,
-  type ParsedTask,
-  type ParsedTasksFile,
+  taskItemTemplate,
 } from './tasks-template.js';
-export { CommandContext, CommandPromptId } from './command-templates.js';

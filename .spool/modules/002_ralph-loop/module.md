@@ -13,3 +13,4 @@
 - [ ] 002-04_add-ralph-github-copilot-harness
 - [ ] 002-05_clean-up-deprecated-change-commands
 - [ ] 002-06_add-agent-preamble-system
+- [ ] 002-07_improve-ralph-loop-parity
