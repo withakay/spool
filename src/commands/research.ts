@@ -25,6 +25,8 @@ interface ResearchOptions {
   topic?: string;
 }
 
+const NEW_RESEARCH_COMMAND = 'spool x-research';
+
 // Available research types with their templates
 const RESEARCH_TYPES = {
   summary: {
@@ -161,7 +163,7 @@ async function showResearchStatus(projectPath: string): Promise<void> {
     
     if (!exists) {
       console.log(chalk.yellow('No research directory found.'));
-      console.log(chalk.gray('Create your first research with: /spool-research'));
+      console.log(chalk.gray(`Create your first research with: ${NEW_RESEARCH_COMMAND}`));
       return;
     }
 
@@ -170,7 +172,7 @@ async function showResearchStatus(projectPath: string): Promise<void> {
     
     if (files.length === 0) {
       console.log(chalk.yellow('No research files found.'));
-      console.log(chalk.gray('Create research with: /spool-research <type> <topic>'));
+      console.log(chalk.gray(`Create research with: ${NEW_RESEARCH_COMMAND} <type> <topic>`));
       return;
     }
 
@@ -215,9 +217,9 @@ async function handleResearchCommand(options: ResearchOptions, projectPath: stri
     
     console.log();
     console.log(chalk.gray('Usage:'));
-    console.log(`  /spool-research <type> <topic>`);
-    console.log(`  /spool-research <type>           (will prompt for topic)`);
-    console.log(`  /spool-research                   (shows status and options)`);
+    console.log(`  ${NEW_RESEARCH_COMMAND} <type> <topic>`);
+    console.log(`  ${NEW_RESEARCH_COMMAND} <type>           (will prompt for topic)`);
+    console.log(`  ${NEW_RESEARCH_COMMAND}                   (shows status and options)`);
     
     return;
   }
@@ -247,24 +249,36 @@ async function handleResearchCommand(options: ResearchOptions, projectPath: stri
  * Register the research command
  */
 export function registerResearchCommand(program: Command): void {
+  const runResearch = async (typeArg?: string, topicArg?: string, cmdOptions?: { type?: string; topic?: string }) => {
+    try {
+      const options: ResearchOptions = {
+        type: typeArg || cmdOptions?.type,
+        topic: topicArg || cmdOptions?.topic,
+      };
+
+      await handleResearchCommand(options, process.cwd());
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  };
+
   program
-    .command('spool-research [type] [topic]')
+    .command('x-research [type] [topic]', { hidden: true })
+    .description('Conduct structured research - single entrypoint for all research types')
+    .option('--type <type>', 'Research type: summary, stack, features, architecture, pitfalls')
+    .option('--topic <topic>', 'Research topic or question')
+    .action(runResearch);
+
+  program
+    .command('spool-research [type] [topic]', { hidden: true })
     .description('Conduct structured research - single entrypoint for all research types')
     .option('--type <type>', 'Research type: summary, stack, features, architecture, pitfalls')
     .option('--topic <topic>', 'Research topic or question')
     .action(async (typeArg?: string, topicArg?: string, cmdOptions?: { type?: string; topic?: string }) => {
-      try {
-        const options: ResearchOptions = {
-          type: typeArg || cmdOptions?.type,
-          topic: topicArg || cmdOptions?.topic,
-        };
-        
-        await handleResearchCommand(options, process.cwd());
-      } catch (error) {
-        console.log();
-        ora().fail(`Error: ${(error as Error).message}`);
-        process.exit(1);
-      }
+      console.error('Warning: "spool-research" is deprecated. Use "spool x-research" instead.');
+      await runResearch(typeArg, topicArg, cmdOptions);
     });
 }
 

@@ -224,7 +224,7 @@ User interface layer. **All commands are deterministic** - require explicit `--c
 **Existing CLI commands** (not part of this slice):
 - `spool change list` / `spool change show <id>` / `spool change validate <id>`
 - `spool list --changes` / `spool list --specs`
-- `spool view` (dashboard)
+- `spool dashboard`
 - `spool init` / `spool archive <change>`
 
 ---
@@ -317,8 +317,8 @@ if (exists(artifactPath)) {
 **CLI layer:** Always deterministic - requires explicit `--change` parameter.
 
 ```
-spool status --change add-auth     # explicit, works
-spool status                        # error: "No change specified"
+spool status --change add-auth       # explicit, works
+spool status                          # error: "No change specified"
 ```
 
 **Agent layer:** Infers from conversation, confirms if uncertain, passes explicit `--change`.
@@ -467,7 +467,7 @@ Structured as **vertical slices** - each slice is independently testable.
 **Already exists (not in scope):**
 - `spool change list/show/validate` - change management
 - `spool list --changes/--specs` - listing
-- `spool view` - dashboard
+- `spool dashboard`
 - `spool init` - initialization
 
 **Testable behaviors:**

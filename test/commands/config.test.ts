@@ -106,7 +106,7 @@ describe('config command shell completion registry', () => {
     const configCmd = COMMAND_REGISTRY.find((cmd) => cmd.name === 'config');
     const subcommandNames = configCmd?.subcommands?.map((s) => s.name) ?? [];
 
-    expect(subcommandNames).toContain('path');
+    expect(subcommandNames).toContain('paths');
     expect(subcommandNames).toContain('list');
     expect(subcommandNames).toContain('get');
     expect(subcommandNames).toContain('set');

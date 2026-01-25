@@ -215,7 +215,7 @@ async function ensureModuleExists(projectRoot: string, moduleId: string): Promis
     };
   }
 
-  throw new Error(`Module '${moduleId}' not found. Create it with: spool module new <name>`);
+  throw new Error(`Module '${moduleId}' not found. Create it with: spool create module <name>`);
 }
 
 async function addChangeToModule(moduleInfo: { id: string; name: string; fullName: string; path: string }, changeId: string): Promise<void> {

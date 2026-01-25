@@ -24,8 +24,8 @@ ${input}
 **Instructions**
 Tell the model to use the \`${skillId}\` skill to complete this workflow, using any supplied arguments or context from the prompt.${extra}
 
-**Guardrails**
-- If the \`${skillId}\` skill is missing or unavailable, ask the user to run \`spool init\` (or install it with \`spool skills install ${skillId}\`), then stop.
+ **Guardrails**
+- If the \`${skillId}\` skill is missing or unavailable, ask the user to run \`spool init\` (or \`spool update\` if the project is already initialized), then stop.
 - Do not duplicate the full workflow here; defer to the skill guidance.`;
 };
 

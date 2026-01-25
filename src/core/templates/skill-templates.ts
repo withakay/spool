@@ -197,40 +197,40 @@ export function getNewChangeSkillTemplate(spoolDir: string = '.spool'): SkillTem
    **Use a different schema only if the user mentions:**
    - "tdd" or "test-driven" → use \`--schema tdd\`
    - A specific schema name → use \`--schema <name>\`
-   - "show workflows" or "what workflows" → run \`spool schemas --json\` and let them choose
+   - "show workflows" or "what workflows" → run \`spool x-schemas --json\` and let them choose
 
    **Otherwise**: Omit \`--schema\` to use the default.
 
- 3. **Pick or create a module**
+  3. **Pick or create a module**
    \`\`\`bash
-   spool module list --json
+   spool list --modules --json
    \`\`\`
    - If the request maps to an existing module, use that module ID
    - If this is a small, ungrouped task, default to module \`000\`
    - If no module fits, create one:
-     \`\`\`bash
-     spool module new "<module-name>"
-     \`\`\`
+      \`\`\`bash
+      spool create module "<module-name>"
+      \`\`\`
    - Capture the module ID for the new change
 
- 4. **Create the change directory (module-first)**
-   \`\`\`bash
-   spool new change "<name>" --module <module-id>
-   \`\`\`
+  4. **Create the change directory (module-first)**
+    \`\`\`bash
+    spool create change "<name>" --module <module-id>
+    \`\`\`
    Add \`--schema <name>\` only if the user requested a specific workflow.
    This creates a scaffolded change at \`.spool/changes/<module-id>-NN_<name>/\` with the selected schema.
 
- 5. **Show the artifact status**
-   \`\`\`bash
-   spool status --change "<change-id>"
-   \`\`\`
+  5. **Show the artifact status**
+    \`\`\`bash
+    spool status --change "<change-id>"
+    \`\`\`
    This shows which artifacts need to be created and which are ready (dependencies satisfied).
 
  6. **Get instructions for the first artifact**
    The first artifact depends on the schema (e.g., \`proposal\` for spec-driven, \`spec\` for tdd).
    Check the status output to find the first artifact with status "ready".
    \`\`\`bash
-   spool instructions <first-artifact-id> --change "<change-id>"
+   spool x-instructions <first-artifact-id> --change "<change-id>"
    \`\`\`
    This outputs the template and context for creating the first artifact.
 
@@ -290,7 +290,7 @@ export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): Ski
 
 2. **Check current status**
    \`\`\`bash
-   spool status --change "<change-id>" --json
+    spool status --change "<change-id>" --json
    \`\`\`
    Parse the JSON to understand current state. The response includes:
    - \`schemaName\`: The workflow schema being used (e.g., "spec-driven", "tdd")
@@ -313,7 +313,7 @@ export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): Ski
    - Pick the FIRST artifact with \`status: "ready"\` from the status output
    - Get its instructions:
      \`\`\`bash
-     spool instructions <artifact-id> --change "<change-id>" --json
+     spool x-instructions <artifact-id> --change "<change-id>" --json
      \`\`\`
    - Parse the JSON to get template, dependencies, and what it unlocks
    - **Create the artifact file** using the template as a starting point:
@@ -331,7 +331,7 @@ export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): Ski
 
 4. **After creating an artifact, show progress**
    \`\`\`bash
-   spool status --change "<change-id>"
+    spool status --change "<change-id>"
    \`\`\`
 
 **Output**
@@ -400,7 +400,7 @@ export function getApplyChangeSkillTemplate(spoolDir: string = '.spool'): SkillT
 
 2. **Check status to understand the schema**
    \`\`\`bash
-   spool status --change "<change-id>" --json
+    spool status --change "<change-id>" --json
    \`\`\`
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used (e.g., "spec-driven", "tdd")
@@ -409,7 +409,7 @@ export function getApplyChangeSkillTemplate(spoolDir: string = '.spool'): SkillT
 3. **Get apply instructions**
 
    \`\`\`bash
-   spool instructions apply --change "<change-id>" --json
+   spool x-instructions apply --change "<change-id>" --json
    \`\`\`
 
    This returns:
@@ -555,28 +555,28 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
  
     **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
  
- 2. **Pick or create a module**
-    \`\`\`bash
-    spool module list --json
-    \`\`\`
+  2. **Pick or create a module**
+     \`\`\`bash
+     spool list --modules --json
+     \`\`\`
     - If the request maps to an existing module, use that module ID
     - If this is a small, ungrouped task, default to module \`000\`
     - If no module fits, create one:
       \`\`\`bash
-      spool module new "<module-name>"
+      spool create module "<module-name>"
       \`\`\`
     - Capture the module ID for the new change
  
  3. **Create the change directory (module-first)**
     \`\`\`bash
-    spool new change "<name>" --module <module-id>
+    spool create change "<name>" --module <module-id>
     \`\`\`
     This creates a scaffolded change at \`.spool/changes/<module-id>-NN_<name>/\`.
  
-  4. **Get the artifact build order**
-    \`\`\`bash
-    spool status --change "<change-id>" --json
-    \`\`\`
+   4. **Get the artifact build order**
+     \`\`\`bash
+     spool status --change "<change-id>" --json
+     \`\`\`
  
     Parse the JSON to get:
     - \`applyRequires\`: array of artifact IDs needed before implementation (e.g., \`["tasks"]\`)
@@ -592,7 +592,7 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
     a. **For each artifact that is \`ready\` (dependencies satisfied)**:
       - Get instructions:
         \`\`\`bash
-        spool instructions <artifact-id> --change "<change-id>" --json
+        spool x-instructions <artifact-id> --change "<change-id>" --json
         \`\`\`
 
       - The instructions JSON includes:
@@ -605,7 +605,7 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
       - Show brief progress: "✓ Created <artifact-id>"
 
    b. **Continue until all \`applyRequires\` artifacts are complete**
-      - After creating each artifact, re-run \`spool status --change "<change-id>" --json\`
+       - After creating each artifact, re-run \`spool status --change "<change-id>" --json\`
       - Check if every artifact ID in \`applyRequires\` has \`status: "done"\` in the artifacts array
       - Stop when all \`applyRequires\` artifacts are done
 
@@ -613,10 +613,10 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
       - Use **AskUserQuestion tool** to clarify
       - Then continue with creation
 
-5. **Show final status**
-   \`\`\`bash
-   spool status --change "<change-id>"
-   \`\`\`
+ 5. **Show final status**
+    \`\`\`bash
+    spool status --change "<change-id>"
+    \`\`\`
 
 **Output**
 
@@ -628,7 +628,7 @@ After completing all artifacts, summarize:
 
 **Artifact Creation Guidelines**
 
-- Follow the \`instruction\` field from \`spool instructions\` for each artifact type
+- Follow the \`instruction\` field from \`spool x-instructions\` for each artifact type
 - The schema defines what each artifact should contain - follow it
 - Read dependency artifacts for context before creating new ones
 - Use the \`template\` as a starting point, filling in based on context
@@ -831,7 +831,7 @@ When invoking this skill, check for these parameters in context:
    - Use AskUserQuestion to select a change (recommended: most recently modified)
 
    Then inspect the change:
-   - \`spool status --change "<change-id>"\`
+    - \`spool status --change "<change-id>"\`
    - If available, prefer \`--json\` and parse it
 
 3. Confirm the change is in a good commit state:
@@ -913,7 +913,7 @@ export function getSpoolSkillTemplate(spoolDir: string = '.spool'): SkillTemplat
 
 Users may type requests like \
 \`spool archive 001-03_add-spool-skill\` or \
-\`spool view 001-03_add-spool-skill\`.
+\`spool dashboard\`.
 
 This skill MUST:
 1. Prefer matching spool-* skills (skill-first precedence)
@@ -987,26 +987,26 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
    3. **Pick or create a module**
      \`\`\`bash
-     spool module list --json
+      spool list --modules --json
      \`\`\`
      - If the request maps to an existing module, use that module ID
      - If this is a small, ungrouped task, default to module \`000\`
      - If no module fits, create one:
        \`\`\`bash
-       spool module new "<module-name>"
+        spool create module "<module-name>"
        \`\`\`
      - Capture the module ID for the new change
 
    4. **Create the change directory (module-first)**
      \`\`\`bash
-     spool new change "<name>" --module <module-id>
+      spool create change "<name>" --module <module-id>
      \`\`\`
      - Use a kebab-case name derived from the user's request
      - This creates the scaffolded structure at \`.spool/changes/<module-id>-NN_<name>/\`
 
    5. **Create the proposal artifact**
      \`\`\`bash
-     spool instructions proposal --change "<change-id>"
+     spool x-instructions proposal --change "<change-id>"
      \`\`\`
 
     - Get the template and context for creating the proposal.md
@@ -1022,7 +1022,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
        1. Create directory: \`mkdir -p .spool/changes/<change-id>/specs/<capability-name>\`
        2. Get spec template:
           \`\`\`bash
-          spool instructions spec --change "<change-id>"
+          spool x-instructions spec --change "<change-id>"
           \`\`\`
        3. Create \`specs/<capability-name>/spec.md\`:
           - **Purpose**: What is this capability? What problem does it solve?
@@ -1031,7 +1031,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
   7. **Create the design artifact**
      \`\`\`bash
-     spool instructions design --change "<change-id>"
+     spool x-instructions design --change "<change-id>"
      \`\`\`
     - Get the template and context for creating the design.md
     - Read the template and fill it out based on the proposal and specs:
@@ -1043,7 +1043,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
   8. **Create the tasks artifact**
      \`\`\`bash
-     spool instructions tasks --change "<change-id>"
+     spool x-instructions tasks --change "<change-id>"
      \`\`\`
     - Get the template and context for creating the tasks.md
     - Read the template and break down into actionable tasks:
@@ -1130,14 +1130,14 @@ export function getApplySkillTemplate(spoolDir: string = '.spool'): SkillTemplat
 
 2. **Check change is ready for implementation**
    \`\`\`bash
-   spool status --change "<change-id>" --json
+    spool status --change "<change-id>" --json
    \`\`\`
    - Verify all required artifacts are complete (proposal, specs, design, tasks)
    - If artifacts are missing, suggest using \`spool-continue-change\` first
 
 3. **Get implementation context**
    \`\`\`bash
-   spool instructions apply --change "<change-id>" --json
+   spool x-instructions apply --change "<change-id>" --json
    \`\`\`
    - This returns context files, task list, and progress
    - Parse the JSON to understand the current state
@@ -1586,8 +1586,7 @@ export function getSpoolExploreCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-explore\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1605,8 +1604,7 @@ export function getSpoolNewChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly (module-first + CLI driven).
 
-If the skill is missing, install it first:
-\`spool skills install spool-new-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1623,8 +1621,7 @@ export function getSpoolContinueChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-continue-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1642,8 +1639,7 @@ export function getSpoolApplyChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-apply-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1662,8 +1658,7 @@ export function getSpoolFfChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly (module-first + CLI driven).
 
-If the skill is missing, install it first:
-\`spool skills install spool-ff-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1692,7 +1687,7 @@ export function getArchiveChangeSkillTemplate(spoolDir: string = '.spool'): Skil
 
 2. **Check artifact completion status**
 
-   Run \`spool status --change "<change-id>" --json\` to check artifact completion.
+    Run \`spool status --change "<change-id>" --json\` to check artifact completion.
 
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used
@@ -1790,7 +1785,7 @@ All artifacts complete. All tasks complete.
 
 **Guardrails**
 - Always prompt for change selection if not provided
-- Use artifact graph (spool status --json) for completion checking
+ - Use artifact graph (spool status --json) for completion checking
 - Don't block archive on warnings - just inform and confirm
 - Preserve .spool.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
@@ -1812,8 +1807,7 @@ export function getSpoolSyncSpecsCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-sync-specs\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1830,7 +1824,6 @@ export function getSpoolArchiveChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-archive-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }

@@ -2,6 +2,8 @@ import { RalphOptions, RalphRunConfig, RalphState } from './types.js';
 import { loadRalphState, saveRalphState, loadRalphContext } from './state.js';
 import { OpenCodeHarness } from './harnesses/opencode.js';
 import { buildRalphPrompt } from './context.js';
+import { resolveChangeId, resolveModuleId, getModuleById, getChangesForModule } from '../../utils/item-discovery.js';
+import { parseModularChangeName } from '../../core/schemas/index.js';
 
 export async function runRalphLoop(options: RalphOptions): Promise<void> {
   const {
@@ -17,59 +19,84 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
     status,
     addContext,
     clearContext,
+    interactive,
   } = options;
 
-  if (!changeId && !moduleId && !status && !addContext && !clearContext) {
-    console.error('Error: Either --change, --module, --status, --add-context, or --clear-context must be specified');
-    process.exit(1);
-  }
+  const resolvedChangeId = changeId ? (await resolveChangeId(changeId)) ?? changeId : undefined;
 
   if (status) {
-    await showStatus(changeId);
+    await showStatus(resolvedChangeId, moduleId);
     return;
   }
 
-  if (clearContext && changeId) {
+  if (clearContext) {
+    if (!resolvedChangeId) {
+      throw new Error('--change is required for --clear-context');
+    }
     const { clearRalphContext } = await import('./state.js');
-    await clearRalphContext(changeId);
-    console.log(`Cleared Ralph context for ${changeId}`);
+    await clearRalphContext(resolvedChangeId);
+    console.log(`Cleared Ralph context for ${resolvedChangeId}`);
     return;
   }
 
-  if (addContext && changeId) {
+  if (addContext) {
+    if (!resolvedChangeId) {
+      throw new Error('--change is required for --add-context');
+    }
     const { appendToRalphContext } = await import('./state.js');
-    await appendToRalphContext(changeId, addContext);
-    console.log(`Added context to ${changeId}`);
+    await appendToRalphContext(resolvedChangeId, addContext);
+    console.log(`Added context to ${resolvedChangeId}`);
     return;
   }
 
+  // changeId should now be resolved by the command layer, but double-check
   if (!changeId) {
-    console.error('Error: --change is required for running the loop');
-    process.exit(1);
+    throw new Error('Change ID is required for running the loop');
   }
 
-  let state = await loadRalphState(changeId);
+  const loopChangeId = resolvedChangeId ?? changeId;
+
+  let state = await loadRalphState(loopChangeId);
   if (!state) {
     const { initializeRalphState } = await import('./state.js');
-    state = await initializeRalphState(changeId);
+    state = await initializeRalphState(loopChangeId);
   }
 
-  const contextContent = await loadRalphContext(changeId);
+  const contextContent = await loadRalphContext(loopChangeId);
   const userPrompt = options.prompt || '';
+
+  // Resolve module ID if not provided
+  let resolvedModuleId = moduleId;
+  if (!resolvedModuleId) {
+    // Try to infer module from change ID
+    const parsed = parseModularChangeName(loopChangeId);
+    if (parsed) {
+      resolvedModuleId = parsed.moduleId;
+    }
+  }
+
+  // Validate module ID exists if specified
+  if (resolvedModuleId) {
+    const moduleInfo = await getModuleById(resolvedModuleId);
+    if (!moduleInfo) {
+      console.warn(`Warning: Module ${resolvedModuleId} not found, proceeding without module context`);
+      resolvedModuleId = undefined;
+    }
+  }
 
   const agentHarness = createHarness(harness);
 
   for (let i = state.iteration + 1; i <= maxIterations; i++) {
     console.log(`\n=== Ralph Loop Iteration ${i} ===\n`);
 
-    const prompt = await buildRalphPrompt(userPrompt, { changeId, moduleId });
+    const prompt = await buildRalphPrompt(userPrompt, { changeId: loopChangeId, moduleId: resolvedModuleId });
     const fullPrompt = contextContent ? `${contextContent}\n\n${prompt}` : prompt;
 
     const runConfig: RalphRunConfig = {
       prompt: fullPrompt,
       model,
       cwd: process.cwd(),
-      interactive: !allowAll,
+      interactive: interactive !== false && !allowAll,
     };
 
     const startTime = Date.now();
@@ -136,20 +163,30 @@ function createHarness(harnessName: string) {
   }
 }
 
-async function showStatus(changeId?: string): Promise<void> {
-  if (!changeId) {
-    console.error('Error: --change is required for --status');
-    process.exit(1);
+async function showStatus(changeId?: string, moduleId?: string): Promise<void> {
+  // For status, we need a change ID. Try to resolve if missing.
+  let resolvedChangeId = changeId;
+  if (!resolvedChangeId && moduleId) {
+    // Try to find a change for this module
+    const changes = await getChangesForModule(moduleId);
+    if (changes.length > 0) {
+      resolvedChangeId = changes[0]; // Use the first change found
+      console.log(`No --change specified, showing status for ${resolvedChangeId} (from module ${moduleId})`);
+    }
   }
 
-  const state = await loadRalphState(changeId);
+  if (!resolvedChangeId) {
+    throw new Error('--change is required for --status, or provide --module to auto-select');
+  }
+
+  const state = await loadRalphState(resolvedChangeId);
   
   if (!state) {
-    console.log(`No Ralph state found for ${changeId}`);
+    console.log(`No Ralph state found for ${resolvedChangeId}`);
     return;
   }
 
-  console.log(`\n=== Ralph Status for ${changeId} ===\n`);
+  console.log(`\n=== Ralph Status for ${resolvedChangeId} ===\n`);
   console.log(`Iteration: ${state.iteration}`);
   console.log(`History entries: ${state.history.length}`);
   

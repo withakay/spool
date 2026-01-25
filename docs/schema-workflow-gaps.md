@@ -13,7 +13,7 @@ This document analyzes the complete user journey for working with schemas in Spo
 | Schema resolution (XDG) | 2-level: user override → package built-in |
 | Built-in schemas | `spec-driven`, `tdd` |
 | Artifact workflow commands | `status`, `next`, `instructions`, `templates` with `--schema` flag |
-| Change creation | `spool new change <name>` — no schema binding |
+| Change creation | `spool create change <name>` — no schema binding |
 
 ### What's Missing
 
@@ -34,7 +34,7 @@ This document analyzes the complete user journey for working with schemas in Spo
 
 **Today's experience:**
 ```bash
-spool new change add-auth
+spool create change add-auth
 # Creates directory, no schema info stored
 
 spool status --change add-auth
@@ -165,7 +165,7 @@ created: 2025-01-15T10:30:00Z
 description: Add user authentication system
 ```
 
-Binds a specific schema to a change. Created automatically by `spool new change`.
+Binds a specific schema to a change. Created automatically by `spool create change`.
 
 ### Schema Resolution Order
 
@@ -194,13 +194,13 @@ Project-local takes priority, enabling version-controlled custom schemas.
 
 ```bash
 # Uses project default (from config.yaml, or spec-driven)
-spool new change add-auth
+spool create change add-auth
 # Creates spool/changes/add-auth/change.yaml:
 #   schema: spec-driven
 #   created: 2025-01-15T10:30:00Z
 
 # Explicit schema for this change
-spool new change add-auth --schema tdd
+spool create change add-auth --schema tdd
 # Creates change.yaml with schema: tdd
 ```
 
@@ -275,7 +275,7 @@ spool init
 **Solves:** "Forgot --schema", lost context, wrong results
 
 **Scope:**
-- Create `change.yaml` when running `spool new change`
+- Create `change.yaml` when running `spool create change`
 - Store `schema`, `created` timestamp
 - Modify workflow commands to read schema from `change.yaml`
 - `--schema` flag overrides (with informational message)

@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Document module and change ID formats
 
@@ -15,8 +15,6 @@ The documentation SHALL describe flexible ID input formats accepted by CLI comma
 #### Scenario: Canonical format explained
 - **WHEN** reading ID format documentation
 - **THEN** documentation explains IDs are normalized to `NNN` for modules and `NNN-NN_name` for changes
-
-## ADDED Requirements
 
 ### Requirement: Document interactive module selection
 

@@ -25,7 +25,7 @@ Currently, Spool uses a single `spec-driven` schema. Future versions could suppo
 
 ### Schema Customization
 - User-defined schemas at `~/.local/share/spool/schemas/`
-- `spool schemas` command to list and manage available schemas
+- `spool x-schemas` command to list and manage available schemas
 - Project-level schema overrides in `.spool/config.yaml`
 
 ## Additional CLI Commands

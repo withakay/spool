@@ -18,7 +18,7 @@ Tell the model to use the `spool-research` skill to complete this workflow, usin
 - If the user specifies one of: stack, architecture, features, pitfalls, follow the skill's focus guidance.
 - If the focus is missing or unclear, ask the user whether they want a single investigation or the full research suite.
 
-**Guardrails**
-- If the `spool-research` skill is missing or unavailable, ask the user to run `spool init` (or install it with `spool skills install spool-research`), then stop.
+ **Guardrails**
+- If the `spool-research` skill is missing or unavailable, ask the user to run `spool init` (or `spool update` if the project is already initialized), then stop.
 - Do not duplicate the full workflow here; defer to the skill guidance.
 <!-- SPOOL:END -->

@@ -13,7 +13,7 @@ The task-based and artifact-based systems serve **different purposes** and shoul
 
 | System | Purpose | Used By |
 |--------|---------|---------|
-| **Task Progress** | Track implementation work | `spool view`, `spool list` |
+| **Task Progress** | Track implementation work | `spool dashboard`, `spool list` |
 | **Artifact Progress** | Track planning/spec work | `spool status`, `spool next` |
 
 We do NOT merge these systems. Instead, we fix each to work correctly in its domain.

@@ -26,6 +26,12 @@ const COMMON_FLAGS = {
     takesValue: true,
     values: ['change', 'spec'],
   } as FlagDefinition,
+  validateType: {
+    name: 'type',
+    description: 'Specify item type when ambiguous',
+    takesValue: true,
+    values: ['change', 'spec', 'module'],
+  } as FlagDefinition,
 } as const;
 
 /**
@@ -51,11 +57,158 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     description: 'Update Spool instruction files',
     acceptsPositional: true,
     positionalType: 'path',
+    flags: [
+      {
+        name: 'json',
+        description: 'Output update summary as JSON',
+      },
+    ],
+  },
+  {
+    name: 'dashboard',
+    description: 'Display an interactive dashboard of specs and changes',
     flags: [],
   },
   {
+    name: 'status',
+    description: 'Display artifact completion status for a change',
+    flags: [
+      {
+        name: 'change',
+        description: 'Change name to show status for',
+        takesValue: true,
+      },
+      {
+        name: 'schema',
+        description: 'Schema override (auto-detected from .spool.yaml)',
+        takesValue: true,
+      },
+      COMMON_FLAGS.json,
+    ],
+  },
+  {
+    name: 'ralph',
+    description: 'Run iterative AI loop against a change proposal',
+    acceptsPositional: true,
+    flags: [
+      {
+        name: 'change',
+        short: 'c',
+        description: 'Target a specific change proposal',
+        takesValue: true,
+      },
+      {
+        name: 'module',
+        short: 'm',
+        description: 'Target a specific module',
+        takesValue: true,
+      },
+      COMMON_FLAGS.noInteractive,
+      {
+        name: 'harness',
+        description: 'Agent harness to use',
+        takesValue: true,
+      },
+      {
+        name: 'model',
+        description: 'Model identifier to pass to harness',
+        takesValue: true,
+      },
+      {
+        name: 'min-iterations',
+        description: 'Minimum iterations before completion allowed',
+        takesValue: true,
+      },
+      {
+        name: 'max-iterations',
+        description: 'Maximum iterations before stopping',
+        takesValue: true,
+      },
+      {
+        name: 'completion-promise',
+        description: 'Phrase that signals completion',
+        takesValue: true,
+      },
+      {
+        name: 'allow-all',
+        description: 'Auto-approve all tool permissions (non-interactive)',
+      },
+      {
+        name: 'yolo',
+        description: 'Alias for --allow-all',
+      },
+      {
+        name: 'dangerously-allow-all',
+        description: 'Alias for --allow-all',
+      },
+      {
+        name: 'no-commit',
+        description: 'Disable auto-commit after each iteration',
+      },
+      {
+        name: 'status',
+        description: 'Show current Ralph loop status and history',
+      },
+      {
+        name: 'add-context',
+        description: 'Add context for the next iteration',
+        takesValue: true,
+      },
+      {
+        name: 'clear-context',
+        description: 'Clear any pending context',
+      },
+    ],
+  },
+  {
+    name: 'create',
+    description: 'Create items',
+    flags: [],
+    subcommands: [
+      {
+        name: 'change',
+        description: 'Create a new change',
+        acceptsPositional: true,
+        flags: [
+          {
+            name: 'description',
+            description: 'Description to add to README.md',
+            takesValue: true,
+          },
+          {
+            name: 'schema',
+            description: 'Workflow schema to use',
+            takesValue: true,
+          },
+          {
+            name: 'module',
+            description: 'Module ID to associate the change with (default: 000)',
+            takesValue: true,
+          },
+        ],
+      },
+      {
+        name: 'module',
+        description: 'Create a new module',
+        acceptsPositional: true,
+        flags: [
+          {
+            name: 'scope',
+            description: 'Comma-separated list of capabilities (default: "*" for unrestricted)',
+            takesValue: true,
+          },
+          {
+            name: 'depends-on',
+            description: 'Comma-separated list of module IDs this depends on',
+            takesValue: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
     name: 'list',
-    description: 'List items (changes by default, or specs with --specs)',
+    description: 'List items (changes by default). Use --specs or --modules to list other items.',
     flags: [
       {
         name: 'specs',
@@ -65,40 +218,20 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
         name: 'changes',
         description: 'List changes explicitly (default)',
       },
-    ],
-  },
-  {
-    name: 'view',
-    description: 'Display an interactive dashboard of specs and changes',
-    flags: [],
-  },
-  {
-    name: 'validate',
-    description: 'Validate changes and specs',
-    acceptsPositional: true,
-    positionalType: 'change-or-spec-id',
-    flags: [
       {
-        name: 'all',
-        description: 'Validate all changes and specs',
+        name: 'modules',
+        description: 'List modules instead of changes',
       },
       {
-        name: 'changes',
-        description: 'Validate all changes',
-      },
-      {
-        name: 'specs',
-        description: 'Validate all specs',
-      },
-      COMMON_FLAGS.type,
-      COMMON_FLAGS.strict,
-      COMMON_FLAGS.jsonValidation,
-      {
-        name: 'concurrency',
-        description: 'Max concurrent validations (defaults to env SPOOL_CONCURRENCY or 6)',
+        name: 'sort',
+        description: 'Sort order: "recent" (default) or "name"',
         takesValue: true,
+        values: ['recent', 'name'],
       },
-      COMMON_FLAGS.noInteractive,
+      {
+        name: 'json',
+        description: 'Output as JSON (for programmatic use)',
+      },
     ],
   },
   {
@@ -112,26 +245,64 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
       COMMON_FLAGS.noInteractive,
       {
         name: 'deltas-only',
-        description: 'Show only deltas (JSON only, change-specific)',
+        description: 'Show only deltas (JSON only, change)',
       },
       {
         name: 'requirements-only',
-        description: 'Alias for --deltas-only (deprecated, change-specific)',
+        description: 'Alias for --deltas-only (deprecated, change)',
       },
       {
         name: 'requirements',
-        description: 'Show only requirements, exclude scenarios (JSON only, spec-specific)',
+        description: 'JSON only: Show only requirements (exclude scenarios)',
       },
       {
         name: 'no-scenarios',
-        description: 'Exclude scenario content (JSON only, spec-specific)',
+        description: 'JSON only: Exclude scenario content',
       },
       {
         name: 'requirement',
         short: 'r',
-        description: 'Show specific requirement by ID (JSON only, spec-specific)',
+        description: 'JSON only: Show specific requirement by ID (1-based)',
         takesValue: true,
       },
+    ],
+  },
+  {
+    name: 'validate',
+    description: 'Validate changes, specs, and modules',
+    acceptsPositional: true,
+    positionalType: 'change-or-spec-id',
+    flags: [
+      {
+        name: 'all',
+        description: 'Validate all changes, specs, and modules',
+      },
+      {
+        name: 'changes',
+        description: 'Validate all changes',
+      },
+      {
+        name: 'specs',
+        description: 'Validate all specs',
+      },
+      {
+        name: 'modules',
+        description: 'Validate all modules',
+      },
+      {
+        name: 'module',
+        description: 'Validate a specific module by ID',
+        takesValue: true,
+      },
+      COMMON_FLAGS.validateType,
+      COMMON_FLAGS.strict,
+      COMMON_FLAGS.jsonValidation,
+      {
+        name: 'concurrency',
+        description: 'Max concurrent validations (defaults to env SPOOL_CONCURRENCY or 6)',
+        takesValue: true,
+      },
+      COMMON_FLAGS.noInteractive,
     ],
   },
   {
@@ -156,107 +327,14 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     ],
   },
   {
-    name: 'change',
-    description: 'Manage Spool change proposals (deprecated)',
+    name: 'split',
+    description: 'Split a change into smaller changes',
+    acceptsPositional: true,
+    positionalType: 'change-id',
     flags: [],
-    subcommands: [
-      {
-        name: 'show',
-        description: 'Show a change proposal',
-        acceptsPositional: true,
-        positionalType: 'change-id',
-        flags: [
-          COMMON_FLAGS.json,
-          {
-            name: 'deltas-only',
-            description: 'Show only deltas (JSON only)',
-          },
-          {
-            name: 'requirements-only',
-            description: 'Alias for --deltas-only (deprecated)',
-          },
-          COMMON_FLAGS.noInteractive,
-        ],
-      },
-      {
-        name: 'list',
-        description: 'List all active changes (deprecated)',
-        flags: [
-          COMMON_FLAGS.json,
-          {
-            name: 'long',
-            description: 'Show id and title with counts',
-          },
-        ],
-      },
-      {
-        name: 'validate',
-        description: 'Validate a change proposal',
-        acceptsPositional: true,
-        positionalType: 'change-id',
-        flags: [
-          COMMON_FLAGS.strict,
-          COMMON_FLAGS.jsonValidation,
-          COMMON_FLAGS.noInteractive,
-        ],
-      },
-    ],
   },
   {
-    name: 'spec',
-    description: 'Manage Spool specifications',
-    flags: [],
-    subcommands: [
-      {
-        name: 'show',
-        description: 'Show a specification',
-        acceptsPositional: true,
-        positionalType: 'spec-id',
-        flags: [
-          COMMON_FLAGS.json,
-          {
-            name: 'requirements',
-            description: 'Show only requirements, exclude scenarios (JSON only)',
-          },
-          {
-            name: 'no-scenarios',
-            description: 'Exclude scenario content (JSON only)',
-          },
-          {
-            name: 'requirement',
-            short: 'r',
-            description: 'Show specific requirement by ID (JSON only)',
-            takesValue: true,
-          },
-          COMMON_FLAGS.noInteractive,
-        ],
-      },
-      {
-        name: 'list',
-        description: 'List all specifications',
-        flags: [
-          COMMON_FLAGS.json,
-          {
-            name: 'long',
-            description: 'Show id and title with counts',
-          },
-        ],
-      },
-      {
-        name: 'validate',
-        description: 'Validate a specification',
-        acceptsPositional: true,
-        positionalType: 'spec-id',
-        flags: [
-          COMMON_FLAGS.strict,
-          COMMON_FLAGS.jsonValidation,
-          COMMON_FLAGS.noInteractive,
-        ],
-      },
-    ],
-  },
-  {
-    name: 'completion',
+    name: 'completions',
     description: 'Manage shell completions for Spool CLI',
     flags: [],
     subcommands: [
@@ -307,16 +385,14 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     ],
     subcommands: [
       {
-        name: 'path',
+        name: 'paths',
         description: 'Show config file location',
         flags: [],
       },
       {
         name: 'list',
         description: 'Show all current settings',
-        flags: [
-          COMMON_FLAGS.json,
-        ],
+        flags: [COMMON_FLAGS.json],
       },
       {
         name: 'get',
@@ -366,5 +442,23 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
         flags: [],
       },
     ],
+  },
+  // Experimental commands (visible)
+  {
+    name: 'x-templates',
+    description: '[Experimental] Show resolved template paths for all artifacts in a schema',
+    flags: [
+      {
+        name: 'schema',
+        description: 'Schema to use',
+        takesValue: true,
+      },
+      COMMON_FLAGS.json,
+    ],
+  },
+  {
+    name: 'x-schemas',
+    description: '[Experimental] List available workflow schemas with descriptions',
+    flags: [COMMON_FLAGS.json],
   },
 ];

@@ -146,7 +146,7 @@ export class ModuleCommand {
 
     if (modules.length === 0) {
       console.log('No modules found.');
-      console.log('Create one with: spool module new <name>');
+      console.log('Create one with: spool create module <name>');
       return;
     }
 
@@ -176,7 +176,7 @@ export class ModuleCommand {
       }
 
       if (!interactive) {
-        console.error('Usage: spool module show <module-id>');
+        console.error('Usage: spool show module <module-id>');
         console.error('Available modules:');
         for (const m of modules) {
           console.error(`  ${m.id} - ${m.fullName}`);
@@ -282,7 +282,7 @@ export class ModuleCommand {
     // If no module ID provided, list and exit
     if (!moduleId) {
       spinner?.stop();
-      console.error('Usage: spool module validate <module-id>');
+      console.error('Usage: spool validate module <module-id>');
       const modules = await getModuleInfo(root);
       if (modules.length > 0) {
         console.error('Available modules:');
@@ -384,8 +384,12 @@ export class ModuleCommand {
 
 export function registerModuleCommand(program: any): void {
   const moduleCmd = program
-    .command('module')
-    .description('Manage Spool modules (groups of related changes)');
+    .command('module', { hidden: true })
+    .description('Manage Spool modules (groups of related changes) (deprecated)');
+
+  moduleCmd.hook('preAction', () => {
+    console.error('Warning: The "spool module ..." commands are deprecated. Prefer verb-first commands (e.g., "spool list module", "spool create module", "spool show module", "spool validate module").');
+  });
 
   moduleCmd
     .command('new [name]')

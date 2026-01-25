@@ -20,7 +20,7 @@ export abstract class TomlSlashCommandConfigurator extends SlashCommandConfigura
       const filePath = FileSystemUtils.joinPath(projectPath, target.path);
 
       if (await FileSystemUtils.fileExists(filePath)) {
-        await this.updateBody(filePath, body);
+        await this.updateBody(filePath, target.id, body);
       } else {
         const tomlContent = this.generateTOML(target.id, body);
         await FileSystemUtils.writeFile(filePath, tomlContent);
@@ -48,13 +48,17 @@ ${SPOOL_MARKERS.end}
   }
 
   // Override updateBody to handle TOML format
-  protected async updateBody(filePath: string, body: string): Promise<void> {
+  protected async updateBody(filePath: string, id: SlashCommandId, body: string): Promise<void> {
     const content = await FileSystemUtils.readFile(filePath);
     const startIndex = content.indexOf(SPOOL_MARKERS.start);
     const endIndex = content.indexOf(SPOOL_MARKERS.end);
 
+    // If markers are missing, treat this as a legacy/unmanaged file and
+    // overwrite it with the canonical Spool-managed TOML structure.
     if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-      throw new Error(`Missing Spool markers in ${filePath}`);
+      const tomlContent = this.generateTOML(id, body);
+      await FileSystemUtils.writeFile(filePath, tomlContent);
+      return;
     }
 
     const before = content.slice(0, startIndex + SPOOL_MARKERS.start.length);

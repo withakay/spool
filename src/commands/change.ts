@@ -45,7 +45,7 @@ export class ChangeCommand {
         } else {
           console.error(`No change specified. Available IDs: ${changes.join(', ')}`);
         }
-        console.error('Hint: use "spool change list" to view available changes.');
+        console.error('Hint: use "spool list --changes" to view available changes.');
         process.exitCode = 1;
         return;
       }
@@ -156,7 +156,9 @@ export class ChangeCommand {
       const sorted = [...changes].sort();
       if (!options?.long) {
         // IDs only
-        sorted.forEach(id => console.log(id));
+        sorted.forEach((id) => {
+          console.log(id);
+        });
         return;
       }
 
@@ -208,7 +210,7 @@ export class ChangeCommand {
         } else {
           console.error(`No change specified. Available IDs: ${changes.join(', ')}`);
         }
-        console.error('Hint: use "spool change list" to view available changes.');
+        console.error('Hint: use "spool list --changes" to view available changes.');
         process.exitCode = 1;
         return;
       }
@@ -298,8 +300,10 @@ export class ChangeCommand {
     const bullets: string[] = [];
     bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
     bullets.push('- Each requirement MUST include at least one #### Scenario: block');
-    bullets.push('- Debug parsed deltas: spool change show <id> --json --deltas-only');
+    bullets.push('- Debug parsed deltas: spool show <id> --type change --json --deltas-only');
     console.error('Next steps:');
-    bullets.forEach(b => console.error(`  ${b}`));
+    bullets.forEach((b) => {
+      console.error(`  ${b}`);
+    });
   }
 }

@@ -1,5 +1,8 @@
-## ADDED Requirements
+# interactive-module-selection Specification
 
+## Purpose
+TBD - created by archiving change 001-01_flexible-id-parsing. Update Purpose after archive.
+## Requirements
 ### Requirement: Prompt for module when not specified
 
 When `/spool-proposal` is invoked without a module ID, the skill SHALL prompt the user with module selection options.
@@ -54,7 +57,7 @@ When user selects "Create a new module", the system SHALL prompt for the module 
 
 #### Scenario: Module created with provided name
 - **WHEN** user provides module name "my-feature"
-- **THEN** system runs `spool module new "my-feature"` and uses resulting ID
+- **THEN** system runs `spool create module "my-feature"` and uses resulting ID
 
 ### Requirement: Update spool-proposal skill
 

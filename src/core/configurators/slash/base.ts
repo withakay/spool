@@ -98,17 +98,24 @@ export abstract class SlashCommandConfigurator {
      return sections.join('\n') + '\n';
    }
 
-   protected async rewriteFullFile(filePath: string, id: SlashCommandId, body: string, spoolDir: string): Promise<void> {
-     const existing = await FileSystemUtils.readFile(filePath);
-     const startIndex = existing.indexOf(SPOOL_MARKERS.start);
-     const endIndex = existing.indexOf(SPOOL_MARKERS.end);
+  protected async rewriteFullFile(filePath: string, id: SlashCommandId, body: string, spoolDir: string): Promise<void> {
+      const existing = await FileSystemUtils.readFile(filePath);
+      const startIndex = existing.indexOf(SPOOL_MARKERS.start);
+      const endIndex = existing.indexOf(SPOOL_MARKERS.end);
 
-     if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-       throw new Error(`Missing Spool markers in ${filePath}`);
-     }
+      // If a file exists but doesn't have Spool markers, it's either:
+      // - a legacy Spool-generated file from before markers were introduced, or
+      // - a user-provided file.
+      //
+      // In both cases, when running `spool init`/`spool update`, we prefer to
+      // (re)install the canonical Spool-managed content so future updates work.
+      const updatedContent = this.buildFullFileContent(id, body, spoolDir);
+      if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+        await FileSystemUtils.writeFile(filePath, updatedContent);
+        return;
+      }
 
-     const updatedContent = this.buildFullFileContent(id, body, spoolDir);
-     await FileSystemUtils.writeFile(filePath, updatedContent);
-   }
+      await FileSystemUtils.writeFile(filePath, updatedContent);
+  }
 
 }

@@ -5,6 +5,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { MarkdownParser } from './parsers/markdown-parser.js';
 import { getChangesPath, getSpecsPath } from './project-config.js';
+import { getChangesForModule, getModuleInfo } from '../utils/item-discovery.js';
 
 interface ChangeInfo {
   name: string;
@@ -76,7 +77,7 @@ function formatRelativeTime(date: Date): string {
 }
 
 export class ListCommand {
-  async execute(targetPath: string = '.', mode: 'changes' | 'specs' = 'changes', options: ListOptions = {}): Promise<void> {
+  async execute(targetPath: string = '.', mode: 'changes' | 'specs' | 'modules' = 'changes', options: ListOptions = {}): Promise<void> {
     const { sort = 'recent', json = false } = options;
 
     if (mode === 'changes') {
@@ -153,6 +154,46 @@ export class ListCommand {
     }
 
     // specs mode
+    if (mode === 'modules') {
+      const root = targetPath;
+      const modules = await getModuleInfo(root);
+
+      if (json) {
+        const modulesWithCounts = await Promise.all(
+          modules.map(async (m) => {
+            const changes = await getChangesForModule(m.id, root);
+            return {
+              id: m.id,
+              name: m.name,
+              fullName: m.fullName,
+              changeCount: changes.length,
+            };
+          })
+        );
+        console.log(JSON.stringify({ modules: modulesWithCounts }, null, 2));
+        return;
+      }
+
+      if (modules.length === 0) {
+        console.log('No modules found.');
+        console.log('Create one with: spool create module <name>');
+        return;
+      }
+
+      console.log('Modules:\n');
+      for (const m of modules) {
+        const changes = await getChangesForModule(m.id, root);
+        const changeInfo =
+          changes.length > 0
+            ? ` (${changes.length} change${changes.length !== 1 ? 's' : ''})`
+            : '';
+        console.log(`  ${m.fullName}${changeInfo}`);
+      }
+      console.log();
+      return;
+    }
+
+    // specs mode
     const specsDir = getSpecsPath(targetPath);
     try {
       await fs.access(specsDir);
@@ -181,6 +222,14 @@ export class ListCommand {
         // If spec cannot be read or parsed, include with 0 count
         specs.push({ id, requirementCount: 0 });
       }
+    }
+
+    if (json) {
+      const output = specs
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map((s) => ({ id: s.id, requirementCount: s.requirementCount }));
+      console.log(JSON.stringify({ specs: output }, null, 2));
+      return;
     }
 
     specs.sort((a, b) => a.id.localeCompare(b.id));

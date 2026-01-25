@@ -21,5 +21,5 @@
 - [x] Clean up test changes (`test-workflow`, `test-workflow-2`)
 - [x] Run full test suite
 - [x] Manual test: `spool new change foo && spool status --change foo`
-- [x] Manual test: `spool new change foo && spool view` shows foo in Draft
+- [x] Manual test: `spool create change foo && spool dashboard` shows foo in Draft
 - [x] Validate with `spool validate unify-change-state-model --strict`
