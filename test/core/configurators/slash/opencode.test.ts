@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { OpenCodeSlashCommandConfigurator } from '/Users/jack/Code/withakay/spool/src/core/configurators/slash/opencode.js';
-import { TemplateManager } from '/Users/jack/Code/withakay/spool/src/core/templates/index.js';
+import { OpenCodeSlashCommandConfigurator } from '../../../../src/core/configurators/slash/opencode.js';
+import { TemplateManager } from '../../../../src/core/templates/index.js';
 
 describe('slash command templates with spoolDir', () => {
   describe('skill-driven templates', () => {

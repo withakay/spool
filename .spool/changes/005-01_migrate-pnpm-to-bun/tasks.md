@@ -139,7 +139,7 @@
   - Update cache key from `pnpm` to appropriate Bun cache path if needed
 - **Verify**: Push to branch and observe GitHub Actions run
 - **Done When**: CI workflow uses Bun and passes on all platforms (Linux, macOS, Windows)
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.2: Update release-prepare.yml workflow
 - **Files**: `.github/workflows/release-prepare.yml`
@@ -150,7 +150,7 @@
   - Update `changesets/action@v1` publish command from `pnpm run release:ci` to `bun run release:ci`
 - **Verify**: Inspect workflow file for correctness (release testing requires actual release)
 - **Done When**: Release workflow updated to use Bun
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.3: Validate CI on all platforms
 - **Files**: None (CI validation)
@@ -161,7 +161,7 @@
   - Check that `bun ci`, `bun run build`, `bun run test`, `bunx tsc --noEmit` all succeed
 - **Verify**: GitHub Actions shows green checkmarks on all matrix entries
 - **Done When**: CI passes on all platforms with Bun
-- **Status**: [ ] pending
+- **Status**: [ ] in-progress
 
 ---
 
