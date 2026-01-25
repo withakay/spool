@@ -32,6 +32,9 @@ jobs:
       - name: Run Claude Code Review
         uses: anthropics/claude-code-action@v1
         with:
+          # Use the workflow token instead of OIDC.
+          # This avoids requiring workflow-file parity with the default branch.
+          github_token: ${{ github.token }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           trigger_phrase: "@claude"
           model: "claude-sonnet-4-5-20250929"
