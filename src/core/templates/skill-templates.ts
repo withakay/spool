@@ -290,7 +290,7 @@ export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): Ski
 
 2. **Check current status**
    \`\`\`bash
-   spool x-status --change "<change-id>" --json
+    spool status --change "<change-id>" --json
    \`\`\`
    Parse the JSON to understand current state. The response includes:
    - \`schemaName\`: The workflow schema being used (e.g., "spec-driven", "tdd")
@@ -331,7 +331,7 @@ export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): Ski
 
 4. **After creating an artifact, show progress**
    \`\`\`bash
-   spool x-status --change "<change-id>"
+    spool status --change "<change-id>"
    \`\`\`
 
 **Output**
@@ -400,7 +400,7 @@ export function getApplyChangeSkillTemplate(spoolDir: string = '.spool'): SkillT
 
 2. **Check status to understand the schema**
    \`\`\`bash
-   spool x-status --change "<change-id>" --json
+    spool status --change "<change-id>" --json
    \`\`\`
    Parse the JSON to understand:
    - \`schemaName\`: The workflow being used (e.g., "spec-driven", "tdd")
@@ -987,19 +987,19 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
    3. **Pick or create a module**
      \`\`\`bash
-     spool module list --json
+      spool list --modules --json
      \`\`\`
      - If the request maps to an existing module, use that module ID
      - If this is a small, ungrouped task, default to module \`000\`
      - If no module fits, create one:
        \`\`\`bash
-       spool module new "<module-name>"
+        spool create module "<module-name>"
        \`\`\`
      - Capture the module ID for the new change
 
    4. **Create the change directory (module-first)**
      \`\`\`bash
-     spool x-new change "<name>" --module <module-id>
+      spool create change "<name>" --module <module-id>
      \`\`\`
      - Use a kebab-case name derived from the user's request
      - This creates the scaffolded structure at \`.spool/changes/<module-id>-NN_<name>/\`
@@ -1130,7 +1130,7 @@ export function getApplySkillTemplate(spoolDir: string = '.spool'): SkillTemplat
 
 2. **Check change is ready for implementation**
    \`\`\`bash
-   spool x-status --change "<change-id>" --json
+    spool status --change "<change-id>" --json
    \`\`\`
    - Verify all required artifacts are complete (proposal, specs, design, tasks)
    - If artifacts are missing, suggest using \`spool-continue-change\` first
@@ -1586,8 +1586,7 @@ export function getSpoolExploreCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-explore\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1605,8 +1604,7 @@ export function getSpoolNewChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly (module-first + CLI driven).
 
-If the skill is missing, install it first:
-\`spool skills install spool-new-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1623,8 +1621,7 @@ export function getSpoolContinueChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-continue-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1642,8 +1639,7 @@ export function getSpoolApplyChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-apply-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1662,8 +1658,7 @@ export function getSpoolFfChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly (module-first + CLI driven).
 
-If the skill is missing, install it first:
-\`spool skills install spool-ff-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1812,8 +1807,7 @@ export function getSpoolSyncSpecsCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-sync-specs\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
 
@@ -1830,7 +1824,6 @@ export function getSpoolArchiveChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, install it first:
-\`spool skills install spool-archive-change\``
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
   };
 }
