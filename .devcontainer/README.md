@@ -5,7 +5,7 @@ This directory contains the VS Code dev container configuration for Spool develo
 ## What's Included
 
 - **Node.js 20 LTS** (>=20.19.0) - TypeScript/JavaScript runtime
-- **pnpm** - Fast, disk space efficient package manager
+- **Bun** - Fast package manager and runtime
 - **Git + GitHub CLI** - Version control tools
 - **VS Code Extensions**:
   - ESLint & Prettier for code quality
@@ -36,9 +36,9 @@ This directory contains the VS Code dev container configuration for Spool develo
    - Press Enter
 
 3. **Wait for Setup**:
-   - The container will build (first time takes a few minutes)
-   - `pnpm install` runs automatically via `postCreateCommand`
-   - All extensions install automatically
+    - The container will build (first time takes a few minutes)
+    - `bun install` runs automatically via `postCreateCommand`
+    - All extensions install automatically
 
 ### Daily Development
 
@@ -46,19 +46,19 @@ Once set up, the container preserves your development environment:
 
 ```bash
 # Run development build
-pnpm run dev
+bun run dev
 
 # Run CLI in development
-pnpm run dev:cli
+bun run dev:cli
 
 # Run tests
-pnpm test
+bun run test
 
 # Run tests in watch mode
-pnpm test:watch
+bun run test:watch
 
 # Build the project
-pnpm run build
+bun run build
 ```
 
 ### SSH Keys
@@ -72,7 +72,8 @@ If you modify `.devcontainer/devcontainer.json`:
 
 ## Benefits
 
-- No need to install Node.js or pnpm on your local machine
+- No need to install Node.js or Bun on your local machine
+- No need to install Node.js or Bun on your local machine
 - Consistent development environment across team members
 - Isolated from other Node.js projects on your machine
 - All dependencies and tools containerized
