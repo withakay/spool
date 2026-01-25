@@ -160,29 +160,21 @@ describe('createChange', () => {
     it('should throw error if change already exists', async () => {
       await createChange(testDir, 'add-auth');
 
-      await expect(createChange(testDir, 'add-auth')).rejects.toThrow(
-        /already exists/
-      );
+      await expect(createChange(testDir, 'add-auth')).rejects.toThrow(/already exists/);
     });
   });
 
   describe('invalid name throws validation error', () => {
     it('should throw error for uppercase name', async () => {
-      await expect(createChange(testDir, 'Add-Auth')).rejects.toThrow(
-        /lowercase/
-      );
+      await expect(createChange(testDir, 'Add-Auth')).rejects.toThrow(/lowercase/);
     });
 
     it('should throw error for name with spaces', async () => {
-      await expect(createChange(testDir, 'add auth')).rejects.toThrow(
-        /spaces/
-      );
+      await expect(createChange(testDir, 'add auth')).rejects.toThrow(/spaces/);
     });
 
     it('should throw error for empty name', async () => {
-      await expect(createChange(testDir, '')).rejects.toThrow(
-        /empty/
-      );
+      await expect(createChange(testDir, '')).rejects.toThrow(/empty/);
     });
   });
 

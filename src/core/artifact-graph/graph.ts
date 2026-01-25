@@ -11,7 +11,7 @@ export class ArtifactGraph {
 
   private constructor(schema: SchemaYaml) {
     this.schema = schema;
-    this.artifacts = new Map(schema.artifacts.map(a => [a.id, a]));
+    this.artifacts = new Map(schema.artifacts.map((a) => [a.id, a]));
   }
 
   /**
@@ -87,9 +87,7 @@ export class ArtifactGraph {
     }
 
     // Start with roots (in-degree 0), sorted for determinism
-    const queue = [...this.artifacts.keys()]
-      .filter(id => inDegree.get(id) === 0)
-      .sort();
+    const queue = [...this.artifacts.keys()].filter((id) => inDegree.get(id) === 0).sort();
 
     const result: string[] = [];
 
@@ -123,7 +121,7 @@ export class ArtifactGraph {
         continue; // Already completed
       }
 
-      const allDepsCompleted = artifact.requires.every(req => completed.has(req));
+      const allDepsCompleted = artifact.requires.every((req) => completed.has(req));
       if (allDepsCompleted) {
         ready.push(artifact.id);
       }
@@ -156,7 +154,7 @@ export class ArtifactGraph {
         continue; // Already completed
       }
 
-      const unmetDeps = artifact.requires.filter(req => !completed.has(req));
+      const unmetDeps = artifact.requires.filter((req) => !completed.has(req));
       if (unmetDeps.length > 0) {
         blocked[artifact.id] = unmetDeps.sort();
       }

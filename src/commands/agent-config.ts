@@ -49,7 +49,7 @@ export class AgentConfigCommand {
     const agentTypes = ['research', 'execution', 'review', 'planning'] as const;
 
     console.log('Agent Configuration Summary\n');
-    console.log('=' .repeat(60));
+    console.log('='.repeat(60));
 
     for (const tool of tools) {
       console.log(`\n${tool.toUpperCase()}`);
@@ -65,6 +65,8 @@ export class AgentConfigCommand {
     console.log('\n' + '='.repeat(60));
     console.log('\nContext Strategy:');
     console.log(`  Overflow: ${config.context_strategy?.overflow_handling || 'summarize'}`);
-    console.log(`  Always Include: ${config.context_strategy?.always_include?.join(', ') || 'none'}`);
+    console.log(
+      `  Always Include: ${config.context_strategy?.always_include?.join(', ') || 'none'}`
+    );
   }
 }

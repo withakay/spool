@@ -9,48 +9,67 @@
  * 2. Remove the registerArtifactWorkflowCommands() call from src/cli/index.ts
  */
 
-import type { Command } from 'commander';
-import ora from 'ora';
 import chalk from 'chalk';
-import path from 'path';
+import type { Command } from 'commander';
 import * as fs from 'fs';
+import ora from 'ora';
+import path from 'path';
 import {
-  loadChangeContext,
+  ArtifactGraph,
+  type ArtifactInstructions,
+  type ChangeStatus,
   formatChangeStatus,
   generateInstructions,
+  getSchemaDir,
   listSchemas,
   listSchemasWithInfo,
-  getSchemaDir,
+  loadChangeContext,
   resolveSchema,
-  ArtifactGraph,
-  type ChangeStatus,
-  type ArtifactInstructions,
   type SchemaInfo,
 } from '../core/artifact-graph/index.js';
-import { createModularChange, validateChangeIdentifier, validateChangeName, validateModuleId } from '../utils/change-utils.js';
-import { getModuleIds, getModuleInfo, resolveChangeId as resolveChangeIdFromDiscovery } from '../utils/item-discovery.js';
-import { parseChangeId, parseModuleId as parseFlexibleModuleId } from '../utils/id-parser.js';
 import { generateModuleContent } from '../core/parsers/module-parser.js';
-import {
-  getExploreSkillTemplate,
-  getNewChangeSkillTemplate,
-  getContinueChangeSkillTemplate,
-  getApplyChangeSkillTemplate,
-  getFfChangeSkillTemplate,
-  getSyncSpecsSkillTemplate,
-  getArchiveChangeSkillTemplate,
-  getSpoolExploreCommandTemplate,
-  getSpoolNewChangeCommandTemplate,
-  getSpoolContinueChangeCommandTemplate,
-  getSpoolApplyChangeCommandTemplate,
-  getSpoolFfChangeCommandTemplate,
-  getSpoolSyncSpecsCommandTemplate,
-  getSpoolArchiveChangeCommandTemplate,
-} from '../core/templates/skill-templates.js';
-import { FileSystemUtils } from '../utils/file-system.js';
 import { getChangesPath, getModulesPath, getSpoolDirName } from '../core/project-config.js';
-import { formatModuleFolderName, getNextModuleId, parseModuleName, UNGROUPED_MODULE_ID } from '../core/schemas/index.js';
+import {
+  formatModuleFolderName,
+  getNextModuleId,
+  parseModuleName,
+  UNGROUPED_MODULE_ID,
+} from '../core/schemas/index.js';
+import {
+  parseTasksTrackingFile,
+  type TaskDiagnostic,
+  type TasksTrackingFormat,
+} from '../core/tasks/task-tracking.js';
+import {
+  getApplyChangeSkillTemplate,
+  getArchiveChangeSkillTemplate,
+  getContinueChangeSkillTemplate,
+  getExploreSkillTemplate,
+  getFfChangeSkillTemplate,
+  getNewChangeSkillTemplate,
+  getSpoolApplyChangeCommandTemplate,
+  getSpoolArchiveChangeCommandTemplate,
+  getSpoolContinueChangeCommandTemplate,
+  getSpoolExploreCommandTemplate,
+  getSpoolFfChangeCommandTemplate,
+  getSpoolNewChangeCommandTemplate,
+  getSpoolSyncSpecsCommandTemplate,
+  getSyncSpecsSkillTemplate,
+} from '../core/templates/skill-templates.js';
+import {
+  createModularChange,
+  validateChangeIdentifier,
+  validateChangeName,
+  validateModuleId,
+} from '../utils/change-utils.js';
+import { FileSystemUtils } from '../utils/file-system.js';
+import { parseChangeId, parseModuleId as parseFlexibleModuleId } from '../utils/id-parser.js';
 import { isInteractive } from '../utils/interactive.js';
+import {
+  getModuleIds,
+  getModuleInfo,
+  resolveChangeId as resolveChangeIdFromDiscovery,
+} from '../utils/item-discovery.js';
 
 // -----------------------------------------------------------------------------
 // Types for Apply Instructions
@@ -60,16 +79,23 @@ interface TaskItem {
   id: string;
   description: string;
   done: boolean;
+  status?: 'pending' | 'in_progress' | 'complete';
 }
 
 interface ApplyInstructions {
   changeName: string;
   changeDir: string;
   schemaName: string;
+  tracksPath: string | null;
+  tracksFile: string | null;
+  tracksFormat: TasksTrackingFormat | null;
+  tracksDiagnostics?: TaskDiagnostic[];
   contextFiles: Record<string, string>;
   progress: {
     total: number;
     complete: number;
+    inProgress?: number;
+    pending?: number;
     remaining: number;
   };
   tasks: TaskItem[];
@@ -86,13 +112,13 @@ async function createModuleFromPrompt(projectRoot: string): Promise<string> {
   await fs.promises.mkdir(modulesPath, { recursive: true });
 
   const existingModules = await getModuleIds(projectRoot);
-  const { input } = await import('@inquirer/prompts');
+  const { input } = (await import('@inquirer/' + 'prompts')) as any;
   let name = '';
 
   while (!name) {
     name = await input({
       message: 'Enter module name (kebab-case):',
-      validate: (value) => {
+      validate: (value: string) => {
         if (!value.trim()) return 'Module name is required';
         if (!/^[a-z][a-z0-9-]*$/.test(value)) return 'Must be kebab-case (e.g., project-setup)';
         const exists = existingModules.some((moduleName) => {
@@ -110,7 +136,10 @@ async function createModuleFromPrompt(projectRoot: string): Promise<string> {
   const moduleDir = path.join(modulesPath, folderName);
   await fs.promises.mkdir(moduleDir, { recursive: true });
 
-  const title = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  const title = name
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
   const content = generateModuleContent({
     title,
     purpose: '<!-- Describe the purpose of this module/epic -->',
@@ -143,10 +172,13 @@ async function resolveModuleId(projectRoot: string, moduleOption?: string): Prom
   }
 
   const modules = await getModuleInfo(projectRoot);
-  const { select } = await import('@inquirer/prompts');
+  const { select } = (await import('@inquirer/' + 'prompts')) as any;
   const choices = [
     { name: `${UNGROUPED_MODULE_ID} - ungrouped (ad-hoc)`, value: UNGROUPED_MODULE_ID },
-    ...modules.map((moduleInfo) => ({ name: `${moduleInfo.id} - ${moduleInfo.name}`, value: moduleInfo.id })),
+    ...modules.map((moduleInfo) => ({
+      name: `${moduleInfo.id} - ${moduleInfo.name}`,
+      value: moduleInfo.id,
+    })),
     { name: 'Create a new module…', value: CREATE_MODULE_CHOICE },
   ];
 
@@ -356,13 +388,13 @@ function printStatusText(status: ChangeStatus): void {
 // Instructions Command
 // -----------------------------------------------------------------------------
 
-interface InstructionsOptions {
+export interface InstructionsOptions {
   change?: string;
   schema?: string;
   json?: boolean;
 }
 
-async function instructionsCommand(
+export async function instructionsCommand(
   artifactId: string | undefined,
   options: InstructionsOptions
 ): Promise<void> {
@@ -437,7 +469,9 @@ function printInstructionsText(instructions: ArtifactInstructions, isBlocked: bo
   if (isBlocked) {
     const missing = dependencies.filter((d) => !d.done).map((d) => d.id);
     console.log('<warning>');
-    console.log('This artifact has unmet dependencies. Complete them first or proceed with caution.');
+    console.log(
+      'This artifact has unmet dependencies. Complete them first or proceed with caution.'
+    );
     console.log(`Missing: ${missing.join(', ')}`);
     console.log('</warning>');
     console.log();
@@ -515,30 +549,11 @@ interface ApplyInstructionsOptions {
   json?: boolean;
 }
 
-/**
- * Parses tasks.md content and extracts task items with their completion status.
- */
-function parseTasksFile(content: string): TaskItem[] {
-  const tasks: TaskItem[] = [];
-  const lines = content.split('\n');
-  let taskIndex = 0;
-
-  for (const line of lines) {
-    // Match checkbox patterns: - [ ] or - [x] or - [X]
-    const checkboxMatch = line.match(/^[-*]\s*\[([ xX])\]\s*(.+)$/);
-    if (checkboxMatch) {
-      taskIndex++;
-      const done = checkboxMatch[1].toLowerCase() === 'x';
-      const description = checkboxMatch[2].trim();
-      tasks.push({
-        id: `${taskIndex}`,
-        description,
-        done,
-      });
-    }
-  }
-
-  return tasks;
+function formatTasksDiagnostics(diagnostics: TaskDiagnostic[]): string {
+  const errors = diagnostics.filter((d) => d.level === 'error');
+  if (errors.length === 0) return '';
+  const first = errors[0];
+  return first.taskId ? `${first.taskId}: ${first.message}` : first.message;
 }
 
 /**
@@ -647,27 +662,55 @@ async function generateApplyInstructions(
   // Parse tasks if tracking file exists
   let tasks: TaskItem[] = [];
   let tracksFileExists = false;
+  let tracksPath: string | null = null;
+  let tracksFormat: TasksTrackingFormat | null = null;
+  let tracksDiagnostics: TaskDiagnostic[] | undefined;
   if (tracksFile) {
-    const tracksPath = path.join(changeDir, tracksFile);
+    tracksPath = path.join(changeDir, tracksFile);
     tracksFileExists = fs.existsSync(tracksPath);
     if (tracksFileExists) {
       const tasksContent = await fs.promises.readFile(tracksPath, 'utf-8');
-      tasks = parseTasksFile(tasksContent);
+      const model = parseTasksTrackingFile(tasksContent);
+      tracksFormat = model.format;
+      tracksDiagnostics = model.diagnostics.length > 0 ? model.diagnostics : undefined;
+
+      if (model.format === 'checkbox') {
+        tasks = (model.tasks as any[]).map((t, idx) => ({
+          id: `${idx + 1}`,
+          description: t.description,
+          done: Boolean(t.done),
+        }));
+      } else {
+        tasks = (model.tasks as any[]).map((t) => ({
+          id: t.id,
+          description: t.name,
+          done: t.status === 'complete',
+          status: t.status,
+        }));
+      }
     }
   }
 
   // Calculate progress
   const total = tasks.length;
   const complete = tasks.filter((t) => t.done).length;
+  const inProgress = tasks.filter((t) => t.status === 'in_progress').length;
+  const pending = total - complete - inProgress;
   const remaining = total - complete;
 
   // Determine state and instruction
   let state: ApplyInstructions['state'];
   let instruction: string;
 
+  const hasTrackingErrors = Boolean(tracksDiagnostics?.some((d) => d.level === 'error'));
+
   if (missingArtifacts.length > 0) {
     state = 'blocked';
     instruction = `Cannot apply this change yet. Missing artifacts: ${missingArtifacts.join(', ')}.\nUse the spool-continue-change skill to create the missing artifacts first.`;
+  } else if (hasTrackingErrors) {
+    const diag = formatTasksDiagnostics(tracksDiagnostics ?? []);
+    state = 'blocked';
+    instruction = `The tracking file has errors and must be fixed before progress can be computed.\n${diag}`;
   } else if (tracksFile && !tracksFileExists) {
     // Tracking file configured but doesn't exist yet
     const tracksFilename = path.basename(tracksFile);
@@ -680,22 +723,35 @@ async function generateApplyInstructions(
     instruction = `The ${tracksFilename} file exists but contains no tasks.\nAdd tasks to ${tracksFilename} or regenerate it with spool-continue-change.`;
   } else if (tracksFile && remaining === 0 && total > 0) {
     state = 'all_done';
-    instruction = 'All tasks are complete! This change is ready to be archived.\nConsider running tests and reviewing the changes before archiving.';
+    instruction =
+      'All tasks are complete! This change is ready to be archived.\nConsider running tests and reviewing the changes before archiving.';
   } else if (!tracksFile) {
     // No tracking file (e.g., TDD schema) - ready to apply
     state = 'ready';
-    instruction = schemaInstruction?.trim() ?? 'All required artifacts complete. Proceed with implementation.';
+    instruction =
+      schemaInstruction?.trim() ?? 'All required artifacts complete. Proceed with implementation.';
   } else {
     state = 'ready';
-    instruction = schemaInstruction?.trim() ?? 'Read context files, work through pending tasks, mark complete as you go.\nPause if you hit blockers or need clarification.';
+    instruction =
+      schemaInstruction?.trim() ??
+      'Read context files, work through pending tasks, mark complete as you go.\nPause if you hit blockers or need clarification.';
   }
 
   return {
     changeName,
     changeDir,
     schemaName: context.schemaName,
+    tracksPath,
+    tracksFile: tracksFile ?? null,
+    tracksFormat,
+    tracksDiagnostics,
     contextFiles,
-    progress: { total, complete, remaining },
+    progress: {
+      total,
+      complete,
+      remaining,
+      ...(tracksFormat === 'enhanced' ? { inProgress, pending } : {}),
+    },
     tasks,
     state,
     missingArtifacts: missingArtifacts.length > 0 ? missingArtifacts : undefined,
@@ -733,7 +789,16 @@ async function applyInstructionsCommand(options: ApplyInstructionsOptions): Prom
 }
 
 function printApplyInstructionsText(instructions: ApplyInstructions): void {
-  const { changeName, schemaName, contextFiles, progress, tasks, state, missingArtifacts, instruction } = instructions;
+  const {
+    changeName,
+    schemaName,
+    contextFiles,
+    progress,
+    tasks,
+    state,
+    missingArtifacts,
+    instruction,
+  } = instructions;
 
   console.log(`## Apply: ${changeName}`);
   console.log(`Schema: ${schemaName}`);
@@ -893,14 +958,19 @@ export async function createChangeCommand(
 
     const schemaUsed = options.schema ?? DEFAULT_SCHEMA;
     const spoolDir = getSpoolDirName(projectRoot);
-    spinner.succeed(`Created change '${changeInfo.id}' at ${spoolDir}/changes/${changeInfo.id}/ (schema: ${schemaUsed})`);
+    spinner.succeed(
+      `Created change '${changeInfo.id}' at ${spoolDir}/changes/${changeInfo.id}/ (schema: ${schemaUsed})`
+    );
   } catch (error) {
     spinner.fail(`Failed to create change '${name}'`);
     throw error;
   }
 }
 
-async function newChangeCommand(name: string | undefined, options: CreateChangeOptions): Promise<void> {
+async function newChangeCommand(
+  name: string | undefined,
+  options: CreateChangeOptions
+): Promise<void> {
   await createChangeCommand(name, options);
 }
 
@@ -1135,17 +1205,30 @@ export function registerArtifactWorkflowCommands(program: Command): void {
     }
   };
 
+  // Deprecated x-instructions wrapper
+  const runInstructionsDeprecated = async (
+    artifactId: string | undefined,
+    options: InstructionsOptions
+  ) => {
+    warnDeprecated('spool x-instructions', 'spool agent instruction');
+    await runInstructions(artifactId, options);
+  };
+
   program
     .command('x-instructions [artifact]', { hidden: true })
-    .description('[Experimental] Output enriched instructions for creating an artifact or applying tasks')
+    .description(
+      '[Experimental] Output enriched instructions for creating an artifact or applying tasks'
+    )
     .option('--change <id>', 'Change name')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')
-    .action(runInstructions);
+    .action(runInstructionsDeprecated);
 
   program
     .command('instructions [artifact]', { hidden: true })
-    .description('[Experimental] Output enriched instructions for creating an artifact or applying tasks')
+    .description(
+      '[Experimental] Output enriched instructions for creating an artifact or applying tasks'
+    )
     .option('--change <id>', 'Change name')
     .option('--schema <name>', 'Schema override (auto-detected from .spool.yaml)')
     .option('--json', 'Output as JSON')

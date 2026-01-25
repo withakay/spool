@@ -11,7 +11,10 @@ describe('config command integration', () => {
 
   beforeEach(() => {
     // Create unique temp directory for each test
-    tempDir = path.join(os.tmpdir(), `spool-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempDir = path.join(
+      os.tmpdir(),
+      `spool-config-test-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    );
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Save original env and set XDG_CONFIG_HOME
@@ -51,7 +54,9 @@ describe('config command integration', () => {
   });
 
   it('should return defaults when config file does not exist', async () => {
-    const { getGlobalConfig, getGlobalConfigPath } = await import('../../src/core/global-config.js');
+    const { getGlobalConfig, getGlobalConfigPath } = await import(
+      '../../src/core/global-config.js'
+    );
 
     const configPath = getGlobalConfigPath();
     // Make sure config doesn't exist
@@ -68,10 +73,13 @@ describe('config command integration', () => {
 
     const configDir = getGlobalConfigDir();
     fs.mkdirSync(configDir, { recursive: true });
-    fs.writeFileSync(path.join(configDir, 'config.json'), JSON.stringify({
-      featureFlags: {},
-      customField: 'preserved',
-    }));
+    fs.writeFileSync(
+      path.join(configDir, 'config.json'),
+      JSON.stringify({
+        featureFlags: {},
+        customField: 'preserved',
+      })
+    );
 
     const config = getGlobalConfig();
     expect((config as Record<string, unknown>).customField).toBe('preserved');

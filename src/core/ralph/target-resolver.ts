@@ -18,11 +18,9 @@ export interface ResolveTargetOptions {
  * Resolves the target change and module for Ralph command execution.
  * Handles interactive selection and module inference.
  */
-export async function resolveRalphTarget(
-  options: ResolveTargetOptions
-): Promise<RalphTarget> {
+export async function resolveRalphTarget(options: ResolveTargetOptions): Promise<RalphTarget> {
   const { changeId, moduleId, interactive, root = process.cwd() } = options;
-  const { select } = await import('@inquirer/prompts');
+  const { select } = (await import('@inquirer/' + 'prompts')) as any;
 
   // If change is explicitly provided, validate it and infer module
   if (changeId) {
@@ -42,7 +40,7 @@ export async function resolveRalphTarget(
   // If module is provided but no change, select from module changes
   if (moduleId) {
     const moduleChanges = await getChangesForModule(moduleId, root);
-    
+
     if (moduleChanges.length === 0) {
       throw new Error(`No changes found for module ${moduleId}`);
     }
@@ -56,12 +54,14 @@ export async function resolveRalphTarget(
     }
 
     if (!interactive) {
-      throw new Error(`Multiple changes found for module ${moduleId}. Use --change to specify or run in interactive mode.`);
+      throw new Error(
+        `Multiple changes found for module ${moduleId}. Use --change to specify or run in interactive mode.`
+      );
     }
 
     const selectedChange = await select({
       message: `Select a change from module ${moduleId}`,
-      choices: moduleChanges.map(change => ({
+      choices: moduleChanges.map((change) => ({
         name: change,
         value: change,
       })),
@@ -76,7 +76,7 @@ export async function resolveRalphTarget(
 
   // Neither change nor module provided - prompt for change selection
   const activeChanges = await getActiveChangeIds(root);
-  
+
   if (activeChanges.length === 0) {
     throw new Error('No changes found');
   }
@@ -92,12 +92,14 @@ export async function resolveRalphTarget(
   }
 
   if (!interactive) {
-    throw new Error('Change selection requires interactive mode. Use --change to specify or run in interactive mode.');
+    throw new Error(
+      'Change selection requires interactive mode. Use --change to specify or run in interactive mode.'
+    );
   }
 
   const selectedChange = await select({
     message: 'Select a change to run Ralph against',
-    choices: activeChanges.map(change => ({
+    choices: activeChanges.map((change) => ({
       name: change,
       value: change,
     })),

@@ -85,15 +85,19 @@ export function registerRalphCommand(program: Command): void {
   registerRalphFlags(program.command('ralph [prompt]')).action(runRalph);
 
   // Deprecated wrappers
-  registerRalphFlags(program.command('x-ralph [prompt]', { hidden: true })).action(async (prompt: string | undefined, options: any) => {
-    console.error('Warning: "spool x-ralph" is deprecated. Use "spool ralph" instead.');
-    await runRalph(prompt, options);
-  });
+  registerRalphFlags(program.command('x-ralph [prompt]', { hidden: true })).action(
+    async (prompt: string | undefined, options: any) => {
+      console.error('Warning: "spool x-ralph" is deprecated. Use "spool ralph" instead.');
+      await runRalph(prompt, options);
+    }
+  );
 
-  registerRalphFlags(program.command('loop [prompt]', { hidden: true })).action(async (prompt: string | undefined, options: any) => {
-    console.error('Warning: "spool loop" is deprecated. Use "spool ralph" instead.');
-    await runRalph(prompt, options);
-  });
+  registerRalphFlags(program.command('loop [prompt]', { hidden: true })).action(
+    async (prompt: string | undefined, options: any) => {
+      console.error('Warning: "spool loop" is deprecated. Use "spool ralph" instead.');
+      await runRalph(prompt, options);
+    }
+  );
 }
 
 /**
@@ -124,7 +128,7 @@ async function resolveTargeting(
   // If change is still missing, we need to resolve it interactively or error
   if (!changeId) {
     let candidates: string[] = [];
-    
+
     if (moduleId) {
       // Get changes for the specified module
       candidates = await getChangesForModule(moduleId);
@@ -141,12 +145,12 @@ async function resolveTargeting(
       changeId = candidates[0];
     } else if (interactiveMode) {
       // Interactive selection
-      const { select } = await import('@inquirer/prompts');
+      const { select } = (await import('@inquirer/' + 'prompts')) as any;
       changeId = await select({
         message: moduleId
           ? `Select a change from module ${moduleId}`
           : 'Select a change to run Ralph against',
-        choices: candidates.map(id => ({ name: id, value: id })),
+        choices: candidates.map((id) => ({ name: id, value: id })),
       });
     } else {
       // Non-interactive: list candidates and error

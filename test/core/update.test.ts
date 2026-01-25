@@ -68,16 +68,13 @@ More content after.`;
     // Verify the files were created/updated (more reliable than console spy)
     const agentsMdExists = await fileExists(path.join(testDir, 'AGENTS.md'));
     expect(agentsMdExists).toBe(true);
-    
+
     const spoolAgentsMdExists = await fileExists(path.join(testDir, '.spool', 'AGENTS.md'));
     expect(spoolAgentsMdExists).toBe(true);
   });
 
   it('should refresh existing Claude slash command files', async () => {
-    const proposalPath = path.join(
-      testDir,
-      '.claude/commands/spool/proposal.md'
-    );
+    const proposalPath = path.join(testDir, '.claude/commands/spool/proposal.md');
     await fs.mkdir(path.dirname(proposalPath), { recursive: true });
     const initialContent = `---
 name: Spool: Proposal
@@ -99,10 +96,7 @@ Old slash content
   });
 
   it('should refresh existing OpenCode slash command files', async () => {
-    const researchPath = path.join(
-      testDir,
-      '.opencode/command/spool-research.md'
-    );
+    const researchPath = path.join(testDir, '.opencode/command/spool-research.md');
     await fs.mkdir(path.dirname(researchPath), { recursive: true });
     const initialContent = `---
  description: Old description
@@ -120,10 +114,7 @@ Old slash content
   });
 
   it('should refresh existing Codex prompts', async () => {
-    const applyPath = path.join(
-      testDir,
-      '.codex/prompts/spool-apply.md'
-    );
+    const applyPath = path.join(testDir, '.codex/prompts/spool-apply.md');
     await fs.mkdir(path.dirname(applyPath), { recursive: true });
     const initialContent = `---
  description: Old description
@@ -141,10 +132,7 @@ Old body
   });
 
   it('should refresh existing GitHub Copilot prompts', async () => {
-    const reviewPath = path.join(
-      testDir,
-      '.github/prompts/spool-review.prompt.md'
-    );
+    const reviewPath = path.join(testDir, '.github/prompts/spool-review.prompt.md');
     await fs.mkdir(path.dirname(reviewPath), { recursive: true });
     const initialContent = `---
  description: Old description
@@ -173,10 +161,7 @@ Old content
   it('should not create missing slash command files on update', async () => {
     await updateCommand.execute(testDir);
 
-    const proposalPath = path.join(
-      testDir,
-      '.opencode/command/spool-proposal.md'
-    );
+    const proposalPath = path.join(testDir, '.opencode/command/spool-proposal.md');
     expect(await fileExists(proposalPath)).toBe(false);
   });
 });

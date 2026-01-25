@@ -97,7 +97,7 @@ describe('CompletionProvider', () => {
       await fs.writeFile(path.join(changesDir, 'change-2', 'proposal.md'), '# Change 2');
 
       // Wait for cache to expire
-      await new Promise(resolve => setTimeout(resolve, 60));
+      await new Promise((resolve) => setTimeout(resolve, 60));
 
       // Should now see both changes
       const secondResult = await shortTTLProvider.getChangeIds();
@@ -163,7 +163,7 @@ describe('CompletionProvider', () => {
       await fs.writeFile(path.join(specsDir, 'spec-2', 'spec.md'), '# Spec 2');
 
       // Wait for cache to expire
-      await new Promise(resolve => setTimeout(resolve, 60));
+      await new Promise((resolve) => setTimeout(resolve, 60));
 
       const secondResult = await shortTTLProvider.getSpecIds();
       expect(secondResult).toEqual(['spec-1', 'spec-2']);
@@ -261,7 +261,7 @@ describe('CompletionProvider', () => {
       await shortTTLProvider.getChangeIds();
 
       // Wait for cache to expire
-      await new Promise(resolve => setTimeout(resolve, 60));
+      await new Promise((resolve) => setTimeout(resolve, 60));
 
       const stats = shortTTLProvider.getCacheStats();
       expect(stats.changeCache.valid).toBe(false);

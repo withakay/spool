@@ -52,10 +52,10 @@ const FLEXIBLE_CHANGE_PATTERN = /^(\d+)-(\d+)_([a-z][a-z0-9-]*)$/i;
  * parseModuleId("1_foo")  // { success: true, moduleId: "001", moduleName: "foo" }
  */
 export function parseModuleId(input: string): ModuleIdParseResult {
-  if (!input || typeof input !== "string") {
+  if (!input || typeof input !== 'string') {
     return {
       success: false,
-      error: "Module ID is required",
+      error: 'Module ID is required',
       hint: 'Provide a module ID like "1", "001", or "001_my-module"',
     };
   }
@@ -64,7 +64,7 @@ export function parseModuleId(input: string): ModuleIdParseResult {
   if (!trimmed) {
     return {
       success: false,
-      error: "Module ID cannot be empty",
+      error: 'Module ID cannot be empty',
       hint: 'Provide a module ID like "1", "001", or "001_my-module"',
     };
   }
@@ -86,11 +86,11 @@ export function parseModuleId(input: string): ModuleIdParseResult {
     return {
       success: false,
       error: `Module ID ${num} exceeds maximum (999)`,
-      hint: "Module IDs must be between 0 and 999",
+      hint: 'Module IDs must be between 0 and 999',
     };
   }
 
-  const moduleId = num.toString().padStart(3, "0");
+  const moduleId = num.toString().padStart(3, '0');
 
   if (namePart) {
     return {
@@ -118,10 +118,10 @@ export function parseModuleId(input: string): ModuleIdParseResult {
  * parseChangeId("1-00003_bar")   // { success: true, moduleId: "001", changeNum: "03", name: "bar", canonical: "001-03_bar" }
  */
 export function parseChangeId(input: string): ChangeIdParseResult {
-  if (!input || typeof input !== "string") {
+  if (!input || typeof input !== 'string') {
     return {
       success: false,
-      error: "Change ID is required",
+      error: 'Change ID is required',
       hint: 'Provide a change ID like "1-2_my-change" or "001-02_my-change"',
     };
   }
@@ -130,7 +130,7 @@ export function parseChangeId(input: string): ChangeIdParseResult {
   if (!trimmed) {
     return {
       success: false,
-      error: "Change ID cannot be empty",
+      error: 'Change ID cannot be empty',
       hint: 'Provide a change ID like "1-2_my-change" or "001-02_my-change"',
     };
   }
@@ -138,7 +138,7 @@ export function parseChangeId(input: string): ChangeIdParseResult {
   const match = trimmed.match(FLEXIBLE_CHANGE_PATTERN);
   if (!match) {
     // Provide specific error hints based on what's wrong
-    if (trimmed.includes("_") && !trimmed.includes("-")) {
+    if (trimmed.includes('_') && !trimmed.includes('-')) {
       return {
         success: false,
         error: `Invalid change ID format: "${input}"`,
@@ -168,7 +168,7 @@ export function parseChangeId(input: string): ChangeIdParseResult {
     return {
       success: false,
       error: `Module number ${moduleNum} exceeds maximum (999)`,
-      hint: "Module numbers must be between 0 and 999",
+      hint: 'Module numbers must be between 0 and 999',
     };
   }
 
@@ -176,12 +176,12 @@ export function parseChangeId(input: string): ChangeIdParseResult {
     return {
       success: false,
       error: `Change number ${changeNum} exceeds maximum (99)`,
-      hint: "Change numbers must be between 0 and 99",
+      hint: 'Change numbers must be between 0 and 99',
     };
   }
 
-  const moduleId = moduleNum.toString().padStart(3, "0");
-  const changeNumStr = changeNum.toString().padStart(2, "0");
+  const moduleId = moduleNum.toString().padStart(3, '0');
+  const changeNumStr = changeNum.toString().padStart(2, '0');
   const name = namePart.toLowerCase();
   const canonical = `${moduleId}-${changeNumStr}_${name}`;
 

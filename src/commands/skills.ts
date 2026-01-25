@@ -34,56 +34,71 @@ function normalizeToolId(raw?: string): SkillsHarness {
  */
 async function listAvailableSkills(): Promise<void> {
   const spinner = ora('Loading available skills...').start();
-  
+
   try {
     const configurator = new SkillsConfigurator();
     const availableSkills = configurator.getAvailableSkills();
-    
+
     spinner.stop();
-    
+
     console.log(chalk.bold('Available Spool Skills:'));
     console.log();
-    
+
     // Group skills by category
-    const coreSkills = availableSkills.filter(skill => 
-      ['spool-proposal', 'spool-apply', 'spool-archive', 'spool-research', 'spool-review'].includes(skill.id)
+    const coreSkills = availableSkills.filter((skill) =>
+      ['spool-proposal', 'spool-apply', 'spool-archive', 'spool-research', 'spool-review'].includes(
+        skill.id
+      )
     );
-    
-    const experimentalSkills = availableSkills.filter(skill =>
-      ['spool-explore', 'spool-new-change', 'spool-continue-change', 'spool-apply-change', 'spool-ff-change', 'spool-sync-specs', 'spool-archive-change'].includes(skill.id)
+
+    const experimentalSkills = availableSkills.filter((skill) =>
+      [
+        'spool-explore',
+        'spool-new-change',
+        'spool-continue-change',
+        'spool-apply-change',
+        'spool-ff-change',
+        'spool-sync-specs',
+        'spool-archive-change',
+      ].includes(skill.id)
     );
-    
+
     // Core workflow skills
     if (coreSkills.length > 0) {
       console.log(chalk.white('Core Workflow Skills:'));
       for (const skill of coreSkills) {
-        console.log(`  ${chalk.cyan('•')} ${chalk.white(skill.template.name)} - ${skill.template.description}`);
+        console.log(
+          `  ${chalk.cyan('•')} ${chalk.white(skill.template.name)} - ${skill.template.description}`
+        );
       }
       console.log();
     }
-    
+
     // Experimental workflow skills (OPSX)
     if (experimentalSkills.length > 0) {
       console.log(chalk.white('Experimental Workflow Skills (OPSX):'));
       for (const skill of experimentalSkills) {
-        console.log(`  ${chalk.cyan('•')} ${chalk.white(skill.template.name)} - ${skill.template.description}`);
+        console.log(
+          `  ${chalk.cyan('•')} ${chalk.white(skill.template.name)} - ${skill.template.description}`
+        );
       }
       console.log();
     }
-    
+
     if (coreSkills.length === 0 && experimentalSkills.length === 0) {
       console.log(chalk.gray('No skills available.'));
     }
-    
+
     console.log();
     console.log(chalk.gray('Usage:'));
     console.log(`  ${chalk.cyan('spool init')} - Install Spool instructions (including skills)`);
-    console.log(`  ${chalk.cyan('spool update')} - Refresh installed instructions (including skills)`);
+    console.log(
+      `  ${chalk.cyan('spool update')} - Refresh installed instructions (including skills)`
+    );
     console.log(chalk.gray('Legacy (deprecated):'));
     console.log(`  ${chalk.cyan('spool skills list')} - Show available skills`);
     console.log(`  ${chalk.cyan('spool skills install <skill-id>...')} - Install specific skills`);
     console.log(`  ${chalk.cyan('spool skills uninstall <skill-id>...')} - Remove specific skills`);
-    
   } catch (error) {
     spinner.fail('Failed to load skills');
     console.error(chalk.red(`Error: ${(error as Error).message}`));
@@ -96,25 +111,24 @@ async function listAvailableSkills(): Promise<void> {
  */
 async function installSkills(skillIds: string[], toolId: SkillsHarness): Promise<void> {
   const spinner = ora(`Installing Spool Skills for ${toolId}...`).start();
-  
+
   try {
     const projectRoot = process.cwd();
     const spoolDir = getSpoolDirName(projectRoot);
     const configurator = new SkillsConfigurator();
-    
+
     await configurator.installSkills(projectRoot, spoolDir, skillIds, toolId);
-    
+
     spinner.succeed(`Spool Skills installed successfully for ${toolId}!`);
-    
+
     console.log();
     console.log(chalk.bold('Skills Installed:'));
     for (const skillId of skillIds) {
       console.log(`  ${chalk.green('✓')} ${chalk.white(skillId)}`);
     }
-    
+
     console.log();
     console.log(chalk.gray('Note: Restart your IDE to ensure skills are loaded.'));
-    
   } catch (error) {
     spinner.fail('Failed to install skills');
     console.error(chalk.red(`Error: ${(error as Error).message}`));
@@ -127,15 +141,15 @@ async function installSkills(skillIds: string[], toolId: SkillsHarness): Promise
  */
 async function listInstalledSkills(toolId: SkillsHarness): Promise<void> {
   const spinner = ora(`Checking installed skills for ${toolId}...`).start();
-  
+
   try {
     const projectRoot = process.cwd();
     const configurator = new SkillsConfigurator();
-    
+
     const installedSkills = await configurator.getInstalledSkills(projectRoot, toolId);
-    
+
     spinner.stop();
-    
+
     if (installedSkills.length === 0) {
       console.log(chalk.gray('No Spool skills are currently installed.'));
     } else {
@@ -144,10 +158,13 @@ async function listInstalledSkills(toolId: SkillsHarness): Promise<void> {
         console.log(`  ${chalk.cyan('•')} ${chalk.white(skill)}`);
       }
     }
-    
+
     console.log();
-    console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see all available skills.'));
-    
+    console.log(
+      chalk.gray('Use ') +
+        chalk.cyan('spool skills list') +
+        chalk.gray(' to see all available skills.')
+    );
   } catch (error) {
     spinner.fail('Failed to check installed skills');
     console.error(chalk.red(`Error: ${(error as Error).message}`));
@@ -160,17 +177,17 @@ async function listInstalledSkills(toolId: SkillsHarness): Promise<void> {
  */
 async function uninstallSkills(skillIds: string[], toolId: SkillsHarness): Promise<void> {
   const spinner = ora(`Uninstalling Spool Skills for ${toolId}...`).start();
-  
+
   try {
     const projectRoot = process.cwd();
     const configurator = new SkillsConfigurator();
     const skillsDir = configurator.getSkillsDirectory(projectRoot, toolId);
-    
+
     let removedCount = 0;
-    
+
     for (const skillId of skillIds) {
       const skillPath = path.join(skillsDir, skillId);
-      
+
       if (await FileSystemUtils.directoryExists(skillPath)) {
         await FileSystemUtils.createDirectory(path.join(skillsDir, '.trash'));
         const trashPath = path.join(skillsDir, '.trash', skillId);
@@ -181,14 +198,13 @@ async function uninstallSkills(skillIds: string[], toolId: SkillsHarness): Promi
         console.log(`  ${chalk.gray('○')} ${chalk.white(skillId)} (not found)`);
       }
     }
-    
+
     spinner.succeed(`${removedCount} skill(s) uninstalled successfully!`);
-    
+
     if (removedCount > 0) {
       console.log();
       console.log(chalk.gray('Note: Restart your IDE to ensure skills are unloaded.'));
     }
-    
   } catch (error) {
     spinner.fail('Failed to uninstall skills');
     console.error(chalk.red(`Error: ${(error as Error).message}`));
@@ -222,7 +238,9 @@ export class SkillsCommand {
     }
 
     console.log(chalk.yellow('Error: Please specify skill IDs to install or use --all.'));
-    console.log(chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see available skills.'));
+    console.log(
+      chalk.gray('Use ') + chalk.cyan('spool skills list') + chalk.gray(' to see available skills.')
+    );
     process.exit(1);
   }
 
@@ -234,7 +252,11 @@ export class SkillsCommand {
     }
 
     console.log(chalk.yellow('Error: Please specify skill IDs to uninstall.'));
-    console.log(chalk.gray('Use ') + chalk.cyan('spool skills status --tool <toolId>') + chalk.gray(' to see installed skills.'));
+    console.log(
+      chalk.gray('Use ') +
+        chalk.cyan('spool skills status --tool <toolId>') +
+        chalk.gray(' to see installed skills.')
+    );
     process.exit(1);
   }
 }
@@ -248,9 +270,11 @@ export function registerSkillsCommands(program: Command): void {
     .description('Manage Spool Agent Skills (core workflows and experimental OPSX) (deprecated)');
 
   skillsCmd.hook('preAction', () => {
-    console.error('Warning: The "spool skills ..." commands are deprecated. Skills are installed/updated by "spool init" and "spool update".');
+    console.error(
+      'Warning: The "spool skills ..." commands are deprecated. Skills are installed/updated by "spool init" and "spool update".'
+    );
   });
-    
+
   // List command
   skillsCmd
     .command('list')
@@ -259,7 +283,7 @@ export function registerSkillsCommands(program: Command): void {
       const cmd = new SkillsCommand();
       await cmd.list();
     });
-  
+
   // Install command
   skillsCmd
     .command('install <skills...>')
@@ -270,7 +294,7 @@ export function registerSkillsCommands(program: Command): void {
       const cmd = new SkillsCommand();
       await cmd.install(skills, options);
     });
-  
+
   // Uninstall command
   skillsCmd
     .command('uninstall <skills...>')
@@ -280,7 +304,7 @@ export function registerSkillsCommands(program: Command): void {
       const cmd = new SkillsCommand();
       await cmd.uninstall(skills, options);
     });
-  
+
   // Status command
   skillsCmd
     .command('status')

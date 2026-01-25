@@ -7,10 +7,12 @@ export interface PlanningContext {
 
 const getCurrentDate = () => new Date().toISOString().split('T')[0];
 
-export const projectPlanningTemplate = (context: PlanningContext = {}) => `# Project: ${context.projectName || '[Project Name]'}
+export const projectPlanningTemplate = (
+  context: PlanningContext = {}
+) => `# Project: ${context.projectName || '[Project Name]'}
 
 ## Vision
-${context.description || '[1-2 sentence description of what we\'re building and why]'}
+${context.description || "[1-2 sentence description of what we're building and why]"}
 
 ## Core Value Proposition
 [What makes this valuable to users]

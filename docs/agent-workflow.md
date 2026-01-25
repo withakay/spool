@@ -35,7 +35,7 @@ Creates a new change with a structured proposal document.
 1. Checks for existing similar changes
 2. Selects or creates a module
 3. Creates the change directory with `spool create change "<name>" --module <id>`
-4. Generates proposal.md using `spool x-instructions proposal --change "<id>"`
+4. Generates proposal.md using `spool agent instruction proposal --change "<id>"`
 
 **Proposal structure:**
 - **Why** - What problem does this solve? Who benefits?
@@ -203,7 +203,7 @@ The system tracks your last-used module in `.spool/.state/session.json`.
 | `spool list --modules` | List modules |
 | `spool create module "<name>"` | Create new module |
 | `spool create change "<name>" --module <id>` | Create new change |
-| `spool x-instructions <action> --change <id>` | Get action instructions |
+| `spool agent instruction <action> --change <id>` | Get action instructions |
 | `spool validate --changes <id>` | Validate change |
 | `spool archive <name>` | Archive completed change |
 

@@ -55,25 +55,33 @@ export async function getModuleInfo(root: string = process.cwd()): Promise<Modul
   const moduleNames = await getModuleIds(root);
   const modulesPath = getModulesPath(root);
 
-  return moduleNames.map(fullName => {
-    const parsed = parseModuleName(fullName);
-    return {
-      id: parsed?.id ?? '',
-      name: parsed?.name ?? '',
-      fullName,
-      path: path.join(modulesPath, fullName),
-    };
-  }).filter(m => m.id !== '');
+  return moduleNames
+    .map((fullName) => {
+      const parsed = parseModuleName(fullName);
+      return {
+        id: parsed?.id ?? '',
+        name: parsed?.name ?? '',
+        fullName,
+        path: path.join(modulesPath, fullName),
+      };
+    })
+    .filter((m) => m.id !== '');
 }
 
-export async function getModuleById(moduleId: string, root: string = process.cwd()): Promise<ModuleInfo | null> {
+export async function getModuleById(
+  moduleId: string,
+  root: string = process.cwd()
+): Promise<ModuleInfo | null> {
   const modules = await getModuleInfo(root);
-  return modules.find(m => m.id === moduleId) ?? null;
+  return modules.find((m) => m.id === moduleId) ?? null;
 }
 
-export async function getChangesForModule(moduleId: string, root: string = process.cwd()): Promise<string[]> {
+export async function getChangesForModule(
+  moduleId: string,
+  root: string = process.cwd()
+): Promise<string[]> {
   const allChanges = await getActiveChangeIds(root);
-  return allChanges.filter(changeId => {
+  return allChanges.filter((changeId) => {
     const parsed = parseModularChangeName(changeId);
     return parsed?.moduleId === moduleId;
   });
@@ -104,8 +112,10 @@ async function getChangeDirectoryIds(changesPath: string): Promise<string[]> {
   try {
     const entries = await fs.readdir(changesPath, { withFileTypes: true });
     return entries
-      .filter(entry => entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'archive')
-      .map(entry => entry.name)
+      .filter(
+        (entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'archive'
+      )
+      .map((entry) => entry.name)
       .sort();
   } catch {
     return [];
@@ -164,27 +174,31 @@ export async function getArchivedChangeIds(root: string = process.cwd()): Promis
   }
 }
 
-export async function getModuleChangeIndex(root: string = process.cwd()): Promise<Map<string, string[]>> {
+export async function getModuleChangeIndex(
+  root: string = process.cwd()
+): Promise<Map<string, string[]>> {
   const modules = await getModuleInfo(root);
   const changeMap = new Map<string, string[]>();
 
-  await Promise.all(modules.map(async (moduleInfo) => {
-    try {
-      const moduleFile = path.join(moduleInfo.path, 'module.md');
-      const content = await fs.readFile(moduleFile, 'utf-8');
-      const parser = new ModuleParser(content, moduleInfo.fullName);
-      const parsed = parser.parseModule();
-      for (const change of parsed.changes) {
-        const existing = changeMap.get(change.id) ?? [];
-        if (!existing.includes(moduleInfo.id)) {
-          existing.push(moduleInfo.id);
-          changeMap.set(change.id, existing);
+  await Promise.all(
+    modules.map(async (moduleInfo) => {
+      try {
+        const moduleFile = path.join(moduleInfo.path, 'module.md');
+        const content = await fs.readFile(moduleFile, 'utf-8');
+        const parser = new ModuleParser(content, moduleInfo.fullName);
+        const parsed = parser.parseModule();
+        for (const change of parsed.changes) {
+          const existing = changeMap.get(change.id) ?? [];
+          if (!existing.includes(moduleInfo.id)) {
+            existing.push(moduleInfo.id);
+            changeMap.set(change.id, existing);
+          }
         }
+      } catch {
+        // ignore parse errors; module validation will surface
       }
-    } catch {
-      // ignore parse errors; module validation will surface
-    }
-  }));
+    })
+  );
 
   return changeMap;
 }
@@ -194,12 +208,15 @@ export async function getModuleChangeIndex(root: string = process.cwd()): Promis
  * Accepts: "1", "01", "001", "001_my-module"
  * Returns: "001_my-module" (the actual folder name)
  */
-export async function resolveModuleId(flexibleId: string, root: string = process.cwd()): Promise<string | null> {
+export async function resolveModuleId(
+  flexibleId: string,
+  root: string = process.cwd()
+): Promise<string | null> {
   const parsed = parseModuleId(flexibleId);
   if (!parsed.success) {
     return null;
   }
-  
+
   const moduleInfo = await getModuleById(parsed.moduleId, root);
   return moduleInfo?.fullName ?? null;
 }
@@ -209,30 +226,35 @@ export async function resolveModuleId(flexibleId: string, root: string = process
  * Accepts: "1-2_bar", "001-02_bar", "1-00003_bar"
  * Returns: "001-02_bar" (the actual folder name, if it exists)
  */
-export async function resolveChangeId(flexibleId: string, root: string = process.cwd()): Promise<string | null> {
+export async function resolveChangeId(
+  flexibleId: string,
+  root: string = process.cwd()
+): Promise<string | null> {
   const parsed = parseChangeId(flexibleId);
   if (!parsed.success) {
     return null;
   }
-  
+
   // Look for exact match in active changes
   const activeChanges = await getActiveChangeIds(root);
-  
+
   // First try exact canonical match
   if (activeChanges.includes(parsed.canonical)) {
     return parsed.canonical;
   }
-  
+
   // Then look for a match by module and change number (name might differ in folder)
   for (const changeId of activeChanges) {
     const changeParsed = parseModularChangeName(changeId);
-    if (changeParsed && 
-        changeParsed.moduleId === parsed.moduleId && 
-        changeParsed.changeNum === parsed.changeNum) {
+    if (
+      changeParsed &&
+      changeParsed.moduleId === parsed.moduleId &&
+      changeParsed.changeNum === parsed.changeNum
+    ) {
       return changeId;
     }
   }
-  
+
   // Also check archived changes
   const archivedChanges = await getArchivedChangeIds(root);
   for (const changeId of archivedChanges) {
@@ -240,14 +262,16 @@ export async function resolveChangeId(flexibleId: string, root: string = process
     const match = changeId.match(/(\d{3}-\d{2}_[a-z][a-z0-9-]*)$/);
     if (match) {
       const changeParsed = parseModularChangeName(match[1]);
-      if (changeParsed && 
-          changeParsed.moduleId === parsed.moduleId && 
-          changeParsed.changeNum === parsed.changeNum) {
+      if (
+        changeParsed &&
+        changeParsed.moduleId === parsed.moduleId &&
+        changeParsed.changeNum === parsed.changeNum
+      ) {
         return changeId;
       }
     }
   }
-  
+
   return null;
 }
 
@@ -255,26 +279,27 @@ export async function resolveChangeId(flexibleId: string, root: string = process
  * Resolve a flexible change ID, throwing an error if not found.
  * Provides helpful error messages with suggestions.
  */
-export async function resolveChangeIdOrThrow(flexibleId: string, root: string = process.cwd()): Promise<string> {
+export async function resolveChangeIdOrThrow(
+  flexibleId: string,
+  root: string = process.cwd()
+): Promise<string> {
   const parsed = parseChangeId(flexibleId);
   if (!parsed.success) {
     throw new Error(parsed.hint ? `${parsed.error}. ${parsed.hint}` : parsed.error);
   }
-  
+
   const resolved = await resolveChangeId(flexibleId, root);
   if (!resolved) {
     const activeChanges = await getActiveChangeIds(root);
-    const suggestions = activeChanges
-      .filter(c => c.startsWith(parsed.moduleId))
-      .slice(0, 3);
-    
+    const suggestions = activeChanges.filter((c) => c.startsWith(parsed.moduleId)).slice(0, 3);
+
     let errorMsg = `Change "${parsed.canonical}" not found`;
     if (suggestions.length > 0) {
       errorMsg += `. Did you mean: ${suggestions.join(', ')}?`;
     }
     throw new Error(errorMsg);
   }
-  
+
   return resolved;
 }
 
@@ -282,24 +307,26 @@ export async function resolveChangeIdOrThrow(flexibleId: string, root: string = 
  * Resolve a flexible module ID, throwing an error if not found.
  * Provides helpful error messages with suggestions.
  */
-export async function resolveModuleIdOrThrow(flexibleId: string, root: string = process.cwd()): Promise<ModuleInfo> {
+export async function resolveModuleIdOrThrow(
+  flexibleId: string,
+  root: string = process.cwd()
+): Promise<ModuleInfo> {
   const parsed = parseModuleId(flexibleId);
   if (!parsed.success) {
     throw new Error(parsed.hint ? `${parsed.error}. ${parsed.hint}` : parsed.error);
   }
-  
+
   const moduleInfo = await getModuleById(parsed.moduleId, root);
   if (!moduleInfo) {
     const modules = await getModuleInfo(root);
-    const suggestions = modules.slice(0, 3).map(m => m.fullName);
-    
+    const suggestions = modules.slice(0, 3).map((m) => m.fullName);
+
     let errorMsg = `Module "${parsed.moduleId}" not found`;
     if (suggestions.length > 0) {
       errorMsg += `. Available modules: ${suggestions.join(', ')}`;
     }
     throw new Error(errorMsg);
   }
-  
+
   return moduleInfo;
 }
-

@@ -2,7 +2,12 @@ import { RalphOptions, RalphRunConfig, RalphState } from './types.js';
 import { loadRalphState, saveRalphState, loadRalphContext } from './state.js';
 import { OpenCodeHarness } from './harnesses/opencode.js';
 import { buildRalphPrompt } from './context.js';
-import { resolveChangeId, resolveModuleId, getModuleById, getChangesForModule } from '../../utils/item-discovery.js';
+import {
+  resolveChangeId,
+  resolveModuleId,
+  getModuleById,
+  getChangesForModule,
+} from '../../utils/item-discovery.js';
 import { parseModularChangeName } from '../../core/schemas/index.js';
 
 export async function runRalphLoop(options: RalphOptions): Promise<void> {
@@ -22,7 +27,7 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
     interactive,
   } = options;
 
-  const resolvedChangeId = changeId ? (await resolveChangeId(changeId)) ?? changeId : undefined;
+  const resolvedChangeId = changeId ? ((await resolveChangeId(changeId)) ?? changeId) : undefined;
 
   if (status) {
     await showStatus(resolvedChangeId, moduleId);
@@ -79,7 +84,9 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
   if (resolvedModuleId) {
     const moduleInfo = await getModuleById(resolvedModuleId);
     if (!moduleInfo) {
-      console.warn(`Warning: Module ${resolvedModuleId} not found, proceeding without module context`);
+      console.warn(
+        `Warning: Module ${resolvedModuleId} not found, proceeding without module context`
+      );
       resolvedModuleId = undefined;
     }
   }
@@ -89,7 +96,10 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
   for (let i = state.iteration + 1; i <= maxIterations; i++) {
     console.log(`\n=== Ralph Loop Iteration ${i} ===\n`);
 
-    const prompt = await buildRalphPrompt(userPrompt, { changeId: loopChangeId, moduleId: resolvedModuleId });
+    const prompt = await buildRalphPrompt(userPrompt, {
+      changeId: loopChangeId,
+      moduleId: resolvedModuleId,
+    });
     const fullPrompt = contextContent ? `${contextContent}\n\n${prompt}` : prompt;
 
     const runConfig: RalphRunConfig = {
@@ -122,7 +132,7 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
 
     if (agentHarness instanceof OpenCodeHarness) {
       const fileChangesCount = await countChangedFiles();
-      
+
       state.history.push({
         timestamp: Date.now(),
         duration,
@@ -171,7 +181,9 @@ async function showStatus(changeId?: string, moduleId?: string): Promise<void> {
     const changes = await getChangesForModule(moduleId);
     if (changes.length > 0) {
       resolvedChangeId = changes[0]; // Use the first change found
-      console.log(`No --change specified, showing status for ${resolvedChangeId} (from module ${moduleId})`);
+      console.log(
+        `No --change specified, showing status for ${resolvedChangeId} (from module ${moduleId})`
+      );
     }
   }
 
@@ -180,7 +192,7 @@ async function showStatus(changeId?: string, moduleId?: string): Promise<void> {
   }
 
   const state = await loadRalphState(resolvedChangeId);
-  
+
   if (!state) {
     console.log(`No Ralph state found for ${resolvedChangeId}`);
     return;
@@ -189,13 +201,15 @@ async function showStatus(changeId?: string, moduleId?: string): Promise<void> {
   console.log(`\n=== Ralph Status for ${resolvedChangeId} ===\n`);
   console.log(`Iteration: ${state.iteration}`);
   console.log(`History entries: ${state.history.length}`);
-  
+
   if (state.history.length > 0) {
     console.log('\nRecent iterations:');
     const startIndex = Math.max(0, state.history.length - 5);
     state.history.slice(startIndex).forEach((entry, idx) => {
       const iterationNum = startIndex + idx + 1;
-      console.log(`  ${iterationNum}. ${new Date(entry.timestamp).toLocaleString()} - ${entry.duration}ms - Promise: ${entry.completionPromiseFound} - Changes: ${entry.fileChangesCount}`);
+      console.log(
+        `  ${iterationNum}. ${new Date(entry.timestamp).toLocaleString()} - ${entry.duration}ms - Promise: ${entry.completionPromiseFound} - Changes: ${entry.fileChangesCount}`
+      );
     });
   }
 }

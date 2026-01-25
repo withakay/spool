@@ -9,12 +9,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { getSpoolDirName } from '../project-config.js';
-import {
-  WorkflowDefinition,
-  WaveDefinition,
-  TaskDefinition,
-  AgentType,
-} from './types.js';
+import { WorkflowDefinition, WaveDefinition, TaskDefinition, AgentType } from './types.js';
 
 const VALID_AGENT_TYPES: AgentType[] = ['research', 'execution', 'review', 'planning'];
 
@@ -133,7 +128,9 @@ export class WorkflowParser {
     }
 
     if (!raw.id || typeof raw.id !== 'string') {
-      throw new Error(`Task at wave '${waveId}' index ${index} is missing a required 'id' field: ${sourcePath}`);
+      throw new Error(
+        `Task at wave '${waveId}' index ${index} is missing a required 'id' field: ${sourcePath}`
+      );
     }
     const taskId = raw.id;
 

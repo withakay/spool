@@ -39,7 +39,10 @@ export class ViewCommand {
       console.log(chalk.bold.cyan('\nActive Changes'));
       console.log('─'.repeat(60));
       changesData.active.forEach((change) => {
-        const progressBar = this.createProgressBar(change.progress.completed, change.progress.total);
+        const progressBar = this.createProgressBar(
+          change.progress.completed,
+          change.progress.total
+        );
         const percentage =
           change.progress.total > 0
             ? Math.round((change.progress.completed / change.progress.total) * 100)
@@ -64,11 +67,11 @@ export class ViewCommand {
     if (specsData.length > 0) {
       console.log(chalk.bold.blue('\nSpecifications'));
       console.log('─'.repeat(60));
-      
+
       // Sort specs by requirement count (descending)
       specsData.sort((a, b) => b.requirementCount - a.requirementCount);
-      
-      specsData.forEach(spec => {
+
+      specsData.forEach((spec) => {
         const reqLabel = spec.requirementCount === 1 ? 'requirement' : 'requirements';
         console.log(
           `  ${chalk.blue('▪')} ${chalk.bold(spec.name.padEnd(30))} ${chalk.dim(`${spec.requirementCount} ${reqLabel}`)}`
@@ -77,7 +80,11 @@ export class ViewCommand {
     }
 
     console.log('\n' + '═'.repeat(60));
-    console.log(chalk.dim(`\nUse ${chalk.white('spool list --changes')} or ${chalk.white('spool list --specs')} for detailed views`));
+    console.log(
+      chalk.dim(
+        `\nUse ${chalk.white('spool list --changes')} or ${chalk.white('spool list --specs')} for detailed views`
+      )
+    );
   }
 
   private async getChangesData(spoolDir: string): Promise<{
@@ -131,20 +138,22 @@ export class ViewCommand {
     return { draft, active, completed };
   }
 
-  private async getSpecsData(spoolDir: string): Promise<Array<{ name: string; requirementCount: number }>> {
+  private async getSpecsData(
+    spoolDir: string
+  ): Promise<Array<{ name: string; requirementCount: number }>> {
     const specsDir = path.join(spoolDir, 'specs');
-    
+
     if (!fs.existsSync(specsDir)) {
       return [];
     }
 
     const specs: Array<{ name: string; requirementCount: number }> = [];
     const entries = fs.readdirSync(specsDir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const specFile = path.join(specsDir, entry.name, 'spec.md');
-        
+
         if (fs.existsSync(specFile)) {
           try {
             const content = fs.readFileSync(specFile, 'utf-8');
@@ -196,7 +205,9 @@ export class ViewCommand {
     console.log(
       `  ${chalk.yellow('●')} Active Changes: ${chalk.bold(changesData.active.length)} in progress`
     );
-    console.log(`  ${chalk.green('●')} Completed Changes: ${chalk.bold(changesData.completed.length)}`);
+    console.log(
+      `  ${chalk.green('●')} Completed Changes: ${chalk.bold(changesData.completed.length)}`
+    );
 
     if (totalTasks > 0) {
       const overallProgress = Math.round((completedTasks / totalTasks) * 100);
@@ -208,14 +219,14 @@ export class ViewCommand {
 
   private createProgressBar(completed: number, total: number, width: number = 20): string {
     if (total === 0) return chalk.dim('─'.repeat(width));
-    
+
     const percentage = completed / total;
     const filled = Math.round(percentage * width);
     const empty = width - filled;
-    
+
     const filledBar = chalk.green('█'.repeat(filled));
     const emptyBar = chalk.dim('░'.repeat(empty));
-    
+
     return `[${filledBar}${emptyBar}]`;
   }
 }

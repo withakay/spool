@@ -395,10 +395,9 @@ describe('artifact-workflow CLI commands', () => {
     it('outputs JSON for apply instructions', async () => {
       await createTestChange('json-apply', ['proposal', 'design', 'specs', 'tasks']);
 
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'json-apply', '--json'],
-        { cwd: tempDir }
-      );
+      const result = await runCLI(['instructions', 'apply', '--change', 'json-apply', '--json'], {
+        cwd: tempDir,
+      });
       expect(result.exitCode).toBe(0);
 
       const json = JSON.parse(result.stdout);
@@ -428,10 +427,7 @@ describe('artifact-workflow CLI commands', () => {
         'tasks',
       ]);
       // Overwrite tasks with all completed
-      await fs.writeFile(
-        path.join(changeDir, 'tasks.md'),
-        '## Tasks\n- [x] Task 1\n- [x] Task 2'
-      );
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
 
       const result = await runCLI(['instructions', 'apply', '--change', 'done-apply'], {
         cwd: tempDir,
@@ -553,7 +549,15 @@ artifacts:
       await fs.writeFile(path.join(changeDir, 'only.md'), '# Content');
 
       const result = await runCLI(
-        ['instructions', 'apply', '--change', 'no-apply-full-test', '--schema', 'no-apply-full', '--json'],
+        [
+          'instructions',
+          'apply',
+          '--change',
+          'no-apply-full-test',
+          '--schema',
+          'no-apply-full',
+          '--json',
+        ],
         {
           cwd: tempDir,
           env: { XDG_DATA_HOME: userDataDir },

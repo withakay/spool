@@ -32,7 +32,7 @@ export abstract class SlashCommandConfigurator {
     return this.getSupportedCommands().map((id) => ({
       id,
       path: this.getRelativePath(id),
-      kind: 'slash'
+      kind: 'slash',
     }));
   }
 
@@ -56,21 +56,20 @@ export abstract class SlashCommandConfigurator {
     return createdOrUpdated;
   }
 
-   async updateExisting(projectPath: string, spoolDir: string): Promise<string[]> {
-     const updated: string[] = [];
+  async updateExisting(projectPath: string, spoolDir: string): Promise<string[]> {
+    const updated: string[] = [];
 
-     for (const target of this.getTargets()) {
-       const filePath = FileSystemUtils.joinPath(projectPath, target.path);
-       if (await FileSystemUtils.fileExists(filePath)) {
-         const body = this.getBody(target.id, spoolDir);
-         await this.rewriteFullFile(filePath, target.id, body, spoolDir);
-         updated.push(target.path);
-       }
-     }
+    for (const target of this.getTargets()) {
+      const filePath = FileSystemUtils.joinPath(projectPath, target.path);
+      if (await FileSystemUtils.fileExists(filePath)) {
+        const body = this.getBody(target.id, spoolDir);
+        await this.rewriteFullFile(filePath, target.id, body, spoolDir);
+        updated.push(target.path);
+      }
+    }
 
-     return updated;
-   }
-
+    return updated;
+  }
 
   protected abstract getRelativePath(id: SlashCommandId): string;
   protected abstract getFrontmatter(id: SlashCommandId, spoolDir?: string): string | undefined;
@@ -86,36 +85,40 @@ export abstract class SlashCommandConfigurator {
     return FileSystemUtils.joinPath(projectPath, rel);
   }
 
-   protected buildFullFileContent(id: SlashCommandId, body: string, spoolDir: string): string {
-     const frontmatter = this.getFrontmatter(id, spoolDir);
-     const sections: string[] = [];
+  protected buildFullFileContent(id: SlashCommandId, body: string, spoolDir: string): string {
+    const frontmatter = this.getFrontmatter(id, spoolDir);
+    const sections: string[] = [];
 
-     if (frontmatter) {
-       sections.push(frontmatter.trim());
-     }
+    if (frontmatter) {
+      sections.push(frontmatter.trim());
+    }
 
-     sections.push(`${SPOOL_MARKERS.start}\n${body}\n${SPOOL_MARKERS.end}`);
-     return sections.join('\n') + '\n';
-   }
-
-  protected async rewriteFullFile(filePath: string, id: SlashCommandId, body: string, spoolDir: string): Promise<void> {
-      const existing = await FileSystemUtils.readFile(filePath);
-      const startIndex = existing.indexOf(SPOOL_MARKERS.start);
-      const endIndex = existing.indexOf(SPOOL_MARKERS.end);
-
-      // If a file exists but doesn't have Spool markers, it's either:
-      // - a legacy Spool-generated file from before markers were introduced, or
-      // - a user-provided file.
-      //
-      // In both cases, when running `spool init`/`spool update`, we prefer to
-      // (re)install the canonical Spool-managed content so future updates work.
-      const updatedContent = this.buildFullFileContent(id, body, spoolDir);
-      if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-        await FileSystemUtils.writeFile(filePath, updatedContent);
-        return;
-      }
-
-      await FileSystemUtils.writeFile(filePath, updatedContent);
+    sections.push(`${SPOOL_MARKERS.start}\n${body}\n${SPOOL_MARKERS.end}`);
+    return sections.join('\n') + '\n';
   }
 
+  protected async rewriteFullFile(
+    filePath: string,
+    id: SlashCommandId,
+    body: string,
+    spoolDir: string
+  ): Promise<void> {
+    const existing = await FileSystemUtils.readFile(filePath);
+    const startIndex = existing.indexOf(SPOOL_MARKERS.start);
+    const endIndex = existing.indexOf(SPOOL_MARKERS.end);
+
+    // If a file exists but doesn't have Spool markers, it's either:
+    // - a legacy Spool-generated file from before markers were introduced, or
+    // - a user-provided file.
+    //
+    // In both cases, when running `spool init`/`spool update`, we prefer to
+    // (re)install the canonical Spool-managed content so future updates work.
+    const updatedContent = this.buildFullFileContent(id, body, spoolDir);
+    if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
+      await FileSystemUtils.writeFile(filePath, updatedContent);
+      return;
+    }
+
+    await FileSystemUtils.writeFile(filePath, updatedContent);
+  }
 }

@@ -123,7 +123,9 @@ compdef _spool spool
 
       for (const subcmd of cmd.subcommands) {
         lines.push(`        ${subcmd.name})`);
-        lines.push(`          _spool_${this.sanitizeFunctionName(cmd.name)}_${this.sanitizeFunctionName(subcmd.name)}`);
+        lines.push(
+          `          _spool_${this.sanitizeFunctionName(cmd.name)}_${this.sanitizeFunctionName(subcmd.name)}`
+        );
         lines.push('          ;;');
       }
 
@@ -216,7 +218,7 @@ compdef _spool spool
     if (flag.takesValue) {
       if (flag.values && flag.values.length > 0) {
         // Provide specific value completions
-        const valueList = flag.values.map(v => this.escapeValue(v)).join(' ');
+        const valueList = flag.values.map((v) => this.escapeValue(v)).join(' ');
         parts.push(`:value:(${valueList})`);
       } else {
         // Generic value placeholder
@@ -266,10 +268,7 @@ compdef _spool spool
    * Escape special characters in values
    */
   private escapeValue(value: string): string {
-    return value
-      .replace(/\\/g, '\\\\')
-      .replace(/'/g, "\\'")
-      .replace(/ /g, '\\ ');
+    return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/ /g, '\\ ');
   }
 
   /**

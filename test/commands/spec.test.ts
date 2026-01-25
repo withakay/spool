@@ -9,11 +9,10 @@ describe('spec command', () => {
   const testDir = path.join(projectRoot, 'test-spec-command-tmp');
   const specsDir = getSpecsPath(testDir);
   const spoolBin = path.join(projectRoot, 'bin', 'spool.js');
-  
-  
+
   beforeEach(async () => {
     await fs.mkdir(specsDir, { recursive: true });
-    
+
     // Create test spec files
     const testSpec = `## Purpose
 This is a test specification for the authentication system.
@@ -38,7 +37,7 @@ The system SHALL allow users to reset their password
 
     await fs.mkdir(path.join(specsDir, 'auth'), { recursive: true });
     await fs.writeFile(path.join(specsDir, 'auth', 'spec.md'), testSpec);
-    
+
     const testSpec2 = `## Purpose
 This specification defines the payment processing system.
 
@@ -61,11 +60,13 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec show auth`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         // Raw passthrough should match spec.md content
-        const raw = execSync(`cat ${path.join(specsDir, 'auth', 'spec.md')}`, { encoding: 'utf-8' });
+        const raw = execSync(`cat ${path.join(specsDir, 'auth', 'spec.md')}`, {
+          encoding: 'utf-8',
+        });
         expect(output.trim()).toBe(raw.trim());
       } finally {
         process.chdir(originalCwd);
@@ -77,9 +78,9 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec show auth --json`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json.id).toBe('auth');
         expect(json.title).toBe('auth');
@@ -96,13 +97,17 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec show auth --json --requirements`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json.requirements).toHaveLength(2);
         // Scenarios should be excluded when --requirements is used
-        expect(json.requirements.every((r: any) => Array.isArray(r.scenarios) && r.scenarios.length === 0)).toBe(true);
+        expect(
+          json.requirements.every(
+            (r: any) => Array.isArray(r.scenarios) && r.scenarios.length === 0
+          )
+        ).toBe(true);
       } finally {
         process.chdir(originalCwd);
       }
@@ -113,12 +118,16 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec show auth --json --no-scenarios`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json.requirements).toHaveLength(2);
-        expect(json.requirements.every((r: any) => Array.isArray(r.scenarios) && r.scenarios.length === 0)).toBe(true);
+        expect(
+          json.requirements.every(
+            (r: any) => Array.isArray(r.scenarios) && r.scenarios.length === 0
+          )
+        ).toBe(true);
       } finally {
         process.chdir(originalCwd);
       }
@@ -129,12 +138,14 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec show auth --json -r 1`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json.requirements).toHaveLength(1);
-        expect(json.requirements[0].text).toContain('The system SHALL provide secure user authentication');
+        expect(json.requirements[0].text).toContain(
+          'The system SHALL provide secure user authentication'
+        );
       } finally {
         process.chdir(originalCwd);
       }
@@ -145,9 +156,9 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec show auth --json --no-scenarios`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json.requirements).toHaveLength(2);
         expect(json.requirements[0].scenarios).toHaveLength(0);
@@ -163,9 +174,9 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec list`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         expect(output).toContain('auth');
         expect(output).toContain('payment');
         // Default should not include counts or teasers
@@ -180,9 +191,9 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec list --json`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json).toHaveLength(2);
         expect(json.find((s: any) => s.id === 'auth')).toBeDefined();
@@ -200,9 +211,9 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec validate auth`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         expect(output).toContain("Specification 'auth' is valid");
       } finally {
         process.chdir(originalCwd);
@@ -214,9 +225,9 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec validate auth --json`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json.valid).toBeDefined();
         expect(json.issues).toBeDefined();
@@ -233,9 +244,9 @@ The system SHALL process credit card payments securely`;
       try {
         process.chdir(testDir);
         const output = execSync(`node ${spoolBin} spec validate auth --strict --json`, {
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
-        
+
         const json = JSON.parse(output);
         expect(json.valid).toBeDefined();
         // In strict mode, warnings also affect validity
@@ -256,17 +267,17 @@ This section has no actual requirements`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        
+
         // This should exit with non-zero code
         let exitCode = 0;
         try {
           execSync(`node ${spoolBin} spec validate invalid`, {
-            encoding: 'utf-8'
+            encoding: 'utf-8',
           });
         } catch (error: any) {
           exitCode = error.status;
         }
-        
+
         expect(exitCode).not.toBe(0);
       } finally {
         process.chdir(originalCwd);
@@ -279,16 +290,16 @@ This section has no actual requirements`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        
+
         let error: any;
         try {
           execSync(`node ${spoolBin} spec show nonexistent`, {
-            encoding: 'utf-8'
+            encoding: 'utf-8',
           });
         } catch (e) {
           error = e;
         }
-        
+
         expect(error).toBeDefined();
         expect(error.status).not.toBe(0);
         expect(error.stderr.toString()).toContain('not found');
@@ -313,7 +324,9 @@ This section has no actual requirements`;
       const originalCwd = process.cwd();
       try {
         process.chdir(testDir);
-        const output = execSync(`node ${spoolBin} --no-color spec list --long`, { encoding: 'utf-8' });
+        const output = execSync(`node ${spoolBin} --no-color spec list --long`, {
+          encoding: 'utf-8',
+        });
         // Basic ANSI escape pattern
         const hasAnsi = /\u001b\[[0-9;]*m/.test(output);
         expect(hasAnsi).toBe(false);

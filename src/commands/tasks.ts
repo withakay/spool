@@ -1,16 +1,16 @@
-import path from 'path';
-import ora from 'ora';
 import chalk from 'chalk';
-import { FileSystemUtils } from '../utils/file-system.js';
+import ora from 'ora';
+import path from 'path';
 import { getSpoolDirName } from '../core/project-config.js';
 import {
-  enhancedTasksTemplate,
-  taskItemTemplate,
-  parseTasksFile,
-  serializeTasksFile,
-  ParsedTask,
-  ParsedTasksFile,
-} from '../core/templates/tasks-template.js';
+  parseTasksTrackingFile,
+  type TaskBlocker,
+  type TaskDiagnostic,
+  type TasksTrackingModel,
+  updateEnhancedTaskStatusInMarkdown,
+} from '../core/tasks/task-tracking.js';
+import { enhancedTasksTemplate, taskItemTemplate } from '../core/templates/tasks-template.js';
+import { FileSystemUtils } from '../utils/file-system.js';
 
 export class TasksCommand {
   private async getChangePath(changeId: string, projectPath: string): Promise<string> {
@@ -58,69 +58,18 @@ export class TasksCommand {
     const tasksPath = await this.getTasksPath(changeId, resolvedPath);
 
     if (!(await FileSystemUtils.fileExists(tasksPath))) {
-      console.log(chalk.yellow(`No tasks.md found for "${changeId}". Run "spool tasks init ${changeId}" first.`));
+      console.log(
+        chalk.yellow(
+          `No tasks.md found for "${changeId}". Run "spool tasks init ${changeId}" first.`
+        )
+      );
       return;
     }
 
     const content = await FileSystemUtils.readFile(tasksPath);
-    const parsed = parseTasksFile(content);
+    const model = parseTasksTrackingFile(content);
 
-    console.log(chalk.white.bold(`Tasks for: ${parsed.changeId}`));
-    console.log(chalk.gray('─'.repeat(50)));
-
-    let totalTasks = 0;
-    let completedTasks = 0;
-
-    // Display waves
-    const sortedWaves = Array.from(parsed.waves.keys()).sort((a, b) => a - b);
-    for (const waveNum of sortedWaves) {
-      const tasks = parsed.waves.get(waveNum) || [];
-      console.log();
-      console.log(chalk.white(`Wave ${waveNum}`));
-
-      for (const task of tasks) {
-        totalTasks++;
-        if (task.status === 'complete') completedTasks++;
-
-        const icon = task.status === 'complete'
-          ? chalk.green('✓')
-          : task.status === 'in-progress'
-          ? chalk.yellow('●')
-          : chalk.gray('○');
-
-        const statusText = task.status === 'complete'
-          ? chalk.green('complete')
-          : task.status === 'in-progress'
-          ? chalk.yellow('in-progress')
-          : chalk.gray('pending');
-
-        console.log(`  ${icon} ${chalk.white(`Task ${task.id}`)}: ${task.name} [${statusText}]`);
-      }
-    }
-
-    // Display checkpoints
-    if (parsed.checkpoints.length > 0) {
-      console.log();
-      console.log(chalk.white('Checkpoints'));
-      for (const task of parsed.checkpoints) {
-        totalTasks++;
-        if (task.status === 'complete') completedTasks++;
-
-        const icon = task.status === 'complete'
-          ? chalk.green('✓')
-          : chalk.gray('○');
-
-        console.log(`  ${icon} ${chalk.white(task.name)} [${task.status}]`);
-      }
-    }
-
-    // Summary
-    console.log();
-    console.log(chalk.gray('─'.repeat(50)));
-    console.log(
-      `Progress: ${chalk.white(`${completedTasks}/${totalTasks}`)} tasks complete ` +
-      `(${Math.round((completedTasks / totalTasks) * 100)}%)`
-    );
+    printTasksStatus(changeId, model);
   }
 
   async add(
@@ -135,50 +84,29 @@ export class TasksCommand {
     const tasksPath = await this.getTasksPath(changeId, resolvedPath);
 
     if (!(await FileSystemUtils.fileExists(tasksPath))) {
-      throw new Error(`No tasks.md found for "${changeId}". Run "spool tasks init ${changeId}" first.`);
+      throw new Error(
+        `No tasks.md found for "${changeId}". Run "spool tasks init ${changeId}" first.`
+      );
     }
 
     const content = await FileSystemUtils.readFile(tasksPath);
-    const parsed = parseTasksFile(content);
+    const model = parseTasksTrackingFile(content);
 
-    // Find next task number in wave
-    const waveTasks = parsed.waves.get(wave) || [];
-    const maxTaskNum = waveTasks.reduce((max, t) => {
-      const match = t.id.match(/\d+\.(\d+)/);
-      return match ? Math.max(max, parseInt(match[1])) : max;
-    }, 0);
-
-    const newTaskId = `${wave}.${maxTaskNum + 1}`;
-    const newTask: ParsedTask = {
-      id: newTaskId,
-      name: taskName,
-      wave,
-      files: ['[target files]'],
-      dependencies: [],
-      action: '[Describe what needs to be done]',
-      verify: '[verification command]',
-      doneWhen: '[Success criteria]',
-      status: 'pending',
-    };
-
-    // Add to wave
-    if (!parsed.waves.has(wave)) {
-      parsed.waves.set(wave, []);
+    if (model.format !== 'enhanced') {
+      throw new Error(
+        'Cannot add tasks to checkbox-only tracking file. Use enhanced tasks.md format.'
+      );
     }
-    parsed.waves.get(wave)!.push(newTask);
+    assertNoTaskErrors(model.diagnostics);
 
-    // Serialize and save
-    const newContent = serializeTasksFile(parsed);
+    const newTaskId = getNextTaskIdForWave(model, wave);
+    const newContent = addTaskToEnhancedTasksMarkdown(content, wave, newTaskId, taskName);
     await FileSystemUtils.writeFile(tasksPath, newContent);
 
     ora().succeed(chalk.green(`Task ${newTaskId} "${taskName}" added to Wave ${wave}`));
   }
 
-  async complete(
-    changeId: string,
-    taskId: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async complete(changeId: string, taskId: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     await this.ensureChangeExists(changeId, resolvedPath);
 
@@ -189,47 +117,27 @@ export class TasksCommand {
     }
 
     const content = await FileSystemUtils.readFile(tasksPath);
-    const parsed = parseTasksFile(content);
+    const model = parseTasksTrackingFile(content);
 
-    // Find and update task
-    let found = false;
-    for (const [, tasks] of parsed.waves) {
-      for (const task of tasks) {
-        if (task.id === taskId) {
-          task.status = 'complete';
-          found = true;
-          break;
-        }
-      }
-      if (found) break;
+    if (model.format === 'enhanced') {
+      assertNoTaskErrors(model.diagnostics);
+      const updated = updateEnhancedTaskStatusInMarkdown(content, taskId, 'complete');
+      await FileSystemUtils.writeFile(tasksPath, updated);
+      ora().succeed(chalk.green(`Task "${taskId}" marked as complete`));
+      return;
     }
 
-    if (!found) {
-      // Check checkpoints
-      for (const task of parsed.checkpoints) {
-        if (task.id === taskId || task.name.toLowerCase().includes(taskId.toLowerCase())) {
-          task.status = 'complete';
-          found = true;
-          break;
-        }
-      }
+    // Checkbox-only compatibility mode: taskId is 1-based index
+    const idx = Number.parseInt(taskId, 10);
+    if (!Number.isFinite(idx) || idx < 1) {
+      throw new Error('Checkbox-only tasks.md: task id must be a 1-based number');
     }
-
-    if (!found) {
-      throw new Error(`Task "${taskId}" not found`);
-    }
-
-    const newContent = serializeTasksFile(parsed);
-    await FileSystemUtils.writeFile(tasksPath, newContent);
-
+    const updated = updateCheckboxTaskInMarkdown(content, idx, true);
+    await FileSystemUtils.writeFile(tasksPath, updated);
     ora().succeed(chalk.green(`Task "${taskId}" marked as complete`));
   }
 
-  async start(
-    changeId: string,
-    taskId: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async start(changeId: string, taskId: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     await this.ensureChangeExists(changeId, resolvedPath);
 
@@ -240,28 +148,37 @@ export class TasksCommand {
     }
 
     const content = await FileSystemUtils.readFile(tasksPath);
-    const parsed = parseTasksFile(content);
+    const model = parseTasksTrackingFile(content);
 
-    // Find and update task
-    let found = false;
-    for (const [, tasks] of parsed.waves) {
-      for (const task of tasks) {
-        if (task.id === taskId) {
-          task.status = 'in-progress';
-          found = true;
-          break;
-        }
-      }
-      if (found) break;
+    if (model.format !== 'enhanced') {
+      throw new Error(
+        'Checkbox-only tasks.md does not support in-progress. Use "spool tasks complete" when done.'
+      );
     }
 
-    if (!found) {
+    assertNoTaskErrors(model.diagnostics);
+    const readiness = model.readiness;
+    if (!readiness) {
+      throw new Error('Task readiness not available');
+    }
+
+    const tasks = model.tasks as any[];
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) {
       throw new Error(`Task "${taskId}" not found`);
     }
+    if (task.status !== 'pending') {
+      throw new Error(`Task "${taskId}" is not pending (current: ${task.status})`);
+    }
 
-    const newContent = serializeTasksFile(parsed);
-    await FileSystemUtils.writeFile(tasksPath, newContent);
+    const isReady = readiness.readyTaskIds.includes(taskId);
+    if (!isReady) {
+      const blockers = readiness.blocked[taskId] ?? [];
+      throw new Error(formatBlockers(blockers));
+    }
 
+    const updated = updateEnhancedTaskStatusInMarkdown(content, taskId, 'in_progress');
+    await FileSystemUtils.writeFile(tasksPath, updated);
     ora().succeed(chalk.green(`Task "${taskId}" marked as in-progress`));
   }
 
@@ -276,67 +193,63 @@ export class TasksCommand {
     }
 
     const content = await FileSystemUtils.readFile(tasksPath);
-    const parsed = parseTasksFile(content);
+    const model = parseTasksTrackingFile(content);
 
-    // Find next pending task in order
-    const sortedWaves = Array.from(parsed.waves.keys()).sort((a, b) => a - b);
-
-    for (const waveNum of sortedWaves) {
-      const tasks = parsed.waves.get(waveNum) || [];
-
-      // Check if all dependencies in previous waves are complete
-      const prevWavesComplete = sortedWaves
-        .filter(w => w < waveNum)
-        .every(w => {
-          const waveTasks = parsed.waves.get(w) || [];
-          return waveTasks.every(t => t.status === 'complete');
-        });
-
-      if (!prevWavesComplete) {
-        continue;
-      }
-
-      for (const task of tasks) {
-        if (task.status === 'pending') {
-          // Check dependencies
-          const depsComplete = task.dependencies.every(dep => {
-            for (const [, waveTasks] of parsed.waves) {
-              const depTask = waveTasks.find(t => t.id === dep);
-              if (depTask) return depTask.status === 'complete';
-            }
-            return true;
-          });
-
-          if (depsComplete) {
-            console.log(chalk.white.bold('Next Task'));
-            console.log(chalk.gray('─'.repeat(50)));
-            console.log(`${chalk.white(`Task ${task.id}`)}: ${task.name}`);
-            console.log();
-            console.log(chalk.gray('Files:'), task.files.join(', '));
-            console.log(chalk.gray('Action:'));
-            console.log(`  ${task.action}`);
-            console.log(chalk.gray('Verify:'), task.verify);
-            console.log(chalk.gray('Done When:'), task.doneWhen);
-            console.log();
-            console.log(chalk.gray(`Run "spool tasks start ${changeId} ${task.id}" to begin`));
-            return;
-          }
-        }
-      }
-    }
-
-    // Check checkpoints
-    for (const task of parsed.checkpoints) {
-      if (task.status === 'pending') {
-        console.log(chalk.white.bold('Next: Checkpoint'));
-        console.log(chalk.gray('─'.repeat(50)));
-        console.log(chalk.yellow(`Checkpoint: ${task.name}`));
-        console.log(chalk.gray('This requires human approval before proceeding.'));
+    if (model.format === 'checkbox') {
+      const tasks = model.tasks as any[];
+      const nextIndex = tasks.findIndex((t) => !t.done);
+      if (nextIndex < 0) {
+        console.log(chalk.green('All tasks complete!'));
         return;
       }
+      const task = tasks[nextIndex];
+      console.log(chalk.white.bold('Next Task (compat)'));
+      console.log(chalk.gray('─'.repeat(50)));
+      console.log(`${chalk.white(`Task ${nextIndex + 1}`)}: ${task.description}`);
+      console.log(chalk.gray(`Run "spool tasks complete ${changeId} ${nextIndex + 1}" when done`));
+      return;
     }
 
-    console.log(chalk.green('All tasks complete!'));
+    assertNoTaskErrors(model.diagnostics);
+    const readiness = model.readiness;
+    if (!readiness) throw new Error('Task readiness not available');
+
+    const readyId = readiness.readyTaskIds[0];
+    const tasks = model.tasks as any[];
+    if (!readyId) {
+      const progress = model.progress;
+      if (progress.remaining === 0) {
+        console.log(chalk.green('All tasks complete!'));
+        return;
+      }
+
+      console.log(chalk.yellow('No ready tasks.'));
+      const blockedEntries = Object.entries(readiness.blocked);
+      if (blockedEntries.length > 0) {
+        const [firstTaskId, blockers] = blockedEntries.sort(([a], [b]) => a.localeCompare(b))[0];
+        const t = tasks.find((x) => x.id === firstTaskId);
+        console.log(chalk.gray('First blocked task:'), `${firstTaskId}${t ? ` - ${t.name}` : ''}`);
+        console.log(chalk.gray(formatBlockers(blockers)));
+      }
+      return;
+    }
+
+    const task = tasks.find((t) => t.id === readyId);
+    if (!task) throw new Error('Ready task not found');
+
+    console.log(chalk.white.bold('Next Task'));
+    console.log(chalk.gray('─'.repeat(50)));
+    console.log(`${chalk.white(`Task ${task.id}`)}: ${task.name}`);
+    console.log();
+    if (task.files?.length) console.log(chalk.gray('Files:'), task.files.join(', '));
+    if (task.action) {
+      console.log(chalk.gray('Action:'));
+      console.log(`  ${task.action}`);
+    }
+    if (task.verify) console.log(chalk.gray('Verify:'), task.verify);
+    if (task.doneWhen) console.log(chalk.gray('Done When:'), task.doneWhen);
+    console.log();
+    console.log(chalk.gray(`Run "spool tasks start ${changeId} ${task.id}" to begin`));
   }
 
   async show(changeId: string, projectPath: string = '.'): Promise<void> {
@@ -352,4 +265,169 @@ export class TasksCommand {
     const content = await FileSystemUtils.readFile(tasksPath);
     console.log(content);
   }
+}
+
+function assertNoTaskErrors(diagnostics: TaskDiagnostic[]): void {
+  const errors = diagnostics.filter((d) => d.level === 'error');
+  if (errors.length === 0) return;
+
+  const first = errors[0];
+  const prefix = first.taskId ? `${first.taskId}: ` : '';
+  throw new Error(`${prefix}${first.message}`);
+}
+
+function formatBlockers(blockers: TaskBlocker[]): string {
+  if (!blockers || blockers.length === 0) return 'Task is blocked.';
+  const messages = blockers.map((b) => b.message);
+  return `Task is blocked:\n- ${messages.join('\n- ')}`;
+}
+
+function updateCheckboxTaskInMarkdown(
+  content: string,
+  oneBasedIndex: number,
+  done: boolean
+): string {
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
+  let seen = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^(\s*[-*]\s+)\[([ xX])\](\s+.+)$/);
+    if (!m) continue;
+    seen++;
+    if (seen !== oneBasedIndex) continue;
+    const mark = done ? 'x' : ' ';
+    lines[i] = `${m[1]}[${mark}]${m[3]}`;
+    return lines.join('\n');
+  }
+  throw new Error(`Checkbox task "${oneBasedIndex}" not found`);
+}
+
+function printTasksStatus(changeId: string, model: TasksTrackingModel): void {
+  console.log(chalk.white.bold(`Tasks for: ${changeId}`));
+  console.log(chalk.gray('─'.repeat(50)));
+
+  if (model.diagnostics.length > 0) {
+    const errors = model.diagnostics.filter((d) => d.level === 'error');
+    const warnings = model.diagnostics.filter((d) => d.level === 'warning');
+    if (errors.length > 0) {
+      console.log();
+      console.log(chalk.red('Errors'));
+      for (const e of errors) {
+        const prefix = e.taskId ? `${e.taskId}: ` : '';
+        console.log(`- ${prefix}${e.message}`);
+      }
+    }
+    if (warnings.length > 0) {
+      console.log();
+      console.log(chalk.yellow('Warnings'));
+      for (const w of warnings) {
+        const prefix = w.taskId ? `${w.taskId}: ` : '';
+        console.log(`- ${prefix}${w.message}`);
+      }
+    }
+  }
+
+  console.log();
+  const p = model.progress;
+  if (model.format === 'enhanced') {
+    console.log(
+      `Progress: ${chalk.white(`${p.complete}/${p.total}`)} complete, ` +
+        `${chalk.white(`${p.in_progress}`)} in-progress, ${chalk.white(`${p.pending}`)} pending`
+    );
+  } else {
+    console.log(`Progress (compat): ${chalk.white(`${p.complete}/${p.total}`)} complete`);
+  }
+
+  // When there are parse/validation errors, avoid claiming readiness.
+  const errors = model.diagnostics.filter((d) => d.level === 'error');
+  if (errors.length > 0) {
+    console.log();
+    console.log(chalk.gray('Readiness unavailable until errors are fixed.'));
+    return;
+  }
+
+  if (model.format !== 'enhanced' || !model.readiness) return;
+
+  const ready = model.readiness.readyTaskIds;
+  const blocked = model.readiness.blocked;
+  const tasks = model.tasks as any[];
+
+  console.log();
+  console.log(chalk.white('Ready'));
+  if (ready.length === 0) {
+    console.log(chalk.gray('  (none)'));
+  } else {
+    for (const id of ready) {
+      const t = tasks.find((x) => x.id === id);
+      console.log(`  - ${id}${t ? `: ${t.name}` : ''}`);
+    }
+  }
+
+  const blockedEntries = Object.entries(blocked);
+  console.log();
+  console.log(chalk.white('Blocked'));
+  if (blockedEntries.length === 0) {
+    console.log(chalk.gray('  (none)'));
+  } else {
+    for (const [id, blockers] of blockedEntries.sort(([a], [b]) => a.localeCompare(b))) {
+      const t = tasks.find((x) => x.id === id);
+      console.log(`  - ${id}${t ? `: ${t.name}` : ''}`);
+      for (const b of blockers) {
+        console.log(chalk.gray(`    - ${b.message}`));
+      }
+    }
+  }
+}
+
+function getNextTaskIdForWave(model: TasksTrackingModel, wave: number): string {
+  const tasks = model.tasks as any[];
+  let max = 0;
+  for (const t of tasks) {
+    if (t.wave !== wave) continue;
+    const m = String(t.id).match(new RegExp(`^${wave}\\.(\\d+)$`));
+    if (!m) continue;
+    const n = Number.parseInt(m[1], 10);
+    if (Number.isFinite(n)) max = Math.max(max, n);
+  }
+  return `${wave}.${max + 1}`;
+}
+
+function addTaskToEnhancedTasksMarkdown(
+  content: string,
+  wave: number,
+  taskId: string,
+  taskName: string
+): string {
+  const normalized = content.replace(/\r\n/g, '\n');
+  const lines = normalized.split('\n');
+
+  const waveHeader = `## Wave ${wave}`;
+  const waveHeaderIndex = lines.findIndex((l) => l.trim() === waveHeader);
+
+  const newTaskBlock = taskItemTemplate(taskId, taskName).trimEnd();
+
+  if (waveHeaderIndex >= 0) {
+    // Insert before the next "---" divider after this wave, or before next section.
+    let insertAt = lines.length;
+    for (let i = waveHeaderIndex + 1; i < lines.length; i++) {
+      if (lines[i].trim() === '---') {
+        insertAt = i;
+        break;
+      }
+      if (/^##\s+/.test(lines[i])) {
+        insertAt = i;
+        break;
+      }
+    }
+
+    const blockLines = ['', ...newTaskBlock.split('\n'), ''];
+    lines.splice(insertAt, 0, ...blockLines);
+    return lines.join('\n');
+  }
+
+  // Wave section doesn't exist; insert before Checkpoints section if present.
+  const checkpointsIndex = lines.findIndex((l) => l.trim() === '## Checkpoints');
+  const insertAt = checkpointsIndex >= 0 ? checkpointsIndex : lines.length;
+  const sectionLines = ['', '---', '', waveHeader, '', ...newTaskBlock.split('\n'), '', '---', ''];
+  lines.splice(insertAt, 0, ...sectionLines);
+  return lines.join('\n');
 }

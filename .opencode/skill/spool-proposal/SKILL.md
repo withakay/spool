@@ -42,7 +42,7 @@ Create complete Spool change proposals using the spec-driven workflow.
 
    5. **Create the proposal artifact**
      ```bash
-     spool x-instructions proposal --change "<change-id>"
+     spool agent instruction proposal --change "<change-id>"
      ```
 
     - Get the template and context for creating the proposal.md
@@ -58,7 +58,7 @@ Create complete Spool change proposals using the spec-driven workflow.
        1. Create directory: `mkdir -p .spool/changes/<change-id>/specs/<capability-name>`
        2. Get spec template:
           ```bash
-          spool x-instructions spec --change "<change-id>"
+          spool agent instruction spec --change "<change-id>"
           ```
        3. Create `specs/<capability-name>/spec.md`:
           - **Purpose**: What is this capability? What problem does it solve?
@@ -67,7 +67,7 @@ Create complete Spool change proposals using the spec-driven workflow.
 
   7. **Create the design artifact**
      ```bash
-     spool x-instructions design --change "<change-id>"
+     spool agent instruction design --change "<change-id>"
      ```
     - Get the template and context for creating the design.md
     - Read the template and fill it out based on the proposal and specs:
@@ -79,7 +79,7 @@ Create complete Spool change proposals using the spec-driven workflow.
 
   8. **Create the tasks artifact**
      ```bash
-     spool x-instructions tasks --change "<change-id>"
+     spool agent instruction tasks --change "<change-id>"
      ```
     - Get the template and context for creating the tasks.md
     - Read the template and break down into actionable tasks:

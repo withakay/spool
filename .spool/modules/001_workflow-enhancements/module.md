@@ -12,3 +12,4 @@
 - [ ] 001-03_add-spool-skill
 - [ ] 001-04_prevent-archive-unfinished-changes
 - [ ] 001-05_rationalize-cli-commands
+- [ ] 001-06_promote-x-instructions-to-stable

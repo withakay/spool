@@ -107,7 +107,8 @@ export class ConfigCommand {
     setNestedValue(config, key, coercedValue);
     saveGlobalConfig(config as GlobalConfig);
 
-    const displayValue = typeof coercedValue === 'string' ? `"${coercedValue}"` : String(coercedValue);
+    const displayValue =
+      typeof coercedValue === 'string' ? `"${coercedValue}"` : String(coercedValue);
     console.log(`Set ${key} = ${displayValue}`);
   }
 
@@ -135,7 +136,7 @@ export class ConfigCommand {
     }
 
     if (!options.yes) {
-      const { confirm } = await import('@inquirer/prompts');
+      const { confirm } = (await import('@inquirer/' + 'prompts')) as any;
       const confirmed = await confirm({
         message: 'Reset all configuration to defaults?',
         default: false,
@@ -225,7 +226,7 @@ export function registerConfigCommand(program: Command): void {
   const configCmd = program
     .command('config')
     .description('View and modify global Spool configuration')
-    .option('--scope <scope>', 'Config scope (only "global" supported currently)')
+    .option('--scope <scope>', 'Config scope (only "global" supported currently)');
 
   configCmd.hook('preAction', (thisCommand) => {
     const opts = thisCommand.opts();
@@ -249,7 +250,9 @@ export function registerConfigCommand(program: Command): void {
     .command('path', { hidden: true })
     .description('Show config file location (deprecated: use "spool config paths")')
     .action(() => {
-      console.error('Warning: "spool config path" is deprecated. Use "spool config paths" instead.');
+      console.error(
+        'Warning: "spool config path" is deprecated. Use "spool config paths" instead.'
+      );
       const cmd = new ConfigCommand();
       cmd.path(configCmd.opts() as ConfigScopeOptions);
     });

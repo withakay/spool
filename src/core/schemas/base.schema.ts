@@ -6,14 +6,14 @@ export const ScenarioSchema = z.object({
 });
 
 export const RequirementSchema = z.object({
-  text: z.string()
+  text: z
+    .string()
     .min(1, VALIDATION_MESSAGES.REQUIREMENT_EMPTY)
     .refine(
       (text) => text.includes('SHALL') || text.includes('MUST'),
       VALIDATION_MESSAGES.REQUIREMENT_NO_SHALL
     ),
-  scenarios: z.array(ScenarioSchema)
-    .min(1, VALIDATION_MESSAGES.REQUIREMENT_NO_SCENARIOS),
+  scenarios: z.array(ScenarioSchema).min(1, VALIDATION_MESSAGES.REQUIREMENT_NO_SCENARIOS),
 });
 
 export type Scenario = z.infer<typeof ScenarioSchema>;

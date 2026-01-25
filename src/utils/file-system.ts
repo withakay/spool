@@ -23,11 +23,7 @@ function isMarkerOnOwnLine(content: string, markerIndex: number, markerLength: n
   return true;
 }
 
-function findMarkerIndex(
-  content: string,
-  marker: string,
-  fromIndex = 0
-): number {
+function findMarkerIndex(content: string, marker: string, fromIndex = 0): number {
   let currentIndex = content.indexOf(marker, fromIndex);
 
   while (currentIndex !== -1) {
@@ -198,14 +194,15 @@ export class FileSystemUtils {
     endMarker: string
   ): Promise<void> {
     let existingContent = '';
-    
+
     if (await this.fileExists(filePath)) {
       existingContent = await this.readFile(filePath);
-      
+
       const startIndex = findMarkerIndex(existingContent, startMarker);
-      const endIndex = startIndex !== -1
-        ? findMarkerIndex(existingContent, endMarker, startIndex + startMarker.length)
-        : findMarkerIndex(existingContent, endMarker);
+      const endIndex =
+        startIndex !== -1
+          ? findMarkerIndex(existingContent, endMarker, startIndex + startMarker.length)
+          : findMarkerIndex(existingContent, endMarker);
 
       if (startIndex !== -1 && endIndex !== -1) {
         if (endIndex < startIndex) {
@@ -218,28 +215,31 @@ export class FileSystemUtils {
         const after = existingContent.substring(endIndex + endMarker.length);
         existingContent = before + startMarker + '\n' + content + '\n' + endMarker + after;
       } else if (startIndex === -1 && endIndex === -1) {
-        existingContent = startMarker + '\n' + content + '\n' + endMarker + '\n\n' + existingContent;
+        existingContent =
+          startMarker + '\n' + content + '\n' + endMarker + '\n\n' + existingContent;
       } else {
-        throw new Error(`Invalid marker state in ${filePath}. Found start: ${startIndex !== -1}, Found end: ${endIndex !== -1}`);
+        throw new Error(
+          `Invalid marker state in ${filePath}. Found start: ${startIndex !== -1}, Found end: ${endIndex !== -1}`
+        );
       }
     } else {
       existingContent = startMarker + '\n' + content + '\n' + endMarker;
     }
-    
+
     await this.writeFile(filePath, existingContent);
   }
 
   static async ensureWritePermissions(dirPath: string): Promise<boolean> {
     try {
       // If directory doesn't exist, check parent directory permissions
-      if (!await this.directoryExists(dirPath)) {
+      if (!(await this.directoryExists(dirPath))) {
         const parentDir = path.dirname(dirPath);
-        if (!await this.directoryExists(parentDir)) {
+        if (!(await this.directoryExists(parentDir))) {
           await this.createDirectory(parentDir);
         }
         return await this.ensureWritePermissions(parentDir);
       }
-      
+
       const testFile = path.join(dirPath, '.spool-test-' + Date.now());
       await fs.writeFile(testFile, '');
       await fs.unlink(testFile);

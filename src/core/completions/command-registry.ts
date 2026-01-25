@@ -47,7 +47,8 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     flags: [
       {
         name: 'tools',
-        description: 'Configure AI tools non-interactively (e.g., "all", "none", or comma-separated tool IDs)',
+        description:
+          'Configure AI tools non-interactively (e.g., "all", "none", or comma-separated tool IDs)',
         takesValue: true,
       },
     ],

@@ -18,7 +18,9 @@ export class PowerShellGenerator implements CompletionGenerator {
     // Build top-level commands using push() for loop clarity
     const commandLines: string[] = [];
     for (const cmd of commands) {
-      commandLines.push(`            @{Name="${cmd.name}"; Description="${this.escapeDescription(cmd.description)}"},`);
+      commandLines.push(
+        `            @{Name="${cmd.name}"; Description="${this.escapeDescription(cmd.description)}"},`
+      );
     }
     const topLevelCommands = commandLines.join('\n');
 
@@ -82,15 +84,25 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
           const longFlag = `--${flag.name}`;
           const shortFlag = flag.short ? `-${flag.short}` : undefined;
           if (shortFlag) {
-            lines.push(`${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`);
-            lines.push(`${indent}        @{Name="${shortFlag}"; Description="${this.escapeDescription(flag.description)}"},`);
+            lines.push(
+              `${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`
+            );
+            lines.push(
+              `${indent}        @{Name="${shortFlag}"; Description="${this.escapeDescription(flag.description)}"},`
+            );
           } else {
-            lines.push(`${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`);
+            lines.push(
+              `${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`
+            );
           }
         }
         lines.push(`${indent}    )`);
-        lines.push(`${indent}    $flags | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {`);
-        lines.push(`${indent}        [System.Management.Automation.CompletionResult]::new($_.Name, $_.Name, "ParameterName", $_.Description)`);
+        lines.push(
+          `${indent}    $flags | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {`
+        );
+        lines.push(
+          `${indent}        [System.Management.Automation.CompletionResult]::new($_.Name, $_.Name, "ParameterName", $_.Description)`
+        );
         lines.push(`${indent}    }`);
         lines.push(`${indent}    return`);
         lines.push(`${indent}}`);
@@ -98,14 +110,22 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
       }
 
       // Handle subcommands
-      lines.push(`${indent}if ($commandCount -eq 2 -or ($commandCount -eq 3 -and $wordToComplete)) {`);
+      lines.push(
+        `${indent}if ($commandCount -eq 2 -or ($commandCount -eq 3 -and $wordToComplete)) {`
+      );
       lines.push(`${indent}    $subcommands = @(`);
       for (const subcmd of cmd.subcommands) {
-        lines.push(`${indent}        @{Name="${subcmd.name}"; Description="${this.escapeDescription(subcmd.description)}"},`);
+        lines.push(
+          `${indent}        @{Name="${subcmd.name}"; Description="${this.escapeDescription(subcmd.description)}"},`
+        );
       }
       lines.push(`${indent}    )`);
-      lines.push(`${indent}    $subcommands | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {`);
-      lines.push(`${indent}        [System.Management.Automation.CompletionResult]::new($_.Name, $_.Name, "ParameterValue", $_.Description)`);
+      lines.push(
+        `${indent}    $subcommands | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {`
+      );
+      lines.push(
+        `${indent}        [System.Management.Automation.CompletionResult]::new($_.Name, $_.Name, "ParameterValue", $_.Description)`
+      );
       lines.push(`${indent}    }`);
       lines.push(`${indent}    return`);
       lines.push(`${indent}}`);
@@ -142,15 +162,25 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
         const longFlag = `--${flag.name}`;
         const shortFlag = flag.short ? `-${flag.short}` : undefined;
         if (shortFlag) {
-          lines.push(`${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`);
-          lines.push(`${indent}        @{Name="${shortFlag}"; Description="${this.escapeDescription(flag.description)}"},`);
+          lines.push(
+            `${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`
+          );
+          lines.push(
+            `${indent}        @{Name="${shortFlag}"; Description="${this.escapeDescription(flag.description)}"},`
+          );
         } else {
-          lines.push(`${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`);
+          lines.push(
+            `${indent}        @{Name="${longFlag}"; Description="${this.escapeDescription(flag.description)}"},`
+          );
         }
       }
       lines.push(`${indent}    )`);
-      lines.push(`${indent}    $flags | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {`);
-      lines.push(`${indent}        [System.Management.Automation.CompletionResult]::new($_.Name, $_.Name, "ParameterName", $_.Description)`);
+      lines.push(
+        `${indent}    $flags | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {`
+      );
+      lines.push(
+        `${indent}        [System.Management.Automation.CompletionResult]::new($_.Name, $_.Name, "ParameterName", $_.Description)`
+      );
       lines.push(`${indent}    }`);
       lines.push(`${indent}    return`);
       lines.push(`${indent}}`);
@@ -168,30 +198,49 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
   /**
    * Generate positional argument completion
    */
-  private generatePositionalCompletion(positionalType: string | undefined, indent: string): string[] {
+  private generatePositionalCompletion(
+    positionalType: string | undefined,
+    indent: string
+  ): string[] {
     const lines: string[] = [];
 
     switch (positionalType) {
       case 'change-id':
-        lines.push(`${indent}Get-SpoolChanges | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
-        lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Change: $_")`);
+        lines.push(
+          `${indent}Get-SpoolChanges | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`
+        );
+        lines.push(
+          `${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Change: $_")`
+        );
         lines.push(`${indent}}`);
         break;
       case 'spec-id':
-        lines.push(`${indent}Get-SpoolSpecs | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
-        lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Spec: $_")`);
+        lines.push(
+          `${indent}Get-SpoolSpecs | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`
+        );
+        lines.push(
+          `${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Spec: $_")`
+        );
         lines.push(`${indent}}`);
         break;
       case 'change-or-spec-id':
         lines.push(`${indent}$items = @(Get-SpoolChanges) + @(Get-SpoolSpecs)`);
-        lines.push(`${indent}$items | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
-        lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_)`);
+        lines.push(
+          `${indent}$items | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`
+        );
+        lines.push(
+          `${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_)`
+        );
         lines.push(`${indent}}`);
         break;
       case 'shell':
         lines.push(`${indent}$shells = @("zsh", "bash", "fish", "powershell")`);
-        lines.push(`${indent}$shells | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
-        lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Shell: $_")`);
+        lines.push(
+          `${indent}$shells | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`
+        );
+        lines.push(
+          `${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Shell: $_")`
+        );
         lines.push(`${indent}}`);
         break;
       case 'path':
@@ -207,8 +256,8 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
    */
   private escapeDescription(description: string): string {
     return description
-      .replace(/`/g, '``')     // Backticks (escape sequences)
-      .replace(/\$/g, '`$')    // Dollar signs (prevents $())
-      .replace(/"/g, '""');    // Double quotes
+      .replace(/`/g, '``') // Backticks (escape sequences)
+      .replace(/\$/g, '`$') // Dollar signs (prevents $())
+      .replace(/"/g, '""'); // Double quotes
   }
 }

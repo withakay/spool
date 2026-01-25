@@ -62,7 +62,7 @@ function titleCaseFromKebab(name: string): string {
   return name
     .split('-')
     .filter(Boolean)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
 
@@ -94,7 +94,9 @@ async function createUngroupedModule(projectRoot: string): Promise<ModuleChangeI
   };
 }
 
-async function acquireAllocationLock(projectRoot: string): Promise<{ handle: fs.FileHandle; lockPath: string }> {
+async function acquireAllocationLock(
+  projectRoot: string
+): Promise<{ handle: fs.FileHandle; lockPath: string }> {
   const spoolPath = getSpoolPath(projectRoot);
   const lockPath = path.join(spoolPath, 'workflows', '.state', 'change-allocations.lock');
   await FileSystemUtils.createDirectory(path.dirname(lockPath));
@@ -108,14 +110,17 @@ async function acquireAllocationLock(projectRoot: string): Promise<{ handle: fs.
       if (error?.code !== 'EEXIST') {
         throw error;
       }
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
   }
 
   throw new Error('Unable to acquire change allocation lock. Try again.');
 }
 
-async function releaseAllocationLock(lock: { handle: fs.FileHandle; lockPath: string }): Promise<void> {
+async function releaseAllocationLock(lock: {
+  handle: fs.FileHandle;
+  lockPath: string;
+}): Promise<void> {
   try {
     await lock.handle.close();
   } finally {
@@ -151,7 +156,10 @@ async function writeAllocationState(snapshot: AllocationSnapshot): Promise<void>
   await fs.writeFile(snapshot.statePath, payload, 'utf-8');
 }
 
-async function getModuleRecordedChangeNumbers(moduleId: string, projectRoot: string): Promise<number[]> {
+async function getModuleRecordedChangeNumbers(
+  moduleId: string,
+  projectRoot: string
+): Promise<number[]> {
   const moduleInfo = await getModuleById(moduleId, projectRoot);
   if (!moduleInfo) {
     return [];
@@ -163,12 +171,12 @@ async function getModuleRecordedChangeNumbers(moduleId: string, projectRoot: str
     const parser = new ModuleParser(content, moduleInfo.fullName);
     const parsed = parser.parseModule();
     return parsed.changes
-      .map(change => parseModularChangeName(change.id))
+      .map((change) => parseModularChangeName(change.id))
       .filter((parsedChange): parsedChange is NonNullable<typeof parsedChange> =>
         Boolean(parsedChange && parsedChange.moduleId === moduleId)
       )
-      .map(parsedChange => parseInt(parsedChange.changeNum, 10))
-      .filter(num => !Number.isNaN(num));
+      .map((parsedChange) => parseInt(parsedChange.changeNum, 10))
+      .filter((num) => !Number.isNaN(num));
   } catch {
     return [];
   }
@@ -176,10 +184,12 @@ async function getModuleRecordedChangeNumbers(moduleId: string, projectRoot: str
 
 function getMaxChangeNumberFromIds(changeIds: string[], moduleId: string): number {
   const changeNumbers = changeIds
-    .map(changeId => parseModularChangeName(changeId))
-    .filter((parsed): parsed is NonNullable<typeof parsed> => Boolean(parsed && parsed.moduleId === moduleId))
-    .map(parsed => parseInt(parsed.changeNum, 10))
-    .filter(num => !Number.isNaN(num));
+    .map((changeId) => parseModularChangeName(changeId))
+    .filter((parsed): parsed is NonNullable<typeof parsed> =>
+      Boolean(parsed && parsed.moduleId === moduleId)
+    )
+    .map((parsed) => parseInt(parsed.changeNum, 10))
+    .filter((num) => !Number.isNaN(num));
 
   return changeNumbers.length ? Math.max(...changeNumbers) : 0;
 }
@@ -189,7 +199,11 @@ function getMaxChangeNumberFromState(state: AllocationState, moduleId: string): 
   return entry ? entry.lastChangeNum : 0;
 }
 
-function updateAllocationState(state: AllocationState, moduleId: string, changeNum: number): AllocationState {
+function updateAllocationState(
+  state: AllocationState,
+  moduleId: string,
+  changeNum: number
+): AllocationState {
   const updatedAt = new Date().toISOString();
   return {
     modules: {
@@ -199,7 +213,10 @@ function updateAllocationState(state: AllocationState, moduleId: string, changeN
   };
 }
 
-async function ensureModuleExists(projectRoot: string, moduleId: string): Promise<{ id: string; name: string; fullName: string; path: string }> {
+async function ensureModuleExists(
+  projectRoot: string,
+  moduleId: string
+): Promise<{ id: string; name: string; fullName: string; path: string }> {
   const existing = await getModuleById(moduleId, projectRoot);
   if (existing) {
     return existing;
@@ -211,20 +228,26 @@ async function ensureModuleExists(projectRoot: string, moduleId: string): Promis
       id: created.moduleId,
       name: created.name,
       fullName: formatModuleFolderName(created.moduleId, created.name),
-      path: path.join(getModulesPath(projectRoot), formatModuleFolderName(created.moduleId, created.name)),
+      path: path.join(
+        getModulesPath(projectRoot),
+        formatModuleFolderName(created.moduleId, created.name)
+      ),
     };
   }
 
   throw new Error(`Module '${moduleId}' not found. Create it with: spool create module <name>`);
 }
 
-async function addChangeToModule(moduleInfo: { id: string; name: string; fullName: string; path: string }, changeId: string): Promise<void> {
+async function addChangeToModule(
+  moduleInfo: { id: string; name: string; fullName: string; path: string },
+  changeId: string
+): Promise<void> {
   const moduleFile = path.join(moduleInfo.path, 'module.md');
   const content = await fs.readFile(moduleFile, 'utf-8');
   const parser = new ModuleParser(content, moduleInfo.fullName);
   const parsed = parser.parseModule();
 
-  const existing = parsed.changes.find(change => change.id === changeId);
+  const existing = parsed.changes.find((change) => change.id === changeId);
   if (existing) {
     existing.planned = false;
     existing.completed = false;
@@ -277,7 +300,10 @@ export function validateChangeName(name: string): ValidationResult {
       return { valid: false, error: 'Change name cannot contain spaces (use hyphens instead)' };
     }
     if (/_/.test(name)) {
-      return { valid: false, error: 'Change name cannot contain underscores (use hyphens instead)' };
+      return {
+        valid: false,
+        error: 'Change name cannot contain underscores (use hyphens instead)',
+      };
     }
     if (name.startsWith('-')) {
       return { valid: false, error: 'Change name cannot start with a hyphen' };
@@ -289,13 +315,19 @@ export function validateChangeName(name: string): ValidationResult {
       return { valid: false, error: 'Change name cannot contain consecutive hyphens' };
     }
     if (/[^a-z0-9-]/.test(name)) {
-      return { valid: false, error: 'Change name can only contain lowercase letters, numbers, and hyphens' };
+      return {
+        valid: false,
+        error: 'Change name can only contain lowercase letters, numbers, and hyphens',
+      };
     }
     if (/^[0-9]/.test(name)) {
       return { valid: false, error: 'Change name must start with a letter' };
     }
 
-    return { valid: false, error: 'Change name must follow kebab-case convention (e.g., add-auth, refactor-db)' };
+    return {
+      valid: false,
+      error: 'Change name must follow kebab-case convention (e.g., add-auth, refactor-db)',
+    };
   }
 
   return { valid: true };

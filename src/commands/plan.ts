@@ -18,9 +18,7 @@ export class PlanCommand {
 
   private async ensureRoadmapFile(roadmapPath: string): Promise<void> {
     if (!(await FileSystemUtils.fileExists(roadmapPath))) {
-      throw new Error(
-        'ROADMAP.md not found. Run "spool init" or "spool plan init" first.'
-      );
+      throw new Error('ROADMAP.md not found. Run "spool init" or "spool plan init" first.');
     }
   }
 
@@ -31,10 +29,7 @@ export class PlanCommand {
     const planningPath = path.join(spoolPath, 'planning');
 
     // Create directories
-    const directories = [
-      planningPath,
-      path.join(planningPath, 'milestones'),
-    ];
+    const directories = [planningPath, path.join(planningPath, 'milestones')];
 
     for (const dir of directories) {
       await FileSystemUtils.createDirectory(dir);
@@ -56,9 +51,7 @@ export class PlanCommand {
       }
 
       const content =
-        typeof template.content === 'function'
-          ? template.content(context)
-          : template.content;
+        typeof template.content === 'function' ? template.content(context) : template.content;
 
       await FileSystemUtils.writeFile(filePath, content);
     }
@@ -86,15 +79,9 @@ export class PlanCommand {
     if (currentMilestoneMatch) {
       console.log(chalk.white.bold('Current Progress'));
       console.log(chalk.gray('─'.repeat(40)));
-      console.log(
-        `${chalk.gray('Milestone:')} ${chalk.white(currentMilestoneMatch[1])}`
-      );
-      console.log(
-        `${chalk.gray('Status:')} ${chalk.white(currentMilestoneMatch[2])}`
-      );
-      console.log(
-        `${chalk.gray('Phase:')} ${chalk.white(currentMilestoneMatch[3])}`
-      );
+      console.log(`${chalk.gray('Milestone:')} ${chalk.white(currentMilestoneMatch[1])}`);
+      console.log(`${chalk.gray('Status:')} ${chalk.white(currentMilestoneMatch[2])}`);
+      console.log(`${chalk.gray('Phase:')} ${chalk.white(currentMilestoneMatch[3])}`);
     }
 
     // Parse and display phase table
@@ -109,14 +96,17 @@ export class PlanCommand {
       const lines = tableMatch[0].split('\n').slice(2); // Skip header and separator
       for (const line of lines) {
         if (line.trim() && line.includes('|')) {
-          const cols = line.split('|').map((c) => c.trim()).filter(Boolean);
+          const cols = line
+            .split('|')
+            .map((c) => c.trim())
+            .filter(Boolean);
           if (cols.length >= 4) {
             const statusIcon =
               cols[2] === 'Complete'
                 ? chalk.green('✓')
                 : cols[2] === 'In Progress'
-                ? chalk.yellow('●')
-                : chalk.gray('○');
+                  ? chalk.yellow('●')
+                  : chalk.gray('○');
             console.log(
               `  ${statusIcon} Phase ${cols[0]}: ${chalk.white(cols[1])} ${chalk.gray(`[${cols[2]}]`)}`
             );
@@ -126,11 +116,7 @@ export class PlanCommand {
     }
   }
 
-  async addMilestone(
-    name: string,
-    target: string = '',
-    projectPath: string = '.'
-  ): Promise<void> {
+  async addMilestone(name: string, target: string = '', projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     const roadmapPath = await this.getRoadmapPath(resolvedPath);
 
@@ -154,10 +140,7 @@ Target: ${target || '[Define the goal for this milestone]'}
 
     if (completedIndex !== -1) {
       updatedContent =
-        content.slice(0, completedIndex) +
-        milestoneEntry +
-        '\n' +
-        content.slice(completedIndex);
+        content.slice(0, completedIndex) + milestoneEntry + '\n' + content.slice(completedIndex);
     } else {
       // Append at end
       updatedContent = content + '\n' + milestoneEntry;
@@ -178,11 +161,7 @@ Target: ${target || '[Define the goal for this milestone]'}
     ora().succeed(chalk.green(`Milestone "${name}" added`));
   }
 
-  async addPhase(
-    milestone: string,
-    phaseName: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async addPhase(milestone: string, phaseName: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     const roadmapPath = await this.getRoadmapPath(resolvedPath);
 
@@ -191,10 +170,7 @@ Target: ${target || '[Define the goal for this milestone]'}
     const content = await FileSystemUtils.readFile(roadmapPath);
 
     // Find the milestone section
-    const milestoneRegex = new RegExp(
-      `### ${milestone}[\\s\\S]*?(?=\\n### |\\n## |$)`,
-      'i'
-    );
+    const milestoneRegex = new RegExp(`### ${milestone}[\\s\\S]*?(?=\\n### |\\n## |$)`, 'i');
     const milestoneMatch = content.match(milestoneRegex);
 
     if (!milestoneMatch) {
@@ -235,9 +211,7 @@ Target: ${target || '[Define the goal for this milestone]'}
     );
     await FileSystemUtils.createDirectory(phaseDir);
 
-    ora().succeed(
-      chalk.green(`Phase ${newPhaseNum} "${phaseName}" added to ${milestone}`)
-    );
+    ora().succeed(chalk.green(`Phase ${newPhaseNum} "${phaseName}" added to ${milestone}`));
   }
 
   async updatePhaseStatus(
@@ -254,16 +228,10 @@ Target: ${target || '[Define the goal for this milestone]'}
     const content = await FileSystemUtils.readFile(roadmapPath);
 
     // Find and update the phase row
-    const phaseRowRegex = new RegExp(
-      `\\| ${phaseNum} \\| ([^|]+) \\| [^|]+ \\| ([^|]+) \\|`,
-      'g'
-    );
+    const phaseRowRegex = new RegExp(`\\| ${phaseNum} \\| ([^|]+) \\| [^|]+ \\| ([^|]+) \\|`, 'g');
 
     let updatedContent = content;
-    const milestoneRegex = new RegExp(
-      `### ${milestone}[\\s\\S]*?(?=\\n### |\\n## |$)`,
-      'i'
-    );
+    const milestoneRegex = new RegExp(`### ${milestone}[\\s\\S]*?(?=\\n### |\\n## |$)`, 'i');
     const milestoneMatch = content.match(milestoneRegex);
 
     if (!milestoneMatch) {
@@ -287,8 +255,6 @@ Target: ${target || '[Define the goal for this milestone]'}
 
     await FileSystemUtils.writeFile(roadmapPath, updatedContent);
 
-    ora().succeed(
-      chalk.green(`Phase ${phaseNum} status updated to "${status}"`)
-    );
+    ora().succeed(chalk.green(`Phase ${phaseNum} status updated to "${status}"`));
   }
 }

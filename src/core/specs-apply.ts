@@ -54,7 +54,10 @@ export interface SpecsApplyOutput {
 /**
  * Find all delta spec files that need to be applied from a change.
  */
-export async function findSpecUpdates(changeDir: string, mainSpecsDir: string): Promise<SpecUpdate[]> {
+export async function findSpecUpdates(
+  changeDir: string,
+  mainSpecsDir: string
+): Promise<SpecUpdate[]> {
   const updates: SpecUpdate[] = [];
   const changeSpecsDir = path.join(changeDir, 'specs');
 
@@ -102,7 +105,10 @@ export async function findSpecUpdates(changeDir: string, mainSpecsDir: string): 
 export async function buildUpdatedSpec(
   update: SpecUpdate,
   changeName: string
-): Promise<{ rebuilt: string; counts: { added: number; modified: number; removed: number; renamed: number } }> {
+): Promise<{
+  rebuilt: string;
+  counts: { added: number; modified: number; removed: number; renamed: number };
+}> {
   // Read change spec content (delta-format expected)
   const changeContent = await fs.readFile(update.source, 'utf-8');
 
@@ -191,7 +197,8 @@ export async function buildUpdatedSpec(
       `${specName} validation failed - requirement present in multiple sections (${c.a} and ${c.b}) for header "### Requirement: ${c.name}"`
     );
   }
-  const hasAnyDelta = plan.added.length + plan.modified.length + plan.removed.length + plan.renamed.length > 0;
+  const hasAnyDelta =
+    plan.added.length + plan.modified.length + plan.removed.length + plan.renamed.length > 0;
   if (!hasAnyDelta) {
     throw new Error(
       `Delta parsing found no operations for ${path.basename(path.dirname(update.source))}. ` +
@@ -238,10 +245,14 @@ export async function buildUpdatedSpec(
     const from = normalizeRequirementName(r.from);
     const to = normalizeRequirementName(r.to);
     if (!nameToBlock.has(from)) {
-      throw new Error(`${specName} RENAMED failed for header "### Requirement: ${r.from}" - source not found`);
+      throw new Error(
+        `${specName} RENAMED failed for header "### Requirement: ${r.from}" - source not found`
+      );
     }
     if (nameToBlock.has(to)) {
-      throw new Error(`${specName} RENAMED failed for header "### Requirement: ${r.to}" - target already exists`);
+      throw new Error(
+        `${specName} RENAMED failed for header "### Requirement: ${r.to}" - target already exists`
+      );
     }
     const block = nameToBlock.get(from)!;
     const newHeader = `### Requirement: ${to}`;
@@ -263,7 +274,9 @@ export async function buildUpdatedSpec(
       // For new specs, REMOVED requirements are already warned about and ignored
       // For existing specs, missing requirements are an error
       if (!isNewSpec) {
-        throw new Error(`${specName} REMOVED failed for header "### Requirement: ${name}" - not found`);
+        throw new Error(
+          `${specName} REMOVED failed for header "### Requirement: ${name}" - not found`
+        );
       }
       // Skip removal for new specs (already warned above)
       continue;
@@ -276,7 +289,9 @@ export async function buildUpdatedSpec(
     const key = normalizeRequirementName(mod.name);
     // If it's a new spec, treat MODIFIED as ADDED (don't check for existence)
     if (!nameToBlock.has(key) && !isNewSpec) {
-      throw new Error(`${specName} MODIFIED failed for header "### Requirement: ${mod.name}" - not found`);
+      throw new Error(
+        `${specName} MODIFIED failed for header "### Requirement: ${mod.name}" - not found`
+      );
     }
     // Replace block with provided raw (ensure header line matches key)
     const modHeaderMatch = mod.raw.split('\n')[0].match(/^###\s*Requirement:\s*(.+)\s*$/);
@@ -292,7 +307,9 @@ export async function buildUpdatedSpec(
   for (const add of plan.added) {
     const key = normalizeRequirementName(add.name);
     if (nameToBlock.has(key)) {
-      throw new Error(`${specName} ADDED failed for header "### Requirement: ${add.name}" - already exists`);
+      throw new Error(
+        `${specName} ADDED failed for header "### Requirement: ${add.name}" - already exists`
+      );
     }
     nameToBlock.set(key, add);
   }

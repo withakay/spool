@@ -8,3 +8,4 @@
 
 ## Changes
 - [ ] 005-01_migrate-pnpm-to-bun
+- [ ] 005-02_migrate-eslint-to-biome

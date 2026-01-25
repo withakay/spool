@@ -44,7 +44,13 @@ artifacts:
   describe('getArtifact', () => {
     it('should return artifact by ID', () => {
       const schema = createSchema([
-        { id: 'proposal', generates: 'proposal.md', description: 'Proposal', template: 't.md', requires: [] },
+        {
+          id: 'proposal',
+          generates: 'proposal.md',
+          description: 'Proposal',
+          template: 't.md',
+          requires: [],
+        },
       ]);
       const graph = ArtifactGraph.fromSchema(schema);
 
@@ -77,7 +83,7 @@ artifacts:
       const artifacts = graph.getAllArtifacts();
 
       expect(artifacts).toHaveLength(3);
-      expect(artifacts.map(a => a.id).sort()).toEqual(['A', 'B', 'C']);
+      expect(artifacts.map((a) => a.id).sort()).toEqual(['A', 'B', 'C']);
     });
   });
 

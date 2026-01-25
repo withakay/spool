@@ -16,7 +16,7 @@
   <!-- Describe what should be implemented -->
 - **Verify**: <!-- command to verify, e.g., bun run test:unit -->
 - **Done When**: <!-- acceptance criteria, e.g., tests pass -->
-- **Status**: [ ] pending / [ ] in-progress / [x] complete
+- **Status**: [ ] pending
 
 ### Task 1.2: <!-- Task Name -->
 - **Files**: <!-- file paths -->

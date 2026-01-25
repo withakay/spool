@@ -16,7 +16,7 @@ export class BashGenerator implements CompletionGenerator {
    */
   generate(commands: CommandDefinition[]): string {
     // Build command list for top-level completions
-    const commandList = commands.map(c => this.escapeCommandName(c.name)).join(' ');
+    const commandList = commands.map((c) => this.escapeCommandName(c.name)).join(' ');
 
     // Build command cases using push() for loop clarity
     const caseLines: string[] = [];
@@ -86,12 +86,14 @@ complete -F _spool_completion spool
       // First, check if user is typing a flag for the parent command
       if (cmd.flags.length > 0) {
         lines.push(`${indent}if [[ "$cur" == -* ]]; then`);
-        const flags = cmd.flags.map(f => {
-          const parts: string[] = [];
-          if (f.short) parts.push(`-${f.short}`);
-          parts.push(`--${f.name}`);
-          return parts.join(' ');
-        }).join(' ');
+        const flags = cmd.flags
+          .map((f) => {
+            const parts: string[] = [];
+            if (f.short) parts.push(`-${f.short}`);
+            parts.push(`--${f.name}`);
+            return parts.join(' ');
+          })
+          .join(' ');
         lines.push(`${indent}  local flags="${flags}"`);
         lines.push(`${indent}  COMPREPLY=($(compgen -W "$flags" -- "$cur"))`);
         lines.push(`${indent}  return 0`);
@@ -100,7 +102,11 @@ complete -F _spool_completion spool
       }
 
       lines.push(`${indent}if [[ $cword -eq 2 ]]; then`);
-      lines.push(`${indent}  local subcommands="` + cmd.subcommands.map(s => this.escapeCommandName(s.name)).join(' ') + '"');
+      lines.push(
+        `${indent}  local subcommands="` +
+          cmd.subcommands.map((s) => this.escapeCommandName(s.name)).join(' ') +
+          '"'
+      );
       lines.push(`${indent}  COMPREPLY=($(compgen -W "$subcommands" -- "$cur"))`);
       lines.push(`${indent}  return 0`);
       lines.push(`${indent}fi`);
@@ -131,12 +137,14 @@ complete -F _spool_completion spool
     // Check for flag completion
     if (cmd.flags.length > 0) {
       lines.push(`${indent}if [[ "$cur" == -* ]]; then`);
-      const flags = cmd.flags.map(f => {
-        const parts: string[] = [];
-        if (f.short) parts.push(`-${f.short}`);
-        parts.push(`--${f.name}`);
-        return parts.join(' ');
-      }).join(' ');
+      const flags = cmd.flags
+        .map((f) => {
+          const parts: string[] = [];
+          if (f.short) parts.push(`-${f.short}`);
+          parts.push(`--${f.name}`);
+          return parts.join(' ');
+        })
+        .join(' ');
       lines.push(`${indent}  local flags="${flags}"`);
       lines.push(`${indent}  COMPREPLY=($(compgen -W "$flags" -- "$cur"))`);
       lines.push(`${indent}  return 0`);
@@ -155,7 +163,10 @@ complete -F _spool_completion spool
   /**
    * Generate positional argument completion based on type
    */
-  private generatePositionalCompletion(positionalType: string | undefined, indent: string): string[] {
+  private generatePositionalCompletion(
+    positionalType: string | undefined,
+    indent: string
+  ): string[] {
     const lines: string[] = [];
 
     switch (positionalType) {
@@ -179,7 +190,6 @@ complete -F _spool_completion spool
 
     return lines;
   }
-
 
   /**
    * Escape command/subcommand names for safe use in Bash scripts

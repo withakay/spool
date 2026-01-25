@@ -10,7 +10,6 @@ describe('change show (interactive behavior)', () => {
   const changesDir = getChangesPath(testDir);
   const bin = path.join(projectRoot, 'bin', 'spool.js');
 
-
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
     const content = `# Change: Demo\n\n## Why\n\n## What Changes\n- x`;
@@ -31,7 +30,9 @@ describe('change show (interactive behavior)', () => {
       let err: any;
       try {
         execSync(`node ${bin} change show`, { encoding: 'utf-8' });
-      } catch (e) { err = e; }
+      } catch (e) {
+        err = e;
+      }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       expect(err.stderr.toString()).toContain('Available IDs:');
@@ -41,5 +42,3 @@ describe('change show (interactive behavior)', () => {
     }
   });
 });
-
-

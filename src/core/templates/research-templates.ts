@@ -5,7 +5,9 @@ export interface ResearchContext {
 
 const getCurrentDate = () => new Date().toISOString().split('T')[0];
 
-export const researchSummaryTemplate = (context: ResearchContext = {}) => `# Research Summary: ${context.topic || '[Topic]'}
+export const researchSummaryTemplate = (
+  context: ResearchContext = {}
+) => `# Research Summary: ${context.topic || '[Topic]'}
 
 Generated: ${context.currentDate || getCurrentDate()}
 
@@ -38,7 +40,9 @@ Generated: ${context.currentDate || getCurrentDate()}
 - [Links to documentation, articles, etc.]
 `;
 
-export const stackAnalysisTemplate = (context: ResearchContext = {}) => `# Stack Analysis: ${context.topic || '[Domain]'}
+export const stackAnalysisTemplate = (
+  context: ResearchContext = {}
+) => `# Stack Analysis: ${context.topic || '[Domain]'}
 
 Generated: ${context.currentDate || getCurrentDate()}
 
@@ -69,7 +73,9 @@ Rationale: [Why this is the best fit]
 - [Links to documentation, benchmarks, etc.]
 `;
 
-export const featureLandscapeTemplate = (context: ResearchContext = {}) => `# Feature Landscape: ${context.topic || '[Domain]'}
+export const featureLandscapeTemplate = (
+  context: ResearchContext = {}
+) => `# Feature Landscape: ${context.topic || '[Domain]'}
 
 Generated: ${context.currentDate || getCurrentDate()}
 
@@ -113,7 +119,9 @@ Features that could set the project apart:
 - Consider for v2: [...]
 `;
 
-export const architectureTemplate = (context: ResearchContext = {}) => `# Architecture Analysis: ${context.topic || '[Domain]'}
+export const architectureTemplate = (
+  context: ResearchContext = {}
+) => `# Architecture Analysis: ${context.topic || '[Domain]'}
 
 Generated: ${context.currentDate || getCurrentDate()}
 
@@ -159,7 +167,9 @@ Generated: ${context.currentDate || getCurrentDate()}
 - [Trust boundary 2]: [Protection mechanism]
 `;
 
-export const pitfallsTemplate = (context: ResearchContext = {}) => `# Pitfalls Analysis: ${context.topic || '[Domain]'}
+export const pitfallsTemplate = (
+  context: ResearchContext = {}
+) => `# Pitfalls Analysis: ${context.topic || '[Domain]'}
 
 Generated: ${context.currentDate || getCurrentDate()}
 

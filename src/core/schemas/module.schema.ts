@@ -38,24 +38,35 @@ export const ModuleSchema = z.object({
   fullName: z.string().regex(MODULE_NAME_PATTERN, 'Module folder must be NNN_kebab-name format'),
 
   // Purpose section (required, min 20 chars)
-  purpose: z.string().min(MIN_MODULE_PURPOSE_LENGTH, `Purpose must be at least ${MIN_MODULE_PURPOSE_LENGTH} characters`),
+  purpose: z
+    .string()
+    .min(
+      MIN_MODULE_PURPOSE_LENGTH,
+      `Purpose must be at least ${MIN_MODULE_PURPOSE_LENGTH} characters`
+    ),
 
   // Scope: list of capabilities this module may modify
   // Use ["*"] for unrestricted scope
-  scope: z.array(z.string().min(1)).min(1, 'Scope must have at least one capability (use "*" for unrestricted)'),
+  scope: z
+    .array(z.string().min(1))
+    .min(1, 'Scope must have at least one capability (use "*" for unrestricted)'),
 
   // Dependencies: list of module IDs that must be completed first
-  dependsOn: z.array(z.string().regex(MODULE_ID_PATTERN, 'Dependency must be a valid module ID')).default([]),
+  dependsOn: z
+    .array(z.string().regex(MODULE_ID_PATTERN, 'Dependency must be a valid module ID'))
+    .default([]),
 
   // Changes: list of changes in this module (hybrid: existing + planned)
   changes: z.array(ModuleChangeEntrySchema).default([]),
 
   // Metadata
-  metadata: z.object({
-    version: z.string().default('1.0.0'),
-    format: z.literal('spool-module'),
-    sourcePath: z.string().optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      version: z.string().default('1.0.0'),
+      format: z.literal('spool-module'),
+      sourcePath: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type ModuleChangeEntry = z.infer<typeof ModuleChangeEntrySchema>;
@@ -68,7 +79,9 @@ export function parseModuleName(folderName: string): { id: string; name: string 
   return { id: match[1], name: match[2] };
 }
 
-export function parseModularChangeName(folderName: string): { moduleId: string; changeNum: string; name: string } | null {
+export function parseModularChangeName(
+  folderName: string
+): { moduleId: string; changeNum: string; name: string } | null {
   const match = folderName.match(MODULAR_CHANGE_PATTERN);
   if (!match) return null;
   return { moduleId: match[1], changeNum: match[2], name: match[3] };
@@ -97,9 +110,9 @@ export function formatChangeFolderName(moduleId: string, changeNum: string, name
 
 export function getNextChangeNumber(existingChanges: string[], moduleId: string): string {
   const moduleChanges = existingChanges
-    .map(c => parseModularChangeName(c))
+    .map((c) => parseModularChangeName(c))
     .filter((p): p is NonNullable<typeof p> => p !== null && p.moduleId === moduleId)
-    .map(p => parseInt(p.changeNum, 10));
+    .map((p) => parseInt(p.changeNum, 10));
 
   const maxNum = moduleChanges.length > 0 ? Math.max(...moduleChanges) : 0;
   return String(maxNum + 1).padStart(2, '0');
@@ -107,9 +120,9 @@ export function getNextChangeNumber(existingChanges: string[], moduleId: string)
 
 export function getNextModuleId(existingModules: string[]): string {
   const moduleIds = existingModules
-    .map(m => parseModuleName(m))
+    .map((m) => parseModuleName(m))
     .filter((p): p is NonNullable<typeof p> => p !== null)
-    .map(p => parseInt(p.id, 10));
+    .map((p) => parseInt(p.id, 10));
 
   const maxId = moduleIds.length > 0 ? Math.max(...moduleIds) : 0;
   return String(maxId + 1).padStart(3, '0');

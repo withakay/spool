@@ -1,12 +1,12 @@
-import { SlashCommandConfigurator, EXTENDED_COMMANDS } from "./base.js";
-import { SlashCommandId } from "../../templates/index.js";
-import { replaceHardcodedSpoolPaths } from "../../../utils/path-normalization.js";
-import { FileSystemUtils } from "../../../utils/file-system.js";
+import { SlashCommandConfigurator, EXTENDED_COMMANDS } from './base.js';
+import { SlashCommandId } from '../../templates/index.js';
+import { replaceHardcodedSpoolPaths } from '../../../utils/path-normalization.js';
+import { FileSystemUtils } from '../../../utils/file-system.js';
 
-const OPENCODE_COMMANDS_PATH = ".opencode/command";
+const OPENCODE_COMMANDS_PATH = '.opencode/command';
 
 // Legacy path that was incorrectly used (plural instead of singular)
-const LEGACY_COMMANDS_PATH = ".opencode/commands";
+const LEGACY_COMMANDS_PATH = '.opencode/commands';
 const FILE_PATHS: Record<SlashCommandId, string> = {
   proposal: `${OPENCODE_COMMANDS_PATH}/spool-proposal.md`,
   apply: `${OPENCODE_COMMANDS_PATH}/spool-apply.md`,
@@ -66,9 +66,8 @@ The user has requested the following spool command.
 `,
 };
 
-
 export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
-  readonly toolId = "opencode";
+  readonly toolId = 'opencode';
   readonly isAvailable = true;
 
   protected getSupportedCommands(): SlashCommandId[] {
@@ -96,7 +95,7 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
   async generateAll(projectPath: string, spoolDir: string): Promise<string[]> {
     // First, clean up any legacy files at the old plural path
     await this.cleanupLegacyFiles(projectPath);
-    
+
     // Then generate files at the correct singular path
     return super.generateAll(projectPath, spoolDir);
   }
@@ -107,7 +106,7 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
   async updateExisting(projectPath: string, spoolDir: string): Promise<string[]> {
     // First, migrate any legacy files
     await this.migrateLegacyFiles(projectPath, spoolDir);
-    
+
     // Then update files at the correct path
     return super.updateExisting(projectPath, spoolDir);
   }
@@ -127,7 +126,7 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
         await FileSystemUtils.deleteFile(legacyPath);
       }
     }
-    
+
     // Try to remove the legacy directory if it's empty
     const legacyDir = FileSystemUtils.joinPath(projectPath, LEGACY_COMMANDS_PATH);
     await this.removeDirectoryIfEmpty(legacyDir);
@@ -159,7 +158,7 @@ export class OpenCodeSlashCommandConfigurator extends SlashCommandConfigurator {
         await FileSystemUtils.deleteFile(legacyPath);
       }
     }
-    
+
     // Try to remove the legacy directory if it's empty
     const legacyDir = FileSystemUtils.joinPath(projectPath, LEGACY_COMMANDS_PATH);
     await this.removeDirectoryIfEmpty(legacyDir);

@@ -10,13 +10,7 @@ import { FileSystemUtils } from '../../utils/file-system.js';
 import { getSpoolDirName } from '../project-config.js';
 import { agentConfigManager } from '../agent-config.js';
 import { workflowParser } from './parser.js';
-import {
-  WorkflowDefinition,
-  WorkflowExecution,
-  ExecutionPlan,
-  Tool,
-  TaskStatus,
-} from './types.js';
+import { WorkflowDefinition, WorkflowExecution, ExecutionPlan, Tool, TaskStatus } from './types.js';
 
 export class WorkflowOrchestrator {
   /**
@@ -136,10 +130,7 @@ export class WorkflowOrchestrator {
   /**
    * Save execution state to file
    */
-  async saveExecutionState(
-    execution: WorkflowExecution,
-    projectPath: string
-  ): Promise<void> {
+  async saveExecutionState(execution: WorkflowExecution, projectPath: string): Promise<void> {
     const spoolDir = getSpoolDirName(projectPath);
     const statePath = path.join(
       projectPath,
@@ -161,13 +152,7 @@ export class WorkflowOrchestrator {
     projectPath: string
   ): Promise<WorkflowExecution | null> {
     const spoolDir = getSpoolDirName(projectPath);
-    const statePath = path.join(
-      projectPath,
-      spoolDir,
-      'workflows',
-      '.state',
-      `${workflowId}.json`
-    );
+    const statePath = path.join(projectPath, spoolDir, 'workflows', '.state', `${workflowId}.json`);
 
     if (!(await FileSystemUtils.fileExists(statePath))) {
       return null;
@@ -177,10 +162,7 @@ export class WorkflowOrchestrator {
     return JSON.parse(content) as WorkflowExecution;
   }
 
-  private substituteVariables(
-    content: string,
-    variables: Record<string, string>
-  ): string {
+  private substituteVariables(content: string, variables: Record<string, string>): string {
     let result = content;
     for (const [key, value] of Object.entries(variables)) {
       result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
@@ -194,7 +176,6 @@ export class WorkflowOrchestrator {
   private generateOpenCodeInstructions(plan: ExecutionPlan, projectPath: string): string {
     const spoolDir = getSpoolDirName(projectPath);
     const lines: string[] = [
-
       `# Workflow Execution: ${plan.workflow.name}`,
       '',
       `> Tool: OpenCode`,
@@ -289,7 +270,9 @@ export class WorkflowOrchestrator {
       lines.push('');
 
       if (wave.parallel && wave.tasks.length > 1) {
-        lines.push('**Spawn these agents in parallel** (single message with multiple Task tool calls):');
+        lines.push(
+          '**Spawn these agents in parallel** (single message with multiple Task tool calls):'
+        );
       } else {
         lines.push('**Execute sequentially:**');
       }
@@ -394,9 +377,9 @@ export class WorkflowOrchestrator {
       'claude-haiku': 'haiku',
       'claude-sonnet': 'sonnet',
       'claude-opus': 'opus',
-      'haiku': 'haiku',
-      'sonnet': 'sonnet',
-      'opus': 'opus',
+      haiku: 'haiku',
+      sonnet: 'sonnet',
+      opus: 'opus',
     };
     return mapping[model] || 'sonnet';
   }

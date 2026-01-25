@@ -24,7 +24,10 @@ export function countTasksFromContent(content: string): TaskProgress {
   return { total, completed };
 }
 
-export async function getTaskProgressForChange(changesDir: string, changeName: string): Promise<TaskProgress> {
+export async function getTaskProgressForChange(
+  changesDir: string,
+  changeName: string
+): Promise<TaskProgress> {
   const tasksPath = path.join(changesDir, changeName, 'tasks.md');
   try {
     const content = await fs.readFile(tasksPath, 'utf-8');
@@ -39,5 +42,3 @@ export function formatTaskStatus(progress: TaskProgress): string {
   if (progress.completed === progress.total) return '✓ Complete';
   return `${progress.completed}/${progress.total} tasks`;
 }
-
-

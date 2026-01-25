@@ -66,7 +66,7 @@ export class ArchiveCommand {
         if (!changeReport.valid) {
           console.log(chalk.yellow(`\nProposal warnings in proposal.md (non-blocking):`));
           for (const issue of changeReport.issues) {
-            const symbol = issue.level === 'ERROR' ? '⚠' : (issue.level === 'WARNING' ? '⚠' : 'ℹ');
+            const symbol = issue.level === 'ERROR' ? '⚠' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
             console.log(chalk.yellow(`  ${symbol} ${issue.message}`));
           }
         }
@@ -116,12 +116,14 @@ export class ArchiveCommand {
     } else {
       // Log warning when validation is skipped
       const timestamp = new Date().toISOString();
-      
+
       if (!options.yes) {
-        const { confirm } = await import('@inquirer/prompts');
+        const { confirm } = (await import('@inquirer/' + 'prompts')) as any;
         const proceed = await confirm({
-          message: chalk.yellow('⚠️  WARNING: Skipping validation may archive invalid specs. Continue? (y/N)'),
-          default: false
+          message: chalk.yellow(
+            '⚠️  WARNING: Skipping validation may archive invalid specs. Continue? (y/N)'
+          ),
+          default: false,
         });
         if (!proceed) {
           console.log('Archive cancelled.');
@@ -130,7 +132,7 @@ export class ArchiveCommand {
       } else {
         console.log(chalk.yellow(`\n⚠️  WARNING: Skipping validation may archive invalid specs.`));
       }
-      
+
       console.log(chalk.yellow(`[${timestamp}] Validation skipped for change: ${changeName}`));
       console.log(chalk.yellow(`Affected files: ${changeDir}`));
     }
@@ -143,17 +145,19 @@ export class ArchiveCommand {
     const incompleteTasks = Math.max(progress.total - progress.completed, 0);
     if (incompleteTasks > 0) {
       if (!options.yes) {
-        const { confirm } = await import('@inquirer/prompts');
+        const { confirm } = (await import('@inquirer/' + 'prompts')) as any;
         const proceed = await confirm({
           message: `Warning: ${incompleteTasks} incomplete task(s) found. Continue?`,
-          default: false
+          default: false,
         });
         if (!proceed) {
           console.log('Archive cancelled.');
           return;
         }
       } else {
-        console.log(`Warning: ${incompleteTasks} incomplete task(s) found. Continuing due to --yes flag.`);
+        console.log(
+          `Warning: ${incompleteTasks} incomplete task(s) found. Continuing due to --yes flag.`
+        );
       }
     }
 
@@ -163,7 +167,7 @@ export class ArchiveCommand {
     } else {
       // Find specs to update
       const specUpdates = await findSpecUpdates(changeDir, mainSpecsDir);
-      
+
       if (specUpdates.length > 0) {
         console.log('\nSpecs to update:');
         for (const update of specUpdates) {
@@ -174,10 +178,10 @@ export class ArchiveCommand {
 
         let shouldUpdateSpecs = true;
         if (!options.yes) {
-          const { confirm } = await import('@inquirer/prompts');
+          const { confirm } = (await import('@inquirer/' + 'prompts')) as any;
           shouldUpdateSpecs = await confirm({
             message: 'Proceed with spec updates?',
-            default: true
+            default: true,
           });
           if (!shouldUpdateSpecs) {
             console.log('Skipping spec updates. Proceeding with archive.');
@@ -186,7 +190,11 @@ export class ArchiveCommand {
 
         if (shouldUpdateSpecs) {
           // Prepare all updates first (validation pass, no writes)
-          const prepared: Array<{ update: SpecUpdate; rebuilt: string; counts: { added: number; modified: number; removed: number; renamed: number } }> = [];
+          const prepared: Array<{
+            update: SpecUpdate;
+            rebuilt: string;
+            counts: { added: number; modified: number; removed: number; renamed: number };
+          }> = [];
           try {
             for (const update of specUpdates) {
               const built = await buildUpdatedSpec(update, changeName!);
@@ -205,10 +213,15 @@ export class ArchiveCommand {
             if (!skipValidation) {
               const report = await new Validator().validateSpecContent(specName, p.rebuilt);
               if (!report.valid) {
-                console.log(chalk.red(`\nValidation errors in rebuilt spec for ${specName} (will not write changes):`));
+                console.log(
+                  chalk.red(
+                    `\nValidation errors in rebuilt spec for ${specName} (will not write changes):`
+                  )
+                );
                 for (const issue of report.issues) {
                   if (issue.level === 'ERROR') console.log(chalk.red(`  ✗ ${issue.message}`));
-                  else if (issue.level === 'WARNING') console.log(chalk.yellow(`  ⚠ ${issue.message}`));
+                  else if (issue.level === 'WARNING')
+                    console.log(chalk.yellow(`  ⚠ ${issue.message}`));
                 }
                 console.log('Aborted. No files were changed.');
                 return;
@@ -247,17 +260,17 @@ export class ArchiveCommand {
 
     // Move change to archive
     await fs.rename(changeDir, archivePath);
-    
+
     console.log(`Change '${changeName}' archived as '${archiveName}'.`);
   }
 
   private async selectChange(changesDir: string): Promise<string | null> {
-    const { select } = await import('@inquirer/prompts');
+    const { select } = (await import('@inquirer/' + 'prompts')) as any;
     // Get all directories in changes (excluding archive)
     const entries = await fs.readdir(changesDir, { withFileTypes: true });
     const changeDirs = entries
-      .filter(entry => entry.isDirectory() && entry.name !== 'archive')
-      .map(entry => entry.name)
+      .filter((entry) => entry.isDirectory() && entry.name !== 'archive')
+      .map((entry) => entry.name)
       .sort();
 
     if (changeDirs.length === 0) {
@@ -266,7 +279,10 @@ export class ArchiveCommand {
     }
 
     // Build choices with progress inline to avoid duplicate lists
-    let choices: Array<{ name: string; value: string }> = changeDirs.map(name => ({ name, value: name }));
+    let choices: Array<{ name: string; value: string }> = changeDirs.map((name) => ({
+      name,
+      value: name,
+    }));
     try {
       const progressList: Array<{ id: string; status: string }> = [];
       for (const id of changeDirs) {
@@ -274,20 +290,20 @@ export class ArchiveCommand {
         const status = formatTaskStatus(progress);
         progressList.push({ id, status });
       }
-      const nameWidth = Math.max(...progressList.map(p => p.id.length));
-      choices = progressList.map(p => ({
+      const nameWidth = Math.max(...progressList.map((p) => p.id.length));
+      choices = progressList.map((p) => ({
         name: `${p.id.padEnd(nameWidth)}     ${p.status}`,
-        value: p.id
+        value: p.id,
       }));
     } catch {
       // If anything fails, fall back to simple names
-      choices = changeDirs.map(name => ({ name, value: name }));
+      choices = changeDirs.map((name) => ({ name, value: name }));
     }
 
     try {
       const answer = await select({
         message: 'Select a change to archive',
-        choices
+        choices,
       });
       return answer;
     } catch (error) {

@@ -34,7 +34,7 @@ describe('ListCommand', () => {
   describe('execute', () => {
     it('should handle missing spool/changes directory', async () => {
       const listCommand = new ListCommand();
-      
+
       await expect(listCommand.execute(tempDir, 'changes')).rejects.toThrow(
         "No Spool changes directory found. Run 'spool init' first."
       );
@@ -54,7 +54,7 @@ describe('ListCommand', () => {
       const changesDir = getChangesPath(tempDir);
       await fs.mkdir(path.join(changesDir, 'archive'), { recursive: true });
       await fs.mkdir(path.join(changesDir, 'my-change'), { recursive: true });
-      
+
       // Create tasks.md with some tasks
       await fs.writeFile(
         path.join(changesDir, 'my-change', 'tasks.md'),
@@ -65,14 +65,14 @@ describe('ListCommand', () => {
       await listCommand.execute(tempDir, 'changes');
 
       expect(logOutput).toContain('Changes:');
-      expect(logOutput.some(line => line.includes('my-change'))).toBe(true);
-      expect(logOutput.some(line => line.includes('archive'))).toBe(false);
+      expect(logOutput.some((line) => line.includes('my-change'))).toBe(true);
+      expect(logOutput.some((line) => line.includes('archive'))).toBe(false);
     });
 
     it('should count tasks correctly', async () => {
       const changesDir = getChangesPath(tempDir);
       await fs.mkdir(path.join(changesDir, 'test-change'), { recursive: true });
-      
+
       await fs.writeFile(
         path.join(changesDir, 'test-change', 'tasks.md'),
         `# Tasks
@@ -88,13 +88,13 @@ Regular text that should be ignored
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, 'changes');
 
-      expect(logOutput.some(line => line.includes('2/5 tasks'))).toBe(true);
+      expect(logOutput.some((line) => line.includes('2/5 tasks'))).toBe(true);
     });
 
     it('should show complete status for fully completed changes', async () => {
       const changesDir = getChangesPath(tempDir);
       await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
-      
+
       await fs.writeFile(
         path.join(changesDir, 'completed-change', 'tasks.md'),
         '- [x] Task 1\n- [x] Task 2\n- [x] Task 3\n'
@@ -103,7 +103,7 @@ Regular text that should be ignored
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, 'changes');
 
-      expect(logOutput.some(line => line.includes('✓ Complete'))).toBe(true);
+      expect(logOutput.some((line) => line.includes('✓ Complete'))).toBe(true);
     });
 
     it('should handle changes without tasks.md', async () => {
@@ -113,7 +113,9 @@ Regular text that should be ignored
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, 'changes');
 
-      expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No tasks'))).toBe(true);
+      expect(logOutput.some((line) => line.includes('no-tasks') && line.includes('No tasks'))).toBe(
+        true
+      );
     });
 
     it('should sort changes alphabetically when sort=name', async () => {
@@ -125,8 +127,8 @@ Regular text that should be ignored
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, 'changes', { sort: 'name' });
 
-      const changeLines = logOutput.filter(line =>
-        line.includes('alpha') || line.includes('middle') || line.includes('zebra')
+      const changeLines = logOutput.filter(
+        (line) => line.includes('alpha') || line.includes('middle') || line.includes('zebra')
       );
 
       expect(changeLines[0]).toContain('alpha');
@@ -136,7 +138,7 @@ Regular text that should be ignored
 
     it('should handle multiple changes with various states', async () => {
       const changesDir = getChangesPath(tempDir);
-      
+
       // Complete change
       await fs.mkdir(path.join(changesDir, 'completed'), { recursive: true });
       await fs.writeFile(
@@ -158,9 +160,15 @@ Regular text that should be ignored
       await listCommand.execute(tempDir);
 
       expect(logOutput).toContain('Changes:');
-      expect(logOutput.some(line => line.includes('completed') && line.includes('✓ Complete'))).toBe(true);
-      expect(logOutput.some(line => line.includes('partial') && line.includes('1/3 tasks'))).toBe(true);
-      expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No tasks'))).toBe(true);
+      expect(
+        logOutput.some((line) => line.includes('completed') && line.includes('✓ Complete'))
+      ).toBe(true);
+      expect(logOutput.some((line) => line.includes('partial') && line.includes('1/3 tasks'))).toBe(
+        true
+      );
+      expect(logOutput.some((line) => line.includes('no-tasks') && line.includes('No tasks'))).toBe(
+        true
+      );
     });
   });
 });

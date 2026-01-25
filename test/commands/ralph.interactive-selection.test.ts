@@ -27,16 +27,16 @@ describe('ralph command - interactive selection and module inference', () => {
     // Create temp directory
     tempDir = path.join(os.tmpdir(), `spool-ralph-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
-    
+
     // Save original cwd and change to temp directory
     originalCwd = process.cwd();
     process.chdir(tempDir);
-    
+
     // Create Spool structure
     const spoolDir = getSpoolPath(tempDir);
     await fs.mkdir(getChangesPath(tempDir), { recursive: true });
     await fs.mkdir(getModulesPath(tempDir), { recursive: true });
-    
+
     // Suppress console output during tests
     console.log = vi.fn();
     console.error = vi.fn();
@@ -46,13 +46,13 @@ describe('ralph command - interactive selection and module inference', () => {
     // Restore console
     console.log = originalConsoleLog;
     console.error = originalConsoleError;
-    
+
     // Clear mocks
     vi.clearAllMocks();
-    
+
     // Restore original cwd
     process.chdir(originalCwd);
-    
+
     // Clean up temp directory
     try {
       await fs.rm(tempDir, { recursive: true, force: true });
@@ -128,11 +128,11 @@ describe('ralph command - interactive selection and module inference', () => {
       });
 
       expect(result.exitCode).toBe(0);
-      
+
       // Should not prompt when only one change exists
       const { select } = await import('@inquirer/prompts');
       expect(select).not.toHaveBeenCalled();
-      
+
       expect(runRalphLoop).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: 'implement auth',
@@ -170,7 +170,9 @@ describe('ralph command - interactive selection and module inference', () => {
         'utf-8'
       );
 
-      await fs.mkdir(path.join(getChangesPath(tempDir), '001-02_improve-login'), { recursive: true });
+      await fs.mkdir(path.join(getChangesPath(tempDir), '001-02_improve-login'), {
+        recursive: true,
+      });
       await fs.writeFile(
         path.join(getChangesPath(tempDir), '001-02_improve-login', 'proposal.md'),
         '# Change: Improve Login\n\n## Why\nBetter UX.\n\n## What Changes\n- **auth:** Update login flow',
@@ -187,7 +189,9 @@ describe('ralph command - interactive selection and module inference', () => {
         'utf-8'
       );
 
-      await fs.mkdir(path.join(getChangesPath(tempDir), '002-01_update-buttons'), { recursive: true });
+      await fs.mkdir(path.join(getChangesPath(tempDir), '002-01_update-buttons'), {
+        recursive: true,
+      });
       await fs.writeFile(
         path.join(getChangesPath(tempDir), '002-01_update-buttons', 'proposal.md'),
         '# Change: Update Buttons\n\n## Why\nModern design.\n\n## What Changes\n- **ui:** Update button components',
@@ -228,7 +232,10 @@ describe('ralph command - interactive selection and module inference', () => {
 
     it('should auto-select when only one change exists in module', async () => {
       // Remove one of the module changes so only a single candidate remains
-      await fs.rm(path.join(getChangesPath(tempDir), '001-02_improve-login'), { recursive: true, force: true });
+      await fs.rm(path.join(getChangesPath(tempDir), '001-02_improve-login'), {
+        recursive: true,
+        force: true,
+      });
 
       // Mock ralph runner
       const { runRalphLoop } = await import('../../src/core/ralph/runner.js');
@@ -240,11 +247,11 @@ describe('ralph command - interactive selection and module inference', () => {
       });
 
       expect(result.exitCode).toBe(0);
-      
+
       // Should not prompt when only one change exists in module
       const { select } = await import('@inquirer/prompts');
       expect(select).not.toHaveBeenCalled();
-      
+
       expect(runRalphLoop).toHaveBeenCalledWith(
         expect.objectContaining({
           prompt: 'improve auth',
@@ -281,7 +288,9 @@ describe('ralph command - interactive selection and module inference', () => {
       });
 
       expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain('Either --change, --module, --status, --add-context, or --clear-context must be specified');
+      expect(result.stderr).toContain(
+        'Either --change, --module, --status, --add-context, or --clear-context must be specified'
+      );
     });
 
     it('should show error when --change omitted in CI environment', async () => {
@@ -291,7 +300,9 @@ describe('ralph command - interactive selection and module inference', () => {
       });
 
       expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain('Either --change, --module, --status, --add-context, or --clear-context must be specified');
+      expect(result.stderr).toContain(
+        'Either --change, --module, --status, --add-context, or --clear-context must be specified'
+      );
     });
   });
 

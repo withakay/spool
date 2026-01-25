@@ -6,10 +6,7 @@ import { z } from 'zod';
  */
 export const GlobalConfigSchema = z
   .object({
-    featureFlags: z
-      .record(z.string(), z.boolean())
-      .optional()
-      .default({}),
+    featureFlags: z.record(z.string(), z.boolean()).optional().default({}),
     /**
      * Default project path for Spool directory.
      * Can be overridden by repo-level spool.json.
@@ -48,7 +45,10 @@ export function validateConfigKeyPath(path: string): { valid: boolean; reason?: 
 
   if (rootKey === 'featureFlags') {
     if (rawKeys.length > 2) {
-      return { valid: false, reason: 'featureFlags values are booleans and do not support nested keys' };
+      return {
+        valid: false,
+        reason: 'featureFlags values are booleans and do not support nested keys',
+      };
     }
     return { valid: true };
   }
@@ -145,7 +145,10 @@ export function deleteNestedValue(obj: Record<string, unknown>, path: string): b
  * @param forceString - If true, always return the value as a string
  * @returns The coerced value
  */
-export function coerceValue(value: string, forceString: boolean = false): string | number | boolean {
+export function coerceValue(
+  value: string,
+  forceString: boolean = false
+): string | number | boolean {
   if (forceString) {
     return value;
   }

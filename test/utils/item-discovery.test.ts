@@ -19,11 +19,11 @@ describe('item-discovery utilities for ralph command', () => {
     // Create temp directory
     tempDir = path.join(os.tmpdir(), `spool-discovery-test-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
-    
+
     // Save original cwd and change to temp directory
     originalCwd = process.cwd();
     process.chdir(tempDir);
-    
+
     // Create Spool structure
     await fs.mkdir(getChangesPath(tempDir), { recursive: true });
     await fs.mkdir(getModulesPath(tempDir), { recursive: true });
@@ -32,7 +32,7 @@ describe('item-discovery utilities for ralph command', () => {
   afterEach(async () => {
     // Restore original cwd
     process.chdir(originalCwd);
-    
+
     // Clean up temp directory
     try {
       await fs.rm(tempDir, { recursive: true, force: true });
@@ -72,7 +72,9 @@ describe('item-discovery utilities for ralph command', () => {
 
     it('should ignore archive directory', async () => {
       await fs.mkdir(path.join(getChangesPath(tempDir), 'archive'), { recursive: true });
-      await fs.mkdir(path.join(getChangesPath(tempDir), 'archive', '001-01_old-change'), { recursive: true });
+      await fs.mkdir(path.join(getChangesPath(tempDir), 'archive', '001-01_old-change'), {
+        recursive: true,
+      });
       await fs.writeFile(
         path.join(getChangesPath(tempDir), 'archive', '001-01_old-change', 'proposal.md'),
         '# Old Change\n\n## Why\nAncient.',
@@ -106,7 +108,9 @@ describe('item-discovery utilities for ralph command', () => {
         'utf-8'
       );
 
-      await fs.mkdir(path.join(getChangesPath(tempDir), '001-02_improve-login'), { recursive: true });
+      await fs.mkdir(path.join(getChangesPath(tempDir), '001-02_improve-login'), {
+        recursive: true,
+      });
       await fs.writeFile(
         path.join(getChangesPath(tempDir), '001-02_improve-login', 'proposal.md'),
         '# Change: Improve Login\n\n## Why\nBetter UX.',
@@ -203,7 +207,9 @@ describe('item-discovery utilities for ralph command', () => {
         'utf-8'
       );
 
-      await fs.mkdir(path.join(getModulesPath(tempDir), '010_advanced-features'), { recursive: true });
+      await fs.mkdir(path.join(getModulesPath(tempDir), '010_advanced-features'), {
+        recursive: true,
+      });
       await fs.writeFile(
         path.join(getModulesPath(tempDir), '010_advanced-features', 'module.md'),
         '# Module: Advanced Features',
@@ -252,7 +258,9 @@ describe('item-discovery utilities for ralph command', () => {
         'utf-8'
       );
 
-      await fs.mkdir(path.join(getChangesPath(tempDir), '010-05_major-refactor'), { recursive: true });
+      await fs.mkdir(path.join(getChangesPath(tempDir), '010-05_major-refactor'), {
+        recursive: true,
+      });
       await fs.writeFile(
         path.join(getChangesPath(tempDir), '010-05_major-refactor', 'proposal.md'),
         '# Change: Major Refactor\n\n## Why\nClean architecture.',

@@ -10,7 +10,7 @@ export interface DeltaMigrationResult {
 
 /**
  * Moves spec files from one change to another.
- * 
+ *
  * @param projectRoot The root directory of the project
  * @param sourceChangeId The ID of the source change
  * @param destChangeId The ID of the destination change
@@ -36,7 +36,11 @@ export async function moveDeltaSpecs(
   try {
     await fs.access(destPath);
   } catch {
-    return { success: false, movedSpecs: [], error: `Destination change ${destChangeId} not found` };
+    return {
+      success: false,
+      movedSpecs: [],
+      error: `Destination change ${destChangeId} not found`,
+    };
   }
 
   const movedSpecs: string[] = [];
@@ -53,10 +57,10 @@ export async function moveDeltaSpecs(
       // Check if destination already exists (collision)
       try {
         await fs.access(destSpecPath);
-        return { 
-          success: false, 
-          movedSpecs, 
-          error: `Spec ${specPath} already exists in destination change` 
+        return {
+          success: false,
+          movedSpecs,
+          error: `Spec ${specPath} already exists in destination change`,
         };
       } catch {
         // Destination doesn't exist, which is good
@@ -67,12 +71,12 @@ export async function moveDeltaSpecs(
 
       // Copy file
       await fs.copyFile(sourceSpecPath, destSpecPath);
-      
+
       // Delete source file
       await fs.unlink(sourceSpecPath);
-      
+
       movedSpecs.push(specPath);
-      
+
       // Attempt to clean up empty source directories
       try {
         const sourceDir = path.dirname(sourceSpecPath);
@@ -83,12 +87,11 @@ export async function moveDeltaSpecs(
       } catch {
         // Ignore errors during cleanup
       }
-
     } catch (err: any) {
-      return { 
-        success: false, 
-        movedSpecs, 
-        error: `Failed to move spec ${specPath}: ${err.message}` 
+      return {
+        success: false,
+        movedSpecs,
+        error: `Failed to move spec ${specPath}: ${err.message}`,
       };
     }
   }
@@ -97,7 +100,7 @@ export async function moveDeltaSpecs(
   try {
     await moveAssociatedTasks(sourcePath, destPath, movedSpecs);
   } catch (err) {
-    // Non-fatal error, just log it or include in result? 
+    // Non-fatal error, just log it or include in result?
     // For now we'll just ignore it as it's "best effort"
   }
 
@@ -124,7 +127,7 @@ async function moveAssociatedTasks(sourcePath: string, destPath: string, movedSp
     // Check if line is a task and refers to any of the moved specs
     const isTask = line.trim().match(/^-\s+\[[ x]\]/);
     if (isTask) {
-      const refersToMovedSpec = movedSpecs.some(spec => {
+      const refersToMovedSpec = movedSpecs.some((spec) => {
         // Simple heuristic: check if the spec path (or parts of it) is in the line
         // We check for the full relative path, or just the filename if it's unique enough?
         // Let's stick to the relative path as provided in specPaths (e.g. "feature/spec.md")

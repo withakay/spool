@@ -41,7 +41,7 @@ describe('last-module state tracking', () => {
   describe('setLastModuleId', () => {
     it('should persist the module ID', () => {
       setLastModuleId('042', tempDir);
-      
+
       // Read the file directly to verify
       const stateFile = path.join(tempDir, '.spool', '.state', 'session.json');
       const content = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
@@ -51,7 +51,7 @@ describe('last-module state tracking', () => {
     it('should update existing state', () => {
       setLastModuleId('001', tempDir);
       setLastModuleId('002', tempDir);
-      
+
       const result = getLastModuleId(tempDir);
       expect(result).toBe('002');
     });
@@ -60,7 +60,7 @@ describe('last-module state tracking', () => {
       const newTempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'spool-test-'));
       try {
         setLastModuleId('001', newTempDir);
-        
+
         const stateFile = path.join(newTempDir, '.spool', '.state', 'session.json');
         expect(fs.existsSync(stateFile)).toBe(true);
       } finally {
@@ -85,7 +85,7 @@ describe('last-module state tracking', () => {
   describe('setLastChangeName', () => {
     it('should persist the change name', () => {
       setLastChangeName('001-02_my-feature', tempDir);
-      
+
       const stateFile = path.join(tempDir, '.spool', '.state', 'session.json');
       const content = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
       expect(content.lastChangeName).toBe('001-02_my-feature');
@@ -93,7 +93,7 @@ describe('last-module state tracking', () => {
 
     it('should also extract and set the module ID from change name', () => {
       setLastChangeName('042-05_some-change', tempDir);
-      
+
       const moduleId = getLastModuleId(tempDir);
       expect(moduleId).toBe('042');
     });
@@ -101,7 +101,7 @@ describe('last-module state tracking', () => {
     it('should update existing state', () => {
       setLastChangeName('001-01_first', tempDir);
       setLastChangeName('002-03_second', tempDir);
-      
+
       const result = getLastChangeName(tempDir);
       expect(result).toBe('002-03_second');
     });
@@ -110,10 +110,10 @@ describe('last-module state tracking', () => {
   describe('clearState', () => {
     it('should remove the state file', () => {
       setLastModuleId('001', tempDir);
-      
+
       const stateFile = path.join(tempDir, '.spool', '.state', 'session.json');
       expect(fs.existsSync(stateFile)).toBe(true);
-      
+
       clearState(tempDir);
       expect(fs.existsSync(stateFile)).toBe(false);
     });
@@ -126,7 +126,7 @@ describe('last-module state tracking', () => {
   describe('state persistence', () => {
     it('should include updatedAt timestamp', () => {
       setLastModuleId('001', tempDir);
-      
+
       const stateFile = path.join(tempDir, '.spool', '.state', 'session.json');
       const content = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
       expect(content.updatedAt).toBeDefined();
@@ -136,7 +136,7 @@ describe('last-module state tracking', () => {
     it('should preserve other state fields when updating', () => {
       setLastModuleId('001', tempDir);
       setLastChangeName('001-02_my-change', tempDir);
-      
+
       // Both should be preserved
       expect(getLastModuleId(tempDir)).toBe('001');
       expect(getLastChangeName(tempDir)).toBe('001-02_my-change');

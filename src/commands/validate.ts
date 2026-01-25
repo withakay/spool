@@ -39,11 +39,19 @@ export class ValidateCommand {
 
     // Handle bulk flags first
     if (options.all || options.changes || options.specs || options.modules) {
-      await this.runBulkValidation({
-        changes: !!options.all || !!options.changes,
-        specs: !!options.all || !!options.specs,
-        modules: !!options.modules,
-      }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: resolveNoInteractive(options) });
+      await this.runBulkValidation(
+        {
+          changes: !!options.all || !!options.changes,
+          specs: !!options.all || !!options.specs,
+          modules: !!options.modules,
+        },
+        {
+          strict: !!options.strict,
+          json: !!options.json,
+          concurrency: options.concurrency,
+          noInteractive: resolveNoInteractive(options),
+        }
+      );
       return;
     }
 
@@ -56,7 +64,11 @@ export class ValidateCommand {
     // No item and no flags
     if (!itemName) {
       if (interactive) {
-        await this.runInteractiveSelector({ strict: !!options.strict, json: !!options.json, concurrency: options.concurrency });
+        await this.runInteractiveSelector({
+          strict: !!options.strict,
+          json: !!options.json,
+          concurrency: options.concurrency,
+        });
         return;
       }
       this.printNonInteractiveHint();
@@ -66,11 +78,11 @@ export class ValidateCommand {
 
     // Direct item validation with type detection or override
     const typeOverride = this.normalizeType(options.type);
-    await this.validateDirectItem(itemName, { 
-      typeOverride, 
-      strict: !!options.strict, 
+    await this.validateDirectItem(itemName, {
+      typeOverride,
+      strict: !!options.strict,
       json: !!options.json,
-      noInteractive: resolveNoInteractive(options)
+      noInteractive: resolveNoInteractive(options),
     });
   }
 
@@ -81,13 +93,19 @@ export class ValidateCommand {
     return undefined;
   }
 
-  private async validateModule(moduleId: string, opts: { strict: boolean; json: boolean }): Promise<void> {
+  private async validateModule(
+    moduleId: string,
+    opts: { strict: boolean; json: boolean }
+  ): Promise<void> {
     const modules = await getModuleInfo();
-    const module = modules.find(m => m.id === moduleId || m.fullName === moduleId);
+    const module = modules.find((m) => m.id === moduleId || m.fullName === moduleId);
 
     if (!module) {
       console.error(`Module not found: ${moduleId}`);
-      const suggestions = nearestMatches(moduleId, modules.map(m => m.fullName));
+      const suggestions = nearestMatches(
+        moduleId,
+        modules.map((m) => m.fullName)
+      );
       if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
@@ -100,8 +118,21 @@ export class ValidateCommand {
 
     if (opts.json) {
       const out = {
-        items: [{ id: module.fullName, type: 'module' as const, valid: report.valid, issues: report.issues, durationMs }],
-        summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { module: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } },
+        items: [
+          {
+            id: module.fullName,
+            type: 'module' as const,
+            valid: report.valid,
+            issues: report.issues,
+            durationMs,
+          },
+        ],
+        summary: {
+          totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 },
+          byType: {
+            module: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 },
+          },
+        },
         version: '1.0',
       };
       console.log(JSON.stringify(out, null, 2));
@@ -120,8 +151,12 @@ export class ValidateCommand {
     process.exitCode = report.valid ? 0 : 1;
   }
 
-  private async runInteractiveSelector(opts: { strict: boolean; json: boolean; concurrency?: string }): Promise<void> {
-    const { select } = await import('@inquirer/prompts');
+  private async runInteractiveSelector(opts: {
+    strict: boolean;
+    json: boolean;
+    concurrency?: string;
+  }): Promise<void> {
+    const { select } = (await import('@inquirer/' + 'prompts')) as any;
     const choice = await select({
       message: 'What would you like to validate?',
       choices: [
@@ -139,14 +174,21 @@ export class ValidateCommand {
     // one
     const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
     const items: { name: string; value: { type: ItemType; id: string } }[] = [];
-    items.push(...changes.map(id => ({ name: `change/${id}`, value: { type: 'change' as const, id } })));
-    items.push(...specs.map(id => ({ name: `spec/${id}`, value: { type: 'spec' as const, id } })));
+    items.push(
+      ...changes.map((id) => ({ name: `change/${id}`, value: { type: 'change' as const, id } }))
+    );
+    items.push(
+      ...specs.map((id) => ({ name: `spec/${id}`, value: { type: 'spec' as const, id } }))
+    );
     if (items.length === 0) {
       console.error('No items found to validate.');
       process.exitCode = 1;
       return;
     }
-    const picked = await select<{ type: ItemType; id: string }>({ message: 'Pick an item', choices: items });
+    const picked = (await select({ message: 'Pick an item', choices: items })) as {
+      type: ItemType;
+      id: string;
+    };
     await this.validateByType(picked.type, picked.id, opts);
   }
 
@@ -159,20 +201,25 @@ export class ValidateCommand {
     console.error('Or run in an interactive terminal.');
   }
 
-  private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean; noInteractive?: boolean }): Promise<void> {
+  private async validateDirectItem(
+    itemName: string,
+    opts: { typeOverride?: ItemType; strict: boolean; json: boolean; noInteractive?: boolean }
+  ): Promise<void> {
     const [changes, specs] = await Promise.all([getActiveChangeIds(), getSpecIds()]);
     const changeMatches = changes.includes(itemName)
       ? [itemName]
-      : changes.filter(changeId => parseModularChangeName(changeId)?.name === itemName);
+      : changes.filter((changeId) => parseModularChangeName(changeId)?.name === itemName);
 
     const isChange = changeMatches.length > 0;
     const isSpec = specs.includes(itemName);
 
     if (!opts.typeOverride && isChange && isSpec) {
       console.error(
-        `Ambiguous item '${itemName}' matches both a change (${changeMatches.join(', ')}) and a spec (${itemName}).`,
+        `Ambiguous item '${itemName}' matches both a change (${changeMatches.join(', ')}) and a spec (${itemName}).`
       );
-      console.error("Use '--type change' or '--type spec' to disambiguate, or pass the full change id.");
+      console.error(
+        "Use '--type change' or '--type spec' to disambiguate, or pass the full change id."
+      );
       process.exitCode = 1;
       return;
     }
@@ -182,7 +229,7 @@ export class ValidateCommand {
     if (!type) {
       console.error(`Unknown item '${itemName}'`);
       const changeNames = changes
-        .map(c => parseModularChangeName(c)?.name)
+        .map((c) => parseModularChangeName(c)?.name)
         .filter((n): n is string => Boolean(n));
       const suggestions = nearestMatches(itemName, [...changes, ...changeNames, ...specs]);
       if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
@@ -192,7 +239,9 @@ export class ValidateCommand {
 
     if (!opts.typeOverride && isChange && isSpec) {
       console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
-      console.error('Pass --type change|spec, or use: spool validate --changes / spool validate --specs');
+      console.error(
+        'Pass --type change|spec, or use: spool validate --changes / spool validate --specs'
+      );
       process.exitCode = 1;
       return;
     }
@@ -207,7 +256,9 @@ export class ValidateCommand {
       }
 
       if (changeMatches.length > 1) {
-        console.error(`Ambiguous change '${itemName}' matches multiple changes: ${changeMatches.join(', ')}`);
+        console.error(
+          `Ambiguous change '${itemName}' matches multiple changes: ${changeMatches.join(', ')}`
+        );
         console.error('Pass the full change id (e.g., 001-02_name).');
         process.exitCode = 1;
         return;
@@ -228,7 +279,11 @@ export class ValidateCommand {
     await this.validateByType(type, itemName, opts);
   }
 
-  private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean; noInteractive?: boolean }): Promise<void> {
+  private async validateByType(
+    type: ItemType,
+    id: string,
+    opts: { strict: boolean; json: boolean; noInteractive?: boolean }
+  ): Promise<void> {
     const validator = new Validator(opts.strict);
     if (type === 'change') {
       const changeDir = path.join(getChangesPath(), id);
@@ -240,23 +295,24 @@ export class ValidateCommand {
       // Check for split warning if interactive
       if (!opts.json && !opts.noInteractive && !report.valid) {
         // Look for split warning metadata
-        const splitIssue = report.issues.find(i => 
-          i.metadata && 
-          i.metadata.type === 'too_many_deltas' && 
-          i.metadata.remediation === 'split'
+        const splitIssue = report.issues.find(
+          (i) =>
+            i.metadata &&
+            i.metadata.type === 'too_many_deltas' &&
+            i.metadata.remediation === 'split'
         );
 
         if (splitIssue) {
           console.log('\n'); // Spacing
-          const { confirm } = await import('@inquirer/prompts');
+          const { confirm } = (await import('@inquirer/' + 'prompts')) as any;
           const shouldSplit = await confirm({
             message: `Change '${id}' has ${splitIssue.metadata!.count} deltas (max ${splitIssue.metadata!.threshold}). Would you like to split it now?`,
-            default: true
+            default: true,
           });
 
           if (shouldSplit) {
-            // Need to invoke SplitCommand. 
-            // We can construct it but it needs 'program'. 
+            // Need to invoke SplitCommand.
+            // We can construct it but it needs 'program'.
             // A bit hacky to create a dummy program or just instantiate the logic separately.
             // SplitCommand logic is in execute(changeId).
             // Let's create a new Command instance just to satisfy the constructor
@@ -283,9 +339,24 @@ export class ValidateCommand {
     process.exitCode = report.valid ? 0 : 1;
   }
 
-  private printReport(type: ItemType, id: string, report: { valid: boolean; issues: any[] }, durationMs: number, json: boolean): void {
+  private printReport(
+    type: ItemType,
+    id: string,
+    report: { valid: boolean; issues: any[] },
+    durationMs: number,
+    json: boolean
+  ): void {
     if (json) {
-      const out = { items: [{ id, type, valid: report.valid, issues: report.issues, durationMs }], summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { [type]: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } }, version: '1.0' };
+      const out = {
+        items: [{ id, type, valid: report.valid, issues: report.issues, durationMs }],
+        summary: {
+          totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 },
+          byType: {
+            [type]: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 },
+          },
+        },
+        version: '1.0',
+      };
       console.log(JSON.stringify(out, null, 2));
       return;
     }
@@ -306,7 +377,9 @@ export class ValidateCommand {
   private printNextSteps(type: ItemType): void {
     const bullets: string[] = [];
     if (type === 'change') {
-      bullets.push('- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
+      bullets.push(
+        '- Ensure change has deltas in specs/: use headers ## ADDED/MODIFIED/REMOVED/RENAMED Requirements'
+      );
       bullets.push('- Each requirement MUST include at least one #### Scenario: block');
       bullets.push('- Debug parsed deltas: spool show <id> --json --deltas-only');
     } else if (type === 'spec') {
@@ -325,7 +398,10 @@ export class ValidateCommand {
     }
   }
 
-  private async runBulkValidation(scope: { changes: boolean; specs: boolean; modules?: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
+  private async runBulkValidation(
+    scope: { changes: boolean; specs: boolean; modules?: boolean },
+    opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }
+  ): Promise<void> {
     const spinner = !opts.json && !opts.noInteractive ? ora('Validating...').start() : undefined;
     const [changeIds, specIds, moduleInfos] = await Promise.all([
       scope.changes ? getActiveChangeIds() : Promise.resolve<string[]>([]),
@@ -335,7 +411,10 @@ export class ValidateCommand {
 
     const DEFAULT_CONCURRENCY = 6;
     const maxSuggestions = 5; // used by nearestMatches
-    const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env.SPOOL_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
+    const concurrency =
+      normalizeConcurrency(opts.concurrency) ??
+      normalizeConcurrency(process.env.SPOOL_CONCURRENCY) ??
+      DEFAULT_CONCURRENCY;
     const validator = new Validator(opts.strict);
     const queue: Array<() => Promise<BulkItemResult>> = [];
 
@@ -345,7 +424,13 @@ export class ValidateCommand {
         const changeDir = path.join(getChangesPath(), id);
         const report = await validator.validateChangeDeltaSpecs(changeDir);
         const durationMs = Date.now() - start;
-        return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
+        return {
+          id,
+          type: 'change' as const,
+          valid: report.valid,
+          issues: report.issues,
+          durationMs,
+        };
       });
     }
     for (const id of specIds) {
@@ -354,7 +439,13 @@ export class ValidateCommand {
         const file = path.join(getSpecsPath(), id, 'spec.md');
         const report = await validator.validateSpec(file);
         const durationMs = Date.now() - start;
-        return { id, type: 'spec' as const, valid: report.valid, issues: report.issues, durationMs };
+        return {
+          id,
+          type: 'spec' as const,
+          valid: report.valid,
+          issues: report.issues,
+          durationMs,
+        };
       });
     }
     for (const moduleInfo of moduleInfos) {
@@ -362,7 +453,13 @@ export class ValidateCommand {
         const start = Date.now();
         const report = await validator.validateModule(moduleInfo.path);
         const durationMs = Date.now() - start;
-        return { id: moduleInfo.fullName, type: 'module' as const, valid: report.valid, issues: report.issues, durationMs };
+        return {
+          id: moduleInfo.fullName,
+          type: 'module' as const,
+          valid: report.valid,
+          issues: report.issues,
+          durationMs,
+        };
       });
     }
 
@@ -403,13 +500,20 @@ export class ValidateCommand {
           running++;
           if (spinner) spinner.text = `Validating (${currentIndex + 1}/${queue.length})...`;
           task()
-            .then(res => {
+            .then((res) => {
               results.push(res);
-              if (res.valid) passed++; else failed++;
+              if (res.valid) passed++;
+              else failed++;
             })
             .catch((error: any) => {
               const message = error?.message || 'Unknown error';
-              const res: BulkItemResult = { id: getPlannedId(currentIndex, changeIds, specIds) ?? 'unknown', type: getPlannedType(currentIndex, changeIds, specIds) ?? 'change', valid: false, issues: [{ level: 'ERROR', path: 'file', message }], durationMs: 0 };
+              const res: BulkItemResult = {
+                id: getPlannedId(currentIndex, changeIds, specIds) ?? 'unknown',
+                type: getPlannedType(currentIndex, changeIds, specIds) ?? 'change',
+                valid: false,
+                issues: [{ level: 'ERROR', path: 'file', message }],
+                durationMs: 0,
+              };
               results.push(res);
               failed++;
             })
@@ -443,7 +547,9 @@ export class ValidateCommand {
         if (res.valid) console.log(`✓ ${res.type}/${res.id}`);
         else console.error(`✗ ${res.type}/${res.id}`);
       }
-      console.log(`Totals: ${summary.totals.passed} passed, ${summary.totals.failed} failed (${summary.totals.items} items)`);
+      console.log(
+        `Totals: ${summary.totals.passed} passed, ${summary.totals.failed} failed (${summary.totals.items} items)`
+      );
     }
 
     process.exitCode = failed > 0 ? 1 : 0;
@@ -451,9 +557,9 @@ export class ValidateCommand {
 }
 
 function summarizeType(results: BulkItemResult[], type: ItemType) {
-  const filtered = results.filter(r => r.type === type);
+  const filtered = results.filter((r) => r.type === type);
   const items = filtered.length;
-  const passed = filtered.filter(r => r.valid).length;
+  const passed = filtered.filter((r) => r.valid).length;
   const failed = items - passed;
   return { items, passed, failed };
 }
@@ -472,7 +578,11 @@ function getPlannedId(index: number, changeIds: string[], specIds: string[]): st
   return specIds[specIndex];
 }
 
-function getPlannedType(index: number, changeIds: string[], specIds: string[]): ItemType | undefined {
+function getPlannedType(
+  index: number,
+  changeIds: string[],
+  specIds: string[]
+): ItemType | undefined {
   const totalChanges = changeIds.length;
   if (index < totalChanges) return 'change';
   const specIndex = index - totalChanges;

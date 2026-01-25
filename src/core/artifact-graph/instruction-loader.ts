@@ -117,29 +117,20 @@ export interface ChangeStatus {
 export function loadTemplate(schemaName: string, templatePath: string): string {
   const schemaDir = getSchemaDir(schemaName);
   if (!schemaDir) {
-    throw new TemplateLoadError(
-      `Schema '${schemaName}' not found`,
-      templatePath
-    );
+    throw new TemplateLoadError(`Schema '${schemaName}' not found`, templatePath);
   }
 
   const fullPath = path.join(schemaDir, 'templates', templatePath);
 
   if (!fs.existsSync(fullPath)) {
-    throw new TemplateLoadError(
-      `Template not found: ${fullPath}`,
-      fullPath
-    );
+    throw new TemplateLoadError(`Template not found: ${fullPath}`, fullPath);
   }
 
   try {
     return fs.readFileSync(fullPath, 'utf-8');
   } catch (err) {
     const ioError = err instanceof Error ? err : new Error(String(err));
-    throw new TemplateLoadError(
-      `Failed to read template: ${ioError.message}`,
-      fullPath
-    );
+    throw new TemplateLoadError(`Failed to read template: ${ioError.message}`, fullPath);
   }
 }
 
@@ -222,7 +213,7 @@ function getDependencyInfo(
   graph: ArtifactGraph,
   completed: CompletedSet
 ): DependencyInfo[] {
-  return artifact.requires.map(id => {
+  return artifact.requires.map((id) => {
     const depArtifact = graph.getArtifact(id);
     return {
       id,
@@ -257,13 +248,13 @@ function getUnlockedArtifacts(graph: ArtifactGraph, artifactId: string): string[
 export function formatChangeStatus(context: ChangeContext): ChangeStatus {
   // Load schema to get apply phase configuration
   const schema = resolveSchema(context.schemaName);
-  const applyRequires = schema.apply?.requires ?? schema.artifacts.map(a => a.id);
+  const applyRequires = schema.apply?.requires ?? schema.artifacts.map((a) => a.id);
 
   const artifacts = context.graph.getAllArtifacts();
   const ready = new Set(context.graph.getNextArtifacts(context.completed));
   const blocked = context.graph.getBlocked(context.completed);
 
-  const artifactStatuses: ArtifactStatus[] = artifacts.map(artifact => {
+  const artifactStatuses: ArtifactStatus[] = artifacts.map((artifact) => {
     if (context.completed.has(artifact.id)) {
       return {
         id: artifact.id,

@@ -72,7 +72,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("complete -c spool");
+      expect(script).toContain('complete -c spool');
       expect(script).toContain("-a 'init'");
       expect(script).toContain("'Initialize Spool'");
       expect(script).toContain("-a 'validate'");
@@ -101,9 +101,9 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("-l strict");
+      expect(script).toContain('-l strict');
       expect(script).toContain("'Enable strict mode'");
-      expect(script).toContain("-l json");
+      expect(script).toContain('-l json');
       expect(script).toContain("'Output as JSON'");
     });
 
@@ -125,10 +125,10 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("-s r");
-      expect(script).toContain("-l requirement");
+      expect(script).toContain('-s r');
+      expect(script).toContain('-l requirement');
       expect(script).toContain("'Show specific requirement'");
-      expect(script).toContain("-r");
+      expect(script).toContain('-r');
     });
 
     it('should use -r flag for flags that require values', () => {
@@ -148,8 +148,8 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("-l output");
-      expect(script).toContain("-r");
+      expect(script).toContain('-l output');
+      expect(script).toContain('-r');
     });
 
     it('should not use -r flag for boolean flags', () => {
@@ -169,7 +169,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       const lines = script.split('\n');
-      const strictLine = lines.find(line => line.includes('-l strict'));
+      const strictLine = lines.find((line) => line.includes('-l strict'));
 
       expect(strictLine).toBeDefined();
       expect(strictLine).not.toContain(' -r');
@@ -193,9 +193,9 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("-l type");
-      expect(script).toContain("change");
-      expect(script).toContain("spec");
+      expect(script).toContain('-l type');
+      expect(script).toContain('change');
+      expect(script).toContain('spec');
     });
 
     it('should handle commands with subcommands', () => {
@@ -224,7 +224,7 @@ describe('FishGenerator', () => {
       expect(script).toContain("'change'");
       expect(script).toContain("'show'");
       expect(script).toContain("'list'");
-      expect(script).toContain("__fish_spool_using_subcommand change");
+      expect(script).toContain('__fish_spool_using_subcommand change');
     });
 
     it('should handle positional arguments for change-id', () => {
@@ -398,8 +398,8 @@ describe('FishGenerator', () => {
 
       expect(script).toContain("'spec'");
       expect(script).toContain("'validate'");
-      expect(script).toContain("-l strict");
-      expect(script).toContain("-l json");
+      expect(script).toContain('-l strict');
+      expect(script).toContain('-l json');
       expect(script).toContain('__fish_spool_specs');
     });
 
@@ -520,13 +520,13 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       // Should contain escaped versions of dangerous patterns
-      expect(script).toContain('\\$');  // Escaped dollar signs
-      expect(script).toContain('\\`');  // Escaped backticks
-      expect(script).toContain("\\'");  // Escaped single quotes
+      expect(script).toContain('\\$'); // Escaped dollar signs
+      expect(script).toContain('\\`'); // Escaped backticks
+      expect(script).toContain("\\'"); // Escaped single quotes
 
       // The escaped patterns should be present (backslash before dangerous chars)
-      expect(script).toMatch(/\\\$\(/);  // \$( instead of $(
-      expect(script).toMatch(/\\\`cat/);  // \`cat instead of `cat
+      expect(script).toMatch(/\\\$\(/); // \$( instead of $(
+      expect(script).toMatch(/\\\`cat/); // \`cat instead of `cat
     });
   });
 });

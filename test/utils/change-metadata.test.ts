@@ -130,11 +130,7 @@ describe('readChangeMetadata', () => {
 
   it('should read valid metadata', async () => {
     const metaPath = path.join(changeDir, '.spool.yaml');
-    await fs.writeFile(
-      metaPath,
-      'schema: spec-driven\ncreated: "2025-01-05"\n',
-      'utf-8'
-    );
+    await fs.writeFile(metaPath, 'schema: spec-driven\ncreated: "2025-01-05"\n', 'utf-8');
 
     const result = readChangeMetadata(changeDir);
     expect(result).toEqual({
@@ -218,8 +214,6 @@ describe('validateSchemaName', () => {
   });
 
   it('should throw for unknown schema', () => {
-    expect(() => validateSchemaName('unknown-schema')).toThrow(
-      /Unknown schema 'unknown-schema'/
-    );
+    expect(() => validateSchemaName('unknown-schema')).toThrow(/Unknown schema 'unknown-schema'/);
   });
 });

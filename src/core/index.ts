@@ -8,5 +8,5 @@ export {
   getGlobalConfigPath,
   getGlobalConfig,
   saveGlobalConfig,
-  getGlobalDataDir
+  getGlobalDataDir,
 } from './global-config.js';

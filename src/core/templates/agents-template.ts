@@ -296,7 +296,7 @@ Set up the initial project structure and tooling.
 <!-- Hybrid: existing changes auto-discovered + planned -->
 - [ ] 001-01_init-repo
 - [ ] 001-02_add-readme (planned)
-- [x] 001-03_setup-eslint
+ - [x] 001-03_setup-linting
 \`\`\`
 
 ### Scope Enforcement

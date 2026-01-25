@@ -6,13 +6,15 @@ export interface ProjectContext {
   conventions?: string;
 }
 
-export const projectTemplate = (context: ProjectContext = {}) => `# ${context.projectName || 'Project'} Context
+export const projectTemplate = (
+  context: ProjectContext = {}
+) => `# ${context.projectName || 'Project'} Context
 
 ## Purpose
-${context.description || '[Describe your project\'s purpose and goals]'}
+${context.description || "[Describe your project's purpose and goals]"}
 
 ## Tech Stack
-${context.techStack?.length ? context.techStack.map(tech => `- ${tech}`).join('\n') : '- [List your primary technologies]\n- [e.g., TypeScript, React, Node.js]'}
+${context.techStack?.length ? context.techStack.map((tech) => `- ${tech}`).join('\n') : '- [List your primary technologies]\n- [e.g., TypeScript, React, Node.js]'}
 
 ## Project Conventions
 

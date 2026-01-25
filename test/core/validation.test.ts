@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
-import { 
-  ScenarioSchema, 
-  RequirementSchema, 
-  SpecSchema, 
+import {
+  ScenarioSchema,
+  RequirementSchema,
+  SpecSchema,
   ChangeSchema,
-  DeltaSchema 
+  DeltaSchema,
 } from '../../src/core/schemas/index.js';
 import * as itemDiscovery from '../../src/utils/item-discovery.js';
 
@@ -33,9 +33,10 @@ describe('Validation Schemas', () => {
   describe('ScenarioSchema', () => {
     it('should validate a valid scenario', () => {
       const scenario = {
-        rawText: 'Given a user is logged in\nWhen they click logout\nThen they are redirected to login page',
+        rawText:
+          'Given a user is logged in\nWhen they click logout\nThen they are redirected to login page',
       };
-      
+
       const result = ScenarioSchema.safeParse(scenario);
       expect(result.success).toBe(true);
     });
@@ -44,7 +45,7 @@ describe('Validation Schemas', () => {
       const scenario = {
         rawText: '',
       };
-      
+
       const result = ScenarioSchema.safeParse(scenario);
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -59,11 +60,12 @@ describe('Validation Schemas', () => {
         text: 'The system SHALL provide user authentication',
         scenarios: [
           {
-            rawText: 'Given a user with valid credentials\nWhen they submit the login form\nThen they are authenticated',
+            rawText:
+              'Given a user with valid credentials\nWhen they submit the login form\nThen they are authenticated',
           },
         ],
       };
-      
+
       const result = RequirementSchema.safeParse(requirement);
       expect(result.success).toBe(true);
     });
@@ -77,11 +79,13 @@ describe('Validation Schemas', () => {
           },
         ],
       };
-      
+
       const result = RequirementSchema.safeParse(requirement);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Requirement must contain SHALL or MUST keyword');
+        expect(result.error.issues[0].message).toBe(
+          'Requirement must contain SHALL or MUST keyword'
+        );
       }
     });
 
@@ -90,7 +94,7 @@ describe('Validation Schemas', () => {
         text: 'The system SHALL provide user authentication',
         scenarios: [],
       };
-      
+
       const result = RequirementSchema.safeParse(requirement);
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -109,13 +113,14 @@ describe('Validation Schemas', () => {
             text: 'The system SHALL provide user authentication',
             scenarios: [
               {
-                rawText: 'Given a user with valid credentials\nWhen they submit the login form\nThen they are authenticated',
+                rawText:
+                  'Given a user with valid credentials\nWhen they submit the login form\nThen they are authenticated',
               },
             ],
           },
         ],
       };
-      
+
       const result = SpecSchema.safeParse(spec);
       expect(result.success).toBe(true);
     });
@@ -126,7 +131,7 @@ describe('Validation Schemas', () => {
         overview: 'This spec defines user authentication requirements',
         requirements: [],
       };
-      
+
       const result = SpecSchema.safeParse(spec);
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -149,7 +154,7 @@ describe('Validation Schemas', () => {
           },
         ],
       };
-      
+
       const result = ChangeSchema.safeParse(change);
       expect(result.success).toBe(true);
     });
@@ -167,7 +172,7 @@ describe('Validation Schemas', () => {
           },
         ],
       };
-      
+
       const result = ChangeSchema.safeParse(change);
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -181,18 +186,20 @@ describe('Validation Schemas', () => {
         operation: 'ADDED' as const,
         description: `Add spec ${i}`,
       }));
-      
+
       const change = {
         name: 'massive-change',
         why: 'This is a massive change that affects many parts of the system',
         whatChanges: 'Update everything',
         deltas,
       };
-      
+
       const result = ChangeSchema.safeParse(change);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Consider splitting changes with more than 10 deltas');
+        expect(result.error.issues[0].message).toBe(
+          'Consider splitting changes with more than 10 deltas'
+        );
       }
     });
   });
@@ -200,7 +207,7 @@ describe('Validation Schemas', () => {
 
 describe('Validator', () => {
   const testDir = path.join(process.cwd(), 'test-validation-tmp');
-  
+
   beforeEach(async () => {
     await fs.mkdir(testDir, { recursive: true });
   });
@@ -236,10 +243,10 @@ Then they see an error message`;
 
       const specPath = path.join(testDir, 'spec.md');
       await fs.writeFile(specPath, specContent);
-      
+
       const validator = new Validator();
       const report = await validator.validateSpec(specPath);
-      
+
       expect(report.valid).toBe(true);
       expect(report.summary.errors).toBe(0);
     });
@@ -258,13 +265,13 @@ Then authenticated`;
 
       const specPath = path.join(testDir, 'spec.md');
       await fs.writeFile(specPath, specContent);
-      
+
       const validator = new Validator();
       const report = await validator.validateSpec(specPath);
-      
+
       expect(report.valid).toBe(false);
       expect(report.summary.errors).toBeGreaterThan(0);
-      expect(report.issues.some(i => i.message.includes('Purpose'))).toBe(true);
+      expect(report.issues.some((i) => i.message.includes('Purpose'))).toBe(true);
     });
   });
 
@@ -281,10 +288,10 @@ We need to implement user authentication to secure the application and protect u
 
       const changePath = path.join(testDir, 'change.md');
       await fs.writeFile(changePath, changeContent);
-      
+
       const validator = new Validator();
       const report = await validator.validateChange(changePath);
-      
+
       expect(report.valid).toBe(true);
       expect(report.summary.errors).toBe(0);
     });
@@ -297,13 +304,13 @@ We need to implement user authentication to secure the application and protect u
 
       const changePath = path.join(testDir, 'change.md');
       await fs.writeFile(changePath, changeContent);
-      
+
       const validator = new Validator();
       const report = await validator.validateChange(changePath);
-      
+
       expect(report.valid).toBe(false);
       expect(report.summary.errors).toBeGreaterThan(0);
-      expect(report.issues.some(i => i.message.includes('Why'))).toBe(true);
+      expect(report.issues.some((i) => i.message.includes('Why'))).toBe(true);
     });
   });
 
@@ -446,7 +453,9 @@ The system will log all events.
 
       expect(report.valid).toBe(false);
       expect(report.summary.errors).toBeGreaterThan(0);
-      expect(report.issues.some(i => i.message.includes('must contain SHALL or MUST'))).toBe(true);
+      expect(report.issues.some((i) => i.message.includes('must contain SHALL or MUST'))).toBe(
+        true
+      );
     });
 
     it('should handle requirements without metadata fields', async () => {

@@ -24,7 +24,6 @@
         "terminal.integrated.defaultProfile.linux": "bash"
       },
       "extensions": [
-        "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "vitest.explorer",
         "eamodio.gitlens",

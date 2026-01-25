@@ -42,7 +42,9 @@ describe('PowerShellInstaller', () => {
       });
 
       const result = installer.getProfilePath();
-      expect(result).toBe(path.join(testHomeDir, 'Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1'));
+      expect(result).toBe(
+        path.join(testHomeDir, 'Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1')
+      );
     });
 
     it('should return Unix default path when on darwin platform', () => {
@@ -52,7 +54,9 @@ describe('PowerShellInstaller', () => {
       });
 
       const result = installer.getProfilePath();
-      expect(result).toBe(path.join(testHomeDir, '.config', 'powershell', 'Microsoft.PowerShell_profile.ps1'));
+      expect(result).toBe(
+        path.join(testHomeDir, '.config', 'powershell', 'Microsoft.PowerShell_profile.ps1')
+      );
     });
 
     it('should return Unix default path when on linux platform', () => {
@@ -62,7 +66,9 @@ describe('PowerShellInstaller', () => {
       });
 
       const result = installer.getProfilePath();
-      expect(result).toBe(path.join(testHomeDir, '.config', 'powershell', 'Microsoft.PowerShell_profile.ps1'));
+      expect(result).toBe(
+        path.join(testHomeDir, '.config', 'powershell', 'Microsoft.PowerShell_profile.ps1')
+      );
     });
   });
 
@@ -173,30 +179,33 @@ describe('PowerShellInstaller', () => {
 
     // Skip on Windows: Windows has dual profile paths (PowerShell Core + Windows PowerShell 5.1),
     // so even if one profile is already configured, the second one will be configured and return true
-    it.skipIf(process.platform === 'win32')('should skip configuration when script line already exists', async () => {
-      delete process.env.SPOOL_NO_AUTO_CONFIG;
-      const profilePath = installer.getProfilePath();
-      await fs.mkdir(path.dirname(profilePath), { recursive: true });
+    it.skipIf(process.platform === 'win32')(
+      'should skip configuration when script line already exists',
+      async () => {
+        delete process.env.SPOOL_NO_AUTO_CONFIG;
+        const profilePath = installer.getProfilePath();
+        await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
-      const initialContent = [
-        '# SPOOL:START - Spool completion (managed block, do not edit manually)',
-        `. "${mockScriptPath}"`,
-        '# SPOOL:END',
-        '',
-        '# My custom config',
-        'Write-Host "Custom"',
-      ].join('\n');
+        const initialContent = [
+          '# SPOOL:START - Spool completion (managed block, do not edit manually)',
+          `. "${mockScriptPath}"`,
+          '# SPOOL:END',
+          '',
+          '# My custom config',
+          'Write-Host "Custom"',
+        ].join('\n');
 
-      await fs.writeFile(profilePath, initialContent);
+        await fs.writeFile(profilePath, initialContent);
 
-      const result = await installer.configureProfile(mockScriptPath);
+        const result = await installer.configureProfile(mockScriptPath);
 
-      // Should return false because already configured (anyConfigured = false)
-      expect(result).toBe(false);
-      const content = await fs.readFile(profilePath, 'utf-8');
-      // Content should be unchanged
-      expect(content).toBe(initialContent);
-    });
+        // Should return false because already configured (anyConfigured = false)
+        expect(result).toBe(false);
+        const content = await fs.readFile(profilePath, 'utf-8');
+        // Content should be unchanged
+        expect(content).toBe(initialContent);
+      }
+    );
 
     it('should preserve user content outside markers', async () => {
       delete process.env.SPOOL_NO_AUTO_CONFIG;
@@ -241,22 +250,25 @@ describe('PowerShellInstaller', () => {
 
     // Skip on Windows: fs.chmod() doesn't reliably restrict write access on Windows
     // (admin users can bypass read-only attribute, and CI runners often have elevated privileges)
-    it.skipIf(process.platform === 'win32')('should return false on write permission error', async () => {
-      delete process.env.SPOOL_NO_AUTO_CONFIG;
-      const profilePath = installer.getProfilePath();
-      await fs.mkdir(path.dirname(profilePath), { recursive: true });
-      await fs.writeFile(profilePath, '# Test');
+    it.skipIf(process.platform === 'win32')(
+      'should return false on write permission error',
+      async () => {
+        delete process.env.SPOOL_NO_AUTO_CONFIG;
+        const profilePath = installer.getProfilePath();
+        await fs.mkdir(path.dirname(profilePath), { recursive: true });
+        await fs.writeFile(profilePath, '# Test');
 
-      // Make file read-only
-      await fs.chmod(profilePath, 0o444);
+        // Make file read-only
+        await fs.chmod(profilePath, 0o444);
 
-      const result = await installer.configureProfile(mockScriptPath);
+        const result = await installer.configureProfile(mockScriptPath);
 
-      // Restore permissions for cleanup
-      await fs.chmod(profilePath, 0o644);
+        // Restore permissions for cleanup
+        await fs.chmod(profilePath, 0o644);
 
-      expect(result).toBe(false);
-    });
+        expect(result).toBe(false);
+      }
+    );
   });
 
   describe('removeProfileConfig', () => {
@@ -352,11 +364,7 @@ describe('PowerShellInstaller', () => {
       const profilePath = installer.getProfilePath();
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
 
-      const initialContent = [
-        '# SPOOL:END',
-        '# Config',
-        '# SPOOL:START',
-      ].join('\n');
+      const initialContent = ['# SPOOL:END', '# Config', '# SPOOL:START'].join('\n');
 
       await fs.writeFile(profilePath, initialContent);
 
@@ -391,7 +399,10 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 
       expect(result.success).toBe(true);
       const targetPath = installer.getInstallationPath();
-      const fileExists = await fs.access(targetPath).then(() => true).catch(() => false);
+      const fileExists = await fs
+        .access(targetPath)
+        .then(() => true)
+        .catch(() => false);
       expect(fileExists).toBe(true);
     });
 
@@ -457,24 +468,27 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 
     // Skip on Windows: fs.chmod() doesn't reliably restrict write access on Windows
     // (admin users can bypass read-only attribute, and CI runners often have elevated privileges)
-    it.skipIf(process.platform === 'win32')('should provide instructions when profile cannot be configured', async () => {
-      delete process.env.SPOOL_NO_AUTO_CONFIG;
-      // Make profile directory read-only to prevent configuration
-      const profilePath = installer.getProfilePath();
-      await fs.mkdir(path.dirname(profilePath), { recursive: true });
-      await fs.writeFile(profilePath, '# Test');
-      await fs.chmod(profilePath, 0o444);
+    it.skipIf(process.platform === 'win32')(
+      'should provide instructions when profile cannot be configured',
+      async () => {
+        delete process.env.SPOOL_NO_AUTO_CONFIG;
+        // Make profile directory read-only to prevent configuration
+        const profilePath = installer.getProfilePath();
+        await fs.mkdir(path.dirname(profilePath), { recursive: true });
+        await fs.writeFile(profilePath, '# Test');
+        await fs.chmod(profilePath, 0o444);
 
-      const result = await installer.install(mockCompletionScript);
+        const result = await installer.install(mockCompletionScript);
 
-      // Restore permissions
-      await fs.chmod(profilePath, 0o644);
+        // Restore permissions
+        await fs.chmod(profilePath, 0o644);
 
-      expect(result.success).toBe(true);
-      expect(result.profileConfigured).toBe(false);
-      expect(result.instructions).toBeDefined();
-      expect(result.instructions!.some(i => i.includes('Test-Path'))).toBe(true);
-    });
+        expect(result.success).toBe(true);
+        expect(result.profileConfigured).toBe(false);
+        expect(result.instructions).toBeDefined();
+        expect(result.instructions!.some((i) => i.includes('Test-Path'))).toBe(true);
+      }
+    );
 
     it('should include backup path in message when updating', async () => {
       delete process.env.SPOOL_NO_AUTO_CONFIG;
@@ -504,22 +518,25 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 
     // Skip on Windows: fs.chmod() on directories doesn't restrict write access on Windows
     // Windows uses ACLs which Node.js chmod doesn't control
-    it.skipIf(process.platform === 'win32')('should return failure on permission error', async () => {
-      const targetPath = installer.getInstallationPath();
-      const targetDir = path.dirname(targetPath);
-      await fs.mkdir(targetDir, { recursive: true });
+    it.skipIf(process.platform === 'win32')(
+      'should return failure on permission error',
+      async () => {
+        const targetPath = installer.getInstallationPath();
+        const targetDir = path.dirname(targetPath);
+        await fs.mkdir(targetDir, { recursive: true });
 
-      // Make target directory read-only to simulate permission error
-      await fs.chmod(targetDir, 0o444);
+        // Make target directory read-only to simulate permission error
+        await fs.chmod(targetDir, 0o444);
 
-      const result = await installer.install(mockCompletionScript);
+        const result = await installer.install(mockCompletionScript);
 
-      // Restore permissions for cleanup
-      await fs.chmod(targetDir, 0o755);
+        // Restore permissions for cleanup
+        await fs.chmod(targetDir, 0o755);
 
-      expect(result.success).toBe(false);
-      expect(result.message).toContain('Failed to install completion script');
-    });
+        expect(result.success).toBe(false);
+        expect(result.message).toContain('Failed to install completion script');
+      }
+    );
 
     it('should handle empty completion script', async () => {
       delete process.env.SPOOL_NO_AUTO_CONFIG;
@@ -567,7 +584,10 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 
       await installer.uninstall();
 
-      const fileExists = await fs.access(targetPath).then(() => true).catch(() => false);
+      const fileExists = await fs
+        .access(targetPath)
+        .then(() => true)
+        .catch(() => false);
       expect(fileExists).toBe(false);
     });
 
@@ -608,7 +628,10 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
       const profilePath = installer.getProfilePath();
 
       // Verify both exist
-      const scriptExists = await fs.access(targetPath).then(() => true).catch(() => false);
+      const scriptExists = await fs
+        .access(targetPath)
+        .then(() => true)
+        .catch(() => false);
       const profileContent = await fs.readFile(profilePath, 'utf-8');
       expect(scriptExists).toBe(true);
       expect(profileContent).toContain('# SPOOL:START');
@@ -616,7 +639,10 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
       await installer.uninstall();
 
       // Verify both are removed/cleaned
-      const scriptExistsAfter = await fs.access(targetPath).then(() => true).catch(() => false);
+      const scriptExistsAfter = await fs
+        .access(targetPath)
+        .then(() => true)
+        .catch(() => false);
       const profileContentAfter = await fs.readFile(profilePath, 'utf-8');
       expect(scriptExistsAfter).toBe(false);
       expect(profileContentAfter).not.toContain('# SPOOL:START');
@@ -624,27 +650,30 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
 
     // Skip on Windows: fs.chmod() on directories doesn't restrict write access on Windows
     // Windows uses ACLs which Node.js chmod doesn't control
-    it.skipIf(process.platform === 'win32')('should return failure on permission error', async () => {
-      delete process.env.SPOOL_NO_AUTO_CONFIG;
-      await installer.install(mockCompletionScript);
-      const targetPath = installer.getInstallationPath();
-      const parentDir = path.dirname(targetPath);
+    it.skipIf(process.platform === 'win32')(
+      'should return failure on permission error',
+      async () => {
+        delete process.env.SPOOL_NO_AUTO_CONFIG;
+        await installer.install(mockCompletionScript);
+        const targetPath = installer.getInstallationPath();
+        const parentDir = path.dirname(targetPath);
 
-      // Make parent directory read-only
-      await fs.chmod(parentDir, 0o444);
-      const result = await installer.uninstall();
+        // Make parent directory read-only
+        await fs.chmod(parentDir, 0o444);
+        const result = await installer.uninstall();
 
-      // Restore permissions
-      await fs.chmod(parentDir, 0o755);
+        // Restore permissions
+        await fs.chmod(parentDir, 0o755);
 
-      // On some systems, the access check fails which returns "not installed"
-      // On others, the unlink fails which returns "Failed to uninstall"
-      expect(result.success).toBe(false);
-      expect(
-        result.message === 'Completion script is not installed' ||
-        result.message.includes('Failed to uninstall completion script')
-      ).toBe(true);
-    });
+        // On some systems, the access check fails which returns "not installed"
+        // On others, the unlink fails which returns "Failed to uninstall"
+        expect(result.success).toBe(false);
+        expect(
+          result.message === 'Completion script is not installed' ||
+            result.message.includes('Failed to uninstall completion script')
+        ).toBe(true);
+      }
+    );
 
     it('should handle uninstall when parent directory does not exist', async () => {
       const result = await installer.uninstall();
@@ -653,5 +682,4 @@ Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
       expect(result.message).toBe('Completion script is not installed');
     });
   });
-
 });

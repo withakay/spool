@@ -12,3 +12,4 @@
 - [ ] 002-03_add-ralph-codex-harness
 - [ ] 002-04_add-ralph-github-copilot-harness
 - [ ] 002-05_clean-up-deprecated-change-commands
+- [ ] 002-06_add-agent-preamble-system

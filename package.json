@@ -39,7 +39,9 @@
     "!dist/**/*.map"
   ],
   "scripts": {
-    "lint": "eslint src/",
+    "lint": "biome lint src/",
+    "format": "biome check --write --linter-enabled=false --assist-enabled=false .",
+    "format:check": "biome check --linter-enabled=false --assist-enabled=false .",
     "build": "node build.js",
     "dev": "tsc --watch",
     "dev:cli": "bun run build && node bin/spool.js",
@@ -62,12 +64,11 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.27.7",
+    "@biomejs/biome": "^2.3.12",
     "@types/node": "^24.2.0",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
-    "eslint": "^9.39.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.1",
     "vitest": "^3.2.4"
   },
   "dependencies": {

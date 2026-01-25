@@ -10,17 +10,10 @@ export default defineConfig({
     include: ['test/**/*.test.ts'],
     coverage: {
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'dist/',
-        'bin/',
-        '*.config.ts',
-        'build.js',
-        'test/**'
-      ]
+      exclude: ['node_modules/', 'dist/', 'bin/', '*.config.ts', 'build.js', 'test/**'],
     },
     testTimeout: 10000,
     hookTimeout: 10000,
-    teardownTimeout: 3000
-  }
+    teardownTimeout: 3000,
+  },
 });

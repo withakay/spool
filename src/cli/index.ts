@@ -1,25 +1,27 @@
 import { Command } from 'commander';
+import { promises as fs } from 'fs';
 import { createRequire } from 'module';
 import ora from 'ora';
 import path from 'path';
-import { promises as fs } from 'fs';
-import { AI_TOOLS } from '../core/config.js';
-import { UpdateCommand } from '../core/update.js';
-import { ListCommand } from '../core/list.js';
-import { ArchiveCommand } from '../core/archive.js';
-import { ViewCommand } from '../core/view.js';
-import { registerSpecCommand } from '../commands/spec.js';
+import { registerAgentCommands } from '../commands/agent.js';
+import { registerArtifactWorkflowCommands } from '../commands/artifact-workflow.js';
 import { ChangeCommand } from '../commands/change.js';
-import { ValidateCommand } from '../commands/validate.js';
-import { ShowCommand } from '../commands/show.js';
 import { CompletionCommand } from '../commands/completion.js';
 import { ConfigCommand, registerConfigCommand } from '../commands/config.js';
-import { registerSkillsCommands } from '../commands/skills.js';
-import { registerArtifactWorkflowCommands } from '../commands/artifact-workflow.js';
 import { ModuleCommand, registerModuleCommand } from '../commands/module.js';
-import { registerResearchCommand } from '../commands/research.js';
-import { SplitCommand } from '../commands/split.js';
 import { registerRalphCommand } from '../commands/ralph.js';
+import { registerResearchCommand } from '../commands/research.js';
+import { ShowCommand } from '../commands/show.js';
+import { registerSkillsCommands } from '../commands/skills.js';
+import { registerSpecCommand } from '../commands/spec.js';
+import { SplitCommand } from '../commands/split.js';
+import { TasksCommand } from '../commands/tasks.js';
+import { ValidateCommand } from '../commands/validate.js';
+import { ArchiveCommand } from '../core/archive.js';
+import { AI_TOOLS } from '../core/config.js';
+import { ListCommand } from '../core/list.js';
+import { UpdateCommand } from '../core/update.js';
+import { ViewCommand } from '../core/view.js';
 
 const program = new Command();
 const require = createRequire(import.meta.url);
@@ -45,10 +47,7 @@ function getCommandPath(command: Command): string {
   return names.join(':') || 'spool';
 }
 
-program
-  .name('spool')
-  .description('AI-native system for spec-driven development')
-  .version(version);
+program.name('spool').description('AI-native system for spec-driven development').version(version);
 
 // Global options
 program.option('--no-color', 'Disable color output');
@@ -72,14 +71,11 @@ program
   .description('Initialize Spool in your project')
   .option('--tools <tools>', toolsOptionDescription)
   .option('-f, --force', 'Overwrite existing tool files without prompting')
-  .action(async (
-    targetPath = '.',
-    options?: { tools?: string; force?: boolean }
-  ) => {
+  .action(async (targetPath = '.', options?: { tools?: string; force?: boolean }) => {
     try {
       // Validate that the path is a valid directory
       const resolvedPath = path.resolve(targetPath);
-      
+
       try {
         const stats = await fs.stat(resolvedPath);
         if (!stats.isDirectory()) {
@@ -95,7 +91,7 @@ program
           throw new Error(`Cannot access path "${targetPath}": ${error.message}`);
         }
       }
-      
+
       const { InitCommand } = await import('../core/init.js');
       const initCommand = new InitCommand({
         tools: options?.tools,
@@ -129,6 +125,108 @@ program
     }
   });
 
+// Tasks (enhanced tasks.md tracking)
+const tasksCmd = program.command('tasks').description('Track execution tasks for a change');
+
+tasksCmd
+  .command('init <change-id>')
+  .description('Create an enhanced tasks.md for a change')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.init(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('status <change-id>')
+  .description('Show task progress and readiness for a change')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.status(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('next <change-id>')
+  .description('Show the next ready task')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.next(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('start <change-id> <task-id>')
+  .description('Mark a task as in-progress (refuses if blocked)')
+  .action(async (changeId: string, taskId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.start(changeId, taskId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('complete <change-id> <task-id>')
+  .description('Mark a task as complete')
+  .action(async (changeId: string, taskId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.complete(changeId, taskId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('add <change-id> <task-name>')
+  .description('Add a task to a wave (enhanced format only)')
+  .option('--wave <wave>', 'Wave number', (v) => Number.parseInt(v, 10), 1)
+  .action(async (changeId: string, taskName: string, options?: { wave?: number }) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.add(changeId, taskName, options?.wave ?? 1, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+tasksCmd
+  .command('show <change-id>')
+  .description('Print the raw tasks.md file')
+  .action(async (changeId: string) => {
+    try {
+      const tasksCommand = new TasksCommand();
+      await tasksCommand.show(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
 const listCmd = program
   .command('list')
   .description('List items (changes by default). Use --specs or --modules to list other items.')
@@ -137,19 +235,30 @@ const listCmd = program
   .option('--modules', 'List modules instead of changes')
   .option('--sort <order>', 'Sort order: "recent" (default) or "name"', 'recent')
   .option('--json', 'Output as JSON (for programmatic use)')
-  .action(async (options?: { specs?: boolean; changes?: boolean; modules?: boolean; sort?: string; json?: boolean }) => {
-    try {
-      const listCommand = new ListCommand();
-      const mode: 'changes' | 'specs' | 'modules' =
-        options?.modules ? 'modules' : options?.specs ? 'specs' : 'changes';
-      const sort = options?.sort === 'name' ? 'name' : 'recent';
-      await listCommand.execute('.', mode, { sort, json: options?.json });
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
+  .action(
+    async (options?: {
+      specs?: boolean;
+      changes?: boolean;
+      modules?: boolean;
+      sort?: string;
+      json?: boolean;
+    }) => {
+      try {
+        const listCommand = new ListCommand();
+        const mode: 'changes' | 'specs' | 'modules' = options?.modules
+          ? 'modules'
+          : options?.specs
+            ? 'specs'
+            : 'changes';
+        const sort = options?.sort === 'name' ? 'name' : 'recent';
+        await listCommand.execute('.', mode, { sort, json: options?.json });
+      } catch (error) {
+        console.log(); // Empty line for spacing
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
+      }
     }
-  });
+  );
 
 // NOTE: legacy list subcommands (config/module/skills) were removed from the
 // supported CLI surface. Use `spool config ...`, `spool create module ...`,
@@ -191,7 +300,9 @@ const changeCmd = program
 
 // Deprecation notice for noun-based commands
 changeCmd.hook('preAction', () => {
-  console.error('Warning: The "spool change ..." commands are deprecated. Prefer verb-first commands (e.g., "spool list", "spool validate --changes").');
+  console.error(
+    'Warning: The "spool change ..." commands are deprecated. Prefer verb-first commands (e.g., "spool list", "spool validate --changes").'
+  );
 });
 
 changeCmd
@@ -201,15 +312,25 @@ changeCmd
   .option('--deltas-only', 'Show only deltas (JSON only)')
   .option('--requirements-only', 'Alias for --deltas-only (deprecated)')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (changeName?: string, options?: { json?: boolean; requirementsOnly?: boolean; deltasOnly?: boolean; noInteractive?: boolean }) => {
-    try {
-      const changeCommand = new ChangeCommand();
-      await changeCommand.show(changeName, options);
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
+  .action(
+    async (
+      changeName?: string,
+      options?: {
+        json?: boolean;
+        requirementsOnly?: boolean;
+        deltasOnly?: boolean;
+        noInteractive?: boolean;
+      }
+    ) => {
+      try {
+        const changeCommand = new ChangeCommand();
+        await changeCommand.show(changeName, options);
+      } catch (error) {
+        console.error(`Error: ${(error as Error).message}`);
+        process.exitCode = 1;
+      }
     }
-  });
+  );
 
 changeCmd
   .command('list')
@@ -233,35 +354,48 @@ changeCmd
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation report as JSON')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (changeName?: string, options?: { strict?: boolean; json?: boolean; noInteractive?: boolean }) => {
-    try {
-      const changeCommand = new ChangeCommand();
-      await changeCommand.validate(changeName, options);
-      if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
-        process.exit(process.exitCode);
+  .action(
+    async (
+      changeName?: string,
+      options?: { strict?: boolean; json?: boolean; noInteractive?: boolean }
+    ) => {
+      try {
+        const changeCommand = new ChangeCommand();
+        await changeCommand.validate(changeName, options);
+        if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
+          process.exit(process.exitCode);
+        }
+      } catch (error) {
+        console.error(`Error: ${(error as Error).message}`);
+        process.exitCode = 1;
       }
-    } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
-      process.exitCode = 1;
     }
-  });
+  );
 
 program
   .command('archive [change-name]')
   .description('Archive a completed change and update main specs')
   .option('-y, --yes', 'Skip confirmation prompts')
-  .option('--skip-specs', 'Skip spec update operations (useful for infrastructure, tooling, or doc-only changes)')
+  .option(
+    '--skip-specs',
+    'Skip spec update operations (useful for infrastructure, tooling, or doc-only changes)'
+  )
   .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
-  .action(async (changeName?: string, options?: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean }) => {
-    try {
-      const archiveCommand = new ArchiveCommand();
-      await archiveCommand.execute(changeName, options);
-    } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
+  .action(
+    async (
+      changeName?: string,
+      options?: { yes?: boolean; skipSpecs?: boolean; noValidate?: boolean; validate?: boolean }
+    ) => {
+      try {
+        const archiveCommand = new ArchiveCommand();
+        await archiveCommand.execute(changeName, options);
+      } catch (error) {
+        console.log(); // Empty line for spacing
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
+      }
     }
-  });
+  );
 
 registerSpecCommand(program);
 registerConfigCommand(program);
@@ -269,9 +403,7 @@ registerModuleCommand(program);
 registerSkillsCommands(program);
 
 // create
-const createCmd = program
-  .command('create')
-  .description('Create items');
+const createCmd = program.command('create').description('Create items');
 
 createCmd
   .command('change <name>')
@@ -279,21 +411,26 @@ createCmd
   .option('--description <text>', 'Description to add to README.md')
   .option('--schema <name>', 'Workflow schema to use')
   .option('--module <id>', 'Module ID to associate the change with (default: 000)')
-  .action(async (name: string, options?: { description?: string; schema?: string; module?: string }) => {
-    try {
-      const { createChangeCommand } = await import('../commands/artifact-workflow.js');
-      await createChangeCommand(name, options ?? {});
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
+  .action(
+    async (name: string, options?: { description?: string; schema?: string; module?: string }) => {
+      try {
+        const { createChangeCommand } = await import('../commands/artifact-workflow.js');
+        await createChangeCommand(name, options ?? {});
+      } catch (error) {
+        console.log();
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
+      }
     }
-  });
+  );
 
 createCmd
   .command('module [name]')
   .description('Create a new module')
-  .option('--scope <capabilities>', 'Comma-separated list of capabilities (default: "*" for unrestricted)')
+  .option(
+    '--scope <capabilities>',
+    'Comma-separated list of capabilities (default: "*" for unrestricted)'
+  )
   .option('--depends-on <modules>', 'Comma-separated list of module IDs this depends on')
   .action(async (name?: string, options?: { scope?: string; dependsOn?: string }) => {
     try {
@@ -307,9 +444,7 @@ createCmd
   });
 
 // get
-const getCmd = program
-  .command('get', { hidden: true })
-  .description('Get a value (deprecated)');
+const getCmd = program.command('get', { hidden: true }).description('Get a value (deprecated)');
 
 getCmd
   .command('config <key>')
@@ -328,9 +463,7 @@ getCmd
   });
 
 // set
-const setCmd = program
-  .command('set', { hidden: true })
-  .description('Set a value (deprecated)');
+const setCmd = program.command('set', { hidden: true }).description('Set a value (deprecated)');
 
 setCmd
   .command('config <key> <value>')
@@ -338,17 +471,23 @@ setCmd
   .option('--string', 'Force value to be stored as string')
   .option('--allow-unknown', 'Allow setting unknown keys')
   .option('--scope <scope>', 'Config scope (only "global" supported currently)')
-  .action((key: string, value: string, options: { string?: boolean; allowUnknown?: boolean; scope?: string }) => {
-    try {
-      console.error('Warning: "spool set config" is deprecated. Use "spool config set" instead.');
-      const cmd = new ConfigCommand();
-      cmd.set(key, value, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
+  .action(
+    (
+      key: string,
+      value: string,
+      options: { string?: boolean; allowUnknown?: boolean; scope?: string }
+    ) => {
+      try {
+        console.error('Warning: "spool set config" is deprecated. Use "spool config set" instead.');
+        const cmd = new ConfigCommand();
+        cmd.set(key, value, options);
+      } catch (error) {
+        console.log();
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
+      }
     }
-  });
+  );
 
 // unset
 const unsetCmd = program
@@ -361,7 +500,9 @@ unsetCmd
   .option('--scope <scope>', 'Config scope (only "global" supported currently)')
   .action((key: string, options: { scope?: string }) => {
     try {
-      console.error('Warning: "spool unset config" is deprecated. Use "spool config unset" instead.');
+      console.error(
+        'Warning: "spool unset config" is deprecated. Use "spool config unset" instead.'
+      );
       const cmd = new ConfigCommand();
       cmd.unset(key, options);
     } catch (error) {
@@ -372,9 +513,7 @@ unsetCmd
   });
 
 // reset
-const resetCmd = program
-  .command('reset', { hidden: true })
-  .description('Reset items (deprecated)');
+const resetCmd = program.command('reset', { hidden: true }).description('Reset items (deprecated)');
 
 resetCmd
   .command('config')
@@ -384,7 +523,9 @@ resetCmd
   .option('--scope <scope>', 'Config scope (only "global" supported currently)')
   .action(async (options: { all?: boolean; yes?: boolean; scope?: string }) => {
     try {
-      console.error('Warning: "spool reset config" is deprecated. Use "spool config reset" instead.');
+      console.error(
+        'Warning: "spool reset config" is deprecated. Use "spool config reset" instead.'
+      );
       const cmd = new ConfigCommand();
       await cmd.reset(options);
     } catch (error) {
@@ -395,9 +536,7 @@ resetCmd
   });
 
 // edit
-const editCmd = program
-  .command('edit', { hidden: true })
-  .description('Edit items (deprecated)');
+const editCmd = program.command('edit', { hidden: true }).description('Edit items (deprecated)');
 
 editCmd
   .command('config')
@@ -416,9 +555,7 @@ editCmd
   });
 
 // path
-const pathCmd = program
-  .command('path', { hidden: true })
-  .description('Show paths (deprecated)');
+const pathCmd = program.command('path', { hidden: true }).description('Show paths (deprecated)');
 
 pathCmd
   .command('config')
@@ -426,7 +563,9 @@ pathCmd
   .option('--scope <scope>', 'Config scope (only "global" supported currently)')
   .action((options: { scope?: string }) => {
     try {
-      console.error('Warning: "spool path config" is deprecated. Use "spool config paths" instead.');
+      console.error(
+        'Warning: "spool path config" is deprecated. Use "spool config paths" instead.'
+      );
       const cmd = new ConfigCommand();
       cmd.paths(options);
     } catch (error) {
@@ -446,7 +585,9 @@ generateCmd
   .description('Generate completion script for a shell (outputs to stdout)')
   .action(async (shell?: string) => {
     try {
-      console.error('Warning: "spool generate completion" is deprecated. Use "spool completions generate" instead.');
+      console.error(
+        'Warning: "spool generate completion" is deprecated. Use "spool completions generate" instead.'
+      );
       const completionCommand = new CompletionCommand();
       await completionCommand.generate({ shell });
     } catch (error) {
@@ -467,7 +608,9 @@ installCmd
   .option('--verbose', 'Show detailed installation output')
   .action(async (shell?: string, options?: { verbose?: boolean }) => {
     try {
-      console.error('Warning: "spool install completion" is deprecated. Use "spool completions install" instead.');
+      console.error(
+        'Warning: "spool install completion" is deprecated. Use "spool completions install" instead.'
+      );
       const completionCommand = new CompletionCommand();
       await completionCommand.install({ shell, verbose: options?.verbose });
     } catch (error) {
@@ -488,7 +631,9 @@ uninstallCmd
   .option('-y, --yes', 'Skip confirmation prompts')
   .action(async (shell?: string, options?: { yes?: boolean }) => {
     try {
-      console.error('Warning: "spool uninstall completion" is deprecated. Use "spool completions uninstall" instead.');
+      console.error(
+        'Warning: "spool uninstall completion" is deprecated. Use "spool completions uninstall" instead.'
+      );
       const completionCommand = new CompletionCommand();
       await completionCommand.uninstall({ shell, yes: options?.yes });
     } catch (error) {
@@ -513,18 +658,37 @@ const validateCmd = program
   .option('--type <type>', 'Specify item type when ambiguous: change|spec|module')
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output validation results as JSON')
-  .option('--concurrency <n>', 'Max concurrent validations (defaults to env SPOOL_CONCURRENCY or 6)')
+  .option(
+    '--concurrency <n>',
+    'Max concurrent validations (defaults to env SPOOL_CONCURRENCY or 6)'
+  )
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; specs?: boolean; modules?: boolean; module?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
-    try {
-      const validateCommand = new ValidateCommand();
-      await validateCommand.execute(itemName, options);
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
+  .action(
+    async (
+      itemName?: string,
+      options?: {
+        all?: boolean;
+        changes?: boolean;
+        specs?: boolean;
+        modules?: boolean;
+        module?: string;
+        type?: string;
+        strict?: boolean;
+        json?: boolean;
+        noInteractive?: boolean;
+        concurrency?: string;
+      }
+    ) => {
+      try {
+        const validateCommand = new ValidateCommand();
+        await validateCommand.execute(itemName, options);
+      } catch (error) {
+        console.log();
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
+      }
     }
-  });
+  );
 
 // validate module
 validateCmd
@@ -533,19 +697,24 @@ validateCmd
   .option('--strict', 'Enable strict validation mode')
   .option('--json', 'Output as JSON')
   .option('--with-changes', 'Also validate all changes in the module')
-  .action(async (moduleId?: string, options?: { strict?: boolean; json?: boolean; withChanges?: boolean }) => {
-    try {
-      const moduleCommand = new ModuleCommand();
-      await moduleCommand.validate(moduleId, options);
-      if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
-        process.exit(process.exitCode);
+  .action(
+    async (
+      moduleId?: string,
+      options?: { strict?: boolean; json?: boolean; withChanges?: boolean }
+    ) => {
+      try {
+        const moduleCommand = new ModuleCommand();
+        await moduleCommand.validate(moduleId, options);
+        if (typeof process.exitCode === 'number' && process.exitCode !== 0) {
+          process.exit(process.exitCode);
+        }
+      } catch (error) {
+        console.log();
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
       }
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
     }
-  });
+  );
 
 // Top-level show command
 const showCmd = program
@@ -563,16 +732,21 @@ const showCmd = program
   .option('-r, --requirement <id>', 'JSON only: Show specific requirement by ID (1-based)')
   // allow unknown options to pass-through to underlying command implementation
   .allowUnknownOption(true)
-  .action(async (itemName?: string, options?: { json?: boolean; type?: string; noInteractive?: boolean; [k: string]: any }) => {
-    try {
-      const showCommand = new ShowCommand();
-      await showCommand.execute(itemName, options ?? {});
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
+  .action(
+    async (
+      itemName?: string,
+      options?: { json?: boolean; type?: string; noInteractive?: boolean; [k: string]: any }
+    ) => {
+      try {
+        const showCommand = new ShowCommand();
+        await showCommand.execute(itemName, options ?? {});
+      } catch (error) {
+        console.log();
+        ora().fail(`Error: ${(error as Error).message}`);
+        process.exit(1);
+      }
     }
-  });
+  );
 
 // show module
 showCmd
@@ -604,7 +778,9 @@ const completionCmd = program
 
 // Deprecation notice for noun-based commands
 completionCmd.hook('preAction', () => {
-  console.error('Warning: The "spool completion ..." commands are deprecated. Use "spool completions ..." instead.');
+  console.error(
+    'Warning: The "spool completion ..." commands are deprecated. Use "spool completions ..." instead.'
+  );
 });
 
 // Completions (preferred)
@@ -716,6 +892,9 @@ program
 
 // Register artifact workflow commands (experimental)
 registerArtifactWorkflowCommands(program);
+
+// Register agent commands
+registerAgentCommands(program);
 
 // Register research command
 registerResearchCommand(program);

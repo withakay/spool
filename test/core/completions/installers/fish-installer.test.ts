@@ -88,7 +88,9 @@ complete -c spool -a 'init' -d 'Initialize Spool'
 
       expect(result.success).toBe(true);
       expect(result.message).toBe('Completion script installed successfully for Fish');
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish'));
+      expect(result.installedPath).toBe(
+        path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish')
+      );
       expect(result.backupPath).toBeUndefined();
       expect(result.instructions).toHaveLength(2);
       expect(result.instructions![0]).toContain('Fish automatically loads completions');
@@ -100,7 +102,10 @@ complete -c spool -a 'init' -d 'Initialize Spool'
 
       expect(result.success).toBe(true);
       const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
-      const dirExists = await fs.access(path.dirname(targetPath)).then(() => true).catch(() => false);
+      const dirExists = await fs
+        .access(path.dirname(targetPath))
+        .then(() => true)
+        .catch(() => false);
       expect(dirExists).toBe(true);
     });
 
@@ -174,7 +179,9 @@ complete -c spool -a 'validate' -d 'Validate specs'
       const result = await installer.install(updatedScript);
 
       expect(result.success).toBe(true);
-      expect(result.message).toBe('Completion script updated successfully (previous version backed up)');
+      expect(result.message).toBe(
+        'Completion script updated successfully (previous version backed up)'
+      );
       expect(result.backupPath).toBeDefined();
     });
 
@@ -194,20 +201,23 @@ complete -c spool -a 'validate' -d 'Validate specs'
 
     // Skip on Windows: fs.chmod() on directories doesn't restrict write access on Windows
     // Windows uses ACLs which Node.js chmod doesn't control
-    it.skipIf(process.platform === 'win32')('should return failure on permission error', async () => {
-      // Create a read-only directory to simulate permission error
-      const restrictedDir = path.join(testHomeDir, '.config', 'fish', 'completions');
-      await fs.mkdir(restrictedDir, { recursive: true });
-      await fs.chmod(restrictedDir, 0o444); // Read-only
+    it.skipIf(process.platform === 'win32')(
+      'should return failure on permission error',
+      async () => {
+        // Create a read-only directory to simulate permission error
+        const restrictedDir = path.join(testHomeDir, '.config', 'fish', 'completions');
+        await fs.mkdir(restrictedDir, { recursive: true });
+        await fs.chmod(restrictedDir, 0o444); // Read-only
 
-      const result = await installer.install(mockCompletionScript);
+        const result = await installer.install(mockCompletionScript);
 
-      // Cleanup - restore permissions before asserting
-      await fs.chmod(restrictedDir, 0o755);
+        // Cleanup - restore permissions before asserting
+        await fs.chmod(restrictedDir, 0o755);
 
-      expect(result.success).toBe(false);
-      expect(result.message).toContain('Failed to install completion script');
-    });
+        expect(result.success).toBe(false);
+        expect(result.message).toContain('Failed to install completion script');
+      }
+    );
 
     it('should provide appropriate instructions for Fish', async () => {
       const result = await installer.install(mockCompletionScript);
@@ -266,7 +276,10 @@ complete -c spool -a 'init'
 
       await installer.uninstall();
 
-      const fileExists = await fs.access(targetPath).then(() => true).catch(() => false);
+      const fileExists = await fs
+        .access(targetPath)
+        .then(() => true)
+        .catch(() => false);
       expect(fileExists).toBe(false);
     });
 
@@ -288,26 +301,29 @@ complete -c spool -a 'init'
 
     // Skip on Windows: fs.chmod() on directories doesn't restrict write access on Windows
     // Windows uses ACLs which Node.js chmod doesn't control
-    it.skipIf(process.platform === 'win32')('should return failure on permission error', async () => {
-      await installer.install(mockCompletionScript);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
-      const parentDir = path.dirname(targetPath);
+    it.skipIf(process.platform === 'win32')(
+      'should return failure on permission error',
+      async () => {
+        await installer.install(mockCompletionScript);
+        const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+        const parentDir = path.dirname(targetPath);
 
-      // Make parent directory read-only to simulate permission error
-      await fs.chmod(parentDir, 0o444);
-      const result = await installer.uninstall();
+        // Make parent directory read-only to simulate permission error
+        await fs.chmod(parentDir, 0o444);
+        const result = await installer.uninstall();
 
-      // Restore permissions for cleanup
-      await fs.chmod(parentDir, 0o755);
+        // Restore permissions for cleanup
+        await fs.chmod(parentDir, 0o755);
 
-      // On some systems, the access check fails with permission error
-      // which returns "not installed" rather than "failed to uninstall"
-      expect(result.success).toBe(false);
-      expect(
-        result.message === 'Completion script is not installed' ||
-        result.message.includes('Failed to uninstall completion script')
-      ).toBe(true);
-    });
+        // On some systems, the access check fails with permission error
+        // which returns "not installed" rather than "failed to uninstall"
+        expect(result.success).toBe(false);
+        expect(
+          result.message === 'Completion script is not installed' ||
+            result.message.includes('Failed to uninstall completion script')
+        ).toBe(true);
+      }
+    );
 
     it('should handle uninstall when parent directory does not exist', async () => {
       // Don't install anything, so directory doesn't exist
@@ -317,5 +333,4 @@ complete -c spool -a 'init'
       expect(result.message).toBe('Completion script is not installed');
     });
   });
-
 });

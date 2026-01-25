@@ -15,7 +15,7 @@ describe('top-level validate command', () => {
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
     await fs.mkdir(path.join(modulesDir, '000_ungrouped'), { recursive: true });
-    
+
     // Create module file that lists all test changes (with required Purpose and Scope sections)
     const moduleContent = `# Module 000: Ungrouped
 
@@ -55,7 +55,11 @@ A module for ungrouped test changes.
     await fs.mkdir(path.join(changesDir, '000-01_c1'), { recursive: true });
     await fs.writeFile(path.join(changesDir, '000-01_c1', 'proposal.md'), changeContent, 'utf-8');
     // Create .spool.yaml file required for validation
-    await fs.writeFile(path.join(changesDir, '000-01_c1', '.spool.yaml'), 'version: "1.0.0"', 'utf-8');
+    await fs.writeFile(
+      path.join(changesDir, '000-01_c1', '.spool.yaml'),
+      'version: "1.0.0"',
+      'utf-8'
+    );
     const deltaContent = [
       '## ADDED Requirements',
       '### Requirement: Validator SHALL support alpha change deltas',
@@ -73,7 +77,11 @@ A module for ungrouped test changes.
     // Duplicate name for ambiguity test - use modular naming
     await fs.mkdir(path.join(changesDir, '000-02_dup'), { recursive: true });
     await fs.writeFile(path.join(changesDir, '000-02_dup', 'proposal.md'), changeContent, 'utf-8');
-    await fs.writeFile(path.join(changesDir, '000-02_dup', '.spool.yaml'), 'version: "1.0.0"', 'utf-8');
+    await fs.writeFile(
+      path.join(changesDir, '000-02_dup', '.spool.yaml'),
+      'version: "1.0.0"',
+      'utf-8'
+    );
     const dupDeltaDir = path.join(changesDir, '000-02_dup', 'specs', 'dup');
     await fs.mkdir(dupDeltaDir, { recursive: true });
     await fs.writeFile(path.join(dupDeltaDir, 'spec.md'), deltaContent, 'utf-8');
@@ -103,7 +111,9 @@ A module for ungrouped test changes.
   });
 
   it('validates only specs with --specs and respects --concurrency', async () => {
-    const result = await runCLI(['validate', '--specs', '--json', '--concurrency', '1'], { cwd: testDir });
+    const result = await runCLI(['validate', '--specs', '--json', '--concurrency', '1'], {
+      cwd: testDir,
+    });
     expect(result.exitCode).toBe(0);
     const output = result.stdout.trim();
     expect(output).not.toBe('');

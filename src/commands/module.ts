@@ -60,7 +60,7 @@ export class ModuleCommand {
 
     // Check if module with same name already exists
     if (name) {
-      const existingWithName = existingModules.find(m => {
+      const existingWithName = existingModules.find((m) => {
         const parsed = parseModuleName(m);
         return parsed?.name === name;
       });
@@ -73,15 +73,20 @@ export class ModuleCommand {
 
     // If no name provided, prompt for one
     if (!name) {
-      const { input } = await import('@inquirer/prompts');
+      const { input } = (await import('@inquirer/' + 'prompts')) as any;
       name = await input({
         message: 'Enter module name (kebab-case):',
-        validate: (value) => {
+        validate: (value: string) => {
           if (!value.trim()) return 'Module name is required';
           if (!/^[a-z][a-z0-9-]*$/.test(value)) return 'Must be kebab-case (e.g., project-setup)';
           return true;
         },
       });
+    }
+
+    if (!name) {
+      process.exitCode = 1;
+      return;
     }
 
     // Get next module ID
@@ -94,16 +99,25 @@ export class ModuleCommand {
 
     // Parse scope option
     const scope = options.scope
-      ? options.scope.split(',').map(s => s.trim()).filter(Boolean)
+      ? options.scope
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : ['*'];
 
     // Parse dependsOn option
     const dependsOn = options.dependsOn
-      ? options.dependsOn.split(',').map(s => s.trim()).filter(Boolean)
+      ? options.dependsOn
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [];
 
     // Generate module.md content
-    const title = name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const title = name
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
     const content = generateModuleContent({
       title,
       purpose: `<!-- Describe the purpose of this module/epic -->`,
@@ -153,7 +167,8 @@ export class ModuleCommand {
     console.log('Modules:\n');
     for (const m of modules) {
       const changes = await getChangesForModule(m.id, root);
-      const changeInfo = changes.length > 0 ? ` (${changes.length} change${changes.length !== 1 ? 's' : ''})` : '';
+      const changeInfo =
+        changes.length > 0 ? ` (${changes.length} change${changes.length !== 1 ? 's' : ''})` : '';
       console.log(`  ${m.fullName}${changeInfo}`);
     }
     console.log();
@@ -186,15 +201,20 @@ export class ModuleCommand {
       }
 
       // Interactive selection
-      const { select } = await import('@inquirer/prompts');
+      const { select } = (await import('@inquirer/' + 'prompts')) as any;
       const choice = await select({
         message: 'Select a module:',
-        choices: modules.map(m => ({
+        choices: modules.map((m) => ({
           name: m.fullName,
           value: m.id,
         })),
       });
       moduleId = choice;
+    }
+
+    if (!moduleId) {
+      process.exitCode = 1;
+      return;
     }
 
     // Resolve flexible module ID to canonical format
@@ -204,7 +224,7 @@ export class ModuleCommand {
       process.exitCode = 1;
       return;
     }
-    
+
     // Find the module
     const module = await getModuleById(parsedId.moduleId, root);
     if (!module) {
@@ -231,10 +251,16 @@ export class ModuleCommand {
     const changes = await getChangesForModule(module.id, root);
 
     if (options.json) {
-      console.log(JSON.stringify({
-        ...parsed,
-        actualChanges: changes,
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            ...parsed,
+            actualChanges: changes,
+          },
+          null,
+          2
+        )
+      );
       return;
     }
 
@@ -254,14 +280,14 @@ export class ModuleCommand {
       console.log('  (no changes yet)');
     } else {
       for (const changeId of changes) {
-        const isListed = parsed.changes.some(c => c.id === changeId);
+        const isListed = parsed.changes.some((c) => c.id === changeId);
         const marker = isListed ? '✓' : '⚠';
         console.log(`  ${marker} ${changeId}`);
       }
     }
 
     // Show planned changes
-    const plannedChanges = parsed.changes.filter(c => c.planned);
+    const plannedChanges = parsed.changes.filter((c) => c.planned);
     if (plannedChanges.length > 0) {
       console.log(`\nPlanned Changes:`);
       for (const c of plannedChanges) {
@@ -302,7 +328,7 @@ export class ModuleCommand {
       process.exitCode = 1;
       return;
     }
-    
+
     // Find the module
     const module = await getModuleById(parsedId.moduleId, root);
     if (!module) {
@@ -315,23 +341,32 @@ export class ModuleCommand {
     const validator = new Validator(options.strict ?? false);
 
     if (options.withChanges) {
-      const { moduleReport, changeReports } = await validator.validateModuleWithChanges(module.path, root);
+      const { moduleReport, changeReports } = await validator.validateModuleWithChanges(
+        module.path,
+        root
+      );
       spinner?.stop();
 
       if (options.json) {
-        console.log(JSON.stringify({
-          module: {
-            id: module.id,
-            fullName: module.fullName,
-            valid: moduleReport.valid,
-            issues: moduleReport.issues,
-          },
-          changes: changeReports.map(cr => ({
-            id: cr.changeId,
-            valid: cr.report.valid,
-            issues: cr.report.issues,
-          })),
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              module: {
+                id: module.id,
+                fullName: module.fullName,
+                valid: moduleReport.valid,
+                issues: moduleReport.issues,
+              },
+              changes: changeReports.map((cr) => ({
+                id: cr.changeId,
+                valid: cr.report.valid,
+                issues: cr.report.issues,
+              })),
+            },
+            null,
+            2
+          )
+        );
       } else {
         this.printModuleReport(module.fullName, moduleReport);
         for (const cr of changeReports) {
@@ -347,20 +382,26 @@ export class ModuleCommand {
         }
       }
 
-      const allValid = moduleReport.valid && changeReports.every(cr => cr.report.valid);
+      const allValid = moduleReport.valid && changeReports.every((cr) => cr.report.valid);
       process.exitCode = allValid ? 0 : 1;
     } else {
       const report = await validator.validateModule(module.path, root);
       spinner?.stop();
 
       if (options.json) {
-        console.log(JSON.stringify({
-          id: module.id,
-          fullName: module.fullName,
-          valid: report.valid,
-          issues: report.issues,
-          summary: report.summary,
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              id: module.id,
+              fullName: module.fullName,
+              valid: report.valid,
+              issues: report.issues,
+              summary: report.summary,
+            },
+            null,
+            2
+          )
+        );
       } else {
         this.printModuleReport(module.fullName, report);
       }
@@ -388,13 +429,18 @@ export function registerModuleCommand(program: any): void {
     .description('Manage Spool modules (groups of related changes) (deprecated)');
 
   moduleCmd.hook('preAction', () => {
-    console.error('Warning: The "spool module ..." commands are deprecated. Prefer verb-first commands (e.g., "spool list module", "spool create module", "spool show module", "spool validate module").');
+    console.error(
+      'Warning: The "spool module ..." commands are deprecated. Prefer verb-first commands (e.g., "spool list module", "spool create module", "spool show module", "spool validate module").'
+    );
   });
 
   moduleCmd
     .command('new [name]')
     .description('Create a new module')
-    .option('--scope <capabilities>', 'Comma-separated list of capabilities (default: "*" for unrestricted)')
+    .option(
+      '--scope <capabilities>',
+      'Comma-separated list of capabilities (default: "*" for unrestricted)'
+    )
     .option('--depends-on <modules>', 'Comma-separated list of module IDs this depends on')
     .action(async (name?: string, options?: ModuleNewOptions) => {
       try {

@@ -22,14 +22,9 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
     it('should create new file with markers and content', async () => {
       const filePath = path.join(testDir, 'new-file.md');
       const content = 'Spool content';
-      
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        content,
-        START_MARKER,
-        END_MARKER
-      );
-      
+
+      await FileSystemUtils.updateFileWithMarkers(filePath, content, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toBe(`${START_MARKER}\n${content}\n${END_MARKER}`);
     });
@@ -40,19 +35,12 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
       const filePath = path.join(testDir, 'existing.md');
       const existingContent = '# Existing Content\nUser content here';
       await fs.writeFile(filePath, existingContent);
-      
+
       const newContent = 'Spool content';
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        newContent,
-        START_MARKER,
-        END_MARKER
-      );
-      
+      await FileSystemUtils.updateFileWithMarkers(filePath, newContent, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
-      expect(result).toBe(
-        `${START_MARKER}\n${newContent}\n${END_MARKER}\n\n${existingContent}`
-      );
+      expect(result).toBe(`${START_MARKER}\n${newContent}\n${END_MARKER}\n\n${existingContent}`);
     });
   });
 
@@ -62,18 +50,13 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
       const beforeContent = '# Before\nSome content before';
       const oldManagedContent = 'Old Spool content';
       const afterContent = '# After\nSome content after';
-      
+
       const existingFile = `${beforeContent}\n${START_MARKER}\n${oldManagedContent}\n${END_MARKER}\n${afterContent}`;
       await fs.writeFile(filePath, existingFile);
-      
+
       const newContent = 'New Spool content';
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        newContent,
-        START_MARKER,
-        END_MARKER
-      );
-      
+      await FileSystemUtils.updateFileWithMarkers(filePath, newContent, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toBe(
         `${beforeContent}\n${START_MARKER}\n${newContent}\n${END_MARKER}\n${afterContent}`
@@ -84,18 +67,13 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
       const filePath = path.join(testDir, 'preserve.md');
       const userContentBefore = '# User Content Before\nImportant user notes';
       const userContentAfter = '## User Content After\nMore user notes';
-      
+
       const existingFile = `${userContentBefore}\n${START_MARKER}\nOld content\n${END_MARKER}\n${userContentAfter}`;
       await fs.writeFile(filePath, existingFile);
-      
+
       const newContent = 'Updated content';
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        newContent,
-        START_MARKER,
-        END_MARKER
-      );
-      
+      await FileSystemUtils.updateFileWithMarkers(filePath, newContent, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toContain(userContentBefore);
       expect(result).toContain(userContentAfter);
@@ -106,18 +84,13 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
     it('should handle markers at the beginning of file', async () => {
       const filePath = path.join(testDir, 'markers-at-start.md');
       const afterContent = 'User content after markers';
-      
+
       const existingFile = `${START_MARKER}\nOld content\n${END_MARKER}\n${afterContent}`;
       await fs.writeFile(filePath, existingFile);
-      
+
       const newContent = 'New content';
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        newContent,
-        START_MARKER,
-        END_MARKER
-      );
-      
+      await FileSystemUtils.updateFileWithMarkers(filePath, newContent, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toBe(`${START_MARKER}\n${newContent}\n${END_MARKER}\n${afterContent}`);
     });
@@ -125,18 +98,13 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
     it('should handle markers at the end of file', async () => {
       const filePath = path.join(testDir, 'markers-at-end.md');
       const beforeContent = 'User content before markers';
-      
+
       const existingFile = `${beforeContent}\n${START_MARKER}\nOld content\n${END_MARKER}`;
       await fs.writeFile(filePath, existingFile);
-      
+
       const newContent = 'New content';
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        newContent,
-        START_MARKER,
-        END_MARKER
-      );
-      
+      await FileSystemUtils.updateFileWithMarkers(filePath, newContent, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toBe(`${beforeContent}\n${START_MARKER}\n${newContent}\n${END_MARKER}`);
     });
@@ -147,14 +115,9 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
       const filePath = path.join(testDir, 'invalid-start.md');
       const existingFile = `Some content\n${START_MARKER}\nManaged content\nNo end marker`;
       await fs.writeFile(filePath, existingFile);
-      
+
       await expect(
-        FileSystemUtils.updateFileWithMarkers(
-          filePath,
-          'New content',
-          START_MARKER,
-          END_MARKER
-        )
+        FileSystemUtils.updateFileWithMarkers(filePath, 'New content', START_MARKER, END_MARKER)
       ).rejects.toThrow(/Invalid marker state/);
     });
 
@@ -162,14 +125,9 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
       const filePath = path.join(testDir, 'invalid-end.md');
       const existingFile = `Some content\nNo start marker\nManaged content\n${END_MARKER}`;
       await fs.writeFile(filePath, existingFile);
-      
+
       await expect(
-        FileSystemUtils.updateFileWithMarkers(
-          filePath,
-          'New content',
-          START_MARKER,
-          END_MARKER
-        )
+        FileSystemUtils.updateFileWithMarkers(filePath, 'New content', START_MARKER, END_MARKER)
       ).rejects.toThrow(/Invalid marker state/);
     });
   });
@@ -178,23 +136,13 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
     it('should produce same result when called multiple times with same content', async () => {
       const filePath = path.join(testDir, 'idempotent.md');
       const content = 'Consistent content';
-      
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        content,
-        START_MARKER,
-        END_MARKER
-      );
-      
+
+      await FileSystemUtils.updateFileWithMarkers(filePath, content, START_MARKER, END_MARKER);
+
       const firstResult = await fs.readFile(filePath, 'utf-8');
-      
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        content,
-        START_MARKER,
-        END_MARKER
-      );
-      
+
+      await FileSystemUtils.updateFileWithMarkers(filePath, content, START_MARKER, END_MARKER);
+
       const secondResult = await fs.readFile(filePath, 'utf-8');
       expect(secondResult).toBe(firstResult);
     });
@@ -203,14 +151,9 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
   describe('edge cases', () => {
     it('should handle empty content', async () => {
       const filePath = path.join(testDir, 'empty-content.md');
-      
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        '',
-        START_MARKER,
-        END_MARKER
-      );
-      
+
+      await FileSystemUtils.updateFileWithMarkers(filePath, '', START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toBe(`${START_MARKER}\n\n${END_MARKER}`);
     });
@@ -218,14 +161,9 @@ describe('FileSystemUtils.updateFileWithMarkers', () => {
     it('should handle content with special characters', async () => {
       const filePath = path.join(testDir, 'special-chars.md');
       const content = '# Special chars: ${}[]()<>|\\`*_~';
-      
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        content,
-        START_MARKER,
-        END_MARKER
-      );
-      
+
+      await FileSystemUtils.updateFileWithMarkers(filePath, content, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toContain(content);
     });
@@ -237,14 +175,9 @@ Line 2
 Line 3
 
 Line 5 with gap`;
-      
-      await FileSystemUtils.updateFileWithMarkers(
-        filePath,
-        content,
-        START_MARKER,
-        END_MARKER
-      );
-      
+
+      await FileSystemUtils.updateFileWithMarkers(filePath, content, START_MARKER, END_MARKER);
+
       const result = await fs.readFile(filePath, 'utf-8');
       expect(result).toContain(content);
     });

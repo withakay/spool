@@ -10,7 +10,9 @@ async function withTempDir(run: (dir: string) => Promise<void>) {
     await run(dir);
   } finally {
     // Best-effort cleanup
-    try { await fs.rm(dir, { recursive: true, force: true }); } catch {}
+    try {
+      await fs.rm(dir, { recursive: true, force: true });
+    } catch {}
   }
 }
 

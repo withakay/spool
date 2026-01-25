@@ -30,7 +30,9 @@ function npmPack() {
     const arr = JSON.parse(jsonOut);
     if (Array.isArray(arr) && arr.length > 0) {
       const last = arr[arr.length - 1];
-      const file = (last && typeof last === 'object' && last.filename) || (typeof last === 'string' ? last : null);
+      const file =
+        (last && typeof last === 'object' && last.filename) ||
+        (typeof last === 'string' ? last : null);
       if (file) return String(file).trim();
     }
     // Unexpected JSON shape or empty array; fallback to plain output
@@ -94,10 +96,14 @@ function main() {
   } finally {
     // Always attempt cleanup
     if (work) {
-      try { rmSync(work, { recursive: true, force: true }); } catch {}
+      try {
+        rmSync(work, { recursive: true, force: true });
+      } catch {}
     }
     if (tgzPath) {
-      try { rmSync(tgzPath, { force: true }); } catch {}
+      try {
+        rmSync(tgzPath, { force: true });
+      } catch {}
     }
   }
 }

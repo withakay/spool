@@ -179,7 +179,9 @@ export class ZshInstaller {
       return !content.includes(completionsDir);
     } catch (error) {
       // If we can't read .zshrc, assume config is needed
-      console.debug(`Unable to read .zshrc to check fpath config: ${error instanceof Error ? error.message : String(error)}`);
+      console.debug(
+        `Unable to read .zshrc to check fpath config: ${error instanceof Error ? error.message : String(error)}`
+      );
       return true;
     }
   }
@@ -206,7 +208,10 @@ export class ZshInstaller {
       const content = await fs.readFile(zshrcPath, 'utf-8');
 
       // Check if markers exist
-      if (!content.includes(this.ZSHRC_MARKERS.start) || !content.includes(this.ZSHRC_MARKERS.end)) {
+      if (
+        !content.includes(this.ZSHRC_MARKERS.start) ||
+        !content.includes(this.ZSHRC_MARKERS.end)
+      ) {
         // Markers don't exist, nothing to remove
         return true;
       }
@@ -299,7 +304,9 @@ export class ZshInstaller {
       }
 
       // Generate instructions (only if .zshrc wasn't auto-configured)
-      let instructions = zshrcConfigured ? undefined : this.generateInstructions(isOhMyZsh, targetPath);
+      let instructions = zshrcConfigured
+        ? undefined
+        : this.generateInstructions(isOhMyZsh, targetPath);
 
       // Add fpath guidance for Oh My Zsh installations
       if (isOhMyZsh) {
@@ -321,7 +328,6 @@ export class ZshInstaller {
           : zshrcConfigured
             ? 'Completion script installed and .zshrc configured successfully'
             : 'Completion script installed successfully for Zsh';
-
       }
 
       return {

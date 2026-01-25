@@ -39,7 +39,10 @@ export class CompletionCommand {
    * @param operationName - Name of the operation (for error messages)
    * @returns Resolved shell or null if should exit
    */
-  private resolveShellOrExit(shell: string | undefined, operationName: string): SupportedShell | null {
+  private resolveShellOrExit(
+    shell: string | undefined,
+    operationName: string
+  ): SupportedShell | null {
     const normalizedShell = this.normalizeShell(shell);
 
     if (!normalizedShell) {
@@ -51,7 +54,9 @@ export class CompletionCommand {
 
       // Shell was detected but not supported
       if (detectionResult.detected && !detectionResult.shell) {
-        console.error(`Error: Shell '${detectionResult.detected}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
+        console.error(
+          `Error: Shell '${detectionResult.detected}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`
+        );
         process.exitCode = 1;
         return null;
       }
@@ -65,7 +70,9 @@ export class CompletionCommand {
     }
 
     if (!CompletionFactory.isSupported(normalizedShell)) {
-      console.error(`Error: Shell '${normalizedShell}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
+      console.error(
+        `Error: Shell '${normalizedShell}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`
+      );
       process.exitCode = 1;
       return null;
     }
@@ -146,7 +153,8 @@ export class CompletionCommand {
           }
 
           // Check if any shell config was updated
-          const configWasUpdated = result.zshrcConfigured || result.bashrcConfigured || result.profileConfigured;
+          const configWasUpdated =
+            result.zshrcConfigured || result.bashrcConfigured || result.profileConfigured;
 
           if (configWasUpdated) {
             const configPaths: Record<string, string> = {
@@ -176,7 +184,8 @@ export class CompletionCommand {
           }
         } else {
           // Check if any shell config was updated (InstallationResult has: zshrcConfigured, bashrcConfigured, profileConfigured)
-          const configWasUpdated = result.zshrcConfigured || result.bashrcConfigured || result.profileConfigured;
+          const configWasUpdated =
+            result.zshrcConfigured || result.bashrcConfigured || result.profileConfigured;
 
           if (configWasUpdated) {
             console.log('');
@@ -199,7 +208,9 @@ export class CompletionCommand {
       }
     } catch (error) {
       spinner.stop();
-      console.error(`✗ Failed to install completion script: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `✗ Failed to install completion script: ${error instanceof Error ? error.message : String(error)}`
+      );
       process.exitCode = 1;
     }
   }
@@ -212,13 +223,13 @@ export class CompletionCommand {
 
     // Prompt for confirmation unless --yes flag is provided
     if (!skipConfirmation) {
-      const { confirm } = await import('@inquirer/prompts');
+      const { confirm } = (await import('@inquirer/' + 'prompts')) as any;
 
       // Get shell-specific config file path
       const configPaths: Record<string, string> = {
         zsh: '~/.zshrc',
         bash: '~/.bashrc',
-        fish: 'Fish configuration',  // Fish doesn't modify profile, just removes script file
+        fish: 'Fish configuration', // Fish doesn't modify profile, just removes script file
         powershell: '$PROFILE',
       };
       const configPath = configPaths[shell] || `${shell} configuration`;
@@ -249,7 +260,9 @@ export class CompletionCommand {
       }
     } catch (error) {
       spinner.stop();
-      console.error(`✗ Failed to uninstall completion script: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `✗ Failed to uninstall completion script: ${error instanceof Error ? error.message : String(error)}`
+      );
       process.exitCode = 1;
     }
   }

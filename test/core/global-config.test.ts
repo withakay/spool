@@ -9,7 +9,7 @@ import {
   getGlobalConfig,
   saveGlobalConfig,
   GLOBAL_CONFIG_DIR_NAME,
-  GLOBAL_CONFIG_FILE_NAME
+  GLOBAL_CONFIG_FILE_NAME,
 } from '../../src/core/global-config.js';
 
 describe('global-config', () => {
@@ -115,9 +115,12 @@ describe('global-config', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
 
       fs.mkdirSync(getGlobalConfigDir(), { recursive: true });
-      fs.writeFileSync(getGlobalConfigPath(), JSON.stringify({
-        featureFlags: { testFlag: true, anotherFlag: false }
-      }));
+      fs.writeFileSync(
+        getGlobalConfigPath(),
+        JSON.stringify({
+          featureFlags: { testFlag: true, anotherFlag: false },
+        })
+      );
 
       const config = getGlobalConfig();
 
@@ -143,20 +146,21 @@ describe('global-config', () => {
 
       getGlobalConfig();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid JSON')
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid JSON'));
     });
 
     it('should preserve unknown fields from config file', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
 
       fs.mkdirSync(getGlobalConfigDir(), { recursive: true });
-      fs.writeFileSync(getGlobalConfigPath(), JSON.stringify({
-        featureFlags: { x: true },
-        unknownField: 'preserved',
-        futureOption: 123
-      }));
+      fs.writeFileSync(
+        getGlobalConfigPath(),
+        JSON.stringify({
+          featureFlags: { x: true },
+          unknownField: 'preserved',
+          futureOption: 123,
+        })
+      );
 
       const config = getGlobalConfig();
 
@@ -168,9 +172,12 @@ describe('global-config', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
 
       fs.mkdirSync(getGlobalConfigDir(), { recursive: true });
-      fs.writeFileSync(getGlobalConfigPath(), JSON.stringify({
-        featureFlags: { customFlag: true }
-      }));
+      fs.writeFileSync(
+        getGlobalConfigPath(),
+        JSON.stringify({
+          featureFlags: { customFlag: true },
+        })
+      );
 
       const config = getGlobalConfig();
 
@@ -224,7 +231,7 @@ describe('global-config', () => {
     it('should round-trip config correctly', () => {
       process.env.XDG_CONFIG_HOME = tempDir;
       const originalConfig = {
-        featureFlags: { flag1: true, flag2: false }
+        featureFlags: { flag1: true, flag2: false },
       };
 
       saveGlobalConfig(originalConfig);

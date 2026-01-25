@@ -17,12 +17,7 @@ import { TemplateManager, ProjectContext, PlanningContext } from './templates/in
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
 import { getSplash } from './ui/splash.js';
-import {
-  SpoolConfig,
-  AI_TOOLS,
-  AIToolOption,
-  SPOOL_MARKERS,
-} from './config.js';
+import { SpoolConfig, AI_TOOLS, AIToolOption, SPOOL_MARKERS } from './config.js';
 import { PALETTE } from './styles/palette.js';
 import { getSpoolDirName } from './project-config.js';
 
@@ -46,8 +41,7 @@ type ToolLabel = {
   annotation?: string;
 };
 
-const sanitizeToolLabel = (raw: string): string =>
-  raw.replace(/✅/gu, '✔').trim();
+const sanitizeToolLabel = (raw: string): string => raw.replace(/✅/gu, '✔').trim();
 
 const parseToolLabel = (raw: string): ToolLabel => {
   const sanitized = sanitizeToolLabel(raw);
@@ -93,261 +87,229 @@ type ToolSelectionPrompt = (config: ToolWizardConfig) => Promise<string[]>;
 
 type RootStubStatus = 'created' | 'updated' | 'skipped';
 
-
 const OTHER_TOOLS_HEADING_VALUE = '__heading-other__';
 
 const UNIVERSAL_AGENTS_MD_INFO_VALUE = '__info-universal__';
 const LIST_SPACER_VALUE = '__list-spacer__';
 
-const toolSelectionWizard = createPrompt<string[], ToolWizardConfig>(
-  (config, done) => {
-    const totalSteps = 3;
-    const [step, setStep] = useState<WizardStep>('intro');
-    const selectableChoices = config.choices.filter(isSelectableChoice);
-    const initialCursorIndex = config.choices.findIndex((choice) =>
-      choice.selectable
+const toolSelectionWizard = createPrompt<string[], ToolWizardConfig>((config, done) => {
+  const totalSteps = 3;
+  const [step, setStep] = useState<WizardStep>('intro');
+  const selectableChoices = config.choices.filter(isSelectableChoice);
+  const initialCursorIndex = config.choices.findIndex((choice) => choice.selectable);
+  const [cursor, setCursor] = useState<number>(initialCursorIndex === -1 ? 0 : initialCursorIndex);
+  const [selected, setSelected] = useState<string[]>(() => {
+    const initial = new Set(
+      (config.initialSelected ?? []).filter((value) =>
+        selectableChoices.some((choice) => choice.value === value)
+      )
     );
-    const [cursor, setCursor] = useState<number>(
-      initialCursorIndex === -1 ? 0 : initialCursorIndex
-    );
-    const [selected, setSelected] = useState<string[]>(() => {
-      const initial = new Set(
-        (config.initialSelected ?? []).filter((value) =>
-          selectableChoices.some((choice) => choice.value === value)
-        )
-      );
-      return selectableChoices
-        .map((choice) => choice.value)
-        .filter((value) => initial.has(value));
-    });
-    const [error, setError] = useState<string | null>(null);
+    return selectableChoices.map((choice) => choice.value).filter((value) => initial.has(value));
+  });
+  const [error, setError] = useState<string | null>(null);
 
-    const selectedSet = new Set(selected);
-    const pageSize = Math.max(config.choices.length, 1);
+  const selectedSet = new Set(selected);
+  const pageSize = Math.max(config.choices.length, 1);
 
-    const updateSelected = (next: Set<string>) => {
-      const ordered = selectableChoices
-        .map((choice) => choice.value)
-        .filter((value) => next.has(value));
-      setSelected(ordered);
-    };
+  const updateSelected = (next: Set<string>) => {
+    const ordered = selectableChoices
+      .map((choice) => choice.value)
+      .filter((value) => next.has(value));
+    setSelected(ordered);
+  };
 
-    const page = usePagination({
-      items: config.choices,
-      active: cursor,
-      pageSize,
-      loop: false,
-      renderItem: ({ item, isActive }) => {
-        if (!item.selectable) {
-          const prefix = item.kind === 'info' ? '  ' : '';
-          const textColor =
-            item.kind === 'heading' ? PALETTE.lightGray : PALETTE.midGray;
-          return `${PALETTE.midGray(' ')} ${PALETTE.midGray(' ')} ${textColor(
-            `${prefix}${item.label.primary}`
-          )}`;
-        }
-
-        const isSelected = selectedSet.has(item.value);
-        const cursorSymbol = isActive
-          ? PALETTE.white('›')
-          : PALETTE.midGray(' ');
-        const indicator = isSelected
-          ? PALETTE.white('◉')
-          : PALETTE.midGray('○');
-        const nameColor = isActive ? PALETTE.white : PALETTE.midGray;
-        const annotation = item.label.annotation
-          ? PALETTE.midGray(` (${item.label.annotation})`)
-          : '';
-        const configuredNote = item.configured
-          ? PALETTE.midGray(' (already configured)')
-          : '';
-        const label = `${nameColor(item.label.primary)}${annotation}${configuredNote}`;
-        return `${cursorSymbol} ${indicator} ${label}`;
-      },
-    });
-
-    const moveCursor = (direction: 1 | -1) => {
-      if (selectableChoices.length === 0) {
-        return;
+  const page = usePagination({
+    items: config.choices,
+    active: cursor,
+    pageSize,
+    loop: false,
+    renderItem: ({ item, isActive }) => {
+      if (!item.selectable) {
+        const prefix = item.kind === 'info' ? '  ' : '';
+        const textColor = item.kind === 'heading' ? PALETTE.lightGray : PALETTE.midGray;
+        return `${PALETTE.midGray(' ')} ${PALETTE.midGray(' ')} ${textColor(
+          `${prefix}${item.label.primary}`
+        )}`;
       }
 
-      let nextIndex = cursor;
-      while (true) {
-        nextIndex = nextIndex + direction;
-        if (nextIndex < 0 || nextIndex >= config.choices.length) {
-          return;
-        }
-
-        if (config.choices[nextIndex]?.selectable) {
-          setCursor(nextIndex);
-          return;
-        }
-      }
-    };
-
-    useKeypress((key) => {
-      if (step === 'intro') {
-        if (isEnterKey(key)) {
-          setStep('select');
-        }
-        return;
-      }
-
-      if (step === 'select') {
-        if (isUpKey(key)) {
-          moveCursor(-1);
-          setError(null);
-          return;
-        }
-
-        if (isDownKey(key)) {
-          moveCursor(1);
-          setError(null);
-          return;
-        }
-
-        if (isSpaceKey(key)) {
-          const current = config.choices[cursor];
-          if (!current || !current.selectable) return;
-
-          const next = new Set(selected);
-          if (next.has(current.value)) {
-            next.delete(current.value);
-          } else {
-            next.add(current.value);
-          }
-
-          updateSelected(next);
-          setError(null);
-          return;
-        }
-
-        if (isEnterKey(key)) {
-          const current = config.choices[cursor];
-          if (
-            current &&
-            current.selectable &&
-            !selectedSet.has(current.value)
-          ) {
-            const next = new Set(selected);
-            next.add(current.value);
-            updateSelected(next);
-          }
-          setStep('review');
-          setError(null);
-          return;
-        }
-
-        if (key.name === 'escape') {
-          const next = new Set<string>();
-          updateSelected(next);
-          setError(null);
-        }
-        return;
-      }
-
-      if (step === 'review') {
-        if (isEnterKey(key)) {
-           const finalSelection = config.choices
-             .map((choice) => choice.value)
-             .filter((value) => selectedSet.has(value));
-
-          done(finalSelection);
-          return;
-        }
-
-        if (isBackspaceKey(key) || key.name === 'escape') {
-          setStep('select');
-          setError(null);
-        }
-      }
-    });
-
-
-    
-    // Filter choices by category
-    const nonHeadingChoices = selectableChoices.filter(
-      (choice) => choice.value !== '__heading-native__' && choice.value !== '__heading-other__'
-    );
-    
-        
-    const selectedNativeToolChoices = nonHeadingChoices.filter((choice) =>
-      selectedSet.has(choice.value) && !choice.value.startsWith('spool-')
-    );
-
-    const formatSummaryLabel = (
-      choice: Extract<ToolWizardChoice, { selectable: true }>
-    ) => {
-      const annotation = choice.label.annotation
-        ? PALETTE.midGray(` (${choice.label.annotation})`)
+      const isSelected = selectedSet.has(item.value);
+      const cursorSymbol = isActive ? PALETTE.white('›') : PALETTE.midGray(' ');
+      const indicator = isSelected ? PALETTE.white('◉') : PALETTE.midGray('○');
+      const nameColor = isActive ? PALETTE.white : PALETTE.midGray;
+      const annotation = item.label.annotation
+        ? PALETTE.midGray(` (${item.label.annotation})`)
         : '';
-      const configuredNote = choice.configured
-        ? PALETTE.midGray(' (already configured)')
-        : '';
-      return `${PALETTE.white(choice.label.primary)}${annotation}${configuredNote}`;
-    };
+      const configuredNote = item.configured ? PALETTE.midGray(' (already configured)') : '';
+      const label = `${nameColor(item.label.primary)}${annotation}${configuredNote}`;
+      return `${cursorSymbol} ${indicator} ${label}`;
+    },
+  });
 
-    const stepIndex = step === 'intro' ? 1 : step === 'select' ? 2 : 3;
-    const lines: string[] = [];
-    lines.push(PALETTE.midGray(`Step ${stepIndex}/${totalSteps}`));
-    lines.push('');
-
-    if (step === 'intro') {
-      const introHeadline = config.extendMode
-        ? 'Extend your Spool tooling'
-        : 'Configure your Spool tooling';
-      const introBody = config.extendMode
-        ? 'We detected an existing setup. We will help you refresh or add integrations.'
-        : "Let's get your AI assistants connected so they understand Spool.";
-
-      lines.push(PALETTE.white(introHeadline));
-      lines.push(PALETTE.midGray(introBody));
-      lines.push('');
-      lines.push(PALETTE.midGray('Press Enter to continue.'));
-    } else if (step === 'select') {
-      lines.push(PALETTE.white(config.baseMessage));
-      lines.push(
-        PALETTE.midGray(
-          'Use ↑/↓ to move · Space to toggle · Enter selects highlighted tool and reviews.'
-        )
-      );
-      lines.push('');
-      lines.push(page);
-      lines.push('');
-      lines.push(PALETTE.midGray('Selected configuration:'));
-       if (selectedNativeToolChoices.length > 0) {
-
-        for (const choice of selectedNativeToolChoices) {
-          lines.push(
-            `  ${PALETTE.white('-')} ${formatSummaryLabel(choice)}`
-          );
-        }
-      }
-    } else if (step === 'review') {
-      lines.push(PALETTE.white('Review selections'));
-      lines.push(
-        PALETTE.midGray('Press Enter to confirm or Backspace to adjust.')
-      );
-      lines.push('');
-      
-      // Show native tool selections if any
-      if (selectedNativeToolChoices.length > 0) {
-        lines.push(PALETTE.white('Natively supported providers:'));
-        for (const choice of selectedNativeToolChoices) {
-          lines.push(`  ${PALETTE.white('-')} ${formatSummaryLabel(choice)}`);
-        }
-      } else if (selectedNativeToolChoices.length === 0) {
-        lines.push(
-          PALETTE.midGray(
-            'No natively supported providers selected. Universal instructions will still be applied.'
-          )
-        );
-      }
+  const moveCursor = (direction: 1 | -1) => {
+    if (selectableChoices.length === 0) {
+      return;
     }
 
-    return lines.join('\n');
+    let nextIndex = cursor;
+    while (true) {
+      nextIndex = nextIndex + direction;
+      if (nextIndex < 0 || nextIndex >= config.choices.length) {
+        return;
+      }
+
+      if (config.choices[nextIndex]?.selectable) {
+        setCursor(nextIndex);
+        return;
+      }
+    }
+  };
+
+  useKeypress((key) => {
+    if (step === 'intro') {
+      if (isEnterKey(key)) {
+        setStep('select');
+      }
+      return;
+    }
+
+    if (step === 'select') {
+      if (isUpKey(key)) {
+        moveCursor(-1);
+        setError(null);
+        return;
+      }
+
+      if (isDownKey(key)) {
+        moveCursor(1);
+        setError(null);
+        return;
+      }
+
+      if (isSpaceKey(key)) {
+        const current = config.choices[cursor];
+        if (!current || !current.selectable) return;
+
+        const next = new Set(selected);
+        if (next.has(current.value)) {
+          next.delete(current.value);
+        } else {
+          next.add(current.value);
+        }
+
+        updateSelected(next);
+        setError(null);
+        return;
+      }
+
+      if (isEnterKey(key)) {
+        const current = config.choices[cursor];
+        if (current && current.selectable && !selectedSet.has(current.value)) {
+          const next = new Set(selected);
+          next.add(current.value);
+          updateSelected(next);
+        }
+        setStep('review');
+        setError(null);
+        return;
+      }
+
+      if (key.name === 'escape') {
+        const next = new Set<string>();
+        updateSelected(next);
+        setError(null);
+      }
+      return;
+    }
+
+    if (step === 'review') {
+      if (isEnterKey(key)) {
+        const finalSelection = config.choices
+          .map((choice) => choice.value)
+          .filter((value) => selectedSet.has(value));
+
+        done(finalSelection);
+        return;
+      }
+
+      if (isBackspaceKey(key) || key.name === 'escape') {
+        setStep('select');
+        setError(null);
+      }
+    }
+  });
+
+  // Filter choices by category
+  const nonHeadingChoices = selectableChoices.filter(
+    (choice) => choice.value !== '__heading-native__' && choice.value !== '__heading-other__'
+  );
+
+  const selectedNativeToolChoices = nonHeadingChoices.filter(
+    (choice) => selectedSet.has(choice.value) && !choice.value.startsWith('spool-')
+  );
+
+  const formatSummaryLabel = (choice: Extract<ToolWizardChoice, { selectable: true }>) => {
+    const annotation = choice.label.annotation
+      ? PALETTE.midGray(` (${choice.label.annotation})`)
+      : '';
+    const configuredNote = choice.configured ? PALETTE.midGray(' (already configured)') : '';
+    return `${PALETTE.white(choice.label.primary)}${annotation}${configuredNote}`;
+  };
+
+  const stepIndex = step === 'intro' ? 1 : step === 'select' ? 2 : 3;
+  const lines: string[] = [];
+  lines.push(PALETTE.midGray(`Step ${stepIndex}/${totalSteps}`));
+  lines.push('');
+
+  if (step === 'intro') {
+    const introHeadline = config.extendMode
+      ? 'Extend your Spool tooling'
+      : 'Configure your Spool tooling';
+    const introBody = config.extendMode
+      ? 'We detected an existing setup. We will help you refresh or add integrations.'
+      : "Let's get your AI assistants connected so they understand Spool.";
+
+    lines.push(PALETTE.white(introHeadline));
+    lines.push(PALETTE.midGray(introBody));
+    lines.push('');
+    lines.push(PALETTE.midGray('Press Enter to continue.'));
+  } else if (step === 'select') {
+    lines.push(PALETTE.white(config.baseMessage));
+    lines.push(
+      PALETTE.midGray(
+        'Use ↑/↓ to move · Space to toggle · Enter selects highlighted tool and reviews.'
+      )
+    );
+    lines.push('');
+    lines.push(page);
+    lines.push('');
+    lines.push(PALETTE.midGray('Selected configuration:'));
+    if (selectedNativeToolChoices.length > 0) {
+      for (const choice of selectedNativeToolChoices) {
+        lines.push(`  ${PALETTE.white('-')} ${formatSummaryLabel(choice)}`);
+      }
+    }
+  } else if (step === 'review') {
+    lines.push(PALETTE.white('Review selections'));
+    lines.push(PALETTE.midGray('Press Enter to confirm or Backspace to adjust.'));
+    lines.push('');
+
+    // Show native tool selections if any
+    if (selectedNativeToolChoices.length > 0) {
+      lines.push(PALETTE.white('Natively supported providers:'));
+      for (const choice of selectedNativeToolChoices) {
+        lines.push(`  ${PALETTE.white('-')} ${formatSummaryLabel(choice)}`);
+      }
+    } else if (selectedNativeToolChoices.length === 0) {
+      lines.push(
+        PALETTE.midGray(
+          'No natively supported providers selected. Universal instructions will still be applied.'
+        )
+      );
+    }
   }
-);
+
+  return lines.join('\n');
+});
 
 type InitCommandOptions = {
   prompt?: ToolSelectionPrompt;
@@ -360,10 +322,7 @@ export class InitCommand {
   private readonly prompt: ToolSelectionPrompt;
   private readonly toolsArg?: string;
   private readonly force: boolean;
-  private readonly confirmOverwrite?: (
-    files: string[],
-    projectPath: string
-  ) => Promise<boolean>;
+  private readonly confirmOverwrite?: (files: string[], projectPath: string) => Promise<boolean>;
 
   constructor(options: InitCommandOptions = {}) {
     this.prompt = options.prompt ?? ((config) => toolSelectionWizard(config));
@@ -390,15 +349,9 @@ export class InitCommand {
 
     const availableTools = AI_TOOLS.filter((tool) => tool.available);
     const selectedIds = new Set(config.aiTools);
-    const selectedTools = availableTools.filter((tool) =>
-      selectedIds.has(tool.value)
-    );
-    const created = selectedTools.filter(
-      (tool) => !existingToolStates[tool.value]
-    );
-    const refreshed = selectedTools.filter(
-      (tool) => existingToolStates[tool.value]
-    );
+    const selectedTools = availableTools.filter((tool) => selectedIds.has(tool.value));
+    const created = selectedTools.filter((tool) => !existingToolStates[tool.value]);
+    const refreshed = selectedTools.filter((tool) => existingToolStates[tool.value]);
     const skippedExisting = availableTools.filter(
       (tool) => !selectedIds.has(tool.value) && existingToolStates[tool.value]
     );
@@ -408,9 +361,7 @@ export class InitCommand {
 
     // Step 1: Create directory structure
     if (!extendMode) {
-      const structureSpinner = this.startSpinner(
-        'Creating Spool structure...'
-      );
+      const structureSpinner = this.startSpinner('Creating Spool structure...');
       await this.createDirectoryStructure(spoolPath);
       await this.generateFiles(spoolPath, config);
       structureSpinner.stopAndPersist({
@@ -419,9 +370,7 @@ export class InitCommand {
       });
     } else {
       ora({ stream: process.stdout }).info(
-        PALETTE.midGray(
-          'ℹ Spool already initialized. Checking for missing files...'
-        )
+        PALETTE.midGray('ℹ Spool already initialized. Checking for missing files...')
       );
       await this.createDirectoryStructure(spoolPath);
       await this.ensureTemplateFiles(spoolPath, config);
@@ -429,25 +378,19 @@ export class InitCommand {
 
     // Step 2: Configure AI tools
     const toolSpinner = this.startSpinner('Configuring AI tools...');
-    const rootStubStatus = await this.configureAITools(
-      projectPath,
-      spoolDir,
-      config.aiTools
-    );
+    const rootStubStatus = await this.configureAITools(projectPath, spoolDir, config.aiTools);
     toolSpinner.stopAndPersist({
       symbol: PALETTE.white('▌'),
       text: PALETTE.white('AI tools configured'),
     });
 
-     // Step 3: Install Spool skills (Agent Skills) as a core part of init
-      const skillsSpinner = this.startSpinner('Installing Spool skills...');
-      await this.installSpoolSkills(projectPath, spoolDir, config.aiTools);
-      skillsSpinner.stopAndPersist({
-        symbol: PALETTE.white(''),
-        text: PALETTE.white('Spool skills installed'),
-      });
-
-
+    // Step 3: Install Spool skills (Agent Skills) as a core part of init
+    const skillsSpinner = this.startSpinner('Installing Spool skills...');
+    await this.installSpoolSkills(projectPath, spoolDir, config.aiTools);
+    skillsSpinner.stopAndPersist({
+      symbol: PALETTE.white(''),
+      text: PALETTE.white('Spool skills installed'),
+    });
 
     // Success message
     this.displaySuccessMessage(
@@ -465,18 +408,13 @@ export class InitCommand {
   private async fileHasMarkers(absolutePath: string): Promise<boolean> {
     try {
       const content = await FileSystemUtils.readFile(absolutePath);
-      return (
-        content.includes(SPOOL_MARKERS.start) && content.includes(SPOOL_MARKERS.end)
-      );
+      return content.includes(SPOOL_MARKERS.start) && content.includes(SPOOL_MARKERS.end);
     } catch {
       return false;
     }
   }
 
-  private async getUnmarkedToolFiles(
-    projectPath: string,
-    toolIds: string[]
-  ): Promise<string[]> {
+  private async getUnmarkedToolFiles(projectPath: string, toolIds: string[]): Promise<string[]> {
     const files = new Set<string>();
 
     const maybeAdd = async (absolutePath: string) => {
@@ -504,10 +442,7 @@ export class InitCommand {
       const slashConfigurator = SlashCommandRegistry.get(toolId);
       if (slashConfigurator) {
         for (const target of slashConfigurator.getTargets()) {
-          const absolutePath = slashConfigurator.resolveAbsolutePath(
-            projectPath,
-            target.id
-          );
+          const absolutePath = slashConfigurator.resolveAbsolutePath(projectPath, target.id);
           await maybeAdd(absolutePath);
         }
       }
@@ -534,16 +469,11 @@ export class InitCommand {
       : await this.defaultConfirmOverwrite(unmarkedFiles, projectPath);
 
     if (!proceed) {
-      throw new Error(
-        'Init aborted. Re-run with --force to overwrite existing files.'
-      );
+      throw new Error('Init aborted. Re-run with --force to overwrite existing files.');
     }
   }
 
-  private async defaultConfirmOverwrite(
-    files: string[],
-    projectPath: string
-  ): Promise<boolean> {
+  private async defaultConfirmOverwrite(files: string[], projectPath: string): Promise<boolean> {
     console.log();
     ora({ stream: process.stdout }).warn(
       PALETTE.midGray(
@@ -562,10 +492,7 @@ export class InitCommand {
     });
   }
 
-  private async validate(
-    projectPath: string,
-    _spoolPath: string
-  ): Promise<boolean> {
+  private async validate(projectPath: string, _spoolPath: string): Promise<boolean> {
     const extendMode = await FileSystemUtils.directoryExists(_spoolPath);
 
     // Check write permissions
@@ -669,9 +596,7 @@ export class InitCommand {
       ? 'Which natively supported AI tools would you like to add or refresh?'
       : 'Which natively supported AI tools do you use?';
     const initialNativeSelection = extendMode
-      ? availableTools
-          .filter((tool) => existingTools[tool.value])
-          .map((tool) => tool.value)
+      ? availableTools.filter((tool) => existingTools[tool.value]).map((tool) => tool.value)
       : [];
 
     const initialSelected = Array.from(new Set(initialNativeSelection));
@@ -681,8 +606,7 @@ export class InitCommand {
         kind: 'heading',
         value: '__heading-native__',
         label: {
-          primary:
-            'Natively supported providers (✔ Spool custom slash commands available)',
+          primary: 'Natively supported providers (✔ Spool custom slash commands available)',
         },
         selectable: false,
       },
@@ -735,20 +659,19 @@ export class InitCommand {
   ): Promise<Record<string, boolean>> {
     // Fresh initialization - no tools configured yet
     if (!extendMode) {
-      return Object.fromEntries(AI_TOOLS.map(t => [t.value, false]));
+      return Object.fromEntries(AI_TOOLS.map((t) => [t.value, false]));
     }
 
     // Extend mode - check all tools in parallel for better performance
     const entries = await Promise.all(
-      AI_TOOLS.map(async (t) => [t.value, await this.isToolConfigured(projectPath, t.value)] as const)
+      AI_TOOLS.map(
+        async (t) => [t.value, await this.isToolConfigured(projectPath, t.value)] as const
+      )
     );
     return Object.fromEntries(entries);
   }
 
-  private async isToolConfigured(
-    projectPath: string,
-    toolId: string
-  ): Promise<boolean> {
+  private async isToolConfigured(projectPath: string, toolId: string): Promise<boolean> {
     // A tool is only considered "configured by Spool" if its files contain Spool markers.
     // For tools with both config files and slash commands, BOTH must have markers.
     // For slash commands, at least one file with markers is sufficient (not all required).
@@ -770,7 +693,8 @@ export class InitCommand {
     const configFile = ToolRegistry.get(toolId)?.configFileName;
     if (configFile) {
       const configPath = path.join(projectPath, configFile);
-      hasConfigFile = (await FileSystemUtils.fileExists(configPath)) && (await fileHasMarkers(configPath));
+      hasConfigFile =
+        (await FileSystemUtils.fileExists(configPath)) && (await fileHasMarkers(configPath));
     }
 
     // Check if any slash command file exists with Spool markers
@@ -825,17 +749,11 @@ export class InitCommand {
     }
   }
 
-  private async generateFiles(
-    spoolPath: string,
-    config: SpoolConfig
-  ): Promise<void> {
+  private async generateFiles(spoolPath: string, config: SpoolConfig): Promise<void> {
     await this.writeTemplateFiles(spoolPath, config, false);
   }
 
-  private async ensureTemplateFiles(
-    spoolPath: string,
-    config: SpoolConfig
-  ): Promise<void> {
+  private async ensureTemplateFiles(spoolPath: string, config: SpoolConfig): Promise<void> {
     await this.writeTemplateFiles(spoolPath, config, true);
   }
 
@@ -866,9 +784,7 @@ export class InitCommand {
       }
 
       const content =
-        typeof template.content === 'function'
-          ? template.content(context)
-          : template.content;
+        typeof template.content === 'function' ? template.content(context) : template.content;
 
       await FileSystemUtils.writeFile(filePath, content);
     }
@@ -883,9 +799,7 @@ export class InitCommand {
       }
 
       const content =
-        typeof template.content === 'function'
-          ? template.content({})
-          : template.content;
+        typeof template.content === 'function' ? template.content({}) : template.content;
 
       await FileSystemUtils.writeFile(filePath, content);
     }
@@ -896,10 +810,7 @@ export class InitCommand {
     spoolDir: string,
     toolIds: string[]
   ): Promise<RootStubStatus> {
-    const rootStubStatus = await this.configureRootAgentsStub(
-      projectPath,
-      spoolDir
-    );
+    const rootStubStatus = await this.configureRootAgentsStub(projectPath, spoolDir);
 
     for (const toolId of toolIds) {
       const configurator = ToolRegistry.get(toolId);
@@ -1000,9 +911,7 @@ export class InitCommand {
           )}`
         : null,
       created.length
-        ? `${PALETTE.white('▌')} ${PALETTE.white(
-            'Created:'
-          )} ${this.formatToolNames(created)}`
+        ? `${PALETTE.white('▌')} ${PALETTE.white('Created:')} ${this.formatToolNames(created)}`
         : null,
       refreshed.length
         ? `${PALETTE.lightGray('▌')} ${PALETTE.lightGray(
@@ -1026,9 +935,7 @@ export class InitCommand {
 
     console.log();
     console.log(
-      PALETTE.midGray(
-        'Use `spool update` to refresh shared Spool instructions in the future.'
-      )
+      PALETTE.midGray('Use `spool update` to refresh shared Spool instructions in the future.')
     );
 
     // Show restart instruction if any tools were configured
@@ -1041,9 +948,7 @@ export class InitCommand {
         )
       );
       console.log(
-        PALETTE.midGray(
-          'to ensure the new /spool commands appear in your command palette.'
-        )
+        PALETTE.midGray('to ensure the new /spool commands appear in your command palette.')
       );
     }
 
@@ -1052,43 +957,23 @@ export class InitCommand {
 
     console.log();
     console.log(`Next steps - Copy these prompts to ${toolName}:`);
-    console.log(
-      chalk.gray('────────────────────────────────────────────────────────────')
-    );
+    console.log(chalk.gray('────────────────────────────────────────────────────────────'));
     console.log(PALETTE.white('1. Populate your project context:'));
     console.log(
-      PALETTE.lightGray(
-        `   "Please read ${spoolDir}/project.md and help me fill it out`
-      )
+      PALETTE.lightGray(`   "Please read ${spoolDir}/project.md and help me fill it out`)
     );
     console.log(
-      PALETTE.lightGray(
-        '    with details about my project, tech stack, and conventions"\n'
-      )
+      PALETTE.lightGray('    with details about my project, tech stack, and conventions"\n')
     );
     console.log(PALETTE.white('2. Create your first change proposal:'));
-    console.log(
-      PALETTE.lightGray(
-        '   "I want to add [YOUR FEATURE HERE]. Please create an'
-      )
-    );
-    console.log(
-      PALETTE.lightGray('    Spool change proposal for this feature"\n')
-    );
+    console.log(PALETTE.lightGray('   "I want to add [YOUR FEATURE HERE]. Please create an'));
+    console.log(PALETTE.lightGray('    Spool change proposal for this feature"\n'));
     console.log(PALETTE.white('3. Learn the Spool workflow:'));
     console.log(
-      PALETTE.lightGray(
-        `   "Please explain the Spool workflow from ${spoolDir}/AGENTS.md`
-      )
+      PALETTE.lightGray(`   "Please explain the Spool workflow from ${spoolDir}/AGENTS.md`)
     );
-    console.log(
-      PALETTE.lightGray('    and how I should work with you on this project"')
-    );
-    console.log(
-      PALETTE.darkGray(
-        '────────────────────────────────────────────────────────────\n'
-      )
-    );
+    console.log(PALETTE.lightGray('    and how I should work with you on this project"'));
+    console.log(PALETTE.darkGray('────────────────────────────────────────────────────────────\n'));
 
     // Codex heads-up: prompts installed globally
     const selectedToolIds = new Set(selectedTools.map((t) => t.value));
@@ -1106,8 +991,7 @@ export class InitCommand {
       .map((tool) => tool.successLabel ?? tool.name)
       .filter((name): name is string => Boolean(name));
 
-    if (names.length === 0)
-      return PALETTE.lightGray('your AGENTS.md-compatible assistant');
+    if (names.length === 0) return PALETTE.lightGray('your AGENTS.md-compatible assistant');
     if (names.length === 1) return PALETTE.white(names[0]);
 
     const base = names.slice(0, -1).map((name) => PALETTE.white(name));

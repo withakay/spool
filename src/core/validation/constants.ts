@@ -30,19 +30,20 @@ export const VALIDATION_MESSAGES = {
   CHANGE_TOO_MANY_DELTAS: `Consider splitting changes with more than ${MAX_DELTAS_PER_CHANGE} deltas`,
   DELTA_SPEC_EMPTY: 'Spec name cannot be empty',
   DELTA_DESCRIPTION_EMPTY: 'Delta description cannot be empty',
-  
+
   // Warnings
   PURPOSE_TOO_BRIEF: `Purpose section is too brief (less than ${MIN_PURPOSE_LENGTH} characters)`,
   REQUIREMENT_TOO_LONG: `Requirement text is very long (>${MAX_REQUIREMENT_TEXT_LENGTH} characters). Consider breaking it down.`,
   DELTA_DESCRIPTION_TOO_BRIEF: 'Delta description is too brief',
   DELTA_MISSING_REQUIREMENTS: 'Delta should include requirements',
-  
+
   // Module validation messages
   MODULE_NAME_EMPTY: 'Module name cannot be empty',
   MODULE_NAME_INVALID: 'Module folder must be NNN_kebab-name format (e.g., 001_project-setup)',
   MODULE_PURPOSE_EMPTY: 'Module must have a Purpose section',
   MODULE_PURPOSE_TOO_SHORT: `Module purpose must be at least ${MIN_MODULE_PURPOSE_LENGTH} characters`,
-  MODULE_SCOPE_EMPTY: 'Module must have a Scope section with at least one capability (use "*" for unrestricted)',
+  MODULE_SCOPE_EMPTY:
+    'Module must have a Scope section with at least one capability (use "*" for unrestricted)',
   MODULE_DEPENDENCY_INVALID: 'Module dependency must be a valid module ID (3 digits)',
   MODULE_DEPENDENCY_NOT_FOUND: 'Dependent module does not exist',
   MODULE_DEPENDENCY_CIRCULAR: 'Circular module dependency detected',
@@ -66,5 +67,5 @@ export const VALIDATION_MESSAGES = {
   GUIDE_SCENARIO_FORMAT:
     'Scenarios must use level-4 headers. Convert bullet lists into:\n#### Scenario: Short name\n- **WHEN** ...\n- **THEN** ...\n- **AND** ...',
   GUIDE_MODULE_SCOPE:
-    'Add the capability to the module\'s ## Scope section, or move the change to a different module.',
+    "Add the capability to the module's ## Scope section, or move the change to a different module.",
 } as const;

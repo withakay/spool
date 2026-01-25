@@ -22,15 +22,11 @@ describe('instruction-loader', () => {
     });
 
     it('should throw TemplateLoadError for non-existent template', () => {
-      expect(() => loadTemplate('spec-driven', 'nonexistent.md')).toThrow(
-        TemplateLoadError
-      );
+      expect(() => loadTemplate('spec-driven', 'nonexistent.md')).toThrow(TemplateLoadError);
     });
 
     it('should throw TemplateLoadError for non-existent schema', () => {
-      expect(() => loadTemplate('nonexistent-schema', 'proposal.md')).toThrow(
-        TemplateLoadError
-      );
+      expect(() => loadTemplate('nonexistent-schema', 'proposal.md')).toThrow(TemplateLoadError);
     });
 
     it('should include template path in error', () => {
@@ -219,11 +215,11 @@ describe('instruction-loader', () => {
       expect(status.isComplete).toBe(false);
 
       // proposal has no deps, should be ready
-      const proposal = status.artifacts.find(a => a.id === 'proposal');
+      const proposal = status.artifacts.find((a) => a.id === 'proposal');
       expect(proposal?.status).toBe('ready');
 
       // specs depends on proposal, should be blocked
-      const specs = status.artifacts.find(a => a.id === 'specs');
+      const specs = status.artifacts.find((a) => a.id === 'specs');
       expect(specs?.status).toBe('blocked');
       expect(specs?.missingDeps).toContain('proposal');
     });
@@ -236,11 +232,11 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const status = formatChangeStatus(context);
 
-      const proposal = status.artifacts.find(a => a.id === 'proposal');
+      const proposal = status.artifacts.find((a) => a.id === 'proposal');
       expect(proposal?.status).toBe('done');
 
       // specs should now be ready
-      const specs = status.artifacts.find(a => a.id === 'specs');
+      const specs = status.artifacts.find((a) => a.id === 'specs');
       expect(specs?.status).toBe('ready');
     });
 
@@ -248,10 +244,10 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const status = formatChangeStatus(context);
 
-      const proposal = status.artifacts.find(a => a.id === 'proposal');
+      const proposal = status.artifacts.find((a) => a.id === 'proposal');
       expect(proposal?.outputPath).toBe('proposal.md');
 
-      const specs = status.artifacts.find(a => a.id === 'specs');
+      const specs = status.artifacts.find((a) => a.id === 'specs');
       expect(specs?.outputPath).toBe('specs/**/*.md');
     });
 
@@ -270,7 +266,7 @@ describe('instruction-loader', () => {
       const status = formatChangeStatus(context);
 
       expect(status.isComplete).toBe(true);
-      expect(status.artifacts.every(a => a.status === 'done')).toBe(true);
+      expect(status.artifacts.every((a) => a.status === 'done')).toBe(true);
     });
 
     it('should show blocked artifacts with missing dependencies', () => {
@@ -278,7 +274,7 @@ describe('instruction-loader', () => {
       const status = formatChangeStatus(context);
 
       // tasks requires specs and design
-      const tasks = status.artifacts.find(a => a.id === 'tasks');
+      const tasks = status.artifacts.find((a) => a.id === 'tasks');
       expect(tasks?.status).toBe('blocked');
       expect(tasks?.missingDeps).toContain('specs');
       expect(tasks?.missingDeps).toContain('design');
@@ -288,7 +284,7 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const status = formatChangeStatus(context);
 
-      const ids = status.artifacts.map(a => a.id);
+      const ids = status.artifacts.map((a) => a.id);
       const proposalIdx = ids.indexOf('proposal');
       const specsIdx = ids.indexOf('specs');
       const tasksIdx = ids.indexOf('tasks');

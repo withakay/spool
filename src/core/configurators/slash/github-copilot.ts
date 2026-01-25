@@ -8,7 +8,7 @@ const FILE_PATHS: Record<SlashCommandId, string> = {
   archive: '.github/prompts/spool-archive.prompt.md',
   research: '.github/prompts/spool-research.prompt.md',
   review: '.github/prompts/spool-review.prompt.md',
-  spool: '.github/prompts/spool.prompt.md'
+  spool: '.github/prompts/spool.prompt.md',
 };
 
 const FRONTMATTER: Record<SlashCommandId, string> = {
@@ -41,9 +41,8 @@ const FRONTMATTER: Record<SlashCommandId, string> = {
  description: Route spool commands via the spool skill (skill-first, CLI fallback).
  ---
  
- $ARGUMENTS`
+ $ARGUMENTS`,
 };
-
 
 export class GitHubCopilotSlashCommandConfigurator extends SlashCommandConfigurator {
   readonly toolId = 'github-copilot';

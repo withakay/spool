@@ -61,7 +61,12 @@ export class PowerShellInstaller {
         // PowerShell Core 6+ (cross-platform)
         path.join(this.homeDir, 'Documents', 'PowerShell', 'Microsoft.PowerShell_profile.ps1'),
         // Windows PowerShell 5.1 (Windows-only)
-        path.join(this.homeDir, 'Documents', 'WindowsPowerShell', 'Microsoft.PowerShell_profile.ps1'),
+        path.join(
+          this.homeDir,
+          'Documents',
+          'WindowsPowerShell',
+          'Microsoft.PowerShell_profile.ps1'
+        ),
       ];
     } else {
       // Unix systems: PowerShell Core only

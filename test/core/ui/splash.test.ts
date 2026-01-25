@@ -15,7 +15,7 @@ describe('getSplash', () => {
   it('fits within 80 columns', () => {
     const splash = getSplash();
     const lines = splash.split('\n');
-    
+
     for (const line of lines) {
       // Check length including potential ANSI codes if any (though currently plain text)
       // For strict visual length, we might strip ANSI, but here raw length check is safe upper bound

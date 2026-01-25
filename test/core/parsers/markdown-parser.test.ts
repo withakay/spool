@@ -29,15 +29,15 @@ Then they see an error message`;
 
       const parser = new MarkdownParser(content);
       const spec = parser.parseSpec('user-auth');
-      
+
       expect(spec.name).toBe('user-auth');
       expect(spec.overview).toContain('requirements for user authentication');
       expect(spec.requirements).toHaveLength(2);
-      
+
       const firstReq = spec.requirements[0];
       expect(firstReq.text).toBe('Users need to be able to log in securely.');
       expect(firstReq.scenarios).toHaveLength(1);
-      
+
       const scenario = firstReq.scenarios[0];
       expect(scenario.rawText).toContain('Given a user with valid credentials');
       expect(scenario.rawText).toContain('When they submit the login form');
@@ -67,7 +67,7 @@ Then they are authenticated
 
       const parser = new MarkdownParser(content);
       const spec = parser.parseSpec('test');
-      
+
       const scenario = spec.requirements[0].scenarios[0];
       expect(scenario.rawText).toContain('Given a user with valid credentials');
       expect(scenario.rawText).toContain('and the user has admin privileges');
@@ -118,19 +118,19 @@ We need to implement user authentication to secure the application and protect u
 
       const parser = new MarkdownParser(content);
       const change = parser.parseChange('add-user-auth');
-      
+
       expect(change.name).toBe('add-user-auth');
       expect(change.why).toContain('secure the application');
       expect(change.whatChanges).toContain('user-auth');
       expect(change.deltas).toHaveLength(3);
-      
+
       expect(change.deltas[0].spec).toBe('user-auth');
       expect(change.deltas[0].operation).toBe('ADDED');
       expect(change.deltas[0].description).toContain('Add new user authentication');
-      
+
       expect(change.deltas[1].spec).toBe('api-endpoints');
       expect(change.deltas[1].operation).toBe('MODIFIED');
-      
+
       expect(change.deltas[2].spec).toBe('database');
       expect(change.deltas[2].operation).toBe('REMOVED');
     });
@@ -166,7 +166,7 @@ Some general description of changes without specific deltas`;
 
       const parser = new MarkdownParser(content);
       const change = parser.parseChange('test');
-      
+
       expect(change.deltas).toHaveLength(0);
     });
 
@@ -215,7 +215,7 @@ Then success`;
 
       const parser = new MarkdownParser(content);
       const spec = parser.parseSpec('test');
-      
+
       // Should find the correct sections at different levels
       expect(spec).toBeDefined();
       expect(spec.overview).toContain('testing nested sections');
@@ -238,7 +238,7 @@ Content for requirement 1`;
 
       const parser = new MarkdownParser(content);
       const spec = parser.parseSpec('test');
-      
+
       expect(spec.overview).toContain('multiple lines');
       expect(spec.overview).toContain('more content');
     });
@@ -260,7 +260,7 @@ Then result`;
 
       const parser = new MarkdownParser(content);
       const spec = parser.parseSpec('test');
-      
+
       expect(spec.requirements[0].text).toBe('The system SHALL use heading text when no content');
     });
 
@@ -284,7 +284,7 @@ Then result`;
 
       const parser = new MarkdownParser(content);
       const spec = parser.parseSpec('test');
-      
+
       expect(spec.requirements[0].text).toBe('This is the actual requirement text.');
     });
   });

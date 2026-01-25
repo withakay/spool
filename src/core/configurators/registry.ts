@@ -26,6 +26,6 @@ export class ToolRegistry {
   }
 
   static getAvailable(): ToolConfigurator[] {
-    return this.getAll().filter(tool => tool.isAvailable);
+    return this.getAll().filter((tool) => tool.isAvailable);
   }
 }

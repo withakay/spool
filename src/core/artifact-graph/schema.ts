@@ -26,7 +26,7 @@ export function parseSchema(yamlContent: string): SchemaYaml {
   // Validate with Zod
   const result = SchemaYamlSchema.safeParse(parsed);
   if (!result.success) {
-    const errors = result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+    const errors = result.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
     throw new SchemaValidationError(`Invalid schema: ${errors}`);
   }
 
@@ -61,7 +61,7 @@ function validateNoDuplicateIds(artifacts: Artifact[]): void {
  * Validates that all `requires` references point to valid artifact IDs.
  */
 function validateRequiresReferences(artifacts: Artifact[]): void {
-  const validIds = new Set(artifacts.map(a => a.id));
+  const validIds = new Set(artifacts.map((a) => a.id));
 
   for (const artifact of artifacts) {
     for (const req of artifact.requires) {
@@ -79,7 +79,7 @@ function validateRequiresReferences(artifacts: Artifact[]): void {
  * Uses DFS to detect cycles and reports the full cycle path.
  */
 function validateNoCycles(artifacts: Artifact[]): void {
-  const artifactMap = new Map(artifacts.map(a => [a.id, a]));
+  const artifactMap = new Map(artifacts.map((a) => [a.id, a]));
   const visited = new Set<string>();
   const inStack = new Set<string>();
   const parent = new Map<string, string>();

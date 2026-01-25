@@ -11,20 +11,23 @@ const CHANGE_FLAG_KEYS = new Set(['deltasOnly', 'requirementsOnly']);
 const SPEC_FLAG_KEYS = new Set(['requirements', 'scenarios', 'requirement']);
 
 export class ShowCommand {
-  async execute(itemName?: string, options: { json?: boolean; type?: string; noInteractive?: boolean; [k: string]: any } = {}): Promise<void> {
+  async execute(
+    itemName?: string,
+    options: { json?: boolean; type?: string; noInteractive?: boolean; [k: string]: any } = {}
+  ): Promise<void> {
     const interactive = isInteractive(options);
     const typeOverride = this.normalizeType(options.type);
 
     if (!itemName) {
       if (interactive) {
-        const { select } = await import('@inquirer/prompts');
-        const type = await select<ItemType>({
+        const { select } = (await import('@inquirer/' + 'prompts')) as any;
+        const type = (await select({
           message: 'What would you like to show?',
           choices: [
             { name: 'Change', value: 'change' as const },
             { name: 'Spec', value: 'spec' as const },
           ],
-        });
+        })) as ItemType;
         await this.runInteractiveByType(type, options);
         return;
       }
@@ -43,8 +46,11 @@ export class ShowCommand {
     return undefined;
   }
 
-  private async runInteractiveByType(type: ItemType, options: { json?: boolean; noInteractive?: boolean; [k: string]: any }): Promise<void> {
-    const { select } = await import('@inquirer/prompts');
+  private async runInteractiveByType(
+    type: ItemType,
+    options: { json?: boolean; noInteractive?: boolean; [k: string]: any }
+  ): Promise<void> {
+    const { select } = (await import('@inquirer/' + 'prompts')) as any;
     if (type === 'change') {
       const changes = await getActiveChangeIds();
       if (changes.length === 0) {
@@ -52,7 +58,10 @@ export class ShowCommand {
         process.exitCode = 1;
         return;
       }
-      const picked = await select<string>({ message: 'Pick a change', choices: changes.map(id => ({ name: id, value: id })) });
+      const picked = (await select({
+        message: 'Pick a change',
+        choices: changes.map((id) => ({ name: id, value: id })),
+      })) as string;
       const cmd = new ChangeCommand();
       await cmd.show(picked, options as any);
       return;
@@ -64,12 +73,18 @@ export class ShowCommand {
       process.exitCode = 1;
       return;
     }
-    const picked = await select<string>({ message: 'Pick a spec', choices: specs.map(id => ({ name: id, value: id })) });
+    const picked = (await select({
+      message: 'Pick a spec',
+      choices: specs.map((id) => ({ name: id, value: id })),
+    })) as string;
     const cmd = new SpecCommand();
     await cmd.show(picked, options as any);
   }
 
-  private async showDirect(itemName: string, params: { typeOverride?: ItemType; options: { json?: boolean; [k: string]: any } }): Promise<void> {
+  private async showDirect(
+    itemName: string,
+    params: { typeOverride?: ItemType; options: { json?: boolean; [k: string]: any } }
+  ): Promise<void> {
     // Optimize lookups when type is pre-specified
     let isChange = false;
     let isSpec = false;
@@ -99,7 +114,9 @@ export class ShowCommand {
 
     if (!params.typeOverride && isChange && isSpec) {
       console.error(`Ambiguous item '${itemName}' matches both a change and a spec.`);
-      console.error('Pass --type change|spec, or use: spool show <item> --type change / spool show <item> --type spec');
+      console.error(
+        'Pass --type change|spec, or use: spool show <item> --type change / spool show <item> --type spec'
+      );
       process.exitCode = 1;
       return;
     }

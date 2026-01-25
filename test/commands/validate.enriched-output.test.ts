@@ -10,7 +10,6 @@ describe('validate command enriched human output', () => {
   const changesDir = getChangesPath(testDir);
   const bin = path.join(projectRoot, 'bin', 'spool.js');
 
-
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
   });
@@ -24,7 +23,9 @@ describe('validate command enriched human output', () => {
     const changeId = 'c-next-steps';
     const changePath = path.join(changesDir, changeId);
     execSync(`mkdir -p ${changePath}`);
-    execSync(`bash -lc "cat > ${path.join(changePath, 'proposal.md')} <<'EOF'\n${changeContent}\nEOF"`);
+    execSync(
+      `bash -lc "cat > ${path.join(changePath, 'proposal.md')} <<'EOF'\n${changeContent}\nEOF"`
+    );
 
     const originalCwd = process.cwd();
     try {
@@ -46,5 +47,3 @@ describe('validate command enriched human output', () => {
     }
   });
 });
-
-

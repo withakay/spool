@@ -27,7 +27,7 @@ Implement tasks from a completed Spool change proposal.
 
 3. **Get implementation context**
    ```bash
-   spool x-instructions apply --change "<change-id>" --json
+   spool agent instruction apply --change "<change-id>" --json
    ```
    - This returns context files, task list, and progress
    - Parse the JSON to understand the current state

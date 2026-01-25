@@ -38,14 +38,14 @@ describe('ViewCommand', () => {
 
     // Change with tasks.md but no tasks - should show in Draft
     await fs.mkdir(path.join(changesDir, 'no-tasks-change'), { recursive: true });
-    await fs.writeFile(path.join(changesDir, 'no-tasks-change', 'tasks.md'), '# Tasks\n\nNo tasks yet.');
+    await fs.writeFile(
+      path.join(changesDir, 'no-tasks-change', 'tasks.md'),
+      '# Tasks\n\nNo tasks yet.'
+    );
 
     // Change with all tasks complete - should show in Completed
     await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
-    await fs.writeFile(
-      path.join(changesDir, 'completed-change', 'tasks.md'),
-      '- [x] Done task\n'
-    );
+    await fs.writeFile(path.join(changesDir, 'completed-change', 'tasks.md'), '- [x] Done task\n');
 
     const viewCommand = new ViewCommand();
     await viewCommand.execute(tempDir);
@@ -62,17 +62,13 @@ describe('ViewCommand', () => {
     expect(output).toContain('completed-change');
 
     // Verify empty-change and no-tasks-change are in Draft section (marked with ○)
-    const draftLines = logOutput
-      .map(stripAnsi)
-      .filter((line) => line.includes('○'));
+    const draftLines = logOutput.map(stripAnsi).filter((line) => line.includes('○'));
     const draftNames = draftLines.map((line) => line.trim().replace('○ ', ''));
     expect(draftNames).toContain('empty-change');
     expect(draftNames).toContain('no-tasks-change');
 
     // Verify completed-change is in Completed section (marked with ✓)
-    const completedLines = logOutput
-      .map(stripAnsi)
-      .filter((line) => line.includes('✓'));
+    const completedLines = logOutput.map(stripAnsi).filter((line) => line.includes('✓'));
     const completedNames = completedLines.map((line) => line.trim().replace('✓ ', ''));
     expect(completedNames).toContain('completed-change');
     expect(completedNames).not.toContain('empty-change');
@@ -110,21 +106,13 @@ describe('ViewCommand', () => {
     const viewCommand = new ViewCommand();
     await viewCommand.execute(tempDir);
 
-    const activeLines = logOutput
-      .map(stripAnsi)
-      .filter(line => line.includes('◉'));
+    const activeLines = logOutput.map(stripAnsi).filter((line) => line.includes('◉'));
 
-    const activeOrder = activeLines.map(line => {
+    const activeOrder = activeLines.map((line) => {
       const afterBullet = line.split('◉')[1] ?? '';
       return afterBullet.split('[')[0]?.trim();
     });
 
-    expect(activeOrder).toEqual([
-      'alpha-change',
-      'beta-change',
-      'delta-change',
-      'gamma-change'
-    ]);
+    expect(activeOrder).toEqual(['alpha-change', 'beta-change', 'delta-change', 'gamma-change']);
   });
 });
-

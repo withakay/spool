@@ -77,7 +77,11 @@ function formatRelativeTime(date: Date): string {
 }
 
 export class ListCommand {
-  async execute(targetPath: string = '.', mode: 'changes' | 'specs' | 'modules' = 'changes', options: ListOptions = {}): Promise<void> {
+  async execute(
+    targetPath: string = '.',
+    mode: 'changes' | 'specs' | 'modules' = 'changes',
+    options: ListOptions = {}
+  ): Promise<void> {
     const { sort = 'recent', json = false } = options;
 
     if (mode === 'changes') {
@@ -93,8 +97,8 @@ export class ListCommand {
       // Get all directories in changes (excluding archive)
       const entries = await fs.readdir(changesDir, { withFileTypes: true });
       const changeDirs = entries
-        .filter(entry => entry.isDirectory() && entry.name !== 'archive')
-        .map(entry => entry.name);
+        .filter((entry) => entry.isDirectory() && entry.name !== 'archive')
+        .map((entry) => entry.name);
 
       if (changeDirs.length === 0) {
         if (json) {
@@ -116,7 +120,7 @@ export class ListCommand {
           name: changeDir,
           completedTasks: progress.completed,
           totalTasks: progress.total,
-          lastModified
+          lastModified,
         });
       }
 
@@ -129,12 +133,17 @@ export class ListCommand {
 
       // JSON output for programmatic use
       if (json) {
-        const jsonOutput = changes.map(c => ({
+        const jsonOutput = changes.map((c) => ({
           name: c.name,
           completedTasks: c.completedTasks,
           totalTasks: c.totalTasks,
           lastModified: c.lastModified.toISOString(),
-          status: c.totalTasks === 0 ? 'no-tasks' : c.completedTasks === c.totalTasks ? 'complete' : 'in-progress'
+          status:
+            c.totalTasks === 0
+              ? 'no-tasks'
+              : c.completedTasks === c.totalTasks
+                ? 'complete'
+                : 'in-progress',
         }));
         console.log(JSON.stringify({ changes: jsonOutput }, null, 2));
         return;
@@ -143,10 +152,13 @@ export class ListCommand {
       // Display results
       console.log('Changes:');
       const padding = '  ';
-      const nameWidth = Math.max(...changes.map(c => c.name.length));
+      const nameWidth = Math.max(...changes.map((c) => c.name.length));
       for (const change of changes) {
         const paddedName = change.name.padEnd(nameWidth);
-        const status = formatTaskStatus({ total: change.totalTasks, completed: change.completedTasks });
+        const status = formatTaskStatus({
+          total: change.totalTasks,
+          completed: change.completedTasks,
+        });
         const timeAgo = formatRelativeTime(change.lastModified);
         console.log(`${padding}${paddedName}     ${status.padEnd(12)}  ${timeAgo}`);
       }
@@ -184,9 +196,7 @@ export class ListCommand {
       for (const m of modules) {
         const changes = await getChangesForModule(m.id, root);
         const changeInfo =
-          changes.length > 0
-            ? ` (${changes.length} change${changes.length !== 1 ? 's' : ''})`
-            : '';
+          changes.length > 0 ? ` (${changes.length} change${changes.length !== 1 ? 's' : ''})` : '';
         console.log(`  ${m.fullName}${changeInfo}`);
       }
       console.log();
@@ -203,7 +213,7 @@ export class ListCommand {
     }
 
     const entries = await fs.readdir(specsDir, { withFileTypes: true });
-    const specDirs = entries.filter(e => e.isDirectory()).map(e => e.name);
+    const specDirs = entries.filter((e) => e.isDirectory()).map((e) => e.name);
     if (specDirs.length === 0) {
       console.log('No specs found.');
       return;
@@ -235,7 +245,7 @@ export class ListCommand {
     specs.sort((a, b) => a.id.localeCompare(b.id));
     console.log('Specs:');
     const padding = '  ';
-    const nameWidth = Math.max(...specs.map(s => s.id.length));
+    const nameWidth = Math.max(...specs.map((s) => s.id.length));
     for (const spec of specs) {
       const padded = spec.id.padEnd(nameWidth);
       console.log(`${padding}${padded}     requirements ${spec.requirementCount}`);

@@ -36,7 +36,6 @@ describe('spool CLI e2e basics', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Usage: spool');
     expect(result.stderr).toBe('');
-
   });
 
   it('shows dynamic tool ids in init help', async () => {
@@ -94,14 +93,8 @@ describe('spool CLI e2e basics', () => {
 
       // Check that tool configurations were created
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const openCodeProposal = path.join(
-        emptyProjectDir,
-        '.opencode/command/spool-proposal.md'
-      );
-      const codexProposal = path.join(
-        emptyProjectDir,
-        '.codex/prompts/spool-proposal.md'
-      );
+      const openCodeProposal = path.join(emptyProjectDir, '.opencode/command/spool-proposal.md');
+      const codexProposal = path.join(emptyProjectDir, '.codex/prompts/spool-proposal.md');
       const copilotProposal = path.join(
         emptyProjectDir,
         '.github/prompts/spool-proposal.prompt.md'
@@ -122,10 +115,7 @@ describe('spool CLI e2e basics', () => {
       expect(result.stdout).toContain('Tool summary:');
 
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const openCodeProposal = path.join(
-        emptyProjectDir,
-        '.opencode/command/spool-proposal.md'
-      );
+      const openCodeProposal = path.join(emptyProjectDir, '.opencode/command/spool-proposal.md');
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(openCodeProposal)).toBe(false); // Not selected
     });
@@ -140,10 +130,7 @@ describe('spool CLI e2e basics', () => {
       expect(result.stdout).toContain('Tool summary:');
 
       const claudePath = path.join(emptyProjectDir, 'CLAUDE.md');
-      const openCodeProposal = path.join(
-        emptyProjectDir,
-        '.opencode/command/spool-proposal.md'
-      );
+      const openCodeProposal = path.join(emptyProjectDir, '.opencode/command/spool-proposal.md');
       const rootAgentsPath = path.join(emptyProjectDir, 'AGENTS.md');
 
       expect(await fileExists(rootAgentsPath)).toBe(true);
@@ -169,7 +156,9 @@ describe('spool CLI e2e basics', () => {
 
       const result = await runCLI(['init', '--tools', 'all,claude'], { cwd: emptyProjectDir });
       expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain('Cannot combine reserved values "all" or "none" with specific tool IDs');
+      expect(result.stderr).toContain(
+        'Cannot combine reserved values "all" or "none" with specific tool IDs'
+      );
     });
   });
 });

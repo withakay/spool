@@ -36,10 +36,7 @@ export class StateCommand {
     console.log(content);
   }
 
-  async addDecision(
-    text: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async addDecision(text: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
@@ -50,11 +47,7 @@ export class StateCommand {
     const entry = `- ${date}: ${text}`;
 
     // Find the "## Recent Decisions" section and add the entry
-    const updatedContent = this.insertAfterSection(
-      content,
-      '## Recent Decisions',
-      entry
-    );
+    const updatedContent = this.insertAfterSection(content, '## Recent Decisions', entry);
 
     await FileSystemUtils.writeFile(statePath, updatedContent);
     await this.updateLastUpdated(statePath);
@@ -62,10 +55,7 @@ export class StateCommand {
     ora().succeed(chalk.green(`Decision recorded: ${text}`));
   }
 
-  async addBlocker(
-    text: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async addBlocker(text: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
@@ -90,10 +80,7 @@ export class StateCommand {
     ora().succeed(chalk.green(`Blocker recorded: ${text}`));
   }
 
-  async addNote(
-    text: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async addNote(text: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
@@ -114,11 +101,7 @@ export class StateCommand {
     } else {
       // Create new session section
       const sessionEntry = `### ${date} Session\n- ${timestamp.split(' ')[1]}: ${text}`;
-      updatedContent = this.insertAfterSection(
-        content,
-        '## Session Notes',
-        sessionEntry
-      );
+      updatedContent = this.insertAfterSection(content, '## Session Notes', sessionEntry);
     }
 
     await FileSystemUtils.writeFile(statePath, updatedContent);
@@ -127,10 +110,7 @@ export class StateCommand {
     ora().succeed(chalk.green(`Note recorded: ${text}`));
   }
 
-  async setFocus(
-    text: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async setFocus(text: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
@@ -148,10 +128,7 @@ export class StateCommand {
     ora().succeed(chalk.green(`Focus updated: ${text}`));
   }
 
-  async addQuestion(
-    text: string,
-    projectPath: string = '.'
-  ): Promise<void> {
+  async addQuestion(text: string, projectPath: string = '.'): Promise<void> {
     const resolvedPath = path.resolve(projectPath);
     const statePath = await this.getStatePath(resolvedPath);
 
@@ -160,11 +137,7 @@ export class StateCommand {
     const content = await FileSystemUtils.readFile(statePath);
     const entry = `- [ ] ${text}`;
 
-    const updatedContent = this.insertAfterSection(
-      content,
-      '## Open Questions',
-      entry
-    );
+    const updatedContent = this.insertAfterSection(content, '## Open Questions', entry);
 
     await FileSystemUtils.writeFile(statePath, updatedContent);
     await this.updateLastUpdated(statePath);
@@ -172,15 +145,9 @@ export class StateCommand {
     ora().succeed(chalk.green(`Question added: ${text}`));
   }
 
-  private insertAfterSection(
-    content: string,
-    sectionHeader: string,
-    entry: string
-  ): string {
+  private insertAfterSection(content: string, sectionHeader: string, entry: string): string {
     const lines = content.split('\n');
-    const sectionIndex = lines.findIndex((line) =>
-      line.startsWith(sectionHeader)
-    );
+    const sectionIndex = lines.findIndex((line) => line.startsWith(sectionHeader));
 
     if (sectionIndex === -1) {
       // Section not found, append at the end before "---" divider or at the very end
@@ -210,10 +177,7 @@ export class StateCommand {
     const content = await FileSystemUtils.readFile(statePath);
     const date = this.getCurrentDate();
 
-    const updatedContent = content.replace(
-      /Last Updated: .*/,
-      `Last Updated: ${date}`
-    );
+    const updatedContent = content.replace(/Last Updated: .*/, `Last Updated: ${date}`);
 
     await FileSystemUtils.writeFile(statePath, updatedContent);
   }

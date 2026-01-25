@@ -101,7 +101,7 @@ const DEFAULT_CONFIG: AgentConfig = {
       context_limits: {
         'gpt-4o': 128000,
         'gpt-4o-mini': 128000,
-        'o1': 200000,
+        o1: 200000,
       },
     },
     'claude-code': {
@@ -127,7 +127,7 @@ const DEFAULT_CONFIG: AgentConfig = {
       context_limits: {
         'gpt-4o': 128000,
         'gpt-4o-mini': 128000,
-        'o1': 200000,
+        o1: 200000,
       },
     },
   },
@@ -155,14 +155,8 @@ const DEFAULT_CONFIG: AgentConfig = {
   },
   context_strategy: {
     overflow_handling: 'summarize',
-    always_include: [
-      '.spool/planning/STATE.md',
-      '.spool/planning/PROJECT.md',
-    ],
-    priority_files: [
-      '.spool/planning/ROADMAP.md',
-      '.spool/research/SUMMARY.md',
-    ],
+    always_include: ['.spool/planning/STATE.md', '.spool/planning/PROJECT.md'],
+    priority_files: ['.spool/planning/ROADMAP.md', '.spool/research/SUMMARY.md'],
   },
 };
 
@@ -198,10 +192,7 @@ export class AgentConfigManager {
       lineWidth: 0,
     });
     const spoolDir = getSpoolDirName(projectPath);
-    const normalized = replaceHardcodedDotSpoolPaths(
-      content,
-      spoolDir
-    );
+    const normalized = replaceHardcodedDotSpoolPaths(content, spoolDir);
 
     await FileSystemUtils.writeFile(configPath, normalized);
     this.config = configToSave;

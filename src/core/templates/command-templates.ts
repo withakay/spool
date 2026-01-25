@@ -46,7 +46,9 @@ List alternatives and when they might be preferred.
 Include links to documentation, benchmarks, or comparisons consulted.
 `;
 
-export const researchFeaturesPrompt = (context: CommandContext = {}) => `# Feature Landscape Research
+export const researchFeaturesPrompt = (
+  context: CommandContext = {}
+) => `# Feature Landscape Research
 
 ## Objective
 Map the feature landscape for: **${context.topic || '{{topic}}'}**
@@ -161,7 +163,9 @@ Signs that something is going wrong:
 - Signal 2
 `;
 
-export const researchSynthesizePrompt = (context: CommandContext = {}) => `# Synthesize Research Findings
+export const researchSynthesizePrompt = (
+  context: CommandContext = {}
+) => `# Synthesize Research Findings
 
 ## Objective
 Combine all research findings into actionable recommendations.

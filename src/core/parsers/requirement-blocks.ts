@@ -24,7 +24,7 @@ const REQUIREMENT_HEADER_REGEX = /^###\s*Requirement:\s*(.+)\s*$/;
 export function extractRequirementsSection(content: string): RequirementsSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const reqHeaderIndex = lines.findIndex(l => /^##\s+Requirements\s*$/i.test(l));
+  const reqHeaderIndex = lines.findIndex((l) => /^##\s+Requirements\s*$/i.test(l));
 
   if (reqHeaderIndex === -1) {
     // No requirements section; create an empty one at the end
@@ -58,7 +58,10 @@ export function extractRequirementsSection(content: string): RequirementsSection
   let preambleLines: string[] = [];
 
   // Collect preamble lines until first requirement header
-  while (cursor < sectionBodyLines.length && !/^###\s+Requirement:/.test(sectionBodyLines[cursor])) {
+  while (
+    cursor < sectionBodyLines.length &&
+    !/^###\s+Requirement:/.test(sectionBodyLines[cursor])
+  ) {
     preambleLines.push(sectionBodyLines[cursor]);
     cursor++;
   }
@@ -76,7 +79,11 @@ export function extractRequirementsSection(content: string): RequirementsSection
     cursor++;
     // Gather lines until next requirement header or end of section
     const bodyLines: string[] = [headerLineCandidate];
-    while (cursor < sectionBodyLines.length && !/^###\s+Requirement:/.test(sectionBodyLines[cursor]) && !/^##\s+/.test(sectionBodyLines[cursor])) {
+    while (
+      cursor < sectionBodyLines.length &&
+      !/^###\s+Requirement:/.test(sectionBodyLines[cursor]) &&
+      !/^##\s+/.test(sectionBodyLines[cursor])
+    ) {
       bodyLines.push(sectionBodyLines[cursor]);
       cursor++;
     }
@@ -161,7 +168,10 @@ function splitTopLevelSections(content: string): Record<string, string> {
   return result;
 }
 
-function getSectionCaseInsensitive(sections: Record<string, string>, desired: string): { body: string; found: boolean } {
+function getSectionCaseInsensitive(
+  sections: Record<string, string>,
+  desired: string
+): { body: string; found: boolean } {
   const target = desired.toLowerCase();
   for (const [title, body] of Object.entries(sections)) {
     if (title.toLowerCase() === target) return { body, found: true };
@@ -180,7 +190,10 @@ function parseRequirementBlocksFromSection(sectionBody: string): RequirementBloc
     if (i >= lines.length) break;
     const headerLine = lines[i];
     const m = headerLine.match(REQUIREMENT_HEADER_REGEX);
-    if (!m) { i++; continue; }
+    if (!m) {
+      i++;
+      continue;
+    }
     const name = normalizeRequirementName(m[1]);
     const buf: string[] = [headerLine];
     i++;

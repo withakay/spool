@@ -17,6 +17,11 @@ Keep this managed block so 'spool update' can refresh the instructions.
 
 <!-- SPOOL:END -->
 
+## Prompt Templates
+
+If the request mentions editing/updating a Spool prompt (skills, slash commands, agents instructions, etc.), start in `src/core/templates/`.
+See `src/core/templates/AGENTS.md` for what to edit.
+
 ## Development Commands
 
 Use the Makefile for common development tasks:

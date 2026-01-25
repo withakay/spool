@@ -276,7 +276,10 @@ version: [[[invalid yaml
       process.env.XDG_DATA_HOME = tempDir;
       const userSchemaDir = path.join(getUserSchemasDir(), 'custom-workflow');
       fs.mkdirSync(userSchemaDir, { recursive: true });
-      fs.writeFileSync(path.join(userSchemaDir, 'schema.yaml'), 'name: custom\nversion: 1\nartifacts: []');
+      fs.writeFileSync(
+        path.join(userSchemaDir, 'schema.yaml'),
+        'name: custom\nversion: 1\nartifacts: []'
+      );
 
       const schemas = listSchemas();
 
@@ -289,12 +292,15 @@ version: [[[invalid yaml
       const userSchemaDir = path.join(getUserSchemasDir(), 'spec-driven');
       fs.mkdirSync(userSchemaDir, { recursive: true });
       // Override spec-driven
-      fs.writeFileSync(path.join(userSchemaDir, 'schema.yaml'), 'name: custom\nversion: 1\nartifacts: []');
+      fs.writeFileSync(
+        path.join(userSchemaDir, 'schema.yaml'),
+        'name: custom\nversion: 1\nartifacts: []'
+      );
 
       const schemas = listSchemas();
 
       // Should only appear once
-      const count = schemas.filter(s => s === 'spec-driven').length;
+      const count = schemas.filter((s) => s === 'spec-driven').length;
       expect(count).toBe(1);
     });
 
@@ -316,7 +322,10 @@ version: [[[invalid yaml
       // Create a valid schema directory
       const validDir = path.join(userSchemasBase, 'valid-schema');
       fs.mkdirSync(validDir, { recursive: true });
-      fs.writeFileSync(path.join(validDir, 'schema.yaml'), 'name: valid\nversion: 1\nartifacts: []');
+      fs.writeFileSync(
+        path.join(validDir, 'schema.yaml'),
+        'name: valid\nversion: 1\nartifacts: []'
+      );
 
       const schemas = listSchemas();
 

@@ -68,31 +68,50 @@ ${commandCompletions}`;
 
       // Add flags for parent command
       for (const flag of cmd.flags) {
-        lines.push(...this.generateFlagCompletion(flag, `__fish_spool_using_subcommand ${cmd.name}`));
+        lines.push(
+          ...this.generateFlagCompletion(flag, `__fish_spool_using_subcommand ${cmd.name}`)
+        );
       }
 
       // Add completions for each subcommand
       for (const subcmd of cmd.subcommands) {
         lines.push(`# ${cmd.name} ${subcmd.name} flags`);
         for (const flag of subcmd.flags) {
-          lines.push(...this.generateFlagCompletion(flag, `__fish_spool_using_subcommand ${cmd.name}; and __fish_spool_using_subcommand ${subcmd.name}`));
+          lines.push(
+            ...this.generateFlagCompletion(
+              flag,
+              `__fish_spool_using_subcommand ${cmd.name}; and __fish_spool_using_subcommand ${subcmd.name}`
+            )
+          );
         }
 
         // Add positional completions for subcommand
         if (subcmd.acceptsPositional) {
-          lines.push(...this.generatePositionalCompletion(subcmd.positionalType, `__fish_spool_using_subcommand ${cmd.name}; and __fish_spool_using_subcommand ${subcmd.name}`));
+          lines.push(
+            ...this.generatePositionalCompletion(
+              subcmd.positionalType,
+              `__fish_spool_using_subcommand ${cmd.name}; and __fish_spool_using_subcommand ${subcmd.name}`
+            )
+          );
         }
       }
     } else {
       // Command without subcommands
       lines.push(`# ${cmd.name} flags`);
       for (const flag of cmd.flags) {
-        lines.push(...this.generateFlagCompletion(flag, `__fish_spool_using_subcommand ${cmd.name}`));
+        lines.push(
+          ...this.generateFlagCompletion(flag, `__fish_spool_using_subcommand ${cmd.name}`)
+        );
       }
 
       // Add positional completions
       if (cmd.acceptsPositional) {
-        lines.push(...this.generatePositionalCompletion(cmd.positionalType, `__fish_spool_using_subcommand ${cmd.name}`));
+        lines.push(
+          ...this.generatePositionalCompletion(
+            cmd.positionalType,
+            `__fish_spool_using_subcommand ${cmd.name}`
+          )
+        );
       }
     }
 
@@ -150,7 +169,10 @@ ${commandCompletions}`;
   /**
    * Generate positional argument completion
    */
-  private generatePositionalCompletion(positionalType: string | undefined, condition: string): string[] {
+  private generatePositionalCompletion(
+    positionalType: string | undefined,
+    condition: string
+  ): string[] {
     const lines: string[] = [];
 
     switch (positionalType) {
@@ -174,15 +196,14 @@ ${commandCompletions}`;
     return lines;
   }
 
-
   /**
    * Escape description text for Fish
    */
   private escapeDescription(description: string): string {
     return description
-      .replace(/\\/g, '\\\\')  // Backslashes first
-      .replace(/'/g, "\\'")    // Single quotes
-      .replace(/\$/g, '\\$')   // Dollar signs (prevents $())
-      .replace(/`/g, '\\`');   // Backticks
+      .replace(/\\/g, '\\\\') // Backslashes first
+      .replace(/'/g, "\\'") // Single quotes
+      .replace(/\$/g, '\\$') // Dollar signs (prevents $())
+      .replace(/`/g, '\\`'); // Backticks
   }
 }

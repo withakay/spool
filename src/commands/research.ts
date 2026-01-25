@@ -1,19 +1,19 @@
 /**
  * Spool Research Command
- * 
+ *
  * Single entrypoint for Spool research functionality.
  * Routes based on arguments or asks user to choose.
  */
 
 import type { Command } from 'commander';
 
-import { 
+import {
   researchSummaryTemplate,
   stackAnalysisTemplate,
   featureLandscapeTemplate,
   architectureTemplate,
   pitfallsTemplate,
-  type ResearchContext
+  type ResearchContext,
 } from '../core/templates/research-templates.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -60,8 +60,8 @@ const RESEARCH_TYPES = {
  * Show available research types and let user choose
  */
 async function promptForResearchType(): Promise<string> {
-  const { select } = await import('@inquirer/prompts');
-  
+  const { select } = (await import('@inquirer/' + 'prompts')) as any;
+
   const options = Object.entries(RESEARCH_TYPES).map(([key, info]) => ({
     name: `${info.name} - ${info.description}`,
     value: key,
@@ -77,8 +77,8 @@ async function promptForResearchType(): Promise<string> {
  * Prompt for research topic if not provided
  */
 async function promptForTopic(): Promise<string> {
-  const { input } = await import('@inquirer/prompts');
-  
+  const { input } = (await import('@inquirer/' + 'prompts')) as any;
+
   return await input({
     message: 'What is the research topic or question?',
   });
@@ -89,14 +89,14 @@ async function promptForTopic(): Promise<string> {
  */
 async function ensureResearchDir(projectPath: string): Promise<string> {
   const researchDir = path.join(projectPath, '.spool', 'research');
-  
+
   // Create main research directory
   await fs.mkdir(researchDir, { recursive: true });
-  
+
   // Create investigations subdirectory
   const investigationsDir = path.join(researchDir, 'investigations');
   await fs.mkdir(investigationsDir, { recursive: true });
-  
+
   return researchDir;
 }
 
@@ -109,11 +109,11 @@ async function generateResearchFile(
   projectPath: string
 ): Promise<void> {
   const spinner = ora('Generating research file...').start();
-  
+
   try {
     const researchDir = await ensureResearchDir(projectPath);
     const typeInfo = RESEARCH_TYPES[researchType as keyof typeof RESEARCH_TYPES];
-    
+
     if (!typeInfo) {
       throw new Error(`Unknown research type: ${researchType}`);
     }
@@ -127,14 +127,14 @@ async function generateResearchFile(
       topic,
       currentDate: new Date().toISOString().split('T')[0],
     };
-    
+
     const content = typeInfo.template(context);
-    
+
     // Write file
     await fs.writeFile(filepath, content, 'utf8');
-    
+
     spinner.succeed(`Research file created: ${filepath}`);
-    
+
     // Show next steps
     console.log();
     console.log(chalk.bold('Research file created successfully!'));
@@ -145,7 +145,6 @@ async function generateResearchFile(
     console.log(`1. Open the file and fill in your research findings`);
     console.log(`2. Update the SUMMARY.md file with key conclusions`);
     console.log(`3. Share findings with your team`);
-    
   } catch (error) {
     spinner.fail('Failed to generate research file');
     throw error;
@@ -157,10 +156,13 @@ async function generateResearchFile(
  */
 async function showResearchStatus(projectPath: string): Promise<void> {
   const researchDir = path.join(projectPath, '.spool', 'research');
-  
+
   try {
-    const exists = await fs.access(researchDir).then(() => true).catch(() => false);
-    
+    const exists = await fs
+      .access(researchDir)
+      .then(() => true)
+      .catch(() => false);
+
     if (!exists) {
       console.log(chalk.yellow('No research directory found.'));
       console.log(chalk.gray(`Create your first research with: ${NEW_RESEARCH_COMMAND}`));
@@ -169,7 +171,7 @@ async function showResearchStatus(projectPath: string): Promise<void> {
 
     const investigationsDir = path.join(researchDir, 'investigations');
     const files = await fs.readdir(investigationsDir).catch(() => []);
-    
+
     if (files.length === 0) {
       console.log(chalk.yellow('No research files found.'));
       console.log(chalk.gray(`Create research with: ${NEW_RESEARCH_COMMAND} <type> <topic>`));
@@ -178,13 +180,13 @@ async function showResearchStatus(projectPath: string): Promise<void> {
 
     console.log(chalk.bold('Research Files:'));
     console.log();
-    
+
     for (const file of files.sort()) {
       const filepath = path.join(investigationsDir, file);
       const stats = await fs.stat(filepath);
       const type = file.split('-')[0];
       const typeInfo = RESEARCH_TYPES[type as keyof typeof RESEARCH_TYPES];
-      
+
       console.log(`${chalk.cyan('•')} ${file}`);
       if (typeInfo) {
         console.log(`   ${chalk.gray(typeInfo.name)}`);
@@ -192,7 +194,6 @@ async function showResearchStatus(projectPath: string): Promise<void> {
       console.log(`   ${chalk.gray(`Modified: ${stats.mtime.toISOString().split('T')[0]}`)}`);
       console.log();
     }
-    
   } catch (error) {
     console.log(chalk.red('Error checking research status:'));
     console.log(chalk.gray((error as Error).message));
@@ -202,25 +203,28 @@ async function showResearchStatus(projectPath: string): Promise<void> {
 /**
  * Main research command handler
  */
-async function handleResearchCommand(options: ResearchOptions, projectPath: string = '.'): Promise<void> {
+async function handleResearchCommand(
+  options: ResearchOptions,
+  projectPath: string = '.'
+): Promise<void> {
   // If no arguments, show status and prompt for action
   if (!options.type && !options.topic) {
     await showResearchStatus(projectPath);
-    
+
     console.log();
     console.log(chalk.bold('Available research types:'));
     console.log();
-    
+
     Object.entries(RESEARCH_TYPES).forEach(([key, info]) => {
       console.log(`${chalk.cyan(key.padEnd(12))} ${info.description}`);
     });
-    
+
     console.log();
     console.log(chalk.gray('Usage:'));
     console.log(`  ${NEW_RESEARCH_COMMAND} <type> <topic>`);
     console.log(`  ${NEW_RESEARCH_COMMAND} <type>           (will prompt for topic)`);
     console.log(`  ${NEW_RESEARCH_COMMAND}                   (shows status and options)`);
-    
+
     return;
   }
 
@@ -249,7 +253,11 @@ async function handleResearchCommand(options: ResearchOptions, projectPath: stri
  * Register the research command
  */
 export function registerResearchCommand(program: Command): void {
-  const runResearch = async (typeArg?: string, topicArg?: string, cmdOptions?: { type?: string; topic?: string }) => {
+  const runResearch = async (
+    typeArg?: string,
+    topicArg?: string,
+    cmdOptions?: { type?: string; topic?: string }
+  ) => {
     try {
       const options: ResearchOptions = {
         type: typeArg || cmdOptions?.type,
@@ -276,10 +284,16 @@ export function registerResearchCommand(program: Command): void {
     .description('Conduct structured research - single entrypoint for all research types')
     .option('--type <type>', 'Research type: summary, stack, features, architecture, pitfalls')
     .option('--topic <topic>', 'Research topic or question')
-    .action(async (typeArg?: string, topicArg?: string, cmdOptions?: { type?: string; topic?: string }) => {
-      console.error('Warning: "spool-research" is deprecated. Use "spool x-research" instead.');
-      await runResearch(typeArg, topicArg, cmdOptions);
-    });
+    .action(
+      async (
+        typeArg?: string,
+        topicArg?: string,
+        cmdOptions?: { type?: string; topic?: string }
+      ) => {
+        console.error('Warning: "spool-research" is deprecated. Use "spool x-research" instead.');
+        await runResearch(typeArg, topicArg, cmdOptions);
+      }
+    );
 }
 
 // Export for use in skills system

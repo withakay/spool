@@ -11,7 +11,6 @@ describe('top-level show command', () => {
   const specsDir = getSpecsPath(testDir);
   const spoolBin = path.join(projectRoot, 'bin', 'spool.js');
 
-
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
     await fs.mkdir(specsDir, { recursive: true });
@@ -38,7 +37,9 @@ describe('top-level show command', () => {
       let err: any;
       try {
         execSync(`node ${spoolBin} show`, { encoding: 'utf-8' });
-      } catch (e) { err = e; }
+      } catch (e) {
+        err = e;
+      }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       const stderr = err.stderr.toString();
@@ -68,7 +69,9 @@ describe('top-level show command', () => {
     const originalCwd = process.cwd();
     try {
       process.chdir(testDir);
-      const output = execSync(`node ${spoolBin} show auth --json --requirements`, { encoding: 'utf-8' });
+      const output = execSync(`node ${spoolBin} show auth --json --requirements`, {
+        encoding: 'utf-8',
+      });
       const json = JSON.parse(output);
       expect(json.id).toBe('auth');
       expect(Array.isArray(json.requirements)).toBe(true);
@@ -80,9 +83,17 @@ describe('top-level show command', () => {
   it('handles ambiguity and suggests --type', async () => {
     // create matching spec and change named 'foo'
     await fs.mkdir(path.join(changesDir, 'foo'), { recursive: true });
-    await fs.writeFile(path.join(changesDir, 'foo', 'proposal.md'), '# Change: Foo\n\n## Why\n\n## What Changes\n', 'utf-8');
+    await fs.writeFile(
+      path.join(changesDir, 'foo', 'proposal.md'),
+      '# Change: Foo\n\n## Why\n\n## What Changes\n',
+      'utf-8'
+    );
     await fs.mkdir(path.join(specsDir, 'foo'), { recursive: true });
-    await fs.writeFile(path.join(specsDir, 'foo', 'spec.md'), '## Purpose\n\n## Requirements\n\n### Requirement: R\nX', 'utf-8');
+    await fs.writeFile(
+      path.join(specsDir, 'foo', 'spec.md'),
+      '## Purpose\n\n## Requirements\n\n### Requirement: R\nX',
+      'utf-8'
+    );
 
     const originalCwd = process.cwd();
     try {
@@ -90,7 +101,9 @@ describe('top-level show command', () => {
       let err: any;
       try {
         execSync(`node ${spoolBin} show foo`, { encoding: 'utf-8' });
-      } catch (e) { err = e; }
+      } catch (e) {
+        err = e;
+      }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       const stderr = err.stderr.toString();
@@ -108,7 +121,9 @@ describe('top-level show command', () => {
       let err: any;
       try {
         execSync(`node ${spoolBin} show unknown-item`, { encoding: 'utf-8' });
-      } catch (e) { err = e; }
+      } catch (e) {
+        err = e;
+      }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       const stderr = err.stderr.toString();
@@ -119,5 +134,3 @@ describe('top-level show command', () => {
     }
   });
 });
-
-

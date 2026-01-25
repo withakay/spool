@@ -41,10 +41,9 @@ function filterSpec(spec: Spec, options: ShowOptions): Spec {
   const requirementIndex = validateRequirementIndex(spec, options.requirement);
   const includeScenarios = options.scenarios !== false && !options.requirements;
 
-  const filteredRequirements = (requirementIndex !== undefined
-    ? [spec.requirements[requirementIndex]]
-    : spec.requirements
-  ).map(req => ({
+  const filteredRequirements = (
+    requirementIndex !== undefined ? [spec.requirements[requirementIndex]] : spec.requirements
+  ).map((req) => ({
     text: req.text,
     scenarios: includeScenarios ? req.scenarios : [],
   }));
@@ -78,23 +77,25 @@ export class SpecCommand {
       const canPrompt = isInteractive(options);
       const specIds = await getSpecIds();
       if (canPrompt && specIds.length > 0) {
-        const { select } = await import('@inquirer/prompts');
+        const { select } = (await import('@inquirer/' + 'prompts')) as any;
         specId = await select({
           message: 'Select a spec to show',
-          choices: specIds.map(id => ({ name: id, value: id })),
+          choices: specIds.map((id) => ({ name: id, value: id })),
         });
       } else {
         throw new Error('Missing required argument <spec-id>');
       }
     }
 
+    if (!specId) {
+      throw new Error('Missing required argument <spec-id>');
+    }
+
     const specsDir = this.getSpecsDir();
     const specPath = join(specsDir, specId, 'spec.md');
     if (!existsSync(specPath)) {
       const spoolDir = getSpoolDirName(process.cwd());
-      throw new Error(
-        `Spec '${specId}' not found at ${spoolDir}/specs/${specId}/spec.md`
-      );
+      throw new Error(`Spec '${specId}' not found at ${spoolDir}/specs/${specId}/spec.md`);
     }
 
     if (options.json) {
@@ -125,7 +126,9 @@ export function registerSpecCommand(rootProgram: typeof program) {
 
   // Deprecation notice for noun-based commands
   specCommand.hook('preAction', () => {
-    console.error('Warning: The "spool spec ..." commands are deprecated. Prefer verb-first commands (e.g., "spool show", "spool validate --specs").');
+    console.error(
+      'Warning: The "spool spec ..." commands are deprecated. Prefer verb-first commands (e.g., "spool show", "spool validate --specs").'
+    );
   });
 
   specCommand
@@ -136,15 +139,17 @@ export function registerSpecCommand(rootProgram: typeof program) {
     .option('--no-scenarios', 'JSON only: Exclude scenario content')
     .option('-r, --requirement <id>', 'JSON only: Show specific requirement by ID (1-based)')
     .option('--no-interactive', 'Disable interactive prompts')
-    .action(async (specId: string | undefined, options: ShowOptions & { noInteractive?: boolean }) => {
-      try {
-        const cmd = new SpecCommand();
-        await cmd.show(specId, options as any);
-      } catch (error) {
-        console.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        process.exitCode = 1;
+    .action(
+      async (specId: string | undefined, options: ShowOptions & { noInteractive?: boolean }) => {
+        try {
+          const cmd = new SpecCommand();
+          await cmd.show(specId, options as any);
+        } catch (error) {
+          console.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          process.exitCode = 1;
+        }
       }
-    });
+    );
 
   specCommand
     .command('list')
@@ -160,29 +165,31 @@ export function registerSpecCommand(rootProgram: typeof program) {
         }
 
         const specs = readdirSync(specsDir, { withFileTypes: true })
-          .filter(dirent => dirent.isDirectory())
-          .map(dirent => {
+          .filter((dirent) => dirent.isDirectory())
+          .map((dirent) => {
             const specPath = join(specsDir, dirent.name, 'spec.md');
             if (existsSync(specPath)) {
               try {
                 const spec = parseSpecFromFile(specPath, dirent.name);
-                
+
                 return {
                   id: dirent.name,
                   title: spec.name,
-                  requirementCount: spec.requirements.length
+                  requirementCount: spec.requirements.length,
                 };
               } catch {
                 return {
                   id: dirent.name,
                   title: dirent.name,
-                  requirementCount: 0
+                  requirementCount: 0,
                 };
               }
             }
             return null;
           })
-          .filter((spec): spec is { id: string; title: string; requirementCount: number } => spec !== null)
+          .filter(
+            (spec): spec is { id: string; title: string; requirementCount: number } => spec !== null
+          )
           .sort((a, b) => a.id.localeCompare(b.id));
 
         if (options.json) {
@@ -198,7 +205,7 @@ export function registerSpecCommand(rootProgram: typeof program) {
             });
             return;
           }
-          specs.forEach(spec => {
+          specs.forEach((spec) => {
             console.log(`${spec.id}: ${spec.title} [requirements ${spec.requirementCount}]`);
           });
         }
@@ -214,55 +221,63 @@ export function registerSpecCommand(rootProgram: typeof program) {
     .option('--strict', 'Enable strict validation mode')
     .option('--json', 'Output validation report as JSON')
     .option('--no-interactive', 'Disable interactive prompts')
-    .action(async (specId: string | undefined, options: { strict?: boolean; json?: boolean; noInteractive?: boolean }) => {
-      try {
-        if (!specId) {
-          const canPrompt = isInteractive(options);
-          const specIds = await getSpecIds();
-          if (canPrompt && specIds.length > 0) {
-            const { select } = await import('@inquirer/prompts');
-            specId = await select({
-              message: 'Select a spec to validate',
-              choices: specIds.map(id => ({ name: id, value: id })),
-            });
-          } else {
+    .action(
+      async (
+        specId: string | undefined,
+        options: { strict?: boolean; json?: boolean; noInteractive?: boolean }
+      ) => {
+        try {
+          if (!specId) {
+            const canPrompt = isInteractive(options);
+            const specIds = await getSpecIds();
+            if (canPrompt && specIds.length > 0) {
+              const { select } = (await import('@inquirer/' + 'prompts')) as any;
+              specId = await select({
+                message: 'Select a spec to validate',
+                choices: specIds.map((id) => ({ name: id, value: id })),
+              });
+            } else {
+              throw new Error('Missing required argument <spec-id>');
+            }
+          }
+
+          if (!specId) {
             throw new Error('Missing required argument <spec-id>');
           }
-        }
 
-        const specsDir = getSpecsDir();
-        const specPath = join(specsDir, specId, 'spec.md');
+          const specsDir = getSpecsDir();
+          const specPath = join(specsDir, specId, 'spec.md');
 
-        if (!existsSync(specPath)) {
-          const spoolDir = getSpoolDirName(process.cwd());
-          throw new Error(
-            `Spec '${specId}' not found at ${spoolDir}/specs/${specId}/spec.md`
-          );
-        }
-
-        const validator = new Validator(options.strict);
-        const report = await validator.validateSpec(specPath);
-
-        if (options.json) {
-          console.log(JSON.stringify(report, null, 2));
-        } else {
-          if (report.valid) {
-            console.log(`Specification '${specId}' is valid`);
-          } else {
-            console.error(`Specification '${specId}' has issues`);
-            report.issues.forEach(issue => {
-              const label = issue.level === 'ERROR' ? 'ERROR' : issue.level;
-              const prefix = issue.level === 'ERROR' ? '✗' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
-              console.error(`${prefix} [${label}] ${issue.path}: ${issue.message}`);
-            });
+          if (!existsSync(specPath)) {
+            const spoolDir = getSpoolDirName(process.cwd());
+            throw new Error(`Spec '${specId}' not found at ${spoolDir}/specs/${specId}/spec.md`);
           }
+
+          const validator = new Validator(options.strict);
+          const report = await validator.validateSpec(specPath);
+
+          if (options.json) {
+            console.log(JSON.stringify(report, null, 2));
+          } else {
+            if (report.valid) {
+              console.log(`Specification '${specId}' is valid`);
+            } else {
+              console.error(`Specification '${specId}' has issues`);
+              report.issues.forEach((issue) => {
+                const label = issue.level === 'ERROR' ? 'ERROR' : issue.level;
+                const prefix =
+                  issue.level === 'ERROR' ? '✗' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
+                console.error(`${prefix} [${label}] ${issue.path}: ${issue.message}`);
+              });
+            }
+          }
+          process.exitCode = report.valid ? 0 : 1;
+        } catch (error) {
+          console.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          process.exitCode = 1;
         }
-        process.exitCode = report.valid ? 0 : 1;
-      } catch (error) {
-        console.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        process.exitCode = 1;
       }
-    });
+    );
 
   return specCommand;
 }

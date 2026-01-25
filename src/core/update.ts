@@ -25,12 +25,7 @@ const CORE_SKILL_IDS = [
   'spool-commit',
 ];
 
-const SUPPORTED_SKILL_TOOLS: SkillsHarness[] = [
-  'claude',
-  'opencode',
-  'codex',
-  'github-copilot',
-];
+const SUPPORTED_SKILL_TOOLS: SkillsHarness[] = ['claude', 'opencode', 'codex', 'github-copilot'];
 
 export class UpdateCommand {
   async execute(projectPath: string, options?: { json?: boolean }): Promise<void> {
@@ -39,7 +34,7 @@ export class UpdateCommand {
     const spoolPath = getSpoolPath(resolvedProjectPath);
 
     // 1. Check spool directory exists
-    if (!await FileSystemUtils.directoryExists(spoolPath)) {
+    if (!(await FileSystemUtils.directoryExists(spoolPath))) {
       throw new Error(`No Spool directory found. Run 'spool init' first.`);
     }
 
@@ -116,23 +111,17 @@ export class UpdateCommand {
     };
 
     for (const configurator of configurators) {
-      const configFilePath = path.join(
-        resolvedProjectPath,
-        configurator.configFileName
-      );
+      const configFilePath = path.join(resolvedProjectPath, configurator.configFileName);
       const fileExists = await FileSystemUtils.fileExists(configFilePath);
-      const shouldConfigure =
-        fileExists || configurator.configFileName === 'AGENTS.md';
+      const shouldConfigure = fileExists || configurator.configFileName === 'AGENTS.md';
 
       if (!shouldConfigure) {
         continue;
       }
 
       try {
-        if (fileExists && !await FileSystemUtils.canWriteFile(configFilePath)) {
-          throw new Error(
-            `Insufficient permissions to modify ${configurator.configFileName}`
-          );
+        if (fileExists && !(await FileSystemUtils.canWriteFile(configFilePath))) {
+          throw new Error(`Insufficient permissions to modify ${configurator.configFileName}`);
         }
 
         await configurator.configure(resolvedProjectPath, spoolPath);
@@ -157,10 +146,7 @@ export class UpdateCommand {
       }
 
       try {
-        const updated = await slashConfigurator.updateExisting(
-          resolvedProjectPath,
-          spoolPath
-        );
+        const updated = await slashConfigurator.updateExisting(resolvedProjectPath, spoolPath);
         updatedSlashFiles.push(...updated);
       } catch (error) {
         failedSlashTools.push(slashConfigurator.toolId);
@@ -180,7 +166,12 @@ export class UpdateCommand {
           continue;
         }
 
-        await skillsConfigurator.installSkills(resolvedProjectPath, spoolDirName, CORE_SKILL_IDS, toolId);
+        await skillsConfigurator.installSkills(
+          resolvedProjectPath,
+          spoolDirName,
+          CORE_SKILL_IDS,
+          toolId
+        );
 
         const skillsDir = skillsConfigurator.getSkillsDirectory(resolvedProjectPath, toolId);
         const displayPath = skillsDir.startsWith(resolvedProjectPath)

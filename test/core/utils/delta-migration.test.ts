@@ -15,12 +15,12 @@ describe('Delta Migration Utility', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     (fs.access as any).mockImplementation((pathToCheck: string) => {
-        // Destination spec should not exist (simulate no collision)
-        if (pathToCheck.includes(mockDestId) && pathToCheck.includes('spec.md')) {
-            return Promise.reject(new Error('File not found'));
-        }
-        // Everything else exists (source change, dest change, source spec)
-        return Promise.resolve();
+      // Destination spec should not exist (simulate no collision)
+      if (pathToCheck.includes(mockDestId) && pathToCheck.includes('spec.md')) {
+        return Promise.reject(new Error('File not found'));
+      }
+      // Everything else exists (source change, dest change, source spec)
+      return Promise.resolve();
     });
     (fs.copyFile as any).mockResolvedValue(undefined);
     (fs.unlink as any).mockResolvedValue(undefined);
@@ -28,13 +28,15 @@ describe('Delta Migration Utility', () => {
     (fs.readdir as any).mockResolvedValue([]);
     // Mock fs.readFile for tasks.md
     (fs.readFile as any).mockImplementation((filePath: string) => {
-        if (filePath.includes('tasks.md')) {
-            if (filePath.includes(mockSourceId)) {
-                return Promise.resolve('# Tasks\n\n- [ ] Task 1 related to feature/spec.md\n- [ ] Task 2 unrelated\n');
-            }
-            return Promise.resolve('# Tasks\n\n'); // Dest tasks
+      if (filePath.includes('tasks.md')) {
+        if (filePath.includes(mockSourceId)) {
+          return Promise.resolve(
+            '# Tasks\n\n- [ ] Task 1 related to feature/spec.md\n- [ ] Task 2 unrelated\n'
+          );
         }
-        return Promise.reject(new Error('File not found'));
+        return Promise.resolve('# Tasks\n\n'); // Dest tasks
+      }
+      return Promise.reject(new Error('File not found'));
     });
     (fs.writeFile as any).mockResolvedValue(undefined);
   });
@@ -58,18 +60,18 @@ describe('Delta Migration Utility', () => {
 
     // Verify source tasks updated (removed moved task)
     expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(mockSourceId, 'tasks.md')),
-        expect.stringContaining('- [ ] Task 2 unrelated')
+      expect.stringContaining(path.join(mockSourceId, 'tasks.md')),
+      expect.stringContaining('- [ ] Task 2 unrelated')
     );
     expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(mockSourceId, 'tasks.md')),
-        expect.not.stringContaining('Task 1')
+      expect.stringContaining(path.join(mockSourceId, 'tasks.md')),
+      expect.not.stringContaining('Task 1')
     );
 
     // Verify dest tasks updated (added moved task)
     expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(mockDestId, 'tasks.md')),
-        expect.stringContaining('- [ ] Task 1 related to feature/spec.md')
+      expect.stringContaining(path.join(mockDestId, 'tasks.md')),
+      expect.stringContaining('- [ ] Task 1 related to feature/spec.md')
     );
   });
 });

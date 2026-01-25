@@ -62,4 +62,3 @@ export type CompletedSet = Set<string>;
 export interface BlockedArtifacts {
   [artifactId: string]: string[];
 }
-

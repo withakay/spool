@@ -127,7 +127,10 @@ export async function ensureCliBuilt() {
   }
 }
 
-export async function runCLI(args: string[] = [], options: RunCLIOptions = {}): Promise<RunCLIResult> {
+export async function runCLI(
+  args: string[] = [],
+  options: RunCLIOptions = {}
+): Promise<RunCLIResult> {
   await ensureCliBuilt();
 
   const finalArgs = Array.isArray(args) ? args : [args];
@@ -264,11 +267,11 @@ async function runCLIInProcess(
 
     // Capture output without printing to the test runner.
     process.stdout.write = ((chunk: any) => {
-      stdout += typeof chunk === 'string' ? chunk : chunk?.toString?.() ?? '';
+      stdout += typeof chunk === 'string' ? chunk : (chunk?.toString?.() ?? '');
       return true;
     }) as any;
     process.stderr.write = ((chunk: any) => {
-      stderr += typeof chunk === 'string' ? chunk : chunk?.toString?.() ?? '';
+      stderr += typeof chunk === 'string' ? chunk : (chunk?.toString?.() ?? '');
       return true;
     }) as any;
 

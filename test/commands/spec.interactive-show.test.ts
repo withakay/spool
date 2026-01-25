@@ -10,7 +10,6 @@ describe('spec show (interactive behavior)', () => {
   const specsDir = getSpecsPath(testDir);
   const bin = path.join(projectRoot, 'bin', 'spool.js');
 
-
   beforeEach(async () => {
     await fs.mkdir(specsDir, { recursive: true });
     const content = `## Purpose\nX\n\n## Requirements\n\n### Requirement: R\nText`;
@@ -31,7 +30,9 @@ describe('spec show (interactive behavior)', () => {
       let err: any;
       try {
         execSync(`node ${bin} spec show`, { encoding: 'utf-8' });
-      } catch (e) { err = e; }
+      } catch (e) {
+        err = e;
+      }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       expect(err.stderr.toString()).toContain('Missing required argument <spec-id>');
@@ -41,5 +42,3 @@ describe('spec show (interactive behavior)', () => {
     }
   });
 });
-
-

@@ -12,7 +12,7 @@ export class ClaudeConfigurator implements ToolConfigurator {
   async configure(projectPath: string, spoolDir: string): Promise<void> {
     const filePath = path.join(projectPath, this.configFileName);
     const content = TemplateManager.getClaudeTemplate();
-    
+
     await FileSystemUtils.updateFileWithMarkers(
       filePath,
       content,

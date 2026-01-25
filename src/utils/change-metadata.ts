@@ -30,9 +30,7 @@ export class ChangeMetadataError extends Error {
 export function validateSchemaName(schemaName: string): string {
   const availableSchemas = listSchemas();
   if (!availableSchemas.includes(schemaName)) {
-    throw new Error(
-      `Unknown schema '${schemaName}'. Available: ${availableSchemas.join(', ')}`
-    );
+    throw new Error(`Unknown schema '${schemaName}'. Available: ${availableSchemas.join(', ')}`);
   }
   return schemaName;
 }
@@ -44,10 +42,7 @@ export function validateSchemaName(schemaName: string): string {
  * @param metadata - The metadata to write
  * @throws ChangeMetadataError if validation fails or write fails
  */
-export function writeChangeMetadata(
-  changeDir: string,
-  metadata: ChangeMetadata
-): void {
+export function writeChangeMetadata(changeDir: string, metadata: ChangeMetadata): void {
   const metaPath = path.join(changeDir, METADATA_FILENAME);
 
   // Validate schema exists
@@ -56,10 +51,7 @@ export function writeChangeMetadata(
   // Validate with Zod
   const parseResult = ChangeMetadataSchema.safeParse(metadata);
   if (!parseResult.success) {
-    throw new ChangeMetadataError(
-      `Invalid metadata: ${parseResult.error.message}`,
-      metaPath
-    );
+    throw new ChangeMetadataError(`Invalid metadata: ${parseResult.error.message}`, metaPath);
   }
 
   // Write YAML file
@@ -95,11 +87,7 @@ export function readChangeMetadata(changeDir: string): ChangeMetadata | null {
     content = fs.readFileSync(metaPath, 'utf-8');
   } catch (err) {
     const ioError = err instanceof Error ? err : new Error(String(err));
-    throw new ChangeMetadataError(
-      `Failed to read metadata: ${ioError.message}`,
-      metaPath,
-      ioError
-    );
+    throw new ChangeMetadataError(`Failed to read metadata: ${ioError.message}`, metaPath, ioError);
   }
 
   let parsed: unknown;
@@ -117,10 +105,7 @@ export function readChangeMetadata(changeDir: string): ChangeMetadata | null {
   // Validate with Zod
   const parseResult = ChangeMetadataSchema.safeParse(parsed);
   if (!parseResult.success) {
-    throw new ChangeMetadataError(
-      `Invalid metadata: ${parseResult.error.message}`,
-      metaPath
-    );
+    throw new ChangeMetadataError(`Invalid metadata: ${parseResult.error.message}`, metaPath);
   }
 
   // Validate that the schema exists
@@ -147,10 +132,7 @@ export function readChangeMetadata(changeDir: string): ChangeMetadata | null {
  * @param explicitSchema - Optional explicit schema override
  * @returns The resolved schema name
  */
-export function resolveSchemaForChange(
-  changeDir: string,
-  explicitSchema?: string
-): string {
+export function resolveSchemaForChange(changeDir: string, explicitSchema?: string): string {
   // 1. Explicit override wins
   if (explicitSchema) {
     return explicitSchema;

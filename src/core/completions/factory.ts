@@ -39,7 +39,12 @@ export interface CompletionInstaller {
  * This design makes it easy to add support for additional shells
  */
 export class CompletionFactory {
-  private static readonly SUPPORTED_SHELLS: SupportedShell[] = ['zsh', 'bash', 'fish', 'powershell'];
+  private static readonly SUPPORTED_SHELLS: SupportedShell[] = [
+    'zsh',
+    'bash',
+    'fish',
+    'powershell',
+  ];
 
   /**
    * Create a completion generator for the specified shell

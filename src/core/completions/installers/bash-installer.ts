@@ -30,11 +30,11 @@ export class BashInstaller {
    */
   async isBashCompletionInstalled(): Promise<boolean> {
     const paths = [
-      '/usr/share/bash-completion',              // Linux system-wide
-      '/usr/local/share/bash-completion',        // Homebrew Intel (main)
-      '/opt/homebrew/etc/bash_completion.d',     // Homebrew Apple Silicon
-      '/usr/local/etc/bash_completion.d',        // Homebrew Intel (alt path)
-      '/etc/bash_completion.d',                   // Legacy fallback
+      '/usr/share/bash-completion', // Linux system-wide
+      '/usr/local/share/bash-completion', // Homebrew Intel (main)
+      '/opt/homebrew/etc/bash_completion.d', // Homebrew Apple Silicon
+      '/usr/local/etc/bash_completion.d', // Homebrew Intel (alt path)
+      '/etc/bash_completion.d', // Legacy fallback
     ];
 
     for (const p of paths) {
@@ -58,7 +58,13 @@ export class BashInstaller {
    */
   async getInstallationPath(): Promise<string> {
     // Try user-local bash-completion directory first
-    const localCompletionDir = path.join(this.homeDir, '.local', 'share', 'bash-completion', 'completions');
+    const localCompletionDir = path.join(
+      this.homeDir,
+      '.local',
+      'share',
+      'bash-completion',
+      'completions'
+    );
 
     // For user installation, use local directory
     return path.join(localCompletionDir, 'spool');
@@ -170,7 +176,10 @@ export class BashInstaller {
       const content = await fs.readFile(bashrcPath, 'utf-8');
 
       // Check if markers exist
-      if (!content.includes(this.BASHRC_MARKERS.start) || !content.includes(this.BASHRC_MARKERS.end)) {
+      if (
+        !content.includes(this.BASHRC_MARKERS.start) ||
+        !content.includes(this.BASHRC_MARKERS.end)
+      ) {
         // Markers don't exist, nothing to remove
         return true;
       }

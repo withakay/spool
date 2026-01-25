@@ -2,7 +2,9 @@
   "$schema": "https://unpkg.com/@changesets/config/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "withakay/Spool" }
+    {
+      "repo": "withakay/Spool"
+    }
   ],
   "commit": false,
   "fixed": [],

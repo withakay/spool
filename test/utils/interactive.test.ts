@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { isInteractive, resolveNoInteractive, InteractiveOptions } from '../../src/utils/interactive.js';
+import {
+  isInteractive,
+  resolveNoInteractive,
+  InteractiveOptions,
+} from '../../src/utils/interactive.js';
 
 describe('interactive utilities', () => {
   let originalSpoolInteractive: string | undefined;
@@ -90,35 +94,59 @@ describe('interactive utilities', () => {
 
     it('should return false when SPOOL_INTERACTIVE env var is 0', () => {
       process.env.SPOOL_INTERACTIVE = '0';
-      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
       expect(isInteractive({})).toBe(false);
     });
 
     it('should return false when CI env var is set', () => {
       process.env.CI = 'true';
-      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
       expect(isInteractive({})).toBe(false);
     });
 
     it('should return false when CI env var is set to any value', () => {
       // CI can be set to any value, not just "true"
       process.env.CI = '1';
-      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
       expect(isInteractive({})).toBe(false);
     });
 
     it('should return false when stdin is not a TTY', () => {
-      Object.defineProperty(process.stdin, 'isTTY', { value: false, writable: true, configurable: true });
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: false,
+        writable: true,
+        configurable: true,
+      });
       expect(isInteractive({})).toBe(false);
     });
 
     it('should return true when stdin is TTY and no flags disable it', () => {
-      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
       expect(isInteractive({})).toBe(true);
     });
 
     it('should return true when stdin is TTY and options are undefined', () => {
-      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+      Object.defineProperty(process.stdin, 'isTTY', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
       expect(isInteractive(undefined)).toBe(true);
     });
   });

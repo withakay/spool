@@ -22,7 +22,9 @@ export class ModuleParser extends MarkdownParser {
     // Parse module folder name to get ID and name
     const parsed = parseModuleName(this.moduleFolderName);
     if (!parsed) {
-      throw new Error(`Invalid module folder name: ${this.moduleFolderName}. Expected format: NNN_kebab-name (e.g., 001_project-setup)`);
+      throw new Error(
+        `Invalid module folder name: ${this.moduleFolderName}. Expected format: NNN_kebab-name (e.g., 001_project-setup)`
+      );
     }
 
     const { id, name } = parsed;
@@ -40,7 +42,9 @@ export class ModuleParser extends MarkdownParser {
     const scope = this.parseListSection(scopeSection);
 
     if (scope.length === 0) {
-      throw new Error('Module must have a Scope section with at least one capability (use "*" for unrestricted)');
+      throw new Error(
+        'Module must have a Scope section with at least one capability (use "*" for unrestricted)'
+      );
     }
 
     // Parse Depends On section (optional)

@@ -21,22 +21,22 @@ export class ChangeParser extends MarkdownParser {
     const sections = this.parseSections();
     const why = this.findSection(sections, 'Why')?.content || '';
     const whatChanges = this.findSection(sections, 'What Changes')?.content || '';
-    
+
     if (!why) {
       throw new Error('Change must have a Why section');
     }
-    
+
     if (!whatChanges) {
       throw new Error('Change must have a What Changes section');
     }
 
     // Parse deltas from the What Changes section (simple format)
     const simpleDeltas = this.parseDeltas(whatChanges);
-    
+
     // Check if there are spec files with delta format
     const specsDir = path.join(this.changeDir, 'specs');
     const deltaDeltas = await this.parseDeltaSpecs(specsDir);
-    
+
     // Combine both types of deltas, preferring delta format if available
     const deltas = deltaDeltas.length > 0 ? deltaDeltas : simpleDeltas;
 
@@ -54,16 +54,16 @@ export class ChangeParser extends MarkdownParser {
 
   private async parseDeltaSpecs(specsDir: string): Promise<Delta[]> {
     const deltas: Delta[] = [];
-    
+
     try {
       const specDirs = await fs.readdir(specsDir, { withFileTypes: true });
-      
+
       for (const dir of specDirs) {
         if (!dir.isDirectory()) continue;
-        
+
         const specName = dir.name;
         const specFile = path.join(specsDir, specName, 'spec.md');
-        
+
         try {
           const content = await fs.readFile(specFile, 'utf-8');
           const specDeltas = this.parseSpecDeltas(specName, content);
@@ -77,19 +77,19 @@ export class ChangeParser extends MarkdownParser {
       // Specs directory might not exist, which is okay
       return [];
     }
-    
+
     return deltas;
   }
 
   private parseSpecDeltas(specName: string, content: string): Delta[] {
     const deltas: Delta[] = [];
     const sections = this.parseSectionsFromContent(content);
-    
+
     // Parse ADDED requirements
     const addedSection = this.findSection(sections, 'ADDED Requirements');
     if (addedSection) {
       const requirements = this.parseRequirements(addedSection);
-      requirements.forEach(req => {
+      requirements.forEach((req) => {
         deltas.push({
           spec: specName,
           operation: 'ADDED' as DeltaOperation,
@@ -100,12 +100,12 @@ export class ChangeParser extends MarkdownParser {
         });
       });
     }
-    
+
     // Parse MODIFIED requirements
     const modifiedSection = this.findSection(sections, 'MODIFIED Requirements');
     if (modifiedSection) {
       const requirements = this.parseRequirements(modifiedSection);
-      requirements.forEach(req => {
+      requirements.forEach((req) => {
         deltas.push({
           spec: specName,
           operation: 'MODIFIED' as DeltaOperation,
@@ -115,12 +115,12 @@ export class ChangeParser extends MarkdownParser {
         });
       });
     }
-    
+
     // Parse REMOVED requirements
     const removedSection = this.findSection(sections, 'REMOVED Requirements');
     if (removedSection) {
       const requirements = this.parseRequirements(removedSection);
-      requirements.forEach(req => {
+      requirements.forEach((req) => {
         deltas.push({
           spec: specName,
           operation: 'REMOVED' as DeltaOperation,
@@ -130,12 +130,12 @@ export class ChangeParser extends MarkdownParser {
         });
       });
     }
-    
+
     // Parse RENAMED requirements
     const renamedSection = this.findSection(sections, 'RENAMED Requirements');
     if (renamedSection) {
       const renames = this.parseRenames(renamedSection.content);
-      renames.forEach(rename => {
+      renames.forEach((rename) => {
         deltas.push({
           spec: specName,
           operation: 'RENAMED' as DeltaOperation,
@@ -144,25 +144,25 @@ export class ChangeParser extends MarkdownParser {
         });
       });
     }
-    
+
     return deltas;
   }
 
   private parseRenames(content: string): Array<{ from: string; to: string }> {
     const renames: Array<{ from: string; to: string }> = [];
     const lines = ChangeParser.normalizeContent(content).split('\n');
-    
+
     let currentRename: { from?: string; to?: string } = {};
-    
+
     for (const line of lines) {
       const fromMatch = line.match(/^\s*-?\s*FROM:\s*`?###\s*Requirement:\s*(.+?)`?\s*$/);
       const toMatch = line.match(/^\s*-?\s*TO:\s*`?###\s*Requirement:\s*(.+?)`?\s*$/);
-      
+
       if (fromMatch) {
         currentRename.from = fromMatch[1].trim();
       } else if (toMatch) {
         currentRename.to = toMatch[1].trim();
-        
+
         if (currentRename.from && currentRename.to) {
           renames.push({
             from: currentRename.from,
@@ -172,7 +172,7 @@ export class ChangeParser extends MarkdownParser {
         }
       }
     }
-    
+
     return renames;
   }
 
@@ -181,16 +181,16 @@ export class ChangeParser extends MarkdownParser {
     const lines = normalizedContent.split('\n');
     const sections: Section[] = [];
     const stack: Section[] = [];
-    
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
-      
+
       if (headerMatch) {
         const level = headerMatch[1].length;
         const title = headerMatch[2].trim();
         const contentLines = this.getContentUntilNextHeaderFromLines(lines, i + 1, level);
-        
+
         const section = {
           level,
           title,
@@ -207,28 +207,32 @@ export class ChangeParser extends MarkdownParser {
         } else {
           stack[stack.length - 1].children.push(section);
         }
-        
+
         stack.push(section);
       }
     }
-    
+
     return sections;
   }
 
-  private getContentUntilNextHeaderFromLines(lines: string[], startLine: number, currentLevel: number): string[] {
+  private getContentUntilNextHeaderFromLines(
+    lines: string[],
+    startLine: number,
+    currentLevel: number
+  ): string[] {
     const contentLines: string[] = [];
-    
+
     for (let i = startLine; i < lines.length; i++) {
       const line = lines[i];
       const headerMatch = line.match(/^(#{1,6})\s+/);
-      
+
       if (headerMatch && headerMatch[1].length <= currentLevel) {
         break;
       }
-      
+
       contentLines.push(line);
     }
-    
+
     return contentLines;
   }
 }

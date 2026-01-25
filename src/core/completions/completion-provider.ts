@@ -87,10 +87,7 @@ export class CompletionProvider {
    * @returns Object with changeIds and specIds arrays
    */
   async getAllIds(): Promise<{ changeIds: string[]; specIds: string[] }> {
-    const [changeIds, specIds] = await Promise.all([
-      this.getChangeIds(),
-      this.getSpecIds(),
-    ]);
+    const [changeIds, specIds] = await Promise.all([this.getChangeIds(), this.getSpecIds()]);
 
     return { changeIds, specIds };
   }

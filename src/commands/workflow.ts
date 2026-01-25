@@ -30,24 +30,15 @@ export class WorkflowCommand {
 
     // Create example research workflow
     const researchWorkflow = this.getResearchWorkflowTemplate();
-    await FileSystemUtils.writeFile(
-      path.join(workflowsDir, 'research.yaml'),
-      researchWorkflow
-    );
+    await FileSystemUtils.writeFile(path.join(workflowsDir, 'research.yaml'), researchWorkflow);
 
     // Create example execute workflow
     const executeWorkflow = this.getExecuteWorkflowTemplate();
-    await FileSystemUtils.writeFile(
-      path.join(workflowsDir, 'execute.yaml'),
-      executeWorkflow
-    );
+    await FileSystemUtils.writeFile(path.join(workflowsDir, 'execute.yaml'), executeWorkflow);
 
     // Create example review workflow
     const reviewWorkflow = this.getReviewWorkflowTemplate();
-    await FileSystemUtils.writeFile(
-      path.join(workflowsDir, 'review.yaml'),
-      reviewWorkflow
-    );
+    await FileSystemUtils.writeFile(path.join(workflowsDir, 'review.yaml'), reviewWorkflow);
 
     console.log('Created workflows directory with example workflows:');
     console.log('  - research.yaml  (domain investigation)');
@@ -184,7 +175,9 @@ export class WorkflowCommand {
 
     for (const wave of execution.waves) {
       const completedTasks = wave.tasks.filter((t) => t.status === 'complete').length;
-      console.log(`Wave ${wave.wave.id}: ${wave.status} (${completedTasks}/${wave.tasks.length} tasks)`);
+      console.log(
+        `Wave ${wave.wave.id}: ${wave.status} (${completedTasks}/${wave.tasks.length} tasks)`
+      );
 
       for (const task of wave.tasks) {
         const icon = task.status === 'complete' ? '✓' : task.status === 'running' ? '→' : '○';

@@ -25,7 +25,9 @@ describe('BashInstaller', () => {
     it('should return standard bash-completion path', async () => {
       const result = await installer.getInstallationPath();
 
-      expect(result).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool'));
+      expect(result).toBe(
+        path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool')
+      );
     });
   });
 
@@ -62,13 +64,16 @@ describe('BashInstaller', () => {
   });
 
   describe('install', () => {
-    const testScript = '# Bash completion script for Spool CLI\n_spool_completion() {\n  echo "test"\n}\n';
+    const testScript =
+      '# Bash completion script for Spool CLI\n_spool_completion() {\n  echo "test"\n}\n';
 
     it('should install to bash-completion path', async () => {
       const result = await installer.install(testScript);
 
       expect(result.success).toBe(true);
-      expect(result.installedPath).toBe(path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool'));
+      expect(result.installedPath).toBe(
+        path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool')
+      );
 
       // Verify file was created with correct content
       const content = await fs.readFile(result.installedPath!, 'utf-8');
@@ -87,7 +92,14 @@ describe('BashInstaller', () => {
     });
 
     it('should backup existing file before overwriting', async () => {
-      const targetPath = path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool');
+      const targetPath = path.join(
+        testHomeDir,
+        '.local',
+        'share',
+        'bash-completion',
+        'completions',
+        'spool'
+      );
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, 'old script');
 
@@ -230,7 +242,10 @@ describe('BashInstaller', () => {
 
       // Verify file is gone
       const targetPath = await installer.getInstallationPath();
-      const exists = await fs.access(targetPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(targetPath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(false);
     });
 
@@ -250,7 +265,10 @@ describe('BashInstaller', () => {
 
       // Verify .bashrc markers are removed
       const bashrcPath = path.join(testHomeDir, '.bashrc');
-      const exists = await fs.access(bashrcPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(bashrcPath)
+        .then(() => true)
+        .catch(() => false);
 
       if (exists) {
         const content = await fs.readFile(bashrcPath, 'utf-8');
@@ -364,7 +382,10 @@ describe('BashInstaller', () => {
       expect(result).toBe(false);
 
       const bashrcPath = path.join(testHomeDir, '.bashrc');
-      const exists = await fs.access(bashrcPath).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(bashrcPath)
+        .then(() => true)
+        .catch(() => false);
       expect(exists).toBe(false);
 
       // Restore env

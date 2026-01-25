@@ -35,13 +35,13 @@ export async function buildRalphPrompt(
 async function loadChangeContext(changeId: string): Promise<string | null> {
   const changesPath = await getChangesPath();
   const resolvedChangeId = await resolveChangeId(changeId);
-  
+
   if (!resolvedChangeId) {
     return null;
   }
 
   const proposalPath = path.join(changesPath, resolvedChangeId, 'proposal.md');
-  
+
   if (!(await FileSystemUtils.fileExists(proposalPath))) {
     return null;
   }
@@ -56,19 +56,19 @@ async function loadChangeContext(changeId: string): Promise<string | null> {
 
 async function loadModuleContext(moduleId: string): Promise<string | null> {
   const resolvedModuleId = await resolveModuleId(moduleId);
-  
+
   if (!resolvedModuleId) {
     return null;
   }
 
   const moduleInfo = await getModuleById(resolvedModuleId);
-  
+
   if (!moduleInfo) {
     return null;
   }
 
   const modulePath = path.join(moduleInfo.path, 'module.md');
-  
+
   if (!(await FileSystemUtils.fileExists(modulePath))) {
     return null;
   }

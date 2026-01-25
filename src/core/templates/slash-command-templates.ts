@@ -4,17 +4,9 @@ import { replaceHardcodedSpoolPaths } from '../../utils/path-normalization.js';
 export type CoreSlashCommandId = 'proposal' | 'apply' | 'archive';
 
 // All available slash commands
-export type SlashCommandId =
-  | CoreSlashCommandId
-  | 'research'
-  | 'review'
-  | 'spool';
+export type SlashCommandId = CoreSlashCommandId | 'research' | 'review' | 'spool';
 
-const skillDrivenBody = (
-  skillId: string,
-  input: string,
-  extraInstructions?: string
-): string => {
+const skillDrivenBody = (skillId: string, input: string, extraInstructions?: string): string => {
   const extra = extraInstructions ? `\n\n${extraInstructions}` : '';
   return `Use the Spool agent skill \`${skillId}\` as the source of truth for this workflow.
 
@@ -75,9 +67,9 @@ export const slashCommandBodies: Record<SlashCommandId, string> = {
 
 export function getSlashCommandBody(id: SlashCommandId, spoolDir: string = '.spool'): string {
   let body = slashCommandBodies[id];
-  
+
   // Replace hardcoded 'spool/' paths with the configured spoolDir
   body = replaceHardcodedSpoolPaths(body, spoolDir);
-  
+
   return body;
 }

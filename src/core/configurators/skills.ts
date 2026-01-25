@@ -23,7 +23,6 @@ import {
   getCommitSkillTemplate,
   // Experimental workflow skills
   getExploreSkillTemplate,
-
   getNewChangeSkillTemplate,
   getContinueChangeSkillTemplate,
   getApplyChangeSkillTemplate,
@@ -47,10 +46,13 @@ interface SkillConfig {
 /**
  * Apply spoolDir to a skill template by replacing hardcoded paths
  */
-function applySpoolDirToTemplate(template: SkillTemplate, spoolDir: string = '.spool'): SkillTemplate {
+function applySpoolDirToTemplate(
+  template: SkillTemplate,
+  spoolDir: string = '.spool'
+): SkillTemplate {
   return {
     ...template,
-    instructions: replaceHardcodedDotSpoolPaths(template.instructions, spoolDir)
+    instructions: replaceHardcodedDotSpoolPaths(template.instructions, spoolDir),
   };
 }
 
@@ -67,9 +69,10 @@ export class SkillsConfigurator implements ToolConfigurator {
    */
   getSkillsDirectory(projectPath: string, toolId: SkillsHarness = 'claude'): string {
     if (toolId === 'codex') {
-      const base = (process.env.CODEX_HOME && process.env.CODEX_HOME.trim())
-        ? process.env.CODEX_HOME.trim()
-        : FileSystemUtils.joinPath(os.homedir(), '.codex');
+      const base =
+        process.env.CODEX_HOME && process.env.CODEX_HOME.trim()
+          ? process.env.CODEX_HOME.trim()
+          : FileSystemUtils.joinPath(os.homedir(), '.codex');
       return FileSystemUtils.joinPath(base, 'skills');
     }
 
@@ -126,7 +129,7 @@ export class SkillsConfigurator implements ToolConfigurator {
         template: applySpoolDirToTemplate(getCommitSkillTemplate(spoolDir), spoolDir),
         directory: 'spool-commit',
       },
-];
+    ];
 
     // Experimental workflow skills (OPSX)
     const experimentalSkills: SkillConfig[] = [
@@ -182,7 +185,7 @@ export class SkillsConfigurator implements ToolConfigurator {
     const availableSkills = this.getAvailableSkills(spoolDir);
 
     // Filter skills to install
-    const skillsToInstall = availableSkills.filter(skill => skillIds.includes(skill.id));
+    const skillsToInstall = availableSkills.filter((skill) => skillIds.includes(skill.id));
 
     if (skillsToInstall.length === 0) {
       console.log('No skills selected for installation.');
@@ -201,7 +204,11 @@ export class SkillsConfigurator implements ToolConfigurator {
   /**
    * Install a single skill
    */
-  private async installSkill(skillsDir: string, skillConfig: SkillConfig, spoolDir: string): Promise<void> {
+  private async installSkill(
+    skillsDir: string,
+    skillConfig: SkillConfig,
+    spoolDir: string
+  ): Promise<void> {
     const skillDir = path.join(skillsDir, skillConfig.directory);
     const skillFile = path.join(skillDir, 'SKILL.md');
 
@@ -256,9 +263,11 @@ ${normalizedInstructions}
           const skillFile = path.join(skillsDir, entry.name, 'SKILL.md');
           if (await FileSystemUtils.fileExists(skillFile)) {
             const content = await FileSystemUtils.readFile(skillFile);
-            if (content.includes('spool-proposal') ||
-                content.includes('spool-apply') ||
-                content.includes('Spool')) {
+            if (
+              content.includes('spool-proposal') ||
+              content.includes('spool-apply') ||
+              content.includes('Spool')
+            ) {
               return true;
             }
           }
@@ -282,7 +291,10 @@ ${normalizedInstructions}
   /**
    * Get skills that are already installed
    */
-  async getInstalledSkills(projectPath: string, toolId: SkillsHarness = 'claude'): Promise<string[]> {
+  async getInstalledSkills(
+    projectPath: string,
+    toolId: SkillsHarness = 'claude'
+  ): Promise<string[]> {
     const skillsDir = this.getSkillsDirectory(projectPath, toolId);
     const installedSkills: string[] = [];
 

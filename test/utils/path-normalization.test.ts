@@ -22,17 +22,23 @@ describe('path normalization utilities', () => {
   describe('replaceHardcodedSpoolPaths', () => {
     it('should replace spool/ paths with default .spool', () => {
       const text = 'Write to spool/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedSpoolPaths(text)).toBe('Write to .spool/research/investigations/stack-analysis.md');
+      expect(replaceHardcodedSpoolPaths(text)).toBe(
+        'Write to .spool/research/investigations/stack-analysis.md'
+      );
     });
 
     it('should replace spool/ paths with custom directory', () => {
       const text = 'Write to spool/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedSpoolPaths(text, '.my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
+      expect(replaceHardcodedSpoolPaths(text, '.my-spool')).toBe(
+        'Write to .my-spool/research/investigations/stack-analysis.md'
+      );
     });
 
     it('should add dot prefix if custom directory lacks it', () => {
       const text = 'Write to spool/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedSpoolPaths(text, 'my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
+      expect(replaceHardcodedSpoolPaths(text, 'my-spool')).toBe(
+        'Write to .my-spool/research/investigations/stack-analysis.md'
+      );
     });
 
     it('should handle multiple replacements', () => {
@@ -49,17 +55,23 @@ describe('path normalization utilities', () => {
   describe('replaceHardcodedDotSpoolPaths', () => {
     it('should replace .spool/ paths with custom directory', () => {
       const text = 'Write to .spool/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedDotSpoolPaths(text, '.my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
+      expect(replaceHardcodedDotSpoolPaths(text, '.my-spool')).toBe(
+        'Write to .my-spool/research/investigations/stack-analysis.md'
+      );
     });
 
     it('should add dot prefix if custom directory lacks it', () => {
       const text = 'Write to .spool/research/investigations/stack-analysis.md';
-      expect(replaceHardcodedDotSpoolPaths(text, 'my-spool')).toBe('Write to .my-spool/research/investigations/stack-analysis.md');
+      expect(replaceHardcodedDotSpoolPaths(text, 'my-spool')).toBe(
+        'Write to .my-spool/research/investigations/stack-analysis.md'
+      );
     });
 
     it('should handle multiple replacements', () => {
       const text = '.spool/changes and .spool/specs';
-      expect(replaceHardcodedDotSpoolPaths(text, '.custom')).toBe('.custom/changes and .custom/specs');
+      expect(replaceHardcodedDotSpoolPaths(text, '.custom')).toBe(
+        '.custom/changes and .custom/specs'
+      );
     });
 
     it('should not affect other text', () => {

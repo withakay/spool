@@ -13,7 +13,6 @@ describe('change validate (interactive behavior)', () => {
   const changesDir = getChangesPath(testDir);
   const bin = path.join(projectRoot, 'bin', 'spool.js');
 
-
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
     const content = `# Change: Demo\n\n## Why\nBecause reasons that are sufficiently long.\n\n## What Changes\n- **spec-x:** Add something`;
@@ -34,7 +33,9 @@ describe('change validate (interactive behavior)', () => {
       let err: any;
       try {
         execSync(`node ${bin} change validate`, { encoding: 'utf-8' });
-      } catch (e) { err = e; }
+      } catch (e) {
+        err = e;
+      }
       expect(err).toBeDefined();
       expect(err.status).not.toBe(0);
       expect(err.stderr.toString()).toContain('Available IDs:');
@@ -44,5 +45,3 @@ describe('change validate (interactive behavior)', () => {
     }
   });
 });
-
-

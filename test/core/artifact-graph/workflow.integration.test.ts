@@ -56,7 +56,10 @@ describe('artifact-graph workflow integration', () => {
       });
 
       // 3. Create proposal.md - now specs and design become ready
-      fs.writeFileSync(path.join(tempDir, 'proposal.md'), '# Proposal\n\nInitial proposal content.');
+      fs.writeFileSync(
+        path.join(tempDir, 'proposal.md'),
+        '# Proposal\n\nInitial proposal content.'
+      );
       completed = detectCompleted(graph, tempDir);
       expect(completed).toEqual(new Set(['proposal']));
       expect(graph.getNextArtifacts(completed).sort()).toEqual(['design', 'specs']);
@@ -76,7 +79,10 @@ describe('artifact-graph workflow integration', () => {
       // 5. Create specs directory with a spec file - tasks becomes ready
       const specsDir = path.join(tempDir, 'specs');
       fs.mkdirSync(specsDir, { recursive: true });
-      fs.writeFileSync(path.join(specsDir, 'feature-auth.md'), '# Auth Spec\n\nAuthentication specification.');
+      fs.writeFileSync(
+        path.join(specsDir, 'feature-auth.md'),
+        '# Auth Spec\n\nAuthentication specification.'
+      );
       completed = detectCompleted(graph, tempDir);
       expect(completed).toEqual(new Set(['proposal', 'design', 'specs']));
       expect(graph.getNextArtifacts(completed)).toEqual(['tasks']);

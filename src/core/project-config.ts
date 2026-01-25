@@ -17,7 +17,7 @@ export const ProjectConfigSchema = z
   .object({
     /**
      * The path (relative to project root) where spool stores its files.
-      * Defaults to '.spool'.
+     * Defaults to '.spool'.
      */
     projectPath: z.string().optional(),
   })
@@ -74,7 +74,9 @@ export function loadProjectConfig(projectRoot: string): ProjectConfig | null {
     // Validate with schema
     const result = ProjectConfigSchema.safeParse(parsed);
     if (!result.success) {
-      console.error(`Warning: Invalid ${PROJECT_CONFIG_FILE_NAME} in ${projectRoot}: ${result.error.message}`);
+      console.error(
+        `Warning: Invalid ${PROJECT_CONFIG_FILE_NAME} in ${projectRoot}: ${result.error.message}`
+      );
       projectConfigCache.set(absoluteRoot, null);
       return null;
     }

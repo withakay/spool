@@ -28,7 +28,7 @@ There are changes proposed, but no delta specs provided yet.`;
     const validator = new Validator();
     const report = await validator.validateChange(changePath);
     expect(report.valid).toBe(false);
-    const msg = report.issues.map(i => i.message).join('\n');
+    const msg = report.issues.map((i) => i.message).join('\n');
     expect(msg).toContain('Change must have at least one delta');
     expect(msg).toContain('Ensure your change has a specs/ directory');
     expect(msg).toContain('## ADDED/MODIFIED/REMOVED/RENAMED Requirements');
@@ -42,7 +42,7 @@ There are changes proposed, but no delta specs provided yet.`;
     const validator = new Validator();
     const report = await validator.validateSpec(specPath);
     expect(report.valid).toBe(false);
-    const msg = report.issues.map(i => i.message).join('\n');
+    const msg = report.issues.map((i) => i.message).join('\n');
     expect(msg).toContain('Spec must have a Purpose section');
     expect(msg).toContain('Expected headers: "## Purpose" and "## Requirements"');
   });
@@ -64,11 +64,9 @@ Text of requirement
     const validator = new Validator();
     const report = await validator.validateSpec(specPath);
     expect(report.valid).toBe(false);
-    const warn = report.issues.find(i => i.path.includes('requirements[0].scenarios'));
+    const warn = report.issues.find((i) => i.path.includes('requirements[0].scenarios'));
     expect(warn?.message).toContain('Requirement must have at least one scenario');
     expect(warn?.message).toContain('Scenarios must use level-4 headers');
     expect(warn?.message).toContain('#### Scenario:');
   });
 });
-
-

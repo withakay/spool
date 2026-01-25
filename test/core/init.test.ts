@@ -3,11 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { InitCommand } from '../../src/core/init.js';
-import {
-  getChangesPath,
-  getSpoolPath,
-  getSpecsPath,
-} from '../../src/core/project-config.js';
+import { getChangesPath, getSpoolPath, getSpecsPath } from '../../src/core/project-config.js';
 
 const DONE = '__done__';
 
@@ -85,9 +81,7 @@ describe('InitCommand', () => {
       expect(await directoryExists(spoolPath)).toBe(true);
       expect(await directoryExists(getSpecsPath(testDir))).toBe(true);
       expect(await directoryExists(getChangesPath(testDir))).toBe(true);
-      expect(
-        await directoryExists(path.join(getChangesPath(testDir), 'archive'))
-      ).toBe(true);
+      expect(await directoryExists(path.join(getChangesPath(testDir), 'archive'))).toBe(true);
     });
 
     it('should create AGENTS.md and project.md', async () => {
@@ -99,16 +93,10 @@ describe('InitCommand', () => {
       expect(await fileExists(path.join(spoolPath, 'AGENTS.md'))).toBe(true);
       expect(await fileExists(path.join(spoolPath, 'project.md'))).toBe(true);
 
-      const agentsContent = await fs.readFile(
-        path.join(spoolPath, 'AGENTS.md'),
-        'utf-8'
-      );
+      const agentsContent = await fs.readFile(path.join(spoolPath, 'AGENTS.md'), 'utf-8');
       expect(agentsContent).toContain('Spool Instructions');
 
-      const projectContent = await fs.readFile(
-        path.join(spoolPath, 'project.md'),
-        'utf-8'
-      );
+      const projectContent = await fs.readFile(path.join(spoolPath, 'project.md'), 'utf-8');
       expect(projectContent).toContain('Project Context');
     });
 
@@ -118,16 +106,8 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const skillsDir = path.join(testDir, '.claude/skills');
-      const proposalSkill = path.join(
-        skillsDir,
-        'spool-proposal',
-        'SKILL.md'
-      );
-      const researchSkill = path.join(
-        skillsDir,
-        'spool-research',
-        'SKILL.md'
-      );
+      const proposalSkill = path.join(skillsDir, 'spool-proposal', 'SKILL.md');
+      const researchSkill = path.join(skillsDir, 'spool-research', 'SKILL.md');
 
       expect(await fileExists(proposalSkill)).toBe(true);
       expect(await fileExists(researchSkill)).toBe(true);
@@ -168,30 +148,12 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const claudeProposal = path.join(
-        testDir,
-        '.claude/commands/spool/proposal.md'
-      );
-      const claudeApply = path.join(
-        testDir,
-        '.claude/commands/spool/apply.md'
-      );
-      const claudeArchive = path.join(
-        testDir,
-        '.claude/commands/spool/archive.md'
-      );
-      const claudeResearch = path.join(
-        testDir,
-        '.claude/commands/spool/research.md'
-      );
-      const claudeReview = path.join(
-        testDir,
-        '.claude/commands/spool/review.md'
-      );
-      const claudeSpool = path.join(
-        testDir,
-        '.claude/commands/spool/spool.md'
-      );
+      const claudeProposal = path.join(testDir, '.claude/commands/spool/proposal.md');
+      const claudeApply = path.join(testDir, '.claude/commands/spool/apply.md');
+      const claudeArchive = path.join(testDir, '.claude/commands/spool/archive.md');
+      const claudeResearch = path.join(testDir, '.claude/commands/spool/research.md');
+      const claudeReview = path.join(testDir, '.claude/commands/spool/review.md');
+      const claudeSpool = path.join(testDir, '.claude/commands/spool/spool.md');
 
       expect(await fileExists(claudeProposal)).toBe(true);
       expect(await fileExists(claudeApply)).toBe(true);
@@ -229,26 +191,11 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const openCodeProposal = path.join(
-        testDir,
-        '.opencode/command/spool-proposal.md'
-      );
-      const openCodeApply = path.join(
-        testDir,
-        '.opencode/command/spool-apply.md'
-      );
-      const openCodeArchive = path.join(
-        testDir,
-        '.opencode/command/spool-archive.md'
-      );
-      const openCodeResearch = path.join(
-        testDir,
-        '.opencode/command/spool-research.md'
-      );
-      const openCodeReview = path.join(
-        testDir,
-        '.opencode/command/spool-review.md'
-      );
+      const openCodeProposal = path.join(testDir, '.opencode/command/spool-proposal.md');
+      const openCodeApply = path.join(testDir, '.opencode/command/spool-apply.md');
+      const openCodeArchive = path.join(testDir, '.opencode/command/spool-archive.md');
+      const openCodeResearch = path.join(testDir, '.opencode/command/spool-research.md');
+      const openCodeReview = path.join(testDir, '.opencode/command/spool-review.md');
       const openCodeSpool = path.join(testDir, '.opencode/command/spool.md');
 
       expect(await fileExists(openCodeProposal)).toBe(true);
@@ -282,26 +229,11 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const proposalPath = path.join(
-        testDir,
-        '.codex/prompts/spool-proposal.md'
-      );
-      const applyPath = path.join(
-        testDir,
-        '.codex/prompts/spool-apply.md'
-      );
-      const archivePath = path.join(
-        testDir,
-        '.codex/prompts/spool-archive.md'
-      );
-      const researchPath = path.join(
-        testDir,
-        '.codex/prompts/spool-research.md'
-      );
-      const reviewPath = path.join(
-        testDir,
-        '.codex/prompts/spool-review.md'
-      );
+      const proposalPath = path.join(testDir, '.codex/prompts/spool-proposal.md');
+      const applyPath = path.join(testDir, '.codex/prompts/spool-apply.md');
+      const archivePath = path.join(testDir, '.codex/prompts/spool-archive.md');
+      const researchPath = path.join(testDir, '.codex/prompts/spool-research.md');
+      const reviewPath = path.join(testDir, '.codex/prompts/spool-review.md');
       const spoolPath = path.join(testDir, '.codex/prompts/spool.md');
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -332,26 +264,11 @@ describe('InitCommand', () => {
 
       await initCommand.execute(testDir);
 
-      const proposalPath = path.join(
-        testDir,
-        '.github/prompts/spool-proposal.prompt.md'
-      );
-      const applyPath = path.join(
-        testDir,
-        '.github/prompts/spool-apply.prompt.md'
-      );
-      const archivePath = path.join(
-        testDir,
-        '.github/prompts/spool-archive.prompt.md'
-      );
-      const researchPath = path.join(
-        testDir,
-        '.github/prompts/spool-research.prompt.md'
-      );
-      const reviewPath = path.join(
-        testDir,
-        '.github/prompts/spool-review.prompt.md'
-      );
+      const proposalPath = path.join(testDir, '.github/prompts/spool-proposal.prompt.md');
+      const applyPath = path.join(testDir, '.github/prompts/spool-apply.prompt.md');
+      const archivePath = path.join(testDir, '.github/prompts/spool-archive.prompt.md');
+      const researchPath = path.join(testDir, '.github/prompts/spool-research.prompt.md');
+      const reviewPath = path.join(testDir, '.github/prompts/spool-review.prompt.md');
       const spoolPath = path.join(testDir, '.github/prompts/spool.prompt.md');
 
       expect(await fileExists(proposalPath)).toBe(true);
@@ -362,7 +279,9 @@ describe('InitCommand', () => {
       expect(await fileExists(spoolPath)).toBe(true);
 
       const proposalContent = await fs.readFile(proposalPath, 'utf-8');
-      expect(proposalContent).toContain('description: Scaffold a new Spool change and validate strictly.');
+      expect(proposalContent).toContain(
+        'description: Scaffold a new Spool change and validate strictly.'
+      );
       expect(proposalContent).toContain('$ARGUMENTS');
 
       const researchContent = await fs.readFile(researchPath, 'utf-8');
@@ -382,10 +301,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
       await initCommand.execute(testDir);
 
-      const openCodeProposal = path.join(
-        testDir,
-        '.opencode/command/spool-proposal.md'
-      );
+      const openCodeProposal = path.join(testDir, '.opencode/command/spool-proposal.md');
       expect(await fileExists(openCodeProposal)).toBe(true);
     });
 
@@ -451,9 +367,7 @@ describe('InitCommand', () => {
 
       expect(mockPrompt).toHaveBeenCalledWith(
         expect.objectContaining({
-          baseMessage: expect.stringContaining(
-            'Which natively supported AI tools do you use?'
-          ),
+          baseMessage: expect.stringContaining('Which natively supported AI tools do you use?'),
         })
       );
     });
@@ -464,9 +378,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const secondRunArgs = getPromptCall(1);
-      const claudeChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'claude'
-      );
+      const claudeChoice = secondRunArgs.choices.find((choice: any) => choice.value === 'claude');
       expect(claudeChoice.configured).toBe(true);
     });
 
@@ -476,9 +388,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const secondRunArgs = getPromptCall(1);
-      const codexChoice = secondRunArgs.choices.find(
-        (choice: any) => choice.value === 'codex'
-      );
+      const codexChoice = secondRunArgs.choices.find((choice: any) => choice.value === 'codex');
       expect(codexChoice.configured).toBe(true);
     });
   });
@@ -493,18 +403,9 @@ describe('InitCommand', () => {
       await nonInteractiveCommand.execute(testDir);
 
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const openCodeProposal = path.join(
-        testDir,
-        '.opencode/command/spool-proposal.md'
-      );
-      const codexProposal = path.join(
-        testDir,
-        '.codex/prompts/spool-proposal.md'
-      );
-      const copilotProposal = path.join(
-        testDir,
-        '.github/prompts/spool-proposal.prompt.md'
-      );
+      const openCodeProposal = path.join(testDir, '.opencode/command/spool-proposal.md');
+      const codexProposal = path.join(testDir, '.codex/prompts/spool-proposal.md');
+      const copilotProposal = path.join(testDir, '.github/prompts/spool-proposal.prompt.md');
       const openCodeSpool = path.join(testDir, '.opencode/command/spool.md');
       const claudeSpool = path.join(testDir, '.claude/commands/spool/spool.md');
 
@@ -525,14 +426,8 @@ describe('InitCommand', () => {
       await nonInteractiveCommand.execute(testDir);
 
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const openCodeProposal = path.join(
-        testDir,
-        '.opencode/command/spool-proposal.md'
-      );
-      const codexProposal = path.join(
-        testDir,
-        '.codex/prompts/spool-proposal.md'
-      );
+      const openCodeProposal = path.join(testDir, '.opencode/command/spool-proposal.md');
+      const codexProposal = path.join(testDir, '.codex/prompts/spool-proposal.md');
 
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(codexProposal)).toBe(true);
@@ -548,10 +443,7 @@ describe('InitCommand', () => {
       await nonInteractiveCommand.execute(testDir);
 
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const openCodeProposal = path.join(
-        testDir,
-        '.opencode/command/spool-proposal.md'
-      );
+      const openCodeProposal = path.join(testDir, '.opencode/command/spool-proposal.md');
 
       const rootAgentsPath = path.join(testDir, 'AGENTS.md');
       expect(await fileExists(rootAgentsPath)).toBe(true);
@@ -579,10 +471,7 @@ describe('InitCommand', () => {
       await nonInteractiveCommand.execute(testDir);
 
       const claudePath = path.join(testDir, 'CLAUDE.md');
-      const codexProposal = path.join(
-        testDir,
-        '.codex/prompts/spool-proposal.md'
-      );
+      const codexProposal = path.join(testDir, '.codex/prompts/spool-proposal.md');
 
       expect(await fileExists(claudePath)).toBe(true);
       expect(await fileExists(codexProposal)).toBe(true);
@@ -607,9 +496,7 @@ describe('InitCommand', () => {
 
       queueSelections('claude', DONE);
 
-      const confirmOverwrite = vi.fn(
-        async (_files: string[], _projectPath: string) => false
-      );
+      const confirmOverwrite = vi.fn(async (_files: string[], _projectPath: string) => false);
       const cmd = new InitCommand({
         prompt: mockPrompt,
         confirmOverwrite,
@@ -648,9 +535,7 @@ describe('InitCommand', () => {
 
       queueSelections('claude', DONE);
 
-      const confirmOverwrite = vi.fn(
-        async (_files: string[], _projectPath: string) => true
-      );
+      const confirmOverwrite = vi.fn(async (_files: string[], _projectPath: string) => true);
       const cmd = new InitCommand({
         prompt: mockPrompt,
         force: true,
@@ -673,9 +558,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const firstCallArgs = getPromptCall(0);
-      const claudeChoice = firstCallArgs.choices.find(
-        (choice: any) => choice.value === 'claude'
-      );
+      const claudeChoice = firstCallArgs.choices.find((choice: any) => choice.value === 'claude');
 
       expect(claudeChoice.configured).toBe(false);
     });
@@ -683,19 +566,14 @@ describe('InitCommand', () => {
     it('should NOT show tools as already configured in fresh project with existing slash commands', async () => {
       const customCommandDir = path.join(testDir, '.claude/commands/custom');
       await fs.mkdir(customCommandDir, { recursive: true });
-      await fs.writeFile(
-        path.join(customCommandDir, 'mycommand.md'),
-        '# My Custom Command\n'
-      );
+      await fs.writeFile(path.join(customCommandDir, 'mycommand.md'), '# My Custom Command\n');
 
       queueSelections('claude', DONE);
 
       await initCommand.execute(testDir);
 
       const firstCallArgs = getPromptCall(0);
-      const claudeChoice = firstCallArgs.choices.find(
-        (choice: any) => choice.value === 'claude'
-      );
+      const claudeChoice = firstCallArgs.choices.find((choice: any) => choice.value === 'claude');
 
       expect(claudeChoice.configured).toBe(false);
     });
@@ -708,9 +586,7 @@ describe('InitCommand', () => {
       await initCommand.execute(testDir);
 
       const secondCallArgs = getPromptCall(1);
-      const claudeChoice = secondCallArgs.choices.find(
-        (choice: any) => choice.value === 'claude'
-      );
+      const claudeChoice = secondCallArgs.choices.find((choice: any) => choice.value === 'claude');
 
       expect(claudeChoice.configured).toBe(true);
     });
@@ -718,19 +594,14 @@ describe('InitCommand', () => {
     it('should NOT show already configured for Codex in fresh init even with global prompts', async () => {
       const codexPromptsDir = path.join(testDir, '.codex/prompts');
       await fs.mkdir(codexPromptsDir, { recursive: true });
-      await fs.writeFile(
-        path.join(codexPromptsDir, 'spool-proposal.md'),
-        '# Existing prompt\n'
-      );
+      await fs.writeFile(path.join(codexPromptsDir, 'spool-proposal.md'), '# Existing prompt\n');
 
       queueSelections('claude', DONE);
 
       await initCommand.execute(testDir);
 
       const firstCallArgs = getPromptCall(0);
-      const codexChoice = firstCallArgs.choices.find(
-        (choice: any) => choice.value === 'codex'
-      );
+      const codexChoice = firstCallArgs.choices.find((choice: any) => choice.value === 'codex');
 
       expect(codexChoice.configured).toBe(false);
     });
@@ -742,22 +613,15 @@ describe('InitCommand', () => {
       await fs.mkdir(readOnlyDir);
 
       const originalCheck = fs.writeFile;
-      vi.spyOn(fs, 'writeFile').mockImplementation(
-        async (filePath: any, ...args: any[]) => {
-          if (
-            typeof filePath === 'string' &&
-            filePath.includes('.spool-test-')
-          ) {
-            throw new Error('EACCES: permission denied');
-          }
-          return originalCheck.call(fs, filePath, ...args);
+      vi.spyOn(fs, 'writeFile').mockImplementation(async (filePath: any, ...args: any[]) => {
+        if (typeof filePath === 'string' && filePath.includes('.spool-test-')) {
+          throw new Error('EACCES: permission denied');
         }
-      );
+        return originalCheck.call(fs, filePath, ...args);
+      });
 
       queueSelections('claude', DONE);
-      await expect(initCommand.execute(readOnlyDir)).rejects.toThrow(
-        /Insufficient permissions/
-      );
+      await expect(initCommand.execute(readOnlyDir)).rejects.toThrow(/Insufficient permissions/);
     });
   });
 });

@@ -165,8 +165,9 @@ But this summary is optional. Sometimes the thinking IS the value.
 
   return {
     name: 'spool-explore',
-    description: 'Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.',
-    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
+    description:
+      'Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir),
   };
 }
 
@@ -230,7 +231,7 @@ export function getNewChangeSkillTemplate(spoolDir: string = '.spool'): SkillTem
    The first artifact depends on the schema (e.g., \`proposal\` for spec-driven, \`spec\` for tdd).
    Check the status output to find the first artifact with status "ready".
    \`\`\`bash
-   spool x-instructions <first-artifact-id> --change "<change-id>"
+   spool agent instruction <first-artifact-id> --change "<change-id>"
    \`\`\`
    This outputs the template and context for creating the first artifact.
 
@@ -255,8 +256,9 @@ After completing the steps, summarize:
 
   return {
     name: 'spool-new-change',
-    description: 'Start a new Spool change using the experimental artifact workflow. Use when the user wants to create a new feature, fix, or modification with a structured step-by-step approach.',
-    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
+    description:
+      'Start a new Spool change using the experimental artifact workflow. Use when the user wants to create a new feature, fix, or modification with a structured step-by-step approach.',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir),
   };
 }
 
@@ -267,7 +269,8 @@ After completing the steps, summarize:
 export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-continue-change',
-    description: 'Continue working on an Spool change by creating the next artifact. Use when the user wants to progress their change, create the next artifact, or continue their workflow.',
+    description:
+      'Continue working on an Spool change by creating the next artifact. Use when the user wants to progress their change, create the next artifact, or continue their workflow.',
     instructions: `Continue working on a change by creating the next artifact.
 
 **Input**: Optionally specify a change name. If omitted, MUST prompt for available changes.
@@ -313,7 +316,7 @@ export function getContinueChangeSkillTemplate(spoolDir: string = '.spool'): Ski
    - Pick the FIRST artifact with \`status: "ready"\` from the status output
    - Get its instructions:
      \`\`\`bash
-     spool x-instructions <artifact-id> --change "<change-id>" --json
+     spool agent instruction <artifact-id> --change "<change-id>" --json
      \`\`\`
    - Parse the JSON to get template, dependencies, and what it unlocks
    - **Create the artifact file** using the template as a starting point:
@@ -370,7 +373,7 @@ For other schemas, follow the \`instruction\` field from the CLI output.
 - Never skip artifacts or create out of order
 - If context is unclear, ask the user before creating
 - Verify the artifact file exists after writing before marking progress
-- Use the schema's artifact sequence, don't assume specific artifact names`
+- Use the schema's artifact sequence, don't assume specific artifact names`,
   };
 }
 
@@ -381,7 +384,8 @@ For other schemas, follow the \`instruction\` field from the CLI output.
 export function getApplyChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-apply-change',
-    description: 'Implement tasks from an Spool change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
+    description:
+      'Implement tasks from an Spool change. Use when the user wants to start implementing, continue implementation, or work through tasks.',
     instructions: `Implement tasks from an Spool change.
 
 **Input**: Optionally specify a change name. If omitted, MUST prompt for available changes.
@@ -409,7 +413,7 @@ export function getApplyChangeSkillTemplate(spoolDir: string = '.spool'): SkillT
 3. **Get apply instructions**
 
    \`\`\`bash
-   spool x-instructions apply --change "<change-id>" --json
+   spool agent instruction apply --change "<change-id>" --json
    \`\`\`
 
    This returns:
@@ -528,7 +532,7 @@ What would you like to do?
 This skill supports the "actions on a change" model:
 
 - **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
-- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly`
+- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly`,
   };
 }
 
@@ -539,7 +543,8 @@ This skill supports the "actions on a change" model:
 export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-ff-change',
-    description: 'Fast-forward through Spool artifact creation. Use when the user wants to quickly create all artifacts needed for implementation without stepping through each one individually.',
+    description:
+      'Fast-forward through Spool artifact creation. Use when the user wants to quickly create all artifacts needed for implementation without stepping through each one individually.',
     instructions: `Fast-forward through artifact creation - generate everything needed to start implementation in one go.
 
 **Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
@@ -592,7 +597,7 @@ export function getFfChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemp
     a. **For each artifact that is \`ready\` (dependencies satisfied)**:
       - Get instructions:
         \`\`\`bash
-        spool x-instructions <artifact-id> --change "<change-id>" --json
+        spool agent instruction <artifact-id> --change "<change-id>" --json
         \`\`\`
 
       - The instructions JSON includes:
@@ -628,7 +633,7 @@ After completing all artifacts, summarize:
 
 **Artifact Creation Guidelines**
 
-- Follow the \`instruction\` field from \`spool x-instructions\` for each artifact type
+- Follow the \`instruction\` field from \`spool agent instruction\` for each artifact type
 - The schema defines what each artifact should contain - follow it
 - Read dependency artifacts for context before creating new ones
 - Use the \`template\` as a starting point, filling in based on context
@@ -638,7 +643,7 @@ After completing all artifacts, summarize:
 - Always read dependency artifacts before creating a new one
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
 - If a change with that name already exists, suggest continuing that change instead
-- Verify each artifact file exists after writing before proceeding to next`
+- Verify each artifact file exists after writing before proceeding to next`,
   };
 }
 
@@ -649,7 +654,8 @@ After completing all artifacts, summarize:
 export function getSyncSpecsSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-sync-specs',
-    description: 'Sync delta specs from a change to main specs. Use when the user wants to update main specs with changes from a delta spec, without archiving the change.',
+    description:
+      'Sync delta specs from a change to main specs. Use when the user wants to update main specs with changes from a delta spec, without archiving the change.',
     instructions: `Sync delta specs from a change to main specs.
 
 This is an **agent-driven** operation - you will read delta specs and directly edit main specs to apply the changes. This allows intelligent merging (e.g., adding a scenario without copying the entire requirement).
@@ -776,7 +782,7 @@ Main specs are now updated. The change remains active - archive when implementat
 - Preserve existing content not mentioned in delta
 - If something is unclear, ask for clarification
 - Show what you're changing as you go
-- The operation should be idempotent - running twice should give same result`
+- The operation should be idempotent - running twice should give same result`,
   };
 }
 
@@ -897,7 +903,8 @@ After this invocation finishes, auto commit behavior must be considered reset. F
 
   return {
     name: 'spool-commit',
-    description: 'Create atomic git commits aligned to Spool changes. Use when you want to commit work after applying a change, optionally with auto-mode.',
+    description:
+      'Create atomic git commits aligned to Spool changes. Use when you want to commit work after applying a change, optionally with auto-mode.',
     instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir),
   };
 }
@@ -953,11 +960,11 @@ The requested command is provided either:
 
   return {
     name: 'spool',
-    description: 'Unified entry point for spool commands with intelligent skill-first routing and CLI fallback.',
+    description:
+      'Unified entry point for spool commands with intelligent skill-first routing and CLI fallback.',
     instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir),
   };
 }
-
 
 /**
  * Template for spool-proposal skill
@@ -966,7 +973,8 @@ The requested command is provided either:
 export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-proposal',
-    description: 'Create complete Spool change proposals with all artifacts (proposal, specs, design, tasks). Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
+    description:
+      'Create complete Spool change proposals with all artifacts (proposal, specs, design, tasks). Use when the user wants to propose a new feature, fix, or modification that needs structured planning and review.',
     instructions: `Create complete Spool change proposals using the spec-driven workflow.
 
 **Input**: The user's request for a change they want to make to the project.
@@ -1006,7 +1014,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
    5. **Create the proposal artifact**
      \`\`\`bash
-     spool x-instructions proposal --change "<change-id>"
+     spool agent instruction proposal --change "<change-id>"
      \`\`\`
 
     - Get the template and context for creating the proposal.md
@@ -1022,7 +1030,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
        1. Create directory: \`mkdir -p .spool/changes/<change-id>/specs/<capability-name>\`
        2. Get spec template:
           \`\`\`bash
-          spool x-instructions spec --change "<change-id>"
+          spool agent instruction spec --change "<change-id>"
           \`\`\`
        3. Create \`specs/<capability-name>/spec.md\`:
           - **Purpose**: What is this capability? What problem does it solve?
@@ -1031,7 +1039,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
   7. **Create the design artifact**
      \`\`\`bash
-     spool x-instructions design --change "<change-id>"
+     spool agent instruction design --change "<change-id>"
      \`\`\`
     - Get the template and context for creating the design.md
     - Read the template and fill it out based on the proposal and specs:
@@ -1043,7 +1051,7 @@ export function getProposalSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 
   8. **Create the tasks artifact**
      \`\`\`bash
-     spool x-instructions tasks --change "<change-id>"
+     spool agent instruction tasks --change "<change-id>"
      \`\`\`
     - Get the template and context for creating the tasks.md
     - Read the template and break down into actionable tasks:
@@ -1104,7 +1112,7 @@ After completing all artifacts, summarize:
 - If similar work exists, suggest collaborating or continuing existing work
 - Ensure each capability listed has a corresponding spec file
 - Don't skip any artifact - all four are required for a complete proposal
-- After creating all artifacts, offer to iterate based on user feedback`
+- After creating all artifacts, offer to iterate based on user feedback`,
   };
 }
 
@@ -1137,7 +1145,7 @@ export function getApplySkillTemplate(spoolDir: string = '.spool'): SkillTemplat
 
 3. **Get implementation context**
    \`\`\`bash
-   spool x-instructions apply --change "<change-id>" --json
+   spool agent instruction apply --change "<change-id>" --json
    \`\`\`
    - This returns context files, task list, and progress
    - Parse the JSON to understand the current state
@@ -1217,8 +1225,9 @@ Ready to archive this change with: \`spool archive <name>\`
 
   return {
     name: 'spool-apply',
-    description: 'Implement tasks from a completed Spool change proposal. Use when the user wants to start coding or implementing an approved change.',
-    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
+    description:
+      'Implement tasks from a completed Spool change proposal. Use when the user wants to start coding or implementing an approved change.',
+    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir),
   };
 }
 
@@ -1229,7 +1238,8 @@ Ready to archive this change with: \`spool archive <name>\`
 export function getArchiveSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-archive',
-    description: 'Archive a completed change and update main specifications. Use when the user has finished implementing and wants to integrate the change into the main codebase.',
+    description:
+      'Archive a completed change and update main specifications. Use when the user has finished implementing and wants to integrate the change into the main codebase.',
     instructions: `Archive a completed change and update main specifications.
 
 **Input**: Optionally specify a change name. If omitted, MUST prompt for available changes.
@@ -1320,7 +1330,7 @@ Ready to fix these issues, or want to review the change first?
 - Always validate before archiving
 - Get explicit user confirmation before proceeding
 - Ensure all delta specs are properly integrated
-- Verify the archive process completed successfully`
+- Verify the archive process completed successfully`,
   };
 }
 
@@ -1331,7 +1341,8 @@ Ready to fix these issues, or want to review the change first?
 export function getResearchSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-research',
-    description: 'Conduct structured research for feature development, technology evaluation, or problem investigation. Use when the user needs to explore options, analyze trade-offs, or investigate technical approaches.',
+    description:
+      'Conduct structured research for feature development, technology evaluation, or problem investigation. Use when the user needs to explore options, analyze trade-offs, or investigate technical approaches.',
     instructions: `Conduct structured research using Spool's research framework.
 
 **Input**: The research topic or question the user wants to investigate.
@@ -1430,7 +1441,7 @@ export function getResearchSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 - Provide concrete, actionable recommendations
 - Clearly distinguish between facts, analysis, and opinions
 - Identify risks and uncertainties explicitly
-- Keep research documentation structured and reusable`
+- Keep research documentation structured and reusable`,
   };
 }
 
@@ -1441,7 +1452,8 @@ export function getResearchSkillTemplate(spoolDir: string = '.spool'): SkillTemp
 export function getReviewSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-review',
-    description: 'Review and validate Spool changes, specs, or implementations. Use when the user wants a quality check, code review, or validation of project artifacts.',
+    description:
+      'Review and validate Spool changes, specs, or implementations. Use when the user wants a quality check, code review, or validation of project artifacts.',
     instructions: `Conduct comprehensive review of Spool artifacts, code changes, or specifications.
 
 **Input**: What to review (change name, spec name, or specific code/files).
@@ -1556,7 +1568,7 @@ export function getReviewSkillTemplate(spoolDir: string = '.spool'): SkillTempla
 - Prioritize issues by impact on project success
 - Provide actionable suggestions, not just criticism
 - Acknowledge good work and strengths
-- Focus review on stated criteria and scope`
+- Focus review on stated criteria and scope`,
   };
 }
 
@@ -1579,17 +1591,17 @@ export interface CommandTemplate {
 export function getSpoolExploreCommandTemplate(): CommandTemplate {
   return {
     name: 'Spool Explore',
-    description: 'Enter explore mode - think through ideas, investigate problems, clarify requirements',
+    description:
+      'Enter explore mode - think through ideas, investigate problems, clarify requirements',
     category: 'Workflow',
     tags: ['workflow', 'explore', 'experimental', 'thinking'],
     content: `Use the \`spool-explore\` skill.
 
 Follow the skill instructions exactly.
 
-If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`,
   };
 }
-
 
 /**
  * Template for /spool-new-change slash command
@@ -1604,7 +1616,7 @@ export function getSpoolNewChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly (module-first + CLI driven).
 
-If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`,
   };
 }
 
@@ -1621,10 +1633,9 @@ export function getSpoolContinueChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`,
   };
 }
-
 
 /**
  * Template for /spool-apply-change slash command
@@ -1639,11 +1650,9 @@ export function getSpoolApplyChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`,
   };
 }
-
-
 
 /**
  * Template for /spool-ff-change slash command
@@ -1658,7 +1667,7 @@ export function getSpoolFfChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly (module-first + CLI driven).
 
-If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`,
   };
 }
 
@@ -1669,7 +1678,8 @@ If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your
 export function getArchiveChangeSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'spool-archive-change',
-    description: 'Archive a completed change in the experimental workflow. Use when the user wants to finalize and archive a change after implementation is complete.',
+    description:
+      'Archive a completed change in the experimental workflow. Use when the user wants to finalize and archive a change after implementation is complete.',
     instructions: `Archive a completed change in the experimental workflow.
 
 **Input**: Optionally specify a change name. If omitted, MUST prompt for available changes.
@@ -1790,7 +1800,7 @@ All artifacts complete. All tasks complete.
 - Preserve .spool.yaml when moving to archive (it moves with the directory)
 - Show clear summary of what happened
 - If sync is requested, use spool-sync-specs approach (agent-driven)
-- Quick sync check: look for requirement names in delta specs, verify they exist in main specs`
+- Quick sync check: look for requirement names in delta specs, verify they exist in main specs`,
   };
 }
 
@@ -1807,7 +1817,7 @@ export function getSpoolSyncSpecsCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`,
   };
 }
 
@@ -1824,6 +1834,6 @@ export function getSpoolArchiveChangeCommandTemplate(): CommandTemplate {
 
 Follow the skill instructions exactly.
 
-If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`
+If the skill is missing, run \`spool init\` (or \`spool update\` to refresh your installed instructions).`,
   };
 }

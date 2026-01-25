@@ -113,8 +113,8 @@ export function getGlobalConfig(): GlobalConfig {
       // Deep merge featureFlags
       featureFlags: {
         ...DEFAULT_CONFIG.featureFlags,
-        ...(parsed.featureFlags || {})
-      }
+        ...(parsed.featureFlags || {}),
+      },
     };
   } catch (error) {
     // Log warning for parse errors, but not for missing files

@@ -6,7 +6,7 @@ import { JsonConverter } from '../../../src/core/converters/json-converter.js';
 describe('JsonConverter', () => {
   const testDir = path.join(process.cwd(), 'test-json-converter-tmp');
   const converter = new JsonConverter();
-  
+
   beforeEach(async () => {
     await fs.mkdir(testDir, { recursive: true });
   });
@@ -34,10 +34,10 @@ Then they are authenticated`;
 
       const specPath = path.join(testDir, 'spec.md');
       await fs.writeFile(specPath, specContent);
-      
+
       const json = converter.convertSpecToJson(specPath);
       const parsed = JSON.parse(json);
-      
+
       expect(parsed.name).toBe('spec');
       expect(parsed.overview).toContain('user authentication');
       expect(parsed.requirements).toHaveLength(1);
@@ -50,7 +50,7 @@ Then they are authenticated`;
     it('should extract spec name from directory structure', async () => {
       const specsDir = path.join(testDir, 'specs', 'user-auth');
       await fs.mkdir(specsDir, { recursive: true });
-      
+
       const specContent = `# User Auth
 
 ## Purpose
@@ -67,10 +67,10 @@ Then authenticated`;
 
       const specPath = path.join(specsDir, 'spec.md');
       await fs.writeFile(specPath, specContent);
-      
+
       const json = converter.convertSpecToJson(specPath);
       const parsed = JSON.parse(json);
-      
+
       expect(parsed.name).toBe('user-auth');
     });
   });
@@ -88,10 +88,10 @@ We need to implement user authentication to secure the application and protect u
 
       const changePath = path.join(testDir, 'change.md');
       await fs.writeFile(changePath, changeContent);
-      
+
       const json = await converter.convertChangeToJson(changePath);
       const parsed = JSON.parse(json);
-      
+
       expect(parsed.name).toBe('change');
       expect(parsed.why).toContain('secure the application');
       expect(parsed.deltas).toHaveLength(2);
@@ -105,7 +105,7 @@ We need to implement user authentication to secure the application and protect u
     it('should extract change name from directory structure', async () => {
       const changesDir = path.join(testDir, 'changes', 'add-auth');
       await fs.mkdir(changesDir, { recursive: true });
-      
+
       const changeContent = `# Add Auth
 
 ## Why
@@ -116,10 +116,10 @@ We need authentication for security reasons and to protect user data properly.
 
       const changePath = path.join(changesDir, 'proposal.md');
       await fs.writeFile(changePath, changeContent);
-      
+
       const json = await converter.convertChangeToJson(changePath);
       const parsed = JSON.parse(json);
-      
+
       expect(parsed.name).toBe('add-auth');
     });
   });
@@ -142,14 +142,14 @@ Then result`;
 
       const specPath = path.join(testDir, 'spec.md');
       await fs.writeFile(specPath, specContent);
-      
+
       const json = converter.convertSpecToJson(specPath);
-      
+
       // Check for proper indentation (2 spaces)
       expect(json).toContain('  "name"');
       expect(json).toContain('  "overview"');
       expect(json).toContain('  "requirements"');
-      
+
       // Check it's valid JSON
       expect(() => JSON.parse(json)).not.toThrow();
     });
@@ -172,10 +172,10 @@ Then handle correctly`;
 
       const specPath = path.join(testDir, 'spec.md');
       await fs.writeFile(specPath, specContent);
-      
+
       const json = converter.convertSpecToJson(specPath);
       const parsed = JSON.parse(json);
-      
+
       expect(parsed.overview).toContain('"quotes"');
       expect(parsed.overview).toContain('\\');
       expect(parsed.requirements[0].text).toContain('"special"');
