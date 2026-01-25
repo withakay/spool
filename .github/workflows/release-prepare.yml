@@ -33,17 +33,14 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - uses: oven-sh/setup-bun@v2
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24' # Node 24 includes npm 11.5.1+ required for OIDC
-          cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      - run: pnpm install --frozen-lockfile
+      - run: bun ci
 
       # Opens/updates the Version Packages PR; publishes when the Version PR merges
       - name: Create/Update Version PR
@@ -53,7 +50,7 @@ jobs:
           createGithubReleases: true
           # Use CI-specific release script: relies on version PR having been merged
           # so package.json already contains the bumped version.
-          publish: pnpm run release:ci
+          publish: bun run release:ci
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           # npm authentication handled via OIDC trusted publishing (no token needed)

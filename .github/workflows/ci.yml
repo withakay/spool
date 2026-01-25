@@ -27,25 +27,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun ci
 
       - name: Build project
-        run: pnpm run build
+        run: bun run build
 
       - name: Run tests
-        run: pnpm test
+        run: bun run test
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v4
@@ -83,29 +80,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Print environment diagnostics
         run: |
           node -p "JSON.stringify({ platform: process.platform, arch: process.arch, shell: process.env.SHELL || process.env.ComSpec || '' })"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun ci
 
       - name: Build project
-        run: pnpm run build
+        run: bun run build
 
       - name: Run tests
-        run: pnpm test
+        run: bun run test
 
       - name: Upload test coverage
         if: matrix.os == 'ubuntu-latest'
@@ -122,28 +116,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun ci
 
       - name: Build project
-        run: pnpm run build
+        run: bun run build
 
       - name: Type check
-        run: pnpm exec tsc --noEmit
+        run: bunx tsc --noEmit
 
       - name: Lint
-        run: pnpm lint
+        run: bun run lint
 
       - name: Check for build artifacts
         run: |
@@ -166,27 +157,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun ci
 
       - name: Validate changesets
-        run: |
-          if command -v changeset &> /dev/null; then
-            pnpm exec changeset status --since=origin/main
-          else
-            echo "Changesets not configured, skipping validation"
-          fi
+        run: bunx changeset status --since=origin/main
 
   required-checks-pr:
     name: All checks passed
