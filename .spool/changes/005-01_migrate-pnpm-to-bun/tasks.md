@@ -228,6 +228,7 @@
 - **Verify**: `ls pnpm-lock.yaml` shows file not found
 - **Done When**: `pnpm-lock.yaml` removed from repository
 - **Status**: [ ] pending
+ - **Status**: [x] complete
 
 ### Task 6.2: Validate dev-install workflow
 - **Files**: None (developer workflow testing)
@@ -239,6 +240,7 @@
 - **Verify**: `spool --version` shows expected version
 - **Done When**: `make dev-install` successfully installs the package globally for testing
 - **Status**: [ ] pending
+ - **Status**: [x] complete
 
 ### Task 6.3: Final full test suite
 - **Files**: None (comprehensive testing)
@@ -253,6 +255,7 @@
 - **Verify**: All test, build, and lint commands pass
 - **Done When**: Complete test suite passes with Bun
 - **Status**: [ ] pending
+ - **Status**: [x] complete
 
 ### Task 6.4: Verify release workflow (dry-run)
 - **Files**: None (release testing)
@@ -264,6 +267,7 @@
 - **Verify**: Changesets commands execute without errors
 - **Done When**: Release workflow validated (no actual publish required)
 - **Status**: [ ] pending
+ - **Status**: [x] complete
 
 ---
 

@@ -31,7 +31,15 @@ dev-install:
 	BUMPED_VERSION="$$BUMPED_VERSION" node -e 'const fs=require("fs"); const p=require("./package.json"); p.version=process.env.BUMPED_VERSION; fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");'; \
 	(bun remove -g "$$PKG" || true); \
 	$(MAKE) build; \
-	bun add -g .
+	PACK_DIR=$$(mktemp -d); \
+	trap 'rm -rf "$$PACK_DIR"; restore' EXIT; \
+	bun pm pack --destination "$$PACK_DIR" --quiet; \
+	TARBALL=$$(ls "$$PACK_DIR"/*.tgz); \
+	bun add -g "$$TARBALL"; \
+	BUN_BIN=$$(bun pm bin -g); \
+	PATH="$$BUN_BIN:$$PATH"; \
+	command -v spool; \
+	spool --version
 
 clean:
 	rm -rf dist
