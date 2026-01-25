@@ -45,7 +45,7 @@ When invoking this skill, check for these parameters in context:
    - Use AskUserQuestion to select a change (recommended: most recently modified)
 
    Then inspect the change:
-   - `spool status --change "<change-id>"`
+    - `spool status --change "<change-id>"`
    - If available, prefer `--json` and parse it
 
 3. Confirm the change is in a good commit state:

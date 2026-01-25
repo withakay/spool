@@ -19,19 +19,17 @@ Implement tasks from a completed Spool change proposal.
    **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
 
 2. **Check change is ready for implementation**
-    ```bash
+   ```bash
     spool status --change "<change-id>" --json
-    ```
-    - **Execute this command** to check change readiness
-    - Verify all required artifacts are complete (proposal, specs, design, tasks)
+   ```
+   - Verify all required artifacts are complete (proposal, specs, design, tasks)
    - If artifacts are missing, suggest using `spool-continue-change` first
 
 3. **Get implementation context**
-    ```bash
-    spool instructions apply --change "<change-id>" --json
-    ```
-    - **Execute this command** to get context files, task list, and progress
-    - Parse the JSON to understand the current state
+   ```bash
+   spool x-instructions apply --change "<change-id>" --json
+   ```
+   - This returns context files, task list, and progress
    - Parse the JSON to understand the current state
 
 4. **Read all context files**
@@ -62,11 +60,10 @@ Implement tasks from a completed Spool change proposal.
    - User interrupts or wants to review progress
 
 7. **After completing tasks, validate**
-    ```bash
-    spool validate --changes <name>
-    ```
-    - **Execute this command** to validate the change
-    - Run validation to ensure the change meets all requirements
+   ```bash
+   spool validate --changes <name>
+   ```
+   - Run validation to ensure the change meets all requirements
    - Fix any issues found during validation
 
 **Output During Implementation**

@@ -15,12 +15,11 @@ Conduct structured research using Spool's research framework.
    - Determine the research depth needed (quick analysis vs. deep dive)
 
 2. **Initialize research structure**
-    ```bash
-    # Create research directory if it doesn't exist
-    mkdir -p .spool/research/investigations
-    ```
-    - **Execute this command** to create research directory structure
-    - Set up files for different research aspects
+   ```bash
+   # Create research directory if it doesn't exist
+   mkdir -p .spool/research/investigations
+   ```
+   - Create a research directory structure
    - Set up files for different research aspects
 
 3. **Plan the research approach**
