@@ -6,7 +6,8 @@ import path from 'path';
 vi.mock('fs/promises');
 
 describe('Delta Migration Utility', () => {
-  const mockProjectRoot = '/mock/root';
+  // Use an OS-normalized absolute path so Windows path resolution matches expectations.
+  const mockProjectRoot = path.resolve('/mock/root');
   const mockSourceId = 'change-source';
   const mockDestId = 'change-dest';
   const mockSpecs = ['feature/spec.md'];
