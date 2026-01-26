@@ -15,7 +15,12 @@ fn main() -> Result<()> {
 
     // Match TS behavior: `--no-color` sets NO_COLOR=1 globally before command execution.
     if args.iter().any(|a| a == "--no-color") {
-        std::env::set_var("NO_COLOR", "1");
+        // Rust 1.93+ marks `set_var` unsafe due to potential UB when racing with
+        // other threads reading the environment. We do this before any command
+        // execution or thread spawning.
+        unsafe {
+            std::env::set_var("NO_COLOR", "1");
+        }
     }
 
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {

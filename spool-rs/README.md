@@ -13,8 +13,8 @@ cargo clippy --workspace -- -D warnings
 
 ## Coverage
 
-Target: >= 80% workspace line coverage once parity tests are in place.
-Additional target: >= 80% line coverage for `spool-test-support` (harness helpers).
+Target: >= 85% workspace line coverage once parity tests are in place.
+Additional target: >= 85% line coverage for `spool-core` foundation modules.
 
 ```bash
 cd spool-rs

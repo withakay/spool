@@ -16,7 +16,7 @@
   - Implement parse/format rules matching TS
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: unit tests cover accepted/rejected formats
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Implement spool dir discovery
 - **Files**: `spool-rs/crates/spool-core/src/spool_dir/*`
@@ -26,7 +26,7 @@
   - Ensure behavior matches in nested directories
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: unit tests cover discovery cases
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -40,7 +40,7 @@
   - Implement env var behavior required for parity
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: unit tests cover config precedence rules
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.2: Implement `--no-color` and `NO_COLOR`
 - **Files**: `spool-rs/crates/spool-cli/src/output/*`, `spool-rs/crates/spool-core/src/output/*`
@@ -49,7 +49,7 @@
   - Match TS color enablement rules
 - **Verify**: parity tests in harness
 - **Done When**: outputs match TS under NO_COLOR
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -63,7 +63,7 @@
   - Compare behavior of `--no-color` and any env-driven modes
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: parity tests deterministic
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.2: Coverage target
 - **Files**: `spool-rs/README.md`
@@ -72,7 +72,7 @@
   - Target >= 85% coverage for `spool-core` foundation modules
 - **Verify**: `cd spool-rs && cargo llvm-cov --workspace`
 - **Done When**: coverage target met or tracked
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -85,7 +85,7 @@
   - Run strict validation and fix any issues
 - **Verify**: `spool validate 006-04_port-id-and-config-foundations --strict`
 - **Done When**: validation passes
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ## Verify
 

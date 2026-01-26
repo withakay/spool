@@ -1,9 +1,11 @@
-# rust-foundations Specification
+# Spec Delta: rust-foundations
 
 ## Purpose
 
-Provide the shared foundations required for the Rust CLI to match TypeScript behavior (ID parsing, spool directory discovery, and config/environment precedence).
-## Requirements
+Provide the shared foundations for the Rust CLI to match TypeScript behavior.
+
+## MODIFIED Requirements
+
 ### Requirement: Flexible ID parsing matches TypeScript
 
 The Rust implementation MUST accept the same flexible ID forms as the TypeScript CLI.
@@ -24,15 +26,7 @@ The Rust implementation MUST resolve the same spool directory path as the TypeSc
 - **WHEN** a repo config overrides the spool directory name
 - **THEN** Rust MUST resolve the overridden spool directory name
 
-### Requirement: Config and environment precedence matches TypeScript
-
-The Rust implementation MUST apply the same precedence rules as TypeScript for global flags and environment variables.
-
-#### Scenario: `--no-color` and `NO_COLOR`
-- **WHEN** `NO_COLOR=1` is set
-- **THEN** output MUST be uncolored
-- **WHEN** `--no-color` is passed
-- **THEN** output MUST be uncolored regardless of other settings
+## ADDED Requirements
 
 ### Requirement: Output controls match (`--json`, `--no-color`, `NO_COLOR`)
 
@@ -45,4 +39,3 @@ Rust MUST match TypeScript output modes for JSON vs text and color enablement.
 #### Scenario: NO_COLOR disables ANSI styling
 - **WHEN** `NO_COLOR` is set in the environment
 - **THEN** Rust produces the same uncolored output as TypeScript
-
