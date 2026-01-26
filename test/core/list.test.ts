@@ -91,6 +91,33 @@ Regular text that should be ignored
       expect(logOutput.some((line) => line.includes('2/5 tasks'))).toBe(true);
     });
 
+    it('should count tasks correctly for enhanced Status format', async () => {
+      const changesDir = getChangesPath(tempDir);
+      await fs.mkdir(path.join(changesDir, 'status-format-change'), { recursive: true });
+
+      await fs.writeFile(
+        path.join(changesDir, 'status-format-change', 'tasks.md'),
+        `# Tasks for: status-format-change
+
+## Wave 1
+
+### Task 1.1: Do the first thing
+- **Status**: [x] complete
+
+### Task 1.2: Do the second thing
+- **Status**: [ ] pending
+
+### Task 1.3: Do the third thing
+- **Status**: [x] complete
+`
+      );
+
+      const listCommand = new ListCommand();
+      await listCommand.execute(tempDir, 'changes');
+
+      expect(logOutput.some((line) => line.includes('2/3 tasks'))).toBe(true);
+    });
+
     it('should show complete status for fully completed changes', async () => {
       const changesDir = getChangesPath(tempDir);
       await fs.mkdir(path.join(changesDir, 'completed-change'), { recursive: true });
