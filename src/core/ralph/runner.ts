@@ -67,7 +67,6 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
     state = await initializeRalphState(loopChangeId);
   }
 
-  const contextContent = await loadRalphContext(loopChangeId);
   const userPrompt = options.prompt || '';
 
   // Resolve module ID if not provided
@@ -96,14 +95,20 @@ export async function runRalphLoop(options: RalphOptions): Promise<void> {
   for (let i = state.iteration + 1; i <= maxIterations; i++) {
     console.log(`\n=== Ralph Loop Iteration ${i} ===\n`);
 
+    const contextContent = await loadRalphContext(loopChangeId);
+
     const prompt = await buildRalphPrompt(userPrompt, {
       changeId: loopChangeId,
       moduleId: resolvedModuleId,
+      iteration: i,
+      maxIterations: Number.isFinite(maxIterations) ? maxIterations : undefined,
+      minIterations,
+      completionPromise,
+      contextContent,
     });
-    const fullPrompt = contextContent ? `${contextContent}\n\n${prompt}` : prompt;
 
     const runConfig: RalphRunConfig = {
-      prompt: fullPrompt,
+      prompt,
       model,
       cwd: process.cwd(),
       interactive: interactive !== false && !allowAll,
