@@ -30,7 +30,7 @@
   - Return formatted string with proper spacing and separators
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Function exists and returns formatted preamble string
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Update buildRalphPrompt signature
 - **Files**: `src/core/ralph/context.ts`
@@ -53,7 +53,7 @@
   - Remove old context prepending (now handled in preamble)
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Function signature updated, preamble integrated into prompt structure
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -73,7 +73,7 @@
   - Update variable name from `fullPrompt` to `prompt` (no longer combining here)
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Runner passes all iteration state to buildRalphPrompt, context no longer prepended in runner
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -93,7 +93,7 @@
   - Verify iteration display formats correctly
 - **Verify**: `bun test test/core/ralph/context.test.ts`
 - **Done When**: Tests pass, all scenarios covered
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.2: Add integration test for full prompt structure
 - **Files**: `test/core/ralph/context.test.ts`
@@ -108,7 +108,7 @@
   - Test backward compatibility (no iteration parameters)
 - **Verify**: `bun test test/core/ralph/context.test.ts`
 - **Done When**: Tests pass, prompt structure verified
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.3: Manual testing with ralph loop
 - **Files**: N/A (testing)
