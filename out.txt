@@ -1,0 +1,196 @@
+{
+  "specs": [
+    {
+      "id": "agent-workflow-docs",
+      "requirementCount": 4
+    },
+    {
+      "id": "artifact-graph",
+      "requirementCount": 7
+    },
+    {
+      "id": "biome-formatting",
+      "requirementCount": 2
+    },
+    {
+      "id": "biome-linting",
+      "requirementCount": 2
+    },
+    {
+      "id": "bun-ci-integration",
+      "requirementCount": 7
+    },
+    {
+      "id": "bun-dev-workflow",
+      "requirementCount": 8
+    },
+    {
+      "id": "bun-package-management",
+      "requirementCount": 5
+    },
+    {
+      "id": "change-creation",
+      "requirementCount": 2
+    },
+    {
+      "id": "cli-agent-config",
+      "requirementCount": 9
+    },
+    {
+      "id": "cli-archive",
+      "requirementCount": 10
+    },
+    {
+      "id": "cli-artifact-workflow",
+      "requirementCount": 9
+    },
+    {
+      "id": "cli-change",
+      "requirementCount": 4
+    },
+    {
+      "id": "cli-completion",
+      "requirementCount": 11
+    },
+    {
+      "id": "cli-config",
+      "requirementCount": 11
+    },
+    {
+      "id": "cli-init",
+      "requirementCount": 6
+    },
+    {
+      "id": "cli-list",
+      "requirementCount": 7
+    },
+    {
+      "id": "cli-plan",
+      "requirementCount": 6
+    },
+    {
+      "id": "cli-ralph",
+      "requirementCount": 6
+    },
+    {
+      "id": "cli-research",
+      "requirementCount": 7
+    },
+    {
+      "id": "cli-show",
+      "requirementCount": 3
+    },
+    {
+      "id": "cli-spec",
+      "requirementCount": 4
+    },
+    {
+      "id": "cli-tasks",
+      "requirementCount": 9
+    },
+    {
+      "id": "cli-update",
+      "requirementCount": 7
+    },
+    {
+      "id": "cli-validate",
+      "requirementCount": 10
+    },
+    {
+      "id": "cli-view",
+      "requirementCount": 8
+    },
+    {
+      "id": "cli-workflow",
+      "requirementCount": 9
+    },
+    {
+      "id": "delta-migration-utility",
+      "requirementCount": 3
+    },
+    {
+      "id": "docs-agent-instructions",
+      "requirementCount": 4
+    },
+    {
+      "id": "eslint-removal",
+      "requirementCount": 2
+    },
+    {
+      "id": "experimental-workflow-commands",
+      "requirementCount": 2
+    },
+    {
+      "id": "flexible-id-parser",
+      "requirementCount": 5
+    },
+    {
+      "id": "future-ideas-docs",
+      "requirementCount": 1
+    },
+    {
+      "id": "global-config",
+      "requirementCount": 6
+    },
+    {
+      "id": "instruction-loader",
+      "requirementCount": 4
+    },
+    {
+      "id": "interactive-change-splitting",
+      "requirementCount": 3
+    },
+    {
+      "id": "interactive-module-selection",
+      "requirementCount": 5
+    },
+    {
+      "id": "projector-conventions",
+      "requirementCount": 10
+    },
+    {
+      "id": "qa-testing-area",
+      "requirementCount": 2
+    },
+    {
+      "id": "rust-foundations",
+      "requirementCount": 4
+    },
+    {
+      "id": "rust-parity-harness",
+      "requirementCount": 6
+    },
+    {
+      "id": "rust-port-research",
+      "requirementCount": 5
+    },
+    {
+      "id": "rust-workspace",
+      "requirementCount": 5
+    },
+    {
+      "id": "splash-screen-art",
+      "requirementCount": 1
+    },
+    {
+      "id": "spool-archive-change-skill",
+      "requirementCount": 6
+    },
+    {
+      "id": "spool-skill-routing",
+      "requirementCount": 6
+    },
+    {
+      "id": "spool-slash-command",
+      "requirementCount": 6
+    },
+    {
+      "id": "spool-sync-specs-skill",
+      "requirementCount": 3
+    },
+    {
+      "id": "validator-warnings",
+      "requirementCount": 3
+    }
+  ]
+}

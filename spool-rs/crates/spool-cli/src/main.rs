@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use miette::Result;
 use spool_core::config::ConfigContext;
 use spool_core::spool_dir::get_spool_path;
@@ -23,7 +24,12 @@ fn main() -> Result<()> {
         }
     }
 
-    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
+    // Match Commander: `spool --help` shows top-level help, but `spool <cmd> --help`
+    // shows subcommand help.
+    let first = args.first().map(|s| s.as_str());
+    let looks_like_global_help =
+        args.is_empty() || matches!(first, Some("--help") | Some("-h") | Some("help"));
+    if looks_like_global_help {
         println!("{HELP}");
         return Ok(());
     }
@@ -35,7 +41,8 @@ fn main() -> Result<()> {
     }
 
     if args.first().map(|s| s.as_str()) == Some("list") {
-        return handle_list(&args[1..]);
+        handle_list(&args[1..]);
+        return Ok(());
     }
 
     // Temporary fallback for unimplemented commands.
@@ -43,185 +50,242 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn handle_list(args: &[String]) -> Result<()> {
+const LIST_HELP: &str = "Usage: spool list [options]\n\nList items (changes by default). Use --specs or --modules to list other items.\n\nOptions:\n  --specs         List specs instead of changes\n  --changes       List changes explicitly (default)\n  --modules       List modules instead of changes\n  --sort <order>  Sort order: \"recent\" (default) or \"name\" (default: \"recent\")\n  --json          Output as JSON (for programmatic use)\n  -h, --help      display help for command";
+
+fn handle_list(args: &[String]) {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{LIST_HELP}");
+        return;
+    }
+
+    let want_specs = args.iter().any(|a| a == "--specs");
     let want_modules = args.iter().any(|a| a == "--modules");
     let want_json = args.iter().any(|a| a == "--json");
 
-    if want_modules && want_json {
-        let ctx = ConfigContext::from_process_env();
-        let modules = list_modules(std::path::Path::new("."), &ctx)?;
-        let payload = ModulesResponse { modules };
-        let rendered = serde_json::to_string_pretty(&payload).expect("json should serialize");
-        println!("{rendered}");
-        return Ok(());
-    }
+    let sort = parse_sort_order(args).unwrap_or("recent");
+    let mode = if want_specs {
+        "specs"
+    } else if want_modules {
+        "modules"
+    } else {
+        // default is changes, and `--changes` is a no-op.
+        "changes"
+    };
 
-    // Not implemented yet.
-    println!("[]");
-    Ok(())
+    let ctx = ConfigContext::from_process_env();
+    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+
+    match mode {
+        "modules" => {
+            let modules = spool_core::list::list_modules(&spool_path).unwrap_or_default();
+            if want_json {
+                let payload = ModulesResponse { modules };
+                let rendered =
+                    serde_json::to_string_pretty(&payload).expect("json should serialize");
+                println!("{rendered}");
+                return;
+            }
+
+            if modules.is_empty() {
+                println!("No modules found.");
+                println!("Create one with: spool create module <name>");
+                return;
+            }
+
+            println!("Modules:\n");
+            for m in modules {
+                if m.change_count == 0 {
+                    println!("  {}", m.full_name);
+                    continue;
+                }
+                let suffix = if m.change_count == 1 {
+                    "change"
+                } else {
+                    "changes"
+                };
+                println!("  {} ({} {suffix})", m.full_name, m.change_count);
+            }
+            println!();
+        }
+        "specs" => {
+            let specs = spool_core::list::list_specs(&spool_path).unwrap_or_default();
+            if specs.is_empty() {
+                // TS prints a plain sentence even for `--json`.
+                println!("No specs found.");
+                return;
+            }
+
+            if want_json {
+                let payload = SpecsResponse { specs };
+                let rendered =
+                    serde_json::to_string_pretty(&payload).expect("json should serialize");
+                println!("{rendered}");
+                return;
+            }
+
+            println!("Specs:");
+            let padding = "  ";
+            let name_width = specs.iter().map(|s| s.id.len()).max().unwrap_or(0);
+            for s in specs {
+                let padded = format!("{id: <width$}", id = s.id, width = name_width);
+                println!("{padding}{padded}     requirements {}", s.requirement_count);
+            }
+        }
+        _ => {
+            // changes
+            let changes_dir = spool_path.join("changes");
+            if !changes_dir.exists() {
+                eprintln!("✖ Error: No Spool changes directory found. Run 'spool init' first.");
+                std::process::exit(1);
+            }
+
+            let mut items: Vec<(String, u32, u32, DateTime<Utc>)> = Vec::new();
+            let entries = std::fs::read_dir(&changes_dir).unwrap_or_else(|_| {
+                eprintln!("✖ Error: No Spool changes directory found. Run 'spool init' first.");
+                std::process::exit(1);
+            });
+            for entry in entries.flatten() {
+                let ft = match entry.file_type() {
+                    Ok(t) => t,
+                    Err(_) => continue,
+                };
+                if !ft.is_dir() {
+                    continue;
+                }
+                let name = entry.file_name().to_string_lossy().to_string();
+                if name == "archive" {
+                    continue;
+                }
+                let change_path = entry.path();
+                let tasks_path = change_path.join("tasks.md");
+                let (total, completed) = match std::fs::read_to_string(&tasks_path) {
+                    Ok(c) => spool_core::list::count_tasks_markdown(&c),
+                    Err(_) => (0, 0),
+                };
+                let lm = spool_core::list::last_modified_recursive(&change_path)
+                    .unwrap_or_else(|_| Utc::now());
+                items.push((name, completed, total, lm));
+            }
+
+            if items.is_empty() {
+                if want_json {
+                    let rendered =
+                        serde_json::to_string_pretty(&serde_json::json!({ "changes": [] }))
+                            .expect("json should serialize");
+                    println!("{rendered}");
+                } else {
+                    println!("No active changes found.");
+                }
+                return;
+            }
+
+            if sort == "name" {
+                items.sort_by(|a, b| a.0.cmp(&b.0));
+            } else {
+                items.sort_by(|a, b| b.3.cmp(&a.3));
+            }
+
+            if want_json {
+                let changes: Vec<spool_core::list::ChangeListItem> = items
+                    .into_iter()
+                    .map(|(name, completed, total, lm)| {
+                        let status = if total == 0 {
+                            "no-tasks"
+                        } else if completed == total {
+                            "complete"
+                        } else {
+                            "in-progress"
+                        };
+                        spool_core::list::ChangeListItem {
+                            name,
+                            completed_tasks: completed,
+                            total_tasks: total,
+                            last_modified: spool_core::list::to_iso_millis(lm),
+                            status: status.to_string(),
+                        }
+                    })
+                    .collect();
+                let payload = ChangesResponse { changes };
+                let rendered =
+                    serde_json::to_string_pretty(&payload).expect("json should serialize");
+                println!("{rendered}");
+                return;
+            }
+
+            println!("Changes:");
+            let name_width = items.iter().map(|i| i.0.len()).max().unwrap_or(0);
+            for (name, completed, total, lm) in items {
+                let status = format_task_status(total, completed);
+                let time_ago = format_relative_time(lm);
+                let padded = format!("{name: <width$}", width = name_width);
+                println!("  {padded}     {: <12}  {time_ago}", status);
+            }
+        }
+    }
 }
 
 #[derive(Debug, serde::Serialize)]
 struct ModulesResponse {
-    modules: Vec<Module>,
+    modules: Vec<spool_core::list::ModuleListItem>,
 }
 
 #[derive(Debug, serde::Serialize)]
-struct Module {
-    id: String,
-    name: String,
-    #[serde(rename = "fullName")]
-    full_name: String,
-    #[serde(rename = "changeCount")]
-    change_count: usize,
+struct ChangesResponse {
+    changes: Vec<spool_core::list::ChangeListItem>,
 }
 
-fn list_modules(project_root: &std::path::Path, ctx: &ConfigContext) -> Result<Vec<Module>> {
-    use miette::IntoDiagnostic;
-    use std::fs;
-
-    let spool_path = get_spool_path(project_root, ctx);
-    let modules_dir = spool_path.join("modules");
-    let changes_dir = spool_path.join("changes");
-
-    let mut modules: Vec<Module> = Vec::new();
-
-    if !modules_dir.exists() {
-        return Ok(modules);
-    }
-
-    for entry in fs::read_dir(&modules_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
-            continue;
-        }
-
-        let full_name = entry.file_name().to_string_lossy().to_string();
-        if full_name.starts_with('.') {
-            continue;
-        }
-
-        let Some((id, name)) = parse_module_folder_name(&full_name) else {
-            continue;
-        };
-
-        // TS oracle only counts modules that have module.md present.
-        let module_md = entry.path().join("module.md");
-        if fs::metadata(&module_md).is_err() {
-            continue;
-        }
-
-        let change_count = count_changes_for_module(&changes_dir, &id)?;
-
-        modules.push(Module {
-            id,
-            name,
-            full_name,
-            change_count,
-        });
-    }
-
-    modules.sort_by(|a, b| a.full_name.cmp(&b.full_name));
-    Ok(modules)
+#[derive(Debug, serde::Serialize)]
+struct SpecsResponse {
+    specs: Vec<spool_core::list::SpecListItem>,
 }
 
-fn count_changes_for_module(changes_dir: &std::path::Path, module_id: &str) -> Result<usize> {
-    use miette::IntoDiagnostic;
-    use std::fs;
-
-    if !changes_dir.exists() {
-        return Ok(0);
-    }
-
-    let mut count = 0usize;
-    for entry in fs::read_dir(changes_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
-            continue;
+fn parse_sort_order(args: &[String]) -> Option<&str> {
+    let mut iter = args.iter();
+    while let Some(a) = iter.next() {
+        if a == "--sort" {
+            return iter.next().map(|s| s.as_str());
         }
-        let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with('.') || name == "archive" {
-            continue;
-        }
-
-        // TS oracle only considers changes "active" if proposal.md exists.
-        if fs::metadata(entry.path().join("proposal.md")).is_err() {
-            continue;
-        }
-
-        // Only modular changes are associated with modules.
-        if let Some(parsed_module_id) = parse_modular_change_module_id(&name)
-            && parsed_module_id == module_id
-        {
-            count += 1;
+        if let Some(v) = a.strip_prefix("--sort=") {
+            return Some(v);
         }
     }
-
-    Ok(count)
+    None
 }
 
-fn parse_module_folder_name(folder: &str) -> Option<(String, String)> {
-    // TS regex: /^(\d{3})_([a-z][a-z0-9-]*)$/
-    let bytes = folder.as_bytes();
-    if bytes.len() < 5 {
-        return None;
+fn format_task_status(total: u32, completed: u32) -> String {
+    if total == 0 {
+        return "No tasks".to_string();
     }
-    if !bytes.first()?.is_ascii_digit()
-        || !bytes.get(1)?.is_ascii_digit()
-        || !bytes.get(2)?.is_ascii_digit()
-    {
-        return None;
+    if total == completed {
+        return "\u{2713} Complete".to_string();
     }
-    if *bytes.get(3)? != b'_' {
-        return None;
-    }
-
-    let name = &folder[4..];
-    let mut chars = name.chars();
-    let first = chars.next()?;
-    if !first.is_ascii_lowercase() {
-        return None;
-    }
-    for c in chars {
-        if !(c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
-            return None;
-        }
-    }
-
-    Some((folder[0..3].to_string(), name.to_string()))
+    format!("{completed}/{total} tasks")
 }
 
-fn parse_modular_change_module_id(folder: &str) -> Option<&str> {
-    // TS regex: /^(\d{3})-(\d{2})_([a-z][a-z0-9-]*)$/
-    let bytes = folder.as_bytes();
-    if bytes.len() < 8 {
-        return None;
+fn format_relative_time(then: DateTime<Utc>) -> String {
+    let now = Utc::now();
+    let diff = now.signed_duration_since(then);
+    let secs = diff.num_seconds();
+    if secs <= 0 {
+        return "just now".to_string();
     }
-    if !bytes.first()?.is_ascii_digit()
-        || !bytes.get(1)?.is_ascii_digit()
-        || !bytes.get(2)?.is_ascii_digit()
-    {
-        return None;
+    let mins = diff.num_minutes();
+    let hours = diff.num_hours();
+    let days = diff.num_days();
+
+    if days > 30 {
+        // Node's `toLocaleDateString()` is locale-dependent; in our parity harness
+        // environment it renders as M/D/YYYY.
+        return then.format("%-m/%-d/%Y").to_string();
     }
-    if *bytes.get(3)? != b'-' {
-        return None;
+
+    if days > 0 {
+        format!("{days}d ago")
+    } else if hours > 0 {
+        format!("{hours}h ago")
+    } else if mins > 0 {
+        format!("{mins}m ago")
+    } else {
+        "just now".to_string()
     }
-    if !bytes.get(4)?.is_ascii_digit() || !bytes.get(5)?.is_ascii_digit() {
-        return None;
-    }
-    if *bytes.get(6)? != b'_' {
-        return None;
-    }
-    let name = &folder[7..];
-    let mut chars = name.chars();
-    let first = chars.next()?;
-    if !first.is_ascii_lowercase() {
-        return None;
-    }
-    for c in chars {
-        if !(c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
-            return None;
-        }
-    }
-    Some(&folder[0..3])
 }
