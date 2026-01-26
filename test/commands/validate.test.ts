@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { runCLI } from '../helpers/run-cli.js';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getChangesPath, getSpecsPath } from '../../src/core/project-config.js';
+import { runCLI } from '../helpers/run-cli.js';
 
 describe('top-level validate command', () => {
   const projectRoot = process.cwd();
@@ -178,5 +178,35 @@ A module for ungrouped test changes.
     expect(result.exitCode).toBe(0);
     // Should complete without hanging and without prompts
     expect(result.stderr).not.toContain('What would you like to validate?');
+  });
+
+  it('treats date-prefixed archived changes as existing in module validation', async () => {
+    // Add a change that only exists in archive with a date-prefixed folder.
+    const archivedChangeId = '000-99_archived-change';
+    const archivedDir = path.join(
+      testDir,
+      '.spool',
+      'changes',
+      'archive',
+      `2026-01-01-${archivedChangeId}`
+    );
+    await fs.mkdir(archivedDir, { recursive: true });
+    await fs.writeFile(
+      path.join(archivedDir, 'proposal.md'),
+      '# Archived\n\n## Why\nLong enough.\n\n## What Changes\n- noop',
+      'utf-8'
+    );
+    await fs.writeFile(path.join(archivedDir, '.spool.yaml'), 'version: "1.0.0"', 'utf-8');
+
+    // Update module.md to list the archived change id.
+    const modulePath = path.join(modulesDir, '000_ungrouped', 'module.md');
+    const content = await fs.readFile(modulePath, 'utf-8');
+    await fs.writeFile(modulePath, `${content}\n- ${archivedChangeId}\n`, 'utf-8');
+
+    const result = await runCLI(['validate', '--modules', '--json'], { cwd: testDir });
+    expect(result.exitCode).toBe(0);
+    const json = JSON.parse(result.stdout.trim());
+    expect(Array.isArray(json.items)).toBe(true);
+    expect(json.items.every((i: any) => i.type === 'module' && i.valid === true)).toBe(true);
   });
 });

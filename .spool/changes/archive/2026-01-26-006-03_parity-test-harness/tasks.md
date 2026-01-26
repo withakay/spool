@@ -16,7 +16,7 @@
   - Implement temp dir + fixture copy helpers
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: unit tests cover harness helpers
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Add PTY test helpers
 - **Files**: `spool-rs/crates/spool-test-support/src/pty/*`
@@ -25,7 +25,7 @@
   - Add a minimal PTY runner abstraction for interactive commands
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: PTY helper is exercised by a small test
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -39,7 +39,7 @@
   - Add one non-mutating command parity test (e.g., `list --json` once implemented)
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: snapshots are deterministic
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.2: Coverage target
 - **Files**: `spool-rs/README.md`
@@ -48,7 +48,7 @@
   - Target >= 80% coverage for harness helpers
 - **Verify**: `cd spool-rs && cargo llvm-cov --workspace`
 - **Done When**: coverage measured and tracked
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -61,7 +61,7 @@
   - Run strict validation and fix any issues
 - **Verify**: `spool validate 006-03_parity-test-harness --strict`
 - **Done When**: validation passes
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ## Verify
 

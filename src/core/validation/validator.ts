@@ -1,35 +1,36 @@
-import { z, ZodError } from 'zod';
-import { readFileSync, promises as fs } from 'fs';
+import { promises as fs, readFileSync } from 'fs';
 import path from 'path';
-import {
-  SpecSchema,
-  ChangeSchema,
-  ModuleSchema,
-  Spec,
-  Change,
-  Module,
-  parseModularChangeName,
-  LEGACY_CHANGE_PATTERN,
-  MIN_MODULE_PURPOSE_LENGTH,
-} from '../schemas/index.js';
-import { MarkdownParser } from '../parsers/markdown-parser.js';
-import { ChangeParser } from '../parsers/change-parser.js';
-import { ModuleParser } from '../parsers/module-parser.js';
-import { ValidationReport, ValidationIssue, ValidationLevel } from './types.js';
-import {
-  MIN_PURPOSE_LENGTH,
-  MAX_REQUIREMENT_TEXT_LENGTH,
-  VALIDATION_MESSAGES,
-} from './constants.js';
-import { parseDeltaSpec, normalizeRequirementName } from '../parsers/requirement-blocks.js';
+import { ZodError, z } from 'zod';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import {
-  getModuleIds,
   getActiveChangeIds,
+  getAllChangeIds,
   getChangesForModule,
   getModuleChangeIndex,
+  getModuleIds,
 } from '../../utils/item-discovery.js';
+import { ChangeParser } from '../parsers/change-parser.js';
+import { MarkdownParser } from '../parsers/markdown-parser.js';
+import { ModuleParser } from '../parsers/module-parser.js';
+import { normalizeRequirementName, parseDeltaSpec } from '../parsers/requirement-blocks.js';
 import { getChangesPath, getModulesPath } from '../project-config.js';
+import {
+  Change,
+  ChangeSchema,
+  LEGACY_CHANGE_PATTERN,
+  MIN_MODULE_PURPOSE_LENGTH,
+  Module,
+  ModuleSchema,
+  parseModularChangeName,
+  Spec,
+  SpecSchema,
+} from '../schemas/index.js';
+import {
+  MAX_REQUIREMENT_TEXT_LENGTH,
+  MIN_PURPOSE_LENGTH,
+  VALIDATION_MESSAGES,
+} from './constants.js';
+import { ValidationIssue, ValidationLevel, ValidationReport } from './types.js';
 
 export class Validator {
   private strictMode: boolean;
@@ -569,14 +570,22 @@ export class Validator {
 
     // Check listed changes
     const activeChanges = await getActiveChangeIds(root);
-    const activeChangeSet = new Set(activeChanges);
+    const allChangeIds = await getAllChangeIds(root);
+    const allChangeSet = new Set(allChangeIds);
+
+    const changeExists = (changeId: string): boolean => {
+      if (allChangeSet.has(changeId)) return true;
+      // Archived changes are often date-prefixed; treat any archive dir ending
+      // with the change id as existing.
+      return allChangeIds.some((id) => id.endsWith(changeId));
+    };
 
     for (const changeEntry of module.changes) {
       // Skip planned changes
       if (changeEntry.planned) continue;
 
       // Check change exists
-      if (!activeChangeSet.has(changeEntry.id)) {
+      if (!changeExists(changeEntry.id)) {
         issues.push({
           level: 'ERROR',
           path: `changes.${changeEntry.id}`,

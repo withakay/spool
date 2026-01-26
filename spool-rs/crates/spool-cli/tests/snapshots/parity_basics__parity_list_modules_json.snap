@@ -1,0 +1,22 @@
+---
+source: crates/spool-cli/tests/parity_basics.rs
+assertion_line: 86
+expression: rs.stdout
+---
+{
+  "modules": [
+    {
+      "id": "000",
+      "name": "ungrouped",
+      "fullName": "000_ungrouped",
+      "changeCount": 1
+    },
+    {
+      "id": "006",
+      "name": "spool-rs-port",
+      "fullName": "006_spool-rs-port",
+      "changeCount": 2
+    }
+  ]
+}
+

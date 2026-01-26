@@ -16,7 +16,7 @@
   - Ensure `spool-cli` builds as a binary
 - **Verify**: `cd spool-rs && cargo test --workspace`
 - **Done When**: workspace compiles and tests run
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Wire fmt + clippy
 - **Files**: `spool-rs/rustfmt.toml` (optional), `spool-rs/README.md`
@@ -25,7 +25,7 @@
   - Ensure `cargo fmt --check` and `cargo clippy --workspace` are clean
 - **Verify**: `cd spool-rs && cargo fmt --check && cargo clippy --workspace`
 - **Done When**: formatting and lint pass
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -39,7 +39,7 @@
   - Set initial coverage target (>= 70% workspace, rising per later changes)
 - **Verify**: `cd spool-rs && cargo llvm-cov --workspace`
 - **Done When**: command is documented and runs in CI/local
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -52,7 +52,7 @@
   - Run strict validation and fix any issues
 - **Verify**: `spool validate 006-02_create-spool-rs-workspace --strict`
 - **Done When**: validation passes
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ## Verify
 

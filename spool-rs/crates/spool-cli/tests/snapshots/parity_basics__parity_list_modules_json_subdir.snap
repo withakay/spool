@@ -1,0 +1,8 @@
+---
+source: crates/spool-cli/tests/parity_basics.rs
+assertion_line: 114
+expression: rs.stdout
+---
+{
+  "modules": []
+}
