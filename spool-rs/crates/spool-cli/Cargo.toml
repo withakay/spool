@@ -17,6 +17,8 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 spool-core = { path = "../spool-core" }
+spool-fs = { path = "../spool-fs" }
+spool-templates = { path = "../spool-templates" }
 chrono = { workspace = true }
 
 [dev-dependencies]

@@ -17,7 +17,7 @@
   - Ensure idempotency
 - **Verify**: unit tests
 - **Done When**: marker edits match TS on fixtures
-- **Status**: [ ] pending
+- **Status**: [x] done
 
 ---
 

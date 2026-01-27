@@ -16,7 +16,7 @@
   - Match `--json` schema and ordering as observed in TS
 - **Verify**: unit + integration tests
 - **Done When**: parity tests for list pass in fixtures
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -30,7 +30,7 @@
   - Match error messages for missing IDs
 - **Verify**: parity tests
 - **Done When**: show parity passes on fixtures
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -44,7 +44,7 @@
   - Match `--json` shapes
 - **Verify**: parity tests
 - **Done When**: validate parity passes
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -60,7 +60,7 @@
     - repo with validation warnings
 - **Verify**: `cargo test --workspace`
 - **Done When**: parity suite is deterministic
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 4.2: Coverage target
 - **Files**: `spool-rs/README.md`
@@ -69,7 +69,7 @@
   - Target >= 85% coverage for `spool-core` validation and rendering
 - **Verify**: `cargo llvm-cov --workspace`
 - **Done When**: coverage target met or tracked
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 4.3: Validate change artifacts
 - **Files**: N/A
@@ -78,7 +78,7 @@
   - Run `spool validate 006-05_port-list-show-validate --strict` and fix any issues
 - **Verify**: Validation passes
 - **Done When**: `spool validate --strict` is clean
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ## Verify
 

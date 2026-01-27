@@ -6,3 +6,4 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+include_dir = { workspace = true }
