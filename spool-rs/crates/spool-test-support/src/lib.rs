@@ -65,6 +65,7 @@ fn run_with_env(cmd: &mut Command, cwd: &Path, home: &Path) -> CmdOutput {
     cmd.env("SPOOL_INTERACTIVE", "0");
     cmd.env("TERM", "dumb");
     cmd.env("HOME", home);
+    cmd.env("XDG_DATA_HOME", home);
 
     let out = cmd
         .output()
