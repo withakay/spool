@@ -10,13 +10,13 @@
 
 ### Task 1.1: Implement workflow/state schemas
 - **Files**: `spool-rs/crates/spool-schemas/src/*`
-- **Dependencies**: Change `006-02_create-spool-rs-workspace`
+- **Dependencies**: None
 - **Action**:
   - Model YAML/JSON formats used by TS
   - Add serialization roundtrip tests
 - **Verify**: unit tests
 - **Done When**: schemas roundtrip and match fixtures
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -29,7 +29,7 @@
   - Implement commands and match TS output
 - **Verify**: integration + parity tests
 - **Done When**: parity passes
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.2: Port `workflow` and `state`
 - **Files**: `spool-rs/crates/spool-cli/src/*`, `spool-rs/crates/spool-workflow/src/*`
@@ -38,7 +38,7 @@
   - Implement commands and ensure state reads/writes are compatible
 - **Verify**: integration + parity tests
 - **Done When**: parity passes including on-disk state
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ---
 
@@ -51,16 +51,16 @@
   - Target >= 80% coverage in `spool-workflow` and `spool-schemas`
 - **Verify**: `cargo llvm-cov --workspace`
 - **Done When**: coverage target met or tracked
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.2: Validate change artifacts
 - **Files**: N/A
-- **Dependencies**: All above
+- **Dependencies**: Task 1.1, Task 2.1, Task 2.2, Task 3.1
 - **Action**:
   - Run `spool validate 006-08_port-plan-tasks-workflow-state --strict` and fix any issues
 - **Verify**: Validation passes
 - **Done When**: `spool validate --strict` is clean
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ## Verify
 
