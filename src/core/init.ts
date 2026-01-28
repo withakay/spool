@@ -1,4 +1,3 @@
-import path from 'path';
 import {
   createPrompt,
   isBackspaceKey,
@@ -12,14 +11,15 @@ import {
 } from '@inquirer/core';
 import chalk from 'chalk';
 import ora from 'ora';
+import path from 'path';
 import { FileSystemUtils } from '../utils/file-system.js';
-import { TemplateManager, ProjectContext, PlanningContext } from './templates/index.js';
+import { AI_TOOLS, AIToolOption, SPOOL_MARKERS, SpoolConfig } from './config.js';
 import { ToolRegistry } from './configurators/registry.js';
 import { SlashCommandRegistry } from './configurators/slash/registry.js';
-import { getSplash } from './ui/splash.js';
-import { SpoolConfig, AI_TOOLS, AIToolOption, SPOOL_MARKERS } from './config.js';
-import { PALETTE } from './styles/palette.js';
 import { getSpoolDirName } from './project-config.js';
+import { PALETTE } from './styles/palette.js';
+import { PlanningContext, ProjectContext, TemplateManager } from './templates/index.js';
+import { getSplash } from './ui/splash.js';
 
 const PROGRESS_SPINNER = {
   interval: 80,
@@ -762,11 +762,13 @@ export class InitCommand {
     config: SpoolConfig,
     skipExisting: boolean
   ): Promise<void> {
-    const context: ProjectContext = {
+    const context: ProjectContext & { spoolDir: string } = {
+      spoolDir: path.basename(spoolPath),
       // Could be enhanced with prompts for project details
     };
 
     const planningContext: PlanningContext = {
+      spoolDir: path.basename(spoolPath),
       currentDate: new Date().toISOString().split('T')[0],
     };
 

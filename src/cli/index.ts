@@ -9,14 +9,17 @@ import { ChangeCommand } from '../commands/change.js';
 import { CompletionCommand } from '../commands/completion.js';
 import { ConfigCommand, registerConfigCommand } from '../commands/config.js';
 import { ModuleCommand, registerModuleCommand } from '../commands/module.js';
+import { PlanCommand } from '../commands/plan.js';
 import { registerRalphCommand } from '../commands/ralph.js';
 import { registerResearchCommand } from '../commands/research.js';
 import { ShowCommand } from '../commands/show.js';
 import { registerSkillsCommands } from '../commands/skills.js';
 import { registerSpecCommand } from '../commands/spec.js';
 import { SplitCommand } from '../commands/split.js';
+import { StateCommand } from '../commands/state.js';
 import { TasksCommand } from '../commands/tasks.js';
 import { ValidateCommand } from '../commands/validate.js';
+import { WorkflowCommand } from '../commands/workflow.js';
 import { ArchiveCommand } from '../core/archive.js';
 import { AI_TOOLS } from '../core/config.js';
 import { ListCommand } from '../core/list.js';
@@ -220,6 +223,275 @@ tasksCmd
     try {
       const tasksCommand = new TasksCommand();
       await tasksCommand.show(changeId, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Planning (PROJECT.md / ROADMAP.md / STATE.md)
+const planCmd = program.command('plan').description('Project planning tools');
+
+planCmd
+  .command('init')
+  .description('Initialize planning structure')
+  .action(async () => {
+    try {
+      const plan = new PlanCommand();
+      await plan.init('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+planCmd
+  .command('status')
+  .description('Show current milestone progress')
+  .action(async () => {
+    try {
+      const plan = new PlanCommand();
+      await plan.status('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+planCmd
+  .command('add-milestone <milestone-id> <milestone-name>')
+  .description('Add a new milestone')
+  .action(async (milestoneId: string, milestoneName: string) => {
+    try {
+      const plan = new PlanCommand();
+      await plan.addMilestone('.', milestoneId, milestoneName);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+planCmd
+  .command('add-phase <milestone-id> <phase-name>')
+  .description('Add a new phase to a milestone')
+  .action(async (milestoneId: string, phaseName: string) => {
+    try {
+      const plan = new PlanCommand();
+      await plan.addPhase('.', milestoneId, phaseName);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+planCmd
+  .command('update-phase <milestone-id> <phase-number> <status>')
+  .description('Update a phase status')
+  .action(async (milestoneId: string, phaseNumber: string, status: string) => {
+    try {
+      const plan = new PlanCommand();
+      const parsed = Number.parseInt(phaseNumber, 10);
+      const st =
+        status === 'Pending' || status === 'In Progress' || status === 'Complete' ? status : null;
+      if (!st || Number.isNaN(parsed)) {
+        throw new Error('Invalid phase number or status');
+      }
+      await plan.updatePhaseStatus(milestoneId, parsed, st, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// State (STATE.md)
+const stateCmd = program.command('state').description('View and update planning/STATE.md');
+
+stateCmd
+  .command('show')
+  .description('Show current project state')
+  .action(async () => {
+    try {
+      const state = new StateCommand();
+      await state.show('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('decision <text...>')
+  .description('Record a decision')
+  .action(async (text: string[]) => {
+    try {
+      const state = new StateCommand();
+      await state.addDecision(text.join(' '), '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('blocker <text...>')
+  .description('Record a blocker')
+  .action(async (text: string[]) => {
+    try {
+      const state = new StateCommand();
+      await state.addBlocker(text.join(' '), '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('note <text...>')
+  .description('Add a session note')
+  .action(async (text: string[]) => {
+    try {
+      const state = new StateCommand();
+      await state.addNote(text.join(' '), '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('focus <text...>')
+  .description('Set current focus')
+  .action(async (text: string[]) => {
+    try {
+      const state = new StateCommand();
+      await state.setFocus(text.join(' '), '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+stateCmd
+  .command('question <text...>')
+  .description('Add an open question')
+  .action(async (text: string[]) => {
+    try {
+      const state = new StateCommand();
+      await state.addQuestion(text.join(' '), '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+// Workflow (workflows/*.yaml)
+const workflowCmd = program.command('workflow').description('Manage and run workflows');
+
+workflowCmd
+  .command('init')
+  .description('Initialize workflow templates')
+  .action(async () => {
+    try {
+      const workflow = new WorkflowCommand();
+      await workflow.init('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('list')
+  .description('List available workflows')
+  .action(async () => {
+    try {
+      const workflow = new WorkflowCommand();
+      await workflow.list('.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('show <workflow-name>')
+  .description('Show workflow details')
+  .action(async (workflowName: string) => {
+    try {
+      const workflow = new WorkflowCommand();
+      await workflow.show(workflowName, '.');
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('run <workflow-name>')
+  .description('Generate execution instructions')
+  .option('--tool <tool>', 'AI tool (opencode, claude-code, codex)', 'opencode')
+  .option('--var <key=value>', 'Template variable', (v, acc) => [...acc, v], [] as string[])
+  .action(async (workflowName: string, options: { tool: string; var: string[] }) => {
+    try {
+      const vars: Record<string, string> = {};
+      for (const kv of options.var ?? []) {
+        const idx = kv.indexOf('=');
+        if (idx === -1) throw new Error(`Invalid --var: ${kv}`);
+        vars[kv.slice(0, idx)] = kv.slice(idx + 1);
+      }
+      const workflow = new WorkflowCommand();
+      await workflow.run(workflowName, options.tool as any, '.', vars);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('plan <workflow-name>')
+  .description('Generate execution plan JSON')
+  .option('--tool <tool>', 'AI tool (opencode, claude-code, codex)', 'opencode')
+  .option('--var <key=value>', 'Template variable', (v, acc) => [...acc, v], [] as string[])
+  .action(async (workflowName: string, options: { tool: string; var: string[] }) => {
+    try {
+      const vars: Record<string, string> = {};
+      for (const kv of options.var ?? []) {
+        const idx = kv.indexOf('=');
+        if (idx === -1) throw new Error(`Invalid --var: ${kv}`);
+        vars[kv.slice(0, idx)] = kv.slice(idx + 1);
+      }
+      const workflow = new WorkflowCommand();
+      await workflow.plan(workflowName, options.tool as any, '.', vars);
+    } catch (error) {
+      console.log();
+      ora().fail(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  });
+
+workflowCmd
+  .command('status <workflow-name>')
+  .description('Show workflow execution status')
+  .action(async (workflowName: string) => {
+    try {
+      const workflow = new WorkflowCommand();
+      await workflow.status(workflowName, '.');
     } catch (error) {
       console.log();
       ora().fail(`Error: ${(error as Error).message}`);
