@@ -1,0 +1,854 @@
+use crate::config::ConfigContext;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
+use std::env;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+#[derive(Debug, thiserror::Error)]
+pub enum WorkflowError {
+    #[error("Invalid change name")]
+    InvalidChangeName,
+
+    #[error("Missing required option --change")]
+    MissingChange,
+
+    #[error("Change '{0}' not found")]
+    ChangeNotFound(String),
+
+    #[error("Schema '{0}' not found")]
+    SchemaNotFound(String),
+
+    #[error("Artifact '{0}' not found")]
+    ArtifactNotFound(String),
+
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+
+    #[error(transparent)]
+    Yaml(#[from] serde_yaml::Error),
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ArtifactStatus {
+    pub id: String,
+    #[serde(rename = "outputPath")]
+    pub output_path: String,
+    pub status: String,
+    #[serde(rename = "missingDeps", skip_serializing_if = "Vec::is_empty")]
+    pub missing_deps: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ChangeStatus {
+    #[serde(rename = "changeName")]
+    pub change_name: String,
+    #[serde(rename = "schemaName")]
+    pub schema_name: String,
+    #[serde(rename = "isComplete")]
+    pub is_complete: bool,
+    #[serde(rename = "applyRequires")]
+    pub apply_requires: Vec<String>,
+    pub artifacts: Vec<ArtifactStatus>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TemplateInfo {
+    pub source: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct DependencyInfo {
+    pub id: String,
+    pub done: bool,
+    pub path: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct InstructionsResponse {
+    #[serde(rename = "changeName")]
+    pub change_name: String,
+    #[serde(rename = "artifactId")]
+    pub artifact_id: String,
+    #[serde(rename = "schemaName")]
+    pub schema_name: String,
+    #[serde(rename = "changeDir")]
+    pub change_dir: String,
+    #[serde(rename = "outputPath")]
+    pub output_path: String,
+    pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub instruction: Option<String>,
+    pub template: String,
+    pub dependencies: Vec<DependencyInfo>,
+    pub unlocks: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TaskItem {
+    pub id: String,
+    pub description: String,
+    pub done: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ProgressInfo {
+    pub total: usize,
+    pub complete: usize,
+    pub remaining: usize,
+    #[serde(rename = "inProgress", skip_serializing_if = "Option::is_none")]
+    pub in_progress: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pending: Option<usize>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TaskDiagnostic {
+    pub level: String,
+    pub message: String,
+    #[serde(rename = "taskId", skip_serializing_if = "Option::is_none")]
+    pub task_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ApplyInstructionsResponse {
+    #[serde(rename = "changeName")]
+    pub change_name: String,
+    #[serde(rename = "changeDir")]
+    pub change_dir: String,
+    #[serde(rename = "schemaName")]
+    pub schema_name: String,
+    #[serde(rename = "tracksPath")]
+    pub tracks_path: Option<String>,
+    #[serde(rename = "tracksFile")]
+    pub tracks_file: Option<String>,
+    #[serde(rename = "tracksFormat")]
+    pub tracks_format: Option<String>,
+    #[serde(rename = "tracksDiagnostics", skip_serializing_if = "Option::is_none")]
+    pub tracks_diagnostics: Option<Vec<TaskDiagnostic>>,
+    pub state: String,
+    #[serde(rename = "contextFiles")]
+    pub context_files: BTreeMap<String, String>,
+    pub progress: ProgressInfo,
+    pub tasks: Vec<TaskItem>,
+    #[serde(rename = "missingArtifacts", skip_serializing_if = "Option::is_none")]
+    pub missing_artifacts: Option<Vec<String>>,
+    pub instruction: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AgentInstructionResponse {
+    #[serde(rename = "artifactId")]
+    pub artifact_id: String,
+    pub instruction: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SchemaSource {
+    Package,
+    User,
+}
+
+impl SchemaSource {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SchemaSource::Package => "package",
+            SchemaSource::User => "user",
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ResolvedSchema {
+    pub schema: SchemaYaml,
+    pub schema_dir: PathBuf,
+    pub source: SchemaSource,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SchemaYaml {
+    pub name: String,
+    #[serde(default)]
+    pub version: Option<u32>,
+    #[serde(default)]
+    pub description: Option<String>,
+    pub artifacts: Vec<ArtifactYaml>,
+    #[serde(default)]
+    pub apply: Option<ApplyYaml>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ArtifactYaml {
+    pub id: String,
+    pub generates: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    pub template: String,
+    #[serde(default)]
+    pub instruction: Option<String>,
+    #[serde(default)]
+    pub requires: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ApplyYaml {
+    #[serde(default)]
+    pub requires: Option<Vec<String>>,
+    #[serde(default)]
+    pub tracks: Option<String>,
+    #[serde(default)]
+    pub instruction: Option<String>,
+}
+
+pub fn default_schema_name() -> &'static str {
+    "spec-driven"
+}
+
+pub fn validate_change_name_input(name: &str) -> bool {
+    if name.is_empty() {
+        return false;
+    }
+    if name.starts_with('/') || name.starts_with('\\') {
+        return false;
+    }
+    if name.contains('/') || name.contains('\\') {
+        return false;
+    }
+    if name.contains("..") {
+        return false;
+    }
+    true
+}
+
+pub fn read_change_schema(spool_path: &Path, change: &str) -> String {
+    let meta = spool_path.join("changes").join(change).join(".spool.yaml");
+    if let Ok(s) = fs::read_to_string(meta) {
+        for line in s.lines() {
+            let l = line.trim();
+            if let Some(rest) = l.strip_prefix("schema:") {
+                let v = rest.trim();
+                if !v.is_empty() {
+                    return v.to_string();
+                }
+            }
+        }
+    }
+    default_schema_name().to_string()
+}
+
+pub fn list_available_changes(spool_path: &Path) -> Vec<String> {
+    let changes_dir = spool_path.join("changes");
+    let Ok(entries) = fs::read_dir(changes_dir) else {
+        return Vec::new();
+    };
+    let mut out = Vec::new();
+    for e in entries.flatten() {
+        if e.file_type().ok().is_some_and(|t| t.is_dir()) {
+            let name = e.file_name().to_string_lossy().to_string();
+            if name == "archive" {
+                continue;
+            }
+            out.push(name);
+        }
+    }
+    out.sort();
+    out
+}
+
+pub fn list_available_schemas(ctx: &ConfigContext) -> Vec<String> {
+    let mut set: BTreeSet<String> = BTreeSet::new();
+    for dir in [Some(package_schemas_dir()), user_schemas_dir(ctx)] {
+        let Some(dir) = dir else { continue };
+        let Ok(entries) = fs::read_dir(dir) else {
+            continue;
+        };
+        for e in entries.flatten() {
+            if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
+                continue;
+            }
+            let schema_dir = e.path();
+            if schema_dir.join("schema.yaml").exists() {
+                set.insert(e.file_name().to_string_lossy().to_string());
+            }
+        }
+    }
+    set.into_iter().collect()
+}
+
+pub fn resolve_schema(
+    schema_name: Option<&str>,
+    ctx: &ConfigContext,
+) -> Result<ResolvedSchema, WorkflowError> {
+    let name = schema_name.unwrap_or(default_schema_name());
+    let user_dir = user_schemas_dir(ctx).map(|d| d.join(name));
+    if let Some(d) = user_dir {
+        if d.join("schema.yaml").exists() {
+            let schema = load_schema_yaml(&d)?;
+            return Ok(ResolvedSchema {
+                schema,
+                schema_dir: d,
+                source: SchemaSource::User,
+            });
+        }
+    }
+
+    let pkg = package_schemas_dir().join(name);
+    if pkg.join("schema.yaml").exists() {
+        let schema = load_schema_yaml(&pkg)?;
+        return Ok(ResolvedSchema {
+            schema,
+            schema_dir: pkg,
+            source: SchemaSource::Package,
+        });
+    }
+
+    Err(WorkflowError::SchemaNotFound(name.to_string()))
+}
+
+pub fn compute_change_status(
+    spool_path: &Path,
+    change: &str,
+    schema_name: Option<&str>,
+    ctx: &ConfigContext,
+) -> Result<ChangeStatus, WorkflowError> {
+    if !validate_change_name_input(change) {
+        return Err(WorkflowError::InvalidChangeName);
+    }
+    let schema_name = schema_name
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| read_change_schema(spool_path, change));
+    let resolved = resolve_schema(Some(&schema_name), ctx)?;
+
+    let change_dir = spool_path.join("changes").join(change);
+    if !change_dir.exists() {
+        return Err(WorkflowError::ChangeNotFound(change.to_string()));
+    }
+
+    let mut artifacts_out: Vec<ArtifactStatus> = Vec::new();
+    let mut done_count: usize = 0;
+    let done_by_id = compute_done_by_id(&change_dir, &resolved.schema);
+
+    let order = build_order(&resolved.schema);
+    for id in order {
+        let Some(a) = resolved.schema.artifacts.iter().find(|a| a.id == id) else {
+            continue;
+        };
+        let done = *done_by_id.get(&a.id).unwrap_or(&false);
+        let mut missing: Vec<String> = Vec::new();
+        if !done {
+            for r in &a.requires {
+                if !*done_by_id.get(r).unwrap_or(&false) {
+                    missing.push(r.clone());
+                }
+            }
+        }
+
+        let status = if done {
+            done_count += 1;
+            "done".to_string()
+        } else if missing.is_empty() {
+            "ready".to_string()
+        } else {
+            "blocked".to_string()
+        };
+        artifacts_out.push(ArtifactStatus {
+            id: a.id.clone(),
+            output_path: a.generates.clone(),
+            status,
+            missing_deps: missing,
+        });
+    }
+
+    let all_artifact_ids: Vec<String> = resolved
+        .schema
+        .artifacts
+        .iter()
+        .map(|a| a.id.clone())
+        .collect();
+    let apply_requires: Vec<String> = match resolved.schema.apply.as_ref() {
+        Some(apply) => apply
+            .requires
+            .clone()
+            .unwrap_or_else(|| all_artifact_ids.clone()),
+        None => all_artifact_ids.clone(),
+    };
+
+    let is_complete = done_count == resolved.schema.artifacts.len();
+    Ok(ChangeStatus {
+        change_name: change.to_string(),
+        schema_name: resolved.schema.name,
+        is_complete,
+        apply_requires,
+        artifacts: artifacts_out,
+    })
+}
+
+fn build_order(schema: &SchemaYaml) -> Vec<String> {
+    // Match TS ArtifactGraph.getBuildOrder (Kahn's algorithm with deterministic sorting
+    // of roots + newlyReady only).
+    let mut in_degree: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+    let mut dependents: std::collections::HashMap<String, Vec<String>> =
+        std::collections::HashMap::new();
+
+    for a in &schema.artifacts {
+        in_degree.insert(a.id.clone(), a.requires.len());
+        dependents.insert(a.id.clone(), Vec::new());
+    }
+    for a in &schema.artifacts {
+        for req in &a.requires {
+            dependents
+                .entry(req.clone())
+                .or_default()
+                .push(a.id.clone());
+        }
+    }
+
+    let mut queue: Vec<String> = schema
+        .artifacts
+        .iter()
+        .map(|a| a.id.clone())
+        .filter(|id| in_degree.get(id).copied().unwrap_or(0) == 0)
+        .collect();
+    queue.sort();
+
+    let mut result: Vec<String> = Vec::new();
+    while !queue.is_empty() {
+        let current = queue.remove(0);
+        result.push(current.clone());
+
+        let mut newly_ready: Vec<String> = Vec::new();
+        if let Some(deps) = dependents.get(&current) {
+            for dep in deps {
+                let new_degree = in_degree.get(dep).copied().unwrap_or(0).saturating_sub(1);
+                in_degree.insert(dep.clone(), new_degree);
+                if new_degree == 0 {
+                    newly_ready.push(dep.clone());
+                }
+            }
+        }
+        newly_ready.sort();
+        queue.extend(newly_ready);
+    }
+
+    result
+}
+
+pub fn resolve_templates(
+    schema_name: Option<&str>,
+    ctx: &ConfigContext,
+) -> Result<(String, BTreeMap<String, TemplateInfo>), WorkflowError> {
+    let resolved = resolve_schema(schema_name, ctx)?;
+    let templates_dir = resolved.schema_dir.join("templates");
+
+    let mut templates: BTreeMap<String, TemplateInfo> = BTreeMap::new();
+    for a in &resolved.schema.artifacts {
+        templates.insert(
+            a.id.clone(),
+            TemplateInfo {
+                source: resolved.source.as_str().to_string(),
+                path: templates_dir
+                    .join(&a.template)
+                    .to_string_lossy()
+                    .to_string(),
+            },
+        );
+    }
+    Ok((resolved.schema.name, templates))
+}
+
+pub fn resolve_instructions(
+    spool_path: &Path,
+    change: &str,
+    schema_name: Option<&str>,
+    artifact_id: &str,
+    ctx: &ConfigContext,
+) -> Result<InstructionsResponse, WorkflowError> {
+    if !validate_change_name_input(change) {
+        return Err(WorkflowError::InvalidChangeName);
+    }
+    let schema_name = schema_name
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| read_change_schema(spool_path, change));
+    let resolved = resolve_schema(Some(&schema_name), ctx)?;
+
+    let change_dir = spool_path.join("changes").join(change);
+    if !change_dir.exists() {
+        return Err(WorkflowError::ChangeNotFound(change.to_string()));
+    }
+
+    let a = resolved
+        .schema
+        .artifacts
+        .iter()
+        .find(|a| a.id == artifact_id)
+        .ok_or_else(|| WorkflowError::ArtifactNotFound(artifact_id.to_string()))?;
+
+    let templates_dir = resolved.schema_dir.join("templates");
+    let done_by_id = compute_done_by_id(&change_dir, &resolved.schema);
+
+    let deps: Vec<DependencyInfo> = a
+        .requires
+        .iter()
+        .map(|id| {
+            let dep = resolved.schema.artifacts.iter().find(|d| d.id == *id);
+            DependencyInfo {
+                id: id.clone(),
+                done: *done_by_id.get(id).unwrap_or(&false),
+                path: dep
+                    .map(|d| d.generates.clone())
+                    .unwrap_or_else(|| id.clone()),
+                description: dep.and_then(|d| d.description.clone()).unwrap_or_default(),
+            }
+        })
+        .collect();
+
+    let mut unlocks: Vec<String> = resolved
+        .schema
+        .artifacts
+        .iter()
+        .filter(|other| other.requires.iter().any(|r| r == artifact_id))
+        .map(|a| a.id.clone())
+        .collect();
+    unlocks.sort();
+
+    let template = fs::read_to_string(templates_dir.join(&a.template))?;
+
+    Ok(InstructionsResponse {
+        change_name: change.to_string(),
+        artifact_id: a.id.clone(),
+        schema_name: resolved.schema.name,
+        change_dir: change_dir.to_string_lossy().to_string(),
+        output_path: a.generates.clone(),
+        description: a.description.clone().unwrap_or_default(),
+        instruction: a.instruction.clone(),
+        template,
+        dependencies: deps,
+        unlocks,
+    })
+}
+
+pub fn compute_apply_instructions(
+    spool_path: &Path,
+    change: &str,
+    schema_name: Option<&str>,
+    ctx: &ConfigContext,
+) -> Result<ApplyInstructionsResponse, WorkflowError> {
+    if !validate_change_name_input(change) {
+        return Err(WorkflowError::InvalidChangeName);
+    }
+    let schema_name = schema_name
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| read_change_schema(spool_path, change));
+    let resolved = resolve_schema(Some(&schema_name), ctx)?;
+    let change_dir = spool_path.join("changes").join(change);
+    if !change_dir.exists() {
+        return Err(WorkflowError::ChangeNotFound(change.to_string()));
+    }
+
+    let schema = &resolved.schema;
+    let apply = schema.apply.as_ref();
+    let all_artifact_ids: Vec<String> = schema.artifacts.iter().map(|a| a.id.clone()).collect();
+
+    // Determine required artifacts and tracking file from schema.
+    // Match TS: apply.requires ?? allArtifacts (nullish coalescing).
+    let required_artifact_ids: Vec<String> = apply
+        .and_then(|a| a.requires.clone())
+        .unwrap_or_else(|| all_artifact_ids.clone());
+    let tracks_file: Option<String> = apply.and_then(|a| a.tracks.clone());
+    let schema_instruction: Option<String> = apply.and_then(|a| a.instruction.clone());
+
+    // Check which required artifacts are missing.
+    let mut missing_artifacts: Vec<String> = Vec::new();
+    for artifact_id in &required_artifact_ids {
+        let Some(artifact) = schema.artifacts.iter().find(|a| a.id == *artifact_id) else {
+            continue;
+        };
+        if !artifact_done(&change_dir, &artifact.generates) {
+            missing_artifacts.push(artifact_id.clone());
+        }
+    }
+
+    // Build context files from all existing artifacts in schema.
+    let mut context_files: BTreeMap<String, String> = BTreeMap::new();
+    for artifact in &schema.artifacts {
+        if artifact_done(&change_dir, &artifact.generates) {
+            context_files.insert(
+                artifact.id.clone(),
+                change_dir
+                    .join(&artifact.generates)
+                    .to_string_lossy()
+                    .to_string(),
+            );
+        }
+    }
+
+    // Parse tasks if tracking file exists.
+    let mut tasks: Vec<TaskItem> = Vec::new();
+    let mut tracks_file_exists = false;
+    let mut tracks_path: Option<String> = None;
+    let mut tracks_format: Option<String> = None;
+    let tracks_diagnostics: Option<Vec<TaskDiagnostic>> = None;
+
+    if let Some(tf) = &tracks_file {
+        let p = change_dir.join(tf);
+        tracks_path = Some(p.to_string_lossy().to_string());
+        tracks_file_exists = p.exists();
+        if tracks_file_exists {
+            let content = fs::read_to_string(&p)?;
+            tracks_format = Some("checkbox".to_string());
+            tasks = parse_checkbox_tasks(&content);
+        }
+    }
+
+    // Calculate progress.
+    let total = tasks.len();
+    let complete = tasks.iter().filter(|t| t.done).count();
+    let remaining = total.saturating_sub(complete);
+    let progress = ProgressInfo {
+        total,
+        complete,
+        remaining,
+        in_progress: None,
+        pending: None,
+    };
+
+    // Determine state and instruction.
+    let (state, instruction) = if !missing_artifacts.is_empty() {
+        (
+            "blocked".to_string(),
+            format!(
+                "Cannot apply this change yet. Missing artifacts: {}.\nUse the spool-continue-change skill to create the missing artifacts first.",
+                missing_artifacts.join(", ")
+            ),
+        )
+    } else if tracks_file.is_some() && !tracks_file_exists {
+        let tracks_filename = tracks_file
+            .as_deref()
+            .and_then(|p| Path::new(p).file_name())
+            .map(|s| s.to_string_lossy().to_string())
+            .unwrap_or_else(|| "tasks.md".to_string());
+        (
+            "blocked".to_string(),
+            format!(
+                "The {tracks_filename} file is missing and must be created.\nUse spool-continue-change to generate the tracking file."
+            ),
+        )
+    } else if tracks_file.is_some() && tracks_file_exists && total == 0 {
+        let tracks_filename = tracks_file
+            .as_deref()
+            .and_then(|p| Path::new(p).file_name())
+            .map(|s| s.to_string_lossy().to_string())
+            .unwrap_or_else(|| "tasks.md".to_string());
+        (
+            "blocked".to_string(),
+            format!(
+                "The {tracks_filename} file exists but contains no tasks.\nAdd tasks to {tracks_filename} or regenerate it with spool-continue-change."
+            ),
+        )
+    } else if tracks_file.is_some() && remaining == 0 && total > 0 {
+        (
+            "all_done".to_string(),
+            "All tasks are complete! This change is ready to be archived.\nConsider running tests and reviewing the changes before archiving."
+                .to_string(),
+        )
+    } else if tracks_file.is_none() {
+        (
+            "ready".to_string(),
+            schema_instruction
+                .as_deref()
+                .map(|s| s.trim().to_string())
+                .unwrap_or_else(|| {
+                    "All required artifacts complete. Proceed with implementation.".to_string()
+                }),
+        )
+    } else {
+        (
+            "ready".to_string(),
+            schema_instruction
+                .as_deref()
+                .map(|s| s.trim().to_string())
+                .unwrap_or_else(|| {
+                    "Read context files, work through pending tasks, mark complete as you go.\nPause if you hit blockers or need clarification.".to_string()
+                }),
+        )
+    };
+
+    Ok(ApplyInstructionsResponse {
+        change_name: change.to_string(),
+        change_dir: change_dir.to_string_lossy().to_string(),
+        schema_name: schema.name.clone(),
+        tracks_path,
+        tracks_file,
+        tracks_format,
+        tracks_diagnostics,
+        context_files,
+        progress,
+        tasks,
+        state,
+        missing_artifacts: if missing_artifacts.is_empty() {
+            None
+        } else {
+            Some(missing_artifacts)
+        },
+        instruction,
+    })
+}
+
+fn parse_checkbox_tasks(contents: &str) -> Vec<TaskItem> {
+    let mut tasks: Vec<TaskItem> = Vec::new();
+    for line in contents.lines() {
+        let l = line.trim_start();
+        let (done, rest) = if let Some(r) = l.strip_prefix("- [x] ") {
+            (true, r)
+        } else if let Some(r) = l.strip_prefix("- [X] ") {
+            (true, r)
+        } else if let Some(r) = l.strip_prefix("- [ ] ") {
+            (false, r)
+        } else {
+            continue;
+        };
+        tasks.push(TaskItem {
+            id: (tasks.len() + 1).to_string(),
+            description: rest.trim().to_string(),
+            done,
+            status: None,
+        });
+    }
+    tasks
+}
+
+fn spool_rel_path(spool_path: &Path, path: &Path) -> String {
+    // Render as `.spool/...`-like path if possible, otherwise absolute.
+    if let Ok(rel) = path.strip_prefix(spool_path) {
+        let mut p = PathBuf::from(".spool");
+        p.push(rel);
+        return p.to_string_lossy().to_string();
+    }
+    path.to_string_lossy().to_string()
+}
+
+fn artifact_output_path_string(spool_path: &Path, change: &str, generates: &str) -> String {
+    if generates.contains('*') {
+        return format!(".spool/changes/{change}/{generates}");
+    }
+    let change_dir = spool_path.join("changes").join(change);
+    spool_rel_path(spool_path, &change_dir.join(generates))
+}
+
+fn package_schemas_dir() -> PathBuf {
+    // In this repo, schemas live at the repository root.
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let root = manifest_dir
+        .ancestors()
+        .nth(3)
+        .unwrap_or(manifest_dir.as_path());
+    root.join("schemas")
+}
+
+fn user_schemas_dir(ctx: &ConfigContext) -> Option<PathBuf> {
+    let data_home = match env::var("XDG_DATA_HOME") {
+        Ok(v) if !v.trim().is_empty() => Some(PathBuf::from(v)),
+        _ => ctx
+            .home_dir
+            .as_ref()
+            .map(|h| h.join(".local").join("share")),
+    }?;
+    Some(data_home.join("spool").join("schemas"))
+}
+
+fn load_schema_yaml(schema_dir: &Path) -> Result<SchemaYaml, WorkflowError> {
+    let s = fs::read_to_string(schema_dir.join("schema.yaml"))?;
+    Ok(serde_yaml::from_str(&s)?)
+}
+
+fn compute_done_by_id(change_dir: &Path, schema: &SchemaYaml) -> BTreeMap<String, bool> {
+    let mut out = BTreeMap::new();
+    for a in &schema.artifacts {
+        out.insert(a.id.clone(), artifact_done(change_dir, &a.generates));
+    }
+    out
+}
+
+fn artifact_done(change_dir: &Path, generates: &str) -> bool {
+    if !generates.contains('*') {
+        return change_dir.join(generates).exists();
+    }
+
+    // Minimal glob support for patterns used by schemas:
+    //   dir/**/*.ext
+    //   dir/*.suffix
+    //   **/*.ext
+    let (base, suffix) = match split_glob_pattern(generates) {
+        Some(v) => v,
+        None => return false,
+    };
+    let base_dir = change_dir.join(base);
+    dir_contains_filename_suffix(&base_dir, &suffix)
+}
+
+fn split_glob_pattern(pattern: &str) -> Option<(String, String)> {
+    let pattern = pattern.strip_prefix("./").unwrap_or(pattern);
+
+    let (dir_part, file_pat) = match pattern.rsplit_once('/') {
+        Some((d, f)) => (d, f),
+        None => ("", pattern),
+    };
+    if !file_pat.starts_with('*') {
+        return None;
+    }
+    let suffix = file_pat[1..].to_string();
+
+    let base = dir_part
+        .strip_suffix("/**")
+        .or_else(|| dir_part.strip_suffix("**"))
+        .unwrap_or(dir_part);
+
+    // If the directory still contains wildcards (e.g. "**"), search from change_dir.
+    let base = if base.contains('*') { "" } else { base };
+    Some((base.to_string(), suffix))
+}
+
+fn dir_contains_filename_suffix(dir: &Path, suffix: &str) -> bool {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return false;
+    };
+    for e in entries.flatten() {
+        let path = e.path();
+        if e.file_type().ok().is_some_and(|t| t.is_dir()) {
+            if dir_contains_filename_suffix(&path, suffix) {
+                return true;
+            }
+            continue;
+        }
+        let name = e.file_name().to_string_lossy().to_string();
+        if name.ends_with(suffix) {
+            return true;
+        }
+    }
+    false
+}
+
+fn count_markdown_checkboxes(text: &str) -> (usize, usize) {
+    let mut total = 0usize;
+    let mut done = 0usize;
+    for line in text.lines() {
+        let l = line.trim_start();
+        if let Some(rest) = l.strip_prefix("- [") {
+            let c = rest.chars().next().unwrap_or(' ');
+            if c == ']' {
+                continue;
+            }
+            if rest.starts_with(" ]") {
+                total += 1;
+            } else if rest.to_ascii_lowercase().starts_with("x]") {
+                total += 1;
+                done += 1;
+            }
+        }
+    }
+    (total, done)
+}

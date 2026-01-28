@@ -10,7 +10,10 @@ thiserror = { workspace = true }
 miette = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde_yaml = { workspace = true }
 chrono = { workspace = true }
+spool-fs = { path = "../spool-fs" }
+spool-templates = { path = "../spool-templates" }
 
 [dev-dependencies]
 tempfile = { workspace = true }
