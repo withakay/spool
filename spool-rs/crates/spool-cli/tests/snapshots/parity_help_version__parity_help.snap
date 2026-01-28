@@ -15,6 +15,9 @@ Commands:
   init [options] [path]            Initialize Spool in your project
   update [options] [path]          Update Spool instruction files
   tasks                            Track execution tasks for a change
+  plan                             Project planning tools
+  state                            View and update planning/STATE.md
+  workflow                         Manage and run workflows
   list [options]                   List items (changes by default). Use --specs
                                    or --modules to list other items.
   dashboard                        Display an interactive dashboard of specs and
