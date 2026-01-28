@@ -1,14 +1,12 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Serde models for Spool's on-disk formats.
+//!
+//! This crate exists to keep YAML/JSON schema structs shared across crates
+//! (e.g. `spool-workflow`, `spool-core`, `spool-cli`).
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod workflow;
+pub mod workflow_plan;
+pub mod workflow_state;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use workflow::*;
+pub use workflow_plan::*;
+pub use workflow_state::*;
