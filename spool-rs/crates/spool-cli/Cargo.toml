@@ -20,6 +20,8 @@ spool-core = { path = "../spool-core" }
 spool-fs = { path = "../spool-fs" }
 spool-templates = { path = "../spool-templates" }
 chrono = { workspace = true }
+spool-workflow = { path = "../spool-workflow" }
+spool-schemas = { path = "../spool-schemas" }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }
