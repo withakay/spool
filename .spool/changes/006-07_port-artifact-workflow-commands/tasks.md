@@ -16,7 +16,7 @@
   - Match TS error messages on conflicts
 - **Verify**: integration + parity tests
 - **Done When**: file writes match TS
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.2: Port change creation
 - **Files**: `spool-rs/crates/spool-cli/src/*`, `spool-rs/crates/spool-core/src/change/*`
@@ -26,7 +26,7 @@
   - Create `.spool.yaml` and directory structure
 - **Verify**: integration + parity tests
 - **Done When**: scaffolding matches TS
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ---
 
@@ -40,7 +40,7 @@
   - Match TS output ordering and wording
 - **Verify**: parity tests
 - **Done When**: status parity passes
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.2: Port `spool agent instruction` / `spool instructions`
 - **Files**: `spool-rs/crates/spool-cli/src/*`, `spool-rs/crates/spool-templates/src/*`
@@ -50,7 +50,7 @@
   - Match TS output content exactly
 - **Verify**: snapshot parity tests
 - **Done When**: outputs match TS
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.3: Port `spool templates`
 - **Files**: `spool-rs/crates/spool-cli/src/*`, `spool-rs/crates/spool-templates/src/*`
@@ -59,7 +59,7 @@
   - Implement listing/showing templates as per TS
 - **Verify**: parity tests
 - **Done When**: templates command matches TS
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ---
 
@@ -72,7 +72,7 @@
   - Target >= 80% coverage for `spool-core` create/status logic
 - **Verify**: `cargo llvm-cov --workspace`
 - **Done When**: coverage target met or tracked
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 3.2: Validate change artifacts
 - **Files**: N/A
@@ -81,7 +81,7 @@
   - Run `spool validate 006-07_port-artifact-workflow-commands --strict` and fix any issues
 - **Verify**: Validation passes
 - **Done When**: `spool validate --strict` is clean
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ## Verify
 

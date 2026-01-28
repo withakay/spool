@@ -10,7 +10,7 @@
 
 ### Task 1.1: Implement marker-managed edits
 - **Files**: `spool-rs/crates/spool-fs/src/*`
-- **Dependencies**: Change `006-02_create-spool-rs-workspace`
+- **Dependencies**: None
 - **Action**:
   - Implement marker block detection and replacement
   - Preserve unmanaged content
@@ -31,7 +31,7 @@
   - Support spool dir normalization (default `.spool`, custom spool dir)
 - **Verify**: unit tests for rendering
 - **Done When**: rendered content matches TS templates
-- **Status**: [ ] pending
+- **Status**: [x] done
 
 ---
 
@@ -45,7 +45,7 @@
   - Install prompts/skills/workflows into correct paths
 - **Verify**: integration tests + parity tree diff
 - **Done When**: non-interactive output matches TS byte-for-byte
-- **Status**: [ ] pending
+- **Status**: [x] done
 
 ### Task 3.2: Port `spool update`
 - **Files**: `spool-rs/crates/spool-cli/src/*`, `spool-rs/crates/spool-core/src/*`
@@ -55,7 +55,7 @@
   - Preserve user edits outside managed blocks
 - **Verify**: integration tests + parity tree diff
 - **Done When**: outputs match TS and unmanaged edits preserved
-- **Status**: [ ] pending
+- **Status**: [x] done
 
 ---
 
@@ -63,14 +63,14 @@
 
 ### Task 4.1: Add tree-diff parity tests
 - **Files**: `spool-rs/crates/spool-cli/tests/parity_*`
-- **Dependencies**: Change `006-03_parity-test-harness`
+- **Dependencies**: Task 3.2
 - **Action**:
   - Run TS init/update in a temp dir
   - Run Rust init/update in a separate temp dir
   - Compare directory trees and file bytes
 - **Verify**: `cargo test --workspace`
 - **Done When**: parity tests pass deterministically
-- **Status**: [ ] pending
+- **Status**: [x] done
 
 ### Task 4.2: Coverage target
 - **Files**: `spool-rs/README.md`
@@ -79,16 +79,18 @@
   - Target >= 85% coverage for marker editing and template rendering logic
 - **Verify**: `cargo llvm-cov --workspace`
 - **Done When**: coverage target met or tracked
-- **Status**: [ ] pending
+- **Status**: [x] done
+- **Notes**: `cargo llvm-cov --workspace` results: `spool-fs` 94.59% regions; `spool-templates` 86.67% regions
 
 ### Task 4.3: Validate change artifacts
 - **Files**: N/A
-- **Dependencies**: All above
+- **Dependencies**: Task 3.2, Task 4.1, Task 4.2
 - **Action**:
   - Run `spool validate 006-06_port-init-update-installers --strict` and fix any issues
 - **Verify**: Validation passes
 - **Done When**: `spool validate --strict` is clean
-- **Status**: [ ] pending
+- **Status**: [x] done
+- **Notes**: `spool validate 006-06_port-init-update-installers --strict` passed
 
 ## Verify
 

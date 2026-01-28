@@ -13,8 +13,14 @@ cargo clippy --workspace -- -D warnings
 
 ## Coverage
 
-Target: >= 85% workspace line coverage once parity tests are in place.
-Additional target: >= 85% line coverage for `spool-core` foundation modules.
+Targets:
+- Long-term: >= 85% workspace line coverage once parity tests are in place.
+- Near-term: >= 80% line coverage for `spool-core` create/status logic.
+- Additional: >= 85% line coverage for `spool-core` foundation modules.
+
+Current (from `cargo llvm-cov --workspace`):
+- `spool-core/src/create/mod.rs`: 62.33% lines
+- `spool-core/src/workflow/mod.rs`: 70.87% lines
 
 ```bash
 cd spool-rs
