@@ -21,12 +21,22 @@ pub fn default_home_files() -> Vec<EmbeddedFile> {
 }
 
 fn dir_files(dir: &'static Dir<'static>) -> Vec<EmbeddedFile> {
-    dir.files()
-        .map(|f| EmbeddedFile {
+    let mut out = Vec::new();
+    collect_dir_files(dir, &mut out);
+    out
+}
+
+fn collect_dir_files(dir: &'static Dir<'static>, out: &mut Vec<EmbeddedFile>) {
+    for f in dir.files() {
+        out.push(EmbeddedFile {
             relative_path: f.path().to_str().unwrap_or_default(),
             contents: f.contents(),
-        })
-        .collect()
+        });
+    }
+
+    for d in dir.dirs() {
+        collect_dir_files(d, out);
+    }
 }
 
 pub fn normalize_spool_dir(spool_dir: &str) -> String {
@@ -40,7 +50,7 @@ pub fn normalize_spool_dir(spool_dir: &str) -> String {
     }
 }
 
-pub fn render_rel_path(rel: &str, spool_dir: &str) -> Cow<'_, str> {
+pub fn render_rel_path<'a>(rel: &'a str, spool_dir: &str) -> Cow<'a, str> {
     if spool_dir == ".spool" {
         return Cow::Borrowed(rel);
     }
@@ -75,7 +85,20 @@ pub fn extract_managed_block(text: &str) -> Option<&str> {
     if before_end < after_start {
         return Some("");
     }
-    Some(text[after_start..before_end].trim_matches('\n'))
+
+    // TS `updateFileWithMarkers` writes:
+    //   start + "\n" + content + "\n" + end
+    // The substring between markers therefore always ends with the *separator* newline
+    // immediately before the end marker line. We want to recover the original `content`
+    // argument, so we drop exactly one trailing line break.
+    let mut inner = &text[after_start..before_end];
+    if inner.ends_with('\n') {
+        inner = &inner[..inner.len() - 1];
+        if inner.ends_with('\r') {
+            inner = &inner[..inner.len() - 1];
+        }
+    }
+    Some(inner)
 }
 
 fn line_start(text: &str, idx: usize) -> usize {
@@ -175,5 +198,12 @@ mod tests {
     fn extract_managed_block_returns_inner_content() {
         let s = "pre\n<!-- SPOOL:START -->\nhello\nworld\n<!-- SPOOL:END -->\npost\n";
         assert_eq!(extract_managed_block(s), Some("hello\nworld"));
+    }
+
+    #[test]
+    fn extract_managed_block_preserves_trailing_newline_from_content() {
+        // Content ends with a newline, plus the TS separator newline before the end marker.
+        let s = "pre\n<!-- SPOOL:START -->\nhello\nworld\n\n<!-- SPOOL:END -->\npost\n";
+        assert_eq!(extract_managed_block(s), Some("hello\nworld\n"));
     }
 }

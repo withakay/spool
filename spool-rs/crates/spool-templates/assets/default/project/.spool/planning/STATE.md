@@ -1,12 +1,12 @@
 # Project State
 
-Last Updated: 2026-01-26
+Last Updated: __CURRENT_DATE__
 
 ## Current Focus
 [What we're working on right now]
 
 ## Recent Decisions
-- 2026-01-26: Project initialized
+- __CURRENT_DATE__: Project initialized
 
 ## Open Questions
 - [ ] [Question needing resolution]
@@ -15,7 +15,7 @@ Last Updated: 2026-01-26
 [None currently]
 
 ## Session Notes
-### 2026-01-26 - Initial Setup
+### __CURRENT_DATE__ - Initial Setup
 - Completed: Project planning structure initialized
 - Next: Define project vision and first milestone
 
