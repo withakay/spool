@@ -113,29 +113,28 @@ artifacts:
     description: Implementation tasks derived from specs and design
     template: tasks.md
     instruction: |
-      Create the task list that breaks down the implementation work.
+      Create the task plan that breaks down the implementation work.
 
-      Guidelines:
-      - Group related tasks under ## numbered headings
-      - Each task is a checkbox: - [ ] X.Y Task description
-      - Tasks should be small enough to complete in one session
-      - Order tasks by dependency (what must be done first?)
+      Prefer the enhanced tasks.md format (waves + per-task metadata) so Spool can
+      track execution progress via the tasks CLI.
 
-      Example:
-      ```
-      ## 1. Setup
+      Use the tasks CLI while authoring and executing:
+      - Initialize/upgrade to enhanced tasks: `spool tasks init <change-id>`
+      - See progress: `spool tasks status <change-id>`
+      - Pick next ready task: `spool tasks next <change-id>`
+      - Mark status: `spool tasks start <change-id> <task-id>` / `spool tasks complete <change-id> <task-id>`
+      - Defer work: `spool tasks shelve|unshelve <change-id> <task-id>`
+      - Print tasks.md: `spool tasks show <change-id>`
 
-      - [ ] 1.1 Create new module structure
-      - [ ] 1.2 Add dependencies to package.json
+      Authoring guidelines:
+      - Organize work into `## Wave N` sections
+      - Declare wave-level dependencies with `- **Depends On**: ...`
+      - Task IDs SHOULD be `wave.task` (e.g., `1.1`, `2.3`)
+      - Task dependencies MUST be within the same wave
+      - Each task should include: Files, Dependencies, Action, Verify, Done When, Updated At, Status
+      - Keep tasks small and verifiable; order by dependency
 
-      ## 2. Core Implementation
-
-      - [ ] 2.1 Implement data export function
-      - [ ] 2.2 Add CSV formatting utilities
-      ```
-
-      Reference specs for what needs to be built, design for how to build it.
-      Each task should be verifiable - you know when it's done.
+      Reference specs for what needs to be built and design for how to build it.
     requires:
       - specs
       - design
@@ -144,5 +143,12 @@ apply:
   requires: [tasks]
   tracks: tasks.md
   instruction: |
-    Read context files, work through pending tasks, mark complete as you go.
+    Read context files and work through pending tasks.
+
+    Prefer driving execution via the tasks CLI:
+    - `spool tasks next <change-id>`
+    - `spool tasks start <change-id> <task-id>`
+    - `spool tasks complete <change-id> <task-id>`
+    - `spool tasks status <change-id>`
+
     Pause if you hit blockers or need clarification.

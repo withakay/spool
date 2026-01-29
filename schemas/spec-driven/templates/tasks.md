@@ -4,6 +4,17 @@
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential (or parallel if tool supports)
 - **Template**: Enhanced task format with waves, verification, and status tracking
+- **Tracking**: Prefer the tasks CLI to drive status updates and pick work
+
+```bash
+spool tasks status <!-- CHANGE_ID -->
+spool tasks next <!-- CHANGE_ID -->
+spool tasks start <!-- CHANGE_ID --> 1.1
+spool tasks complete <!-- CHANGE_ID --> 1.1
+spool tasks shelve <!-- CHANGE_ID --> 1.1
+spool tasks unshelve <!-- CHANGE_ID --> 1.1
+spool tasks show <!-- CHANGE_ID -->
+```
 
 ---
 
