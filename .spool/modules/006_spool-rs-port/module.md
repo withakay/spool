@@ -22,3 +22,6 @@ parity test harness early and then port commands incrementally.
 - [ ] 006-11_add-rust-task-backends
 - [ ] 006-12_spoolrs-init-parity
 - [ ] 006-13_demote-ts-spool-to-spool-bun
+- [ ] 006-14_rust-cli-plumbing-reuse
+- [ ] 006-15_rust-spool-path-helpers
+- [ ] 006-16_rust-test-suite-decouple-ts-oracle
