@@ -1,5 +1,5 @@
 use crate::types::{Harness, HarnessName, HarnessRunConfig, HarnessRunResult};
-use miette::{miette, Result};
+use miette::{Result, miette};
 use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};

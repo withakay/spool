@@ -1,5 +1,5 @@
 use crate::types::{Harness, HarnessName, HarnessRunConfig, HarnessRunResult};
-use miette::{miette, Result};
+use miette::{Result, miette};
 use std::process::Command;
 use std::time::Duration;
 

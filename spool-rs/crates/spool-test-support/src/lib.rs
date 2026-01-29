@@ -1,4 +1,5 @@
-use std::path::{Path, PathBuf};
+use std::collections::BTreeMap;
+use std::path::Path;
 use std::process::{Command, Output};
 
 pub mod pty;
@@ -20,34 +21,8 @@ impl CmdOutput {
     }
 }
 
-pub fn repo_root() -> PathBuf {
-    // This crate lives at: <repo>/spool-rs/crates/spool-test-support
-    // Walk up to reach the mono-repo root.
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest_dir
-        .ancestors()
-        .nth(3)
-        .expect("repo root should be 3 ancestors up")
-        .to_path_buf()
-}
-
-pub fn ts_oracle_command() -> Command {
-    let root = repo_root();
-    let script = root.join("bin").join("spool.js");
-
-    let mut cmd = Command::new("node");
-    cmd.arg(script);
-    cmd
-}
-
 pub fn rust_candidate_command(program: &Path) -> Command {
     Command::new(program)
-}
-
-pub fn run_ts_oracle(args: &[&str], cwd: &Path, home: &Path) -> CmdOutput {
-    let mut cmd = ts_oracle_command();
-    cmd.args(args);
-    run_with_env(&mut cmd, cwd, home)
 }
 
 pub fn run_rust_candidate(program: &Path, args: &[&str], cwd: &Path, home: &Path) -> CmdOutput {
@@ -93,6 +68,54 @@ pub fn normalize_text(input: &str, home: &Path) -> String {
     newlines.replace(home_norm.as_ref(), "<HOME>")
 }
 
+pub fn collect_file_bytes(root: &Path) -> BTreeMap<String, Vec<u8>> {
+    fn walk(base: &Path, dir: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for e in entries.flatten() {
+            let Ok(ft) = e.file_type() else {
+                continue;
+            };
+            let p = e.path();
+            if ft.is_dir() {
+                walk(base, &p, out);
+                continue;
+            }
+            if !ft.is_file() {
+                continue;
+            }
+            let rel = p
+                .strip_prefix(base)
+                .unwrap_or(&p)
+                .to_string_lossy()
+                .replace('\\', "/");
+            let bytes = std::fs::read(&p).unwrap_or_default();
+            out.insert(rel, bytes);
+        }
+    }
+
+    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    walk(root, root, &mut out);
+    out
+}
+
+pub fn reset_dir(dst: &Path, src: &Path) -> std::io::Result<()> {
+    if let Ok(entries) = std::fs::read_dir(dst) {
+        for e in entries.flatten() {
+            let p = e.path();
+            if let Ok(ft) = e.file_type() {
+                if ft.is_dir() {
+                    let _ = std::fs::remove_dir_all(&p);
+                } else {
+                    let _ = std::fs::remove_file(&p);
+                }
+            }
+        }
+    }
+    copy_dir_all(src, dst)
+}
+
 pub fn copy_dir_all(from: &Path, to: &Path) -> std::io::Result<()> {
     std::fs::create_dir_all(to)?;
 
@@ -120,6 +143,7 @@ fn strip_ansi(input: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
     fn normalize_strips_ansi_and_crlf() {

@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use include_dir::{include_dir, Dir};
+use include_dir::{Dir, include_dir};
 
 static DEFAULT_PROJECT_DIR: Dir<'static> =
     include_dir!("$CARGO_MANIFEST_DIR/assets/default/project");
