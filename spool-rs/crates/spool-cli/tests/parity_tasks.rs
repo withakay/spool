@@ -1,39 +1,6 @@
-use std::collections::BTreeMap;
 use std::path::Path;
 
-use spool_test_support::{copy_dir_all, run_rust_candidate};
-
-fn collect_file_bytes(root: &Path) -> BTreeMap<String, Vec<u8>> {
-    fn walk(base: &Path, dir: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
-        let Ok(entries) = std::fs::read_dir(dir) else {
-            return;
-        };
-        for e in entries.flatten() {
-            let Ok(ft) = e.file_type() else {
-                continue;
-            };
-            let p = e.path();
-            if ft.is_dir() {
-                walk(base, &p, out);
-                continue;
-            }
-            if !ft.is_file() {
-                continue;
-            }
-            let rel = p
-                .strip_prefix(base)
-                .unwrap_or(&p)
-                .to_string_lossy()
-                .replace('\\', "/");
-            let bytes = std::fs::read(&p).unwrap_or_default();
-            out.insert(rel, bytes);
-        }
-    }
-
-    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    walk(root, root, &mut out);
-    out
-}
+use spool_test_support::{collect_file_bytes, reset_dir, run_rust_candidate};
 
 fn make_base_repo() -> tempfile::TempDir {
     let td = tempfile::tempdir().expect("repo");
@@ -45,19 +12,7 @@ fn make_base_repo() -> tempfile::TempDir {
 }
 
 fn reset_repo(dst: &Path, src: &Path) {
-    if let Ok(entries) = std::fs::read_dir(dst) {
-        for e in entries.flatten() {
-            let p = e.path();
-            if let Ok(ft) = e.file_type() {
-                if ft.is_dir() {
-                    let _ = std::fs::remove_dir_all(&p);
-                } else {
-                    let _ = std::fs::remove_file(&p);
-                }
-            }
-        }
-    }
-    copy_dir_all(src, dst).unwrap();
+    reset_dir(dst, src).unwrap();
 }
 
 #[test]
