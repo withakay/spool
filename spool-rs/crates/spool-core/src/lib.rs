@@ -5,8 +5,9 @@ pub mod installers;
 pub mod list;
 pub mod r#match;
 pub mod output;
-pub mod spool_dir;
+pub mod paths;
 pub mod show;
+pub mod spool_dir;
 pub mod validate;
 
 pub mod ralph;
