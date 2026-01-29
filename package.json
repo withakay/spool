@@ -27,7 +27,7 @@
     }
   },
   "bin": {
-    "spool": "./bin/spool.js"
+    "spool-bun": "./bin/spool.js"
   },
   "files": [
     "dist",
@@ -39,7 +39,7 @@
     "!dist/**/*.map"
   ],
   "scripts": {
-    "lint": "biome lint src/",
+    "lint": "biome lint spool-bun/src/",
     "format": "biome check --write --linter-enabled=false --assist-enabled=false .",
     "format:check": "biome check --linter-enabled=false --assist-enabled=false .",
     "build": "node build.js",

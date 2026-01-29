@@ -17,10 +17,19 @@ Keep this managed block so 'spool update' can refresh the instructions.
 
 <!-- SPOOL:END -->
 
+## Supported Implementation
+
+`spool-rs/` is the supported Spool implementation and should be favored for all new work.
+
+`spool-bun/` contains the legacy TypeScript/Bun implementation and is **deprecated**. Only touch it when needed for compatibility or to keep parity during the transition.
+
 ## Prompt Templates
 
-If the request mentions editing/updating a Spool prompt (skills, slash commands, agents instructions, etc.), start in `src/core/templates/`.
-See `src/core/templates/AGENTS.md` for what to edit.
+If the request mentions editing/updating a Spool prompt (skills, slash commands, agents instructions, etc.), start in `spool-bun/src/core/templates/` (legacy TypeScript templates).
+
+For Rust-installed project templates, see `spool-rs/crates/spool-templates/`.
+
+See `spool-bun/src/core/templates/AGENTS.md` for what to edit.
 
 ## Development Commands
 
@@ -49,7 +58,7 @@ make clean
 make help
 ```
 
-All Makefile commands use Bun internally.
+The Makefile defaults should reflect the supported Rust workflow. Legacy Bun targets (if present) should be explicitly named.
 
 ## OpenCode Path Convention
 
@@ -69,9 +78,9 @@ When writing tests or code that references OpenCode paths, always use the singul
 - Path-aware (using `replaceHardcodedDotSpoolPaths` for `.spool/` path normalization)
 - Installed via the appropriate configurator (e.g., `SkillsConfigurator`)
 
-**Pattern**: Skills use `SkillTemplate` interface, slash commands use `CommandTemplate` interface:
+**Pattern** (legacy TypeScript templates): Skills use `SkillTemplate` interface, slash commands use `CommandTemplate` interface:
 ```typescript
-// Skills - src/core/templates/skill-templates.ts
+// Skills - spool-bun/src/core/templates/skill-templates.ts
 export function getExampleSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
   return {
     name: 'Example Skill',
@@ -80,7 +89,7 @@ export function getExampleSkillTemplate(spoolDir: string = '.spool'): SkillTempl
   };
 }
 
-// Slash Commands - src/core/templates/skill-templates.ts
+// Slash Commands - spool-bun/src/core/templates/skill-templates.ts
 export function getExampleCommandTemplate(spoolDir: string = '.spool'): CommandTemplate {
   return {
     name: 'Example Command',

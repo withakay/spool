@@ -7,7 +7,7 @@ Migration of iterative AI loop functionality from `ralph.ts` to `spool ralph`.
 ### A. Interfaces (`src/core/ralph/types.ts`)
 
 ```typescript
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 export interface RalphRunConfig {
   prompt: string;
@@ -65,19 +65,19 @@ export interface RalphState {
 ## 2. CLI Command (`src/commands/ralph.ts`)
 
 ```typescript
-import { Command } from 'commander';
+import { Command } from "commander";
 
 export function register(program: Command) {
   program
-    .command('ralph [prompt]')
-    .alias('loop')
-    .description('Run iterative AI loop')
-    .option('-c, --change <id>', 'Target a specific change proposal')
-    .option('-m, --module <id>', 'Target a specific module')
-    .option('--harness <agent>', 'Agent harness to use', 'opencode')
-    .option('--min-iterations <n>', 'Min iterations', '1')
-    .option('--max-iterations <n>', 'Max iterations')
-    .option('--no-commit', 'Disable auto-commit')
+    .command("ralph [prompt]")
+    .alias("loop")
+    .description("Run iterative AI loop")
+    .option("-c, --change <id>", "Target a specific change proposal")
+    .option("-m, --module <id>", "Target a specific module")
+    .option("--harness <agent>", "Agent harness to use", "opencode")
+    .option("--min-iterations <n>", "Min iterations", "1")
+    .option("--max-iterations <n>", "Max iterations")
+    .option("--no-commit", "Disable auto-commit")
     .action(async (prompt, options) => {
       // Initialize Runner and execute
     });
@@ -91,5 +91,6 @@ export function register(program: Command) {
 - Config Generation: Reuse `ralph.ts` logic to generate ephemeral `opencode` config (permissions).
 
 ## 4. Dependencies
+
 - `cross-spawn` (or internal Spool shell util).
 - `fs-extra` (or internal fs util).

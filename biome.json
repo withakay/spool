@@ -39,7 +39,7 @@
   "overrides": [
     {
       "includes": [
-        "src/**/*.ts"
+        "spool-bun/src/**/*.ts"
       ],
       "linter": {
         "rules": {
@@ -63,7 +63,7 @@
     },
     {
       "includes": [
-        "src/core/init.ts"
+        "spool-bun/src/core/init.ts"
       ],
       "linter": {
         "rules": {

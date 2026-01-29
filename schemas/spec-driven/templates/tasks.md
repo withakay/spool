@@ -9,6 +9,8 @@
 
 ## Wave 1
 
+- **Depends On**: None
+
 ### Task 1.1: <!-- Task Name -->
 - **Files**: <!-- file paths, e.g., src/db/schema/user.ts -->
 - **Dependencies**: None
@@ -16,6 +18,7 @@
   <!-- Describe what should be implemented -->
 - **Verify**: <!-- command to verify, e.g., bun run test:unit -->
 - **Done When**: <!-- acceptance criteria, e.g., tests pass -->
+- **Updated At**: <!-- YYYY-MM-DD -->
 - **Status**: [ ] pending
 
 ### Task 1.2: <!-- Task Name -->
@@ -25,11 +28,14 @@
   <!-- Describe what should be implemented -->
 - **Verify**: <!-- verification command -->
 - **Done When**: <!-- acceptance criteria -->
+- **Updated At**: <!-- YYYY-MM-DD -->
 - **Status**: [ ] pending
 
 ---
 
-## Wave 2 (after Wave 1 complete)
+## Wave 2
+
+- **Depends On**: Wave 1
 
 ### Task 2.1: <!-- Task Name -->
 - **Files**: <!-- file paths -->
@@ -38,11 +44,14 @@
   <!-- Describe what should be implemented -->
 - **Verify**: <!-- verification command -->
 - **Done When**: <!-- acceptance criteria -->
+- **Updated At**: <!-- YYYY-MM-DD -->
 - **Status**: [ ] pending
 
 ---
 
 ## Wave 3 (Checkpoint)
+
+- **Depends On**: Wave 2
 
 ### Task 3.1: <!-- Review or decision point -->
 - **Type**: checkpoint (requires human approval before proceeding)
@@ -51,6 +60,7 @@
 - **Action**:
   <!-- Describe what should be reviewed or approved -->
 - **Done When**: <!-- when human confirms -->
+- **Updated At**: <!-- YYYY-MM-DD -->
 - **Status**: [ ] pending
 
 ---
@@ -59,11 +69,13 @@
 - `[ ] pending` - Not started yet
 - `[ ] in-progress` - Currently being worked on
 - `[x] complete` - Finished and verified
+- `[-] shelved` - Intentionally not-to-be-done (reversible)
 
 ## Wave Guidelines
 - Waves group related tasks that can be executed in parallel
 - Task dependencies must be complete before starting dependent tasks
-- "after Wave X complete" indicates wave-level dependencies
+- Wave dependencies are declared via `- **Depends On**: ...`
+- Task dependencies MUST be within the same wave
 - Checkpoint waves require human approval before proceeding
 
 ## Task Structure
@@ -74,4 +86,5 @@ Each task should include:
 - **Action**: What to implement or do
 - **Verify**: Command to verify completion (optional but recommended)
 - **Done When**: Acceptance criteria
-- **Status**: Current status (pending/in-progress/complete)
+- **Updated At**: Date of last status change (YYYY-MM-DD)
+- **Status**: Current status (pending/in-progress/complete/shelved)

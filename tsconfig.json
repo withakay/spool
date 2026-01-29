@@ -6,7 +6,7 @@
       "ES2022"
     ],
     "moduleResolution": "NodeNext",
-    "rootDir": "./src",
+    "rootDir": "./spool-bun/src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,7 +19,7 @@
     "allowSyntheticDefaultImports": true
   },
   "include": [
-    "src/**/*"
+    "spool-bun/src/**/*"
   ],
   "exclude": [
     "node_modules",
