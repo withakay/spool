@@ -53,6 +53,7 @@ npm wrapper behavior (`@withakay/spool`):
 
 Targets:
 - Long-term: >= 85% workspace line coverage once parity tests are in place.
+- Long-term: >= 85% workspace line coverage once core functionality is in place.
 - Near-term: >= 80% line coverage for `spool-core` create/status logic.
 - Near-term: >= 80% line coverage for `spool-core` ralph runner/state logic.
 - Additional: >= 85% line coverage for `spool-core` foundation modules.
