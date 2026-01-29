@@ -57,7 +57,7 @@ pub fn create_module(
         return Err(CreateError::InvalidModuleName(name.to_string()));
     }
 
-    let modules_dir = spool_path.join("modules");
+    let modules_dir = crate::paths::modules_dir(spool_path);
     fs::create_dir_all(&modules_dir)?;
 
     // If a module with the same name already exists, return it.
@@ -120,7 +120,7 @@ pub fn create_change(
     let name = name.trim();
     validate_change_name(name)?;
 
-    let modules_dir = spool_path.join("modules");
+    let modules_dir = crate::paths::modules_dir(spool_path);
     let module_id = module
         .and_then(|m| parse_module_id(m).ok().map(|p| p.module_id.to_string()))
         .unwrap_or_else(|| "000".to_string());
@@ -140,7 +140,7 @@ pub fn create_change(
     let next_num = allocate_next_change_number(spool_path, &module_id)?;
     let folder = format!("{module_id}-{next_num:02}_{name}");
 
-    let changes_dir = spool_path.join("changes");
+    let changes_dir = crate::paths::changes_dir(spool_path);
     fs::create_dir_all(&changes_dir)?;
     let change_dir = changes_dir.join(&folder);
     if change_dir.exists() {
@@ -186,16 +186,14 @@ fn allocate_next_change_number(spool_path: &Path, module_id: &str) -> Result<u32
     };
 
     let mut max_seen: u32 = 0;
-    max_seen = max_seen.max(max_change_num_in_dir(
-        &spool_path.join("changes"),
+    let changes_dir = crate::paths::changes_dir(spool_path);
+    max_seen = max_seen.max(max_change_num_in_dir(&changes_dir, module_id));
+    max_seen = max_seen.max(max_change_num_in_archived_change_dirs(
+        &crate::paths::changes_archive_dir(spool_path),
         module_id,
     ));
     max_seen = max_seen.max(max_change_num_in_archived_change_dirs(
-        &spool_path.join("changes").join("archive"),
-        module_id,
-    ));
-    max_seen = max_seen.max(max_change_num_in_archived_change_dirs(
-        &spool_path.join("archive").join("changes"),
+        &crate::paths::archive_changes_dir(spool_path),
         module_id,
     ));
 
@@ -489,7 +487,7 @@ fn add_change_to_module(
     module_id: &str,
     change_id: &str,
 ) -> Result<(), CreateError> {
-    let modules_dir = spool_path.join("modules");
+    let modules_dir = crate::paths::modules_dir(spool_path);
     let module_folder = find_module_by_id(&modules_dir, module_id)
         .ok_or_else(|| CreateError::ModuleNotFound(module_id.to_string()))?;
     let module_md = modules_dir.join(&module_folder).join("module.md");
@@ -537,7 +535,7 @@ fn find_module_by_id(modules_dir: &Path, module_id: &str) -> Option<String> {
 }
 
 fn max_change_num_in_module_md(spool_path: &Path, module_id: &str) -> Result<u32, CreateError> {
-    let modules_dir = spool_path.join("modules");
+    let modules_dir = crate::paths::modules_dir(spool_path);
     let Some(folder) = find_module_by_id(&modules_dir, module_id) else {
         return Ok(0);
     };
@@ -713,7 +711,7 @@ fn generate_module_content<T: AsRef<str>>(
 }
 
 fn create_ungrouped_module(spool_path: &Path) -> Result<(), CreateError> {
-    let modules_dir = spool_path.join("modules");
+    let modules_dir = crate::paths::modules_dir(spool_path);
     fs::create_dir_all(&modules_dir)?;
     let dir = modules_dir.join("000_ungrouped");
     fs::create_dir_all(&dir)?;

@@ -1,5 +1,5 @@
 use crate::validate;
-use miette::{miette, Result};
+use miette::{Result, miette};
 use std::fs;
 use std::path::Path;
 
@@ -88,7 +88,7 @@ pub fn build_ralph_prompt(
 }
 
 fn load_change_context(spool_path: &Path, change_id: &str) -> Result<Option<String>> {
-    let changes_dir = spool_path.join("changes");
+    let changes_dir = crate::paths::changes_dir(spool_path);
     let resolved = resolve_change_id(&changes_dir, change_id)?;
     let Some(resolved) = resolved else {
         return Ok(None);

@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::config::{load_global_config, load_project_config, ConfigContext};
+use crate::config::{ConfigContext, load_global_config, load_project_config};
 
 pub fn get_spool_dir_name(project_root: &Path, ctx: &ConfigContext) -> String {
     // Priority order matches TS:

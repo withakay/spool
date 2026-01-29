@@ -51,15 +51,12 @@ pub struct ChangeDelta {
 }
 
 pub fn read_spec_markdown(spool_path: &Path, id: &str) -> Result<String> {
-    let path = spool_path.join("specs").join(id).join("spec.md");
+    let path = crate::paths::spec_markdown_path(spool_path, id);
     std::fs::read_to_string(&path).into_diagnostic()
 }
 
 pub fn read_change_proposal_markdown(spool_path: &Path, change_id: &str) -> Result<String> {
-    let path = spool_path
-        .join("changes")
-        .join(change_id)
-        .join("proposal.md");
+    let path = crate::paths::change_dir(spool_path, change_id).join("proposal.md");
     std::fs::read_to_string(&path).into_diagnostic()
 }
 
@@ -80,7 +77,7 @@ pub fn parse_spec_show_json(id: &str, markdown: &str) -> SpecShowJson {
 }
 
 pub fn read_change_delta_spec_paths(spool_path: &Path, change_id: &str) -> Result<Vec<PathBuf>> {
-    let specs_dir = spool_path.join("changes").join(change_id).join("specs");
+    let specs_dir = crate::paths::change_specs_dir(spool_path, change_id);
     if !specs_dir.exists() {
         return Ok(vec![]);
     }

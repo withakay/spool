@@ -33,8 +33,8 @@ pub struct SpecListItem {
 }
 
 pub fn list_modules(spool_path: &Path) -> Result<Vec<ModuleListItem>> {
-    let modules_dir = spool_path.join("modules");
-    let changes_dir = spool_path.join("changes");
+    let modules_dir = crate::paths::modules_dir(spool_path);
+    let changes_dir = crate::paths::changes_dir(spool_path);
 
     let mut modules: Vec<ModuleListItem> = Vec::new();
     if !modules_dir.exists() {
@@ -70,7 +70,7 @@ pub fn list_modules(spool_path: &Path) -> Result<Vec<ModuleListItem>> {
 }
 
 pub fn list_change_dirs(spool_path: &Path) -> Result<Vec<PathBuf>> {
-    let changes_dir = spool_path.join("changes");
+    let changes_dir = crate::paths::changes_dir(spool_path);
     if !changes_dir.exists() {
         return Ok(vec![]);
     }
@@ -178,7 +178,7 @@ pub fn to_iso_millis(dt: DateTime<Utc>) -> String {
 }
 
 pub fn list_specs(spool_path: &Path) -> Result<Vec<SpecListItem>> {
-    let specs_dir = spool_path.join("specs");
+    let specs_dir = crate::paths::specs_dir(spool_path);
     if !specs_dir.exists() {
         return Ok(vec![]);
     }

@@ -4,7 +4,7 @@ use miette::{IntoDiagnostic, Result};
 use serde::Serialize;
 
 use crate::show::{
-    load_delta_spec_file, parse_change_show_json, parse_spec_show_json, DeltaSpecFile,
+    DeltaSpecFile, load_delta_spec_file, parse_change_show_json, parse_spec_show_json,
 };
 
 pub type ValidationLevel = &'static str;
@@ -130,7 +130,7 @@ pub fn validate_spec_markdown(markdown: &str, strict: bool) -> ValidationReport 
 }
 
 pub fn validate_spec(spool_path: &Path, spec_id: &str, strict: bool) -> Result<ValidationReport> {
-    let path = spool_path.join("specs").join(spec_id).join("spec.md");
+    let path = crate::paths::spec_markdown_path(spool_path, spec_id);
     let markdown = std::fs::read_to_string(&path).into_diagnostic()?;
     Ok(validate_spec_markdown(&markdown, strict))
 }
@@ -233,7 +233,7 @@ pub struct ResolvedModule {
 }
 
 pub fn resolve_module(spool_path: &Path, input: &str) -> Result<Option<ResolvedModule>> {
-    let modules_dir = spool_path.join("modules");
+    let modules_dir = crate::paths::modules_dir(spool_path);
     if !modules_dir.exists() {
         return Ok(None);
     }

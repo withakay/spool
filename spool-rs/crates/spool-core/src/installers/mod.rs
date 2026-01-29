@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use chrono::Utc;
-use miette::{miette, Result};
+use miette::{Result, miette};
 use spool_fs::update_file_with_markers;
 
 use crate::config::ConfigContext;

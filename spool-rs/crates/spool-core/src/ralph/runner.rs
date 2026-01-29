@@ -1,9 +1,9 @@
-use crate::ralph::prompt::{build_ralph_prompt, BuildPromptOptions};
+use crate::ralph::prompt::{BuildPromptOptions, build_ralph_prompt};
 use crate::ralph::state::{
-    append_context, clear_context, load_context, load_state, save_state, RalphHistoryEntry,
-    RalphState,
+    RalphHistoryEntry, RalphState, append_context, clear_context, load_context, load_state,
+    save_state,
 };
-use miette::{miette, Result};
+use miette::{Result, miette};
 use spool_harness::{Harness, HarnessName};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -225,7 +225,7 @@ fn infer_module_from_change(change_id: &str) -> Result<String> {
 }
 
 fn changes_for_module(spool_path: &Path, module_id: &str) -> Result<Vec<String>> {
-    let changes_dir = spool_path.join("changes");
+    let changes_dir = crate::paths::changes_dir(spool_path);
     if !changes_dir.exists() {
         return Ok(vec![]);
     }

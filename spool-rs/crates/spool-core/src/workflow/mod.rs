@@ -225,7 +225,7 @@ pub fn validate_change_name_input(name: &str) -> bool {
 }
 
 pub fn read_change_schema(spool_path: &Path, change: &str) -> String {
-    let meta = spool_path.join("changes").join(change).join(".spool.yaml");
+    let meta = crate::paths::change_meta_path(spool_path, change);
     if let Ok(s) = fs::read_to_string(meta) {
         for line in s.lines() {
             let l = line.trim();
@@ -241,7 +241,7 @@ pub fn read_change_schema(spool_path: &Path, change: &str) -> String {
 }
 
 pub fn list_available_changes(spool_path: &Path) -> Vec<String> {
-    let changes_dir = spool_path.join("changes");
+    let changes_dir = crate::paths::changes_dir(spool_path);
     let Ok(entries) = fs::read_dir(changes_dir) else {
         return Vec::new();
     };
@@ -323,7 +323,7 @@ pub fn compute_change_status(
         .unwrap_or_else(|| read_change_schema(spool_path, change));
     let resolved = resolve_schema(Some(&schema_name), ctx)?;
 
-    let change_dir = spool_path.join("changes").join(change);
+    let change_dir = crate::paths::change_dir(spool_path, change);
     if !change_dir.exists() {
         return Err(WorkflowError::ChangeNotFound(change.to_string()));
     }
@@ -475,7 +475,7 @@ pub fn resolve_instructions(
         .unwrap_or_else(|| read_change_schema(spool_path, change));
     let resolved = resolve_schema(Some(&schema_name), ctx)?;
 
-    let change_dir = spool_path.join("changes").join(change);
+    let change_dir = crate::paths::change_dir(spool_path, change);
     if !change_dir.exists() {
         return Err(WorkflowError::ChangeNotFound(change.to_string()));
     }
@@ -544,7 +544,7 @@ pub fn compute_apply_instructions(
         .map(|s| s.to_string())
         .unwrap_or_else(|| read_change_schema(spool_path, change));
     let resolved = resolve_schema(Some(&schema_name), ctx)?;
-    let change_dir = spool_path.join("changes").join(change);
+    let change_dir = crate::paths::change_dir(spool_path, change);
     if !change_dir.exists() {
         return Err(WorkflowError::ChangeNotFound(change.to_string()));
     }

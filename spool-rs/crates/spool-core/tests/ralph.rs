@@ -1,4 +1,4 @@
-use spool_core::ralph::{run_ralph, RalphOptions};
+use spool_core::ralph::{RalphOptions, run_ralph};
 use spool_harness::{Harness, HarnessName, HarnessRunConfig, HarnessRunResult};
 use std::path::Path;
 use std::sync::Mutex;
