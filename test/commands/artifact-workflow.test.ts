@@ -3,8 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
-import { getChangesPath } from '../../src/core/project-config.js';
-import { getUserSchemasDir } from '../../src/core/global-config.js';
+import { getChangesPath } from '../../spool-bun/src/core/project-config.js';
+import { getUserSchemasDir } from '../../spool-bun/src/core/global-config.js';
 
 describe('artifact-workflow CLI commands', () => {
   let tempDir: string;

@@ -13,8 +13,8 @@ import {
   getArchivePath,
   clearProjectConfigCache,
   PROJECT_CONFIG_FILE_NAME,
-} from '../../src/core/project-config.js';
-import { SPOOL_DIR_NAME } from '../../src/core/config.js';
+} from '../../spool-bun/src/core/project-config.js';
+import { SPOOL_DIR_NAME } from '../../spool-bun/src/core/config.js';
 
 describe('project-config', () => {
   let testDir: string;

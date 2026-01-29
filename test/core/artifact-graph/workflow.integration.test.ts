@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { resolveSchema } from '../../../src/core/artifact-graph/resolver.js';
-import { ArtifactGraph } from '../../../src/core/artifact-graph/graph.js';
-import { detectCompleted } from '../../../src/core/artifact-graph/state.js';
-import type { BlockedArtifacts } from '../../../src/core/artifact-graph/types.js';
+import { resolveSchema } from '../../../spool-bun/src/core/artifact-graph/resolver.js';
+import { ArtifactGraph } from '../../../spool-bun/src/core/artifact-graph/graph.js';
+import { detectCompleted } from '../../../spool-bun/src/core/artifact-graph/state.js';
+import type { BlockedArtifacts } from '../../../spool-bun/src/core/artifact-graph/types.js';
 
 /**
  * Normalize BlockedArtifacts for comparison by sorting dependency arrays.

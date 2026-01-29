@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { ViewCommand } from '../../src/core/view.js';
-import { getChangesPath } from '../../src/core/project-config.js';
+import { ViewCommand } from '../../spool-bun/src/core/view.js';
+import { getChangesPath } from '../../spool-bun/src/core/project-config.js';
 
 const stripAnsi = (input: string): string => input.replace(/\u001b\[[0-9;]*m/g, '');
 

@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { detectCompleted } from '../../../src/core/artifact-graph/state.js';
-import { ArtifactGraph } from '../../../src/core/artifact-graph/graph.js';
-import type { SchemaYaml } from '../../../src/core/artifact-graph/types.js';
+import { detectCompleted } from '../../../spool-bun/src/core/artifact-graph/state.js';
+import { ArtifactGraph } from '../../../spool-bun/src/core/artifact-graph/graph.js';
+import type { SchemaYaml } from '../../../spool-bun/src/core/artifact-graph/types.js';
 
 describe('artifact-graph/state', () => {
   let tempDir: string;

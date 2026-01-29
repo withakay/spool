@@ -3,8 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { randomUUID } from 'crypto';
-import { CompletionProvider } from '../../../src/core/completions/completion-provider.js';
-import { getChangesPath, getSpecsPath } from '../../../src/core/project-config.js';
+import { CompletionProvider } from '../../../spool-bun/src/core/completions/completion-provider.js';
+import { getChangesPath, getSpecsPath } from '../../../spool-bun/src/core/project-config.js';
 
 describe('CompletionProvider', () => {
   let testDir: string;

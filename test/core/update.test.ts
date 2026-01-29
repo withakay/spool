@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { UpdateCommand } from '../../src/core/update.js';
-import { FileSystemUtils } from '../../src/utils/file-system.js';
-import { getSpoolPath } from '../../src/core/project-config.js';
+import { UpdateCommand } from '../../spool-bun/src/core/update.js';
+import { FileSystemUtils } from '../../spool-bun/src/utils/file-system.js';
+import { getSpoolPath } from '../../spool-bun/src/core/project-config.js';
 import path from 'path';
 import fs from 'fs/promises';
 import os from 'os';

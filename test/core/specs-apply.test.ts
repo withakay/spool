@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { buildUpdatedSpec } from '../../src/core/specs-apply.js';
+import { buildUpdatedSpec } from '../../spool-bun/src/core/specs-apply.js';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';

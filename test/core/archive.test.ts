@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ArchiveCommand } from '../../src/core/archive.js';
-import { Validator } from '../../src/core/validation/validator.js';
-import { getChangesPath, getSpecsPath, getSpoolPath } from '../../src/core/project-config.js';
+import { ArchiveCommand } from '../../spool-bun/src/core/archive.js';
+import { Validator } from '../../spool-bun/src/core/validation/validator.js';
+import { getChangesPath, getSpecsPath, getSpoolPath } from '../../spool-bun/src/core/project-config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';

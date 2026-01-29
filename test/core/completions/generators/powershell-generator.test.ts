@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { PowerShellGenerator } from '../../../../src/core/completions/generators/powershell-generator.js';
-import { CommandDefinition } from '../../../../src/core/completions/types.js';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { PowerShellGenerator } from '../../../../spool-bun/src/core/completions/generators/powershell-generator.js';
+import { CommandDefinition } from '../../../../spool-bun/src/core/completions/types.js';
 
 describe('PowerShellGenerator', () => {
   let generator: PowerShellGenerator;
@@ -47,7 +47,7 @@ describe('PowerShellGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('Register-ArgumentCompleter -CommandName spool');
+      expect(script).toContain('Register-ArgumentCompleter -CommandName spool-bun');
       expect(script).toContain('-ScriptBlock $spoolCompleter');
     });
 
@@ -367,7 +367,7 @@ describe('PowerShellGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('function Get-SpoolChanges');
-      expect(script).toContain('spool __complete changes 2>$null');
+      expect(script).toContain('spool-bun __complete changes 2>$null');
       expect(script).toContain('-split');
     });
 
@@ -385,7 +385,7 @@ describe('PowerShellGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('function Get-SpoolSpecs');
-      expect(script).toContain('spool __complete specs 2>$null');
+      expect(script).toContain('spool-bun __complete specs 2>$null');
     });
 
     it('should escape double quotes in descriptions', () => {

@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Validator } from '../../src/core/validation/validator.js';
+import { Validator } from '../../spool-bun/src/core/validation/validator.js';
 import {
   ScenarioSchema,
   RequirementSchema,
   SpecSchema,
   ChangeSchema,
   DeltaSchema,
-} from '../../src/core/schemas/index.js';
-import * as itemDiscovery from '../../src/utils/item-discovery.js';
+} from '../../spool-bun/src/core/schemas/index.js';
+import * as itemDiscovery from '../../spool-bun/src/utils/item-discovery.js';
 
 // Mock getModuleChangeIndex to return empty for unit tests
-vi.mock('../../src/utils/item-discovery.js', async (importOriginal) => {
+vi.mock('../../spool-bun/src/utils/item-discovery.js', async (importOriginal) => {
   const original = await importOriginal<typeof itemDiscovery>();
   return {
     ...original,

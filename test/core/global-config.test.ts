@@ -10,7 +10,7 @@ import {
   saveGlobalConfig,
   GLOBAL_CONFIG_DIR_NAME,
   GLOBAL_CONFIG_FILE_NAME,
-} from '../../src/core/global-config.js';
+} from '../../spool-bun/src/core/global-config.js';
 
 describe('global-config', () => {
   let tempDir: string;

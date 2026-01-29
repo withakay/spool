@@ -1,14 +1,14 @@
 import { spawn } from 'child_process';
 import { closeSync, existsSync, openSync, statSync, unlinkSync } from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const projectRoot = path.resolve(__dirname, '..', '..');
 const cliEntry = path.join(projectRoot, 'dist', 'cli', 'index.js');
+const srcCliEntry = path.join(projectRoot, 'spool-bun', 'src', 'cli', 'index.ts');
 const buildLockPath = path.join(projectRoot, '.spool-test-build.lock');
 
 let buildPromise: Promise<void> | undefined;
@@ -99,16 +99,26 @@ function runCommand(command: string, args: string[], options: RunCommandOptions 
 }
 
 export async function ensureCliBuilt() {
-  // Avoid rebuilding during test runs once the CLI exists; it can race with
-  // parallel Vitest workers which also run the CLI.
-  if (existsSync(cliEntry)) return;
+  const isStale =
+    existsSync(cliEntry) &&
+    existsSync(srcCliEntry) &&
+    statSync(cliEntry).mtimeMs < statSync(srcCliEntry).mtimeMs;
+
+  // Avoid rebuilding during test runs once the CLI exists and is up-to-date;
+  // rebuilding can race with parallel Vitest workers.
+  if (existsSync(cliEntry) && !isStale) return;
 
   if (!buildPromise) {
     buildPromise = (async () => {
       acquireBuildLock();
       try {
         // Another worker may have built while we waited.
-        if (!existsSync(cliEntry)) {
+        const innerIsStale =
+          existsSync(cliEntry) &&
+          existsSync(srcCliEntry) &&
+          statSync(cliEntry).mtimeMs < statSync(srcCliEntry).mtimeMs;
+
+        if (!existsSync(cliEntry) || innerIsStale) {
           await runCommand('bun', ['run', 'build']);
         }
       } finally {
@@ -291,7 +301,7 @@ async function runCLIInProcess(
 
     try {
       // Import source CLI so Vitest mocks apply.
-      const srcCli = path.join(projectRoot, 'src', 'cli', 'index.ts');
+      const srcCli = path.join(projectRoot, 'spool-bun', 'src', 'cli', 'index.ts');
       const href = `${pathToFileURL(srcCli).href}?run=${Date.now()}`;
       await import(href);
       return typeof process.exitCode === 'number' ? process.exitCode : 0;

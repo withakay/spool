@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { JsonConverter } from '../../../src/core/converters/json-converter.js';
+import { JsonConverter } from '../../../spool-bun/src/core/converters/json-converter.js';
 
 describe('JsonConverter', () => {
   const testDir = path.join(process.cwd(), 'test-json-converter-tmp');

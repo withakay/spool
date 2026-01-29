@@ -9,7 +9,7 @@ import {
   validateConfig,
   GlobalConfigSchema,
   DEFAULT_CONFIG,
-} from '../../src/core/config-schema.js';
+} from '../../spool-bun/src/core/config-schema.js';
 
 describe('config-schema', () => {
   describe('getNestedValue', () => {

@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { ListCommand } from '../../src/core/list.js';
-import { getChangesPath } from '../../src/core/project-config.js';
+import { ListCommand } from '../../spool-bun/src/core/list.js';
+import { getChangesPath } from '../../spool-bun/src/core/project-config.js';
 
 describe('ListCommand', () => {
   let tempDir: string;

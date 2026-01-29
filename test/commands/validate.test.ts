@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { getChangesPath, getSpecsPath } from '../../src/core/project-config.js';
+import { getChangesPath, getSpecsPath } from '../../spool-bun/src/core/project-config.js';
 import { runCLI } from '../helpers/run-cli.js';
 
 describe('top-level validate command', () => {
@@ -28,7 +28,7 @@ A module for ungrouped test changes.
 ## Changes
 - 000-01_c1
 - 000-02_dup
-- 000-03_crlf-change
+- 000-03_crlf-change (planned)
 `;
     await fs.writeFile(path.join(modulesDir, '000_ungrouped', 'module.md'), moduleContent, 'utf-8');
 

@@ -1,18 +1,18 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { CompletionCommand } from '../../src/commands/completion.js';
-import * as shellDetection from '../../src/utils/shell-detection.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { CompletionCommand } from '../../spool-bun/src/commands/completion.js';
+import * as shellDetection from '../../spool-bun/src/utils/shell-detection.js';
 
 // Mock the shell detection module
-vi.mock('../../src/utils/shell-detection.js', () => ({
+vi.mock('../../spool-bun/src/utils/shell-detection.js', () => ({
   detectShell: vi.fn(),
 }));
 
 // Mock the ZshInstaller
-vi.mock('../../src/core/completions/installers/zsh-installer.js', () => ({
+vi.mock('../../spool-bun/src/core/completions/installers/zsh-installer.js', () => ({
   ZshInstaller: vi.fn().mockImplementation(() => ({
     install: vi.fn().mockResolvedValue({
       success: true,
-      installedPath: '/home/user/.oh-my-zsh/completions/_spool',
+      installedPath: '/home/user/.oh-my-zsh/completions/_spool-bun',
       isOhMyZsh: true,
       message: 'Completion script installed successfully for Oh My Zsh',
       instructions: [
@@ -23,7 +23,7 @@ vi.mock('../../src/core/completions/installers/zsh-installer.js', () => ({
     }),
     uninstall: vi.fn().mockResolvedValue({
       success: true,
-      message: 'Completion script removed from /home/user/.oh-my-zsh/completions/_spool',
+      message: 'Completion script removed from /home/user/.oh-my-zsh/completions/_spool-bun',
     }),
   })),
 }));
@@ -52,7 +52,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef spool');
+      expect(output).toContain('#compdef spool-bun');
       expect(output).toContain('_spool() {');
     });
 
@@ -63,7 +63,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef spool');
+      expect(output).toContain('#compdef spool-bun');
     });
 
     it('should show error when shell cannot be auto-detected', async () => {
@@ -94,7 +94,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef spool');
+      expect(output).toContain('#compdef spool-bun');
     });
   });
 
@@ -203,7 +203,7 @@ describe('CompletionCommand', () => {
   describe('error handling', () => {
     it('should handle installation failures gracefully', async () => {
       const { ZshInstaller } = await import(
-        '../../src/core/completions/installers/zsh-installer.js'
+        '../../spool-bun/src/core/completions/installers/zsh-installer.js'
       );
       vi.mocked(ZshInstaller).mockImplementationOnce(
         () =>
@@ -231,7 +231,7 @@ describe('CompletionCommand', () => {
 
     it('should handle uninstallation failures gracefully', async () => {
       const { ZshInstaller } = await import(
-        '../../src/core/completions/installers/zsh-installer.js'
+        '../../spool-bun/src/core/completions/installers/zsh-installer.js'
       );
       vi.mocked(ZshInstaller).mockImplementationOnce(
         () =>
@@ -278,7 +278,7 @@ describe('CompletionCommand', () => {
 
       expect(consoleLogSpy).toHaveBeenCalled();
       const output = consoleLogSpy.mock.calls[0][0];
-      expect(output).toContain('#compdef spool');
+      expect(output).toContain('#compdef spool-bun');
     });
   });
 });

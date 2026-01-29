@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { FishGenerator } from '../../../../src/core/completions/generators/fish-generator.js';
-import { CommandDefinition } from '../../../../src/core/completions/types.js';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { FishGenerator } from '../../../../spool-bun/src/core/completions/generators/fish-generator.js';
+import { CommandDefinition } from '../../../../spool-bun/src/core/completions/types.js';
 
 describe('FishGenerator', () => {
   let generator: FishGenerator;
@@ -72,7 +72,7 @@ describe('FishGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('complete -c spool');
+      expect(script).toContain('complete -c spool-bun');
       expect(script).toContain("-a 'init'");
       expect(script).toContain("'Initialize Spool'");
       expect(script).toContain("-a 'validate'");
@@ -308,7 +308,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('function __fish_spool_changes');
-      expect(script).toContain('spool __complete changes 2>/dev/null');
+      expect(script).toContain('spool-bun __complete changes 2>/dev/null');
       expect(script).toContain('while read -l id desc');
       expect(script).toContain('printf');
     });
@@ -327,7 +327,7 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('function __fish_spool_specs');
-      expect(script).toContain('spool __complete specs 2>/dev/null');
+      expect(script).toContain('spool-bun __complete specs 2>/dev/null');
     });
 
     it('should generate dynamic completion helper for items', () => {

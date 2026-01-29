@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Validator } from '../../src/core/validation/validator.js';
+import { Validator } from '../../spool-bun/src/core/validation/validator.js';
 
 describe('Validator enriched messages', () => {
   const testDir = path.join(process.cwd(), 'test-validation-enriched-tmp');

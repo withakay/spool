@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
-import { getChangesPath, getModulesPath, getSpoolPath } from '../../src/core/project-config.js';
+import { getChangesPath, getModulesPath, getSpoolPath } from '../../spool-bun/src/core/project-config.js';
 
 // Mock @inquirer/prompts to avoid actual interactive prompts
 vi.mock('@inquirer/prompts', () => ({
@@ -13,7 +13,7 @@ vi.mock('@inquirer/prompts', () => ({
 }));
 
 // Mock the ralph runner to avoid actual AI execution
-vi.mock('../../src/core/ralph/runner.js', () => ({
+vi.mock('../../spool-bun/src/core/ralph/runner.js', () => ({
   runRalphLoop: vi.fn(),
 }));
 
@@ -83,7 +83,7 @@ describe('ralph command - interactive selection and module inference', () => {
       vi.mocked(select).mockResolvedValueOnce('001-01_add-auth');
 
       // Mock ralph runner to avoid actual execution
-      const { runRalphLoop } = await import('../../src/core/ralph/runner.js');
+      const { runRalphLoop } = await import('../../spool-bun/src/core/ralph/runner.js');
       vi.mocked(runRalphLoop).mockResolvedValueOnce(undefined);
 
       const result = await runCLI(['ralph', 'implement auth'], {
@@ -119,7 +119,7 @@ describe('ralph command - interactive selection and module inference', () => {
       );
 
       // Mock ralph runner
-      const { runRalphLoop } = await import('../../src/core/ralph/runner.js');
+      const { runRalphLoop } = await import('../../spool-bun/src/core/ralph/runner.js');
       vi.mocked(runRalphLoop).mockResolvedValueOnce(undefined);
 
       const result = await runCLI(['ralph', 'implement auth'], {
@@ -203,7 +203,7 @@ describe('ralph command - interactive selection and module inference', () => {
       vi.mocked(select).mockResolvedValueOnce('001-01_add-auth');
 
       // Mock ralph runner
-      const { runRalphLoop } = await import('../../src/core/ralph/runner.js');
+      const { runRalphLoop } = await import('../../spool-bun/src/core/ralph/runner.js');
       vi.mocked(runRalphLoop).mockResolvedValueOnce(undefined);
 
       const result = await runCLI(['ralph', '--module', '001', 'work on auth'], {
@@ -238,7 +238,7 @@ describe('ralph command - interactive selection and module inference', () => {
       });
 
       // Mock ralph runner
-      const { runRalphLoop } = await import('../../src/core/ralph/runner.js');
+      const { runRalphLoop } = await import('../../spool-bun/src/core/ralph/runner.js');
       vi.mocked(runRalphLoop).mockResolvedValueOnce(undefined);
 
       const result = await runCLI(['ralph', '--module', '001', 'improve auth'], {
@@ -328,7 +328,7 @@ describe('ralph command - interactive selection and module inference', () => {
       vi.mocked(select).mockResolvedValueOnce('001-01_add-auth');
 
       // Mock ralph runner
-      const { runRalphLoop } = await import('../../src/core/ralph/runner.js');
+      const { runRalphLoop } = await import('../../spool-bun/src/core/ralph/runner.js');
       vi.mocked(runRalphLoop).mockResolvedValueOnce(undefined);
 
       const result = await runCLI(['ralph', 'add auth system'], {

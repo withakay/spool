@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
 import { randomUUID } from 'crypto';
-import { BashInstaller } from '../../../../src/core/completions/installers/bash-installer.js';
+import { promises as fs } from 'fs';
+import os from 'os';
+import path from 'path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { BashInstaller } from '../../../../spool-bun/src/core/completions/installers/bash-installer.js';
 
 describe('BashInstaller', () => {
   let testHomeDir: string;
@@ -26,7 +26,7 @@ describe('BashInstaller', () => {
       const result = await installer.getInstallationPath();
 
       expect(result).toBe(
-        path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool')
+        path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool-bun')
       );
     });
   });
@@ -72,7 +72,7 @@ describe('BashInstaller', () => {
 
       expect(result.success).toBe(true);
       expect(result.installedPath).toBe(
-        path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool')
+        path.join(testHomeDir, '.local', 'share', 'bash-completion', 'completions', 'spool-bun')
       );
 
       // Verify file was created with correct content
@@ -98,7 +98,7 @@ describe('BashInstaller', () => {
         'share',
         'bash-completion',
         'completions',
-        'spool'
+        'spool-bun'
       );
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, 'old script');
@@ -436,7 +436,7 @@ describe('BashInstaller', () => {
         '# SPOOL:START',
         '# Spool shell completions configuration',
         'if [ -d ~/.local/share/bash-completion/completions ]; then',
-        '  . ~/.local/share/bash-completion/completions/spool',
+        '  . ~/.local/share/bash-completion/completions/spool-bun',
         'fi',
         '# SPOOL:END',
         '',

@@ -6,7 +6,7 @@ import {
   normalizeChangeId,
   looksLikeChangeId,
   looksLikeModuleId,
-} from '../../src/utils/id-parser.js';
+} from '../../spool-bun/src/utils/id-parser.js';
 
 describe('parseModuleId', () => {
   describe('valid module IDs', () => {

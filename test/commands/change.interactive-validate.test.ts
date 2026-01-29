@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { getChangesPath } from '../../src/core/project-config.js';
+import { getChangesPath } from '../../spool-bun/src/core/project-config.js';
 
 // Note: We cannot truly simulate TTY prompts in this test runner easily.
 // Instead, we verify non-interactive fallback behavior and basic invocation.

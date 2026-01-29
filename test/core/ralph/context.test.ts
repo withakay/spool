@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, writeFile } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 
-import { clearProjectConfigCache } from '../../../src/core/project-config.js';
-import { buildPromptPreamble, buildRalphPrompt } from '../../../src/core/ralph/context.js';
+import { clearProjectConfigCache } from '../../../spool-bun/src/core/project-config.js';
+import { buildPromptPreamble, buildRalphPrompt } from '../../../spool-bun/src/core/ralph/context.js';
 
 describe('ralph prompt building', () => {
   describe('buildPromptPreamble', () => {

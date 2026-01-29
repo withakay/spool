@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { BashGenerator } from '../../../../src/core/completions/generators/bash-generator.js';
-import { CommandDefinition } from '../../../../src/core/completions/types.js';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { BashGenerator } from '../../../../spool-bun/src/core/completions/generators/bash-generator.js';
+import { CommandDefinition } from '../../../../spool-bun/src/core/completions/types.js';
 
 describe('BashGenerator', () => {
   let generator: BashGenerator;
@@ -346,7 +346,7 @@ describe('BashGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('_spool_complete_changes() {');
-      expect(script).toContain('spool __complete changes 2>/dev/null');
+      expect(script).toContain('spool-bun __complete changes 2>/dev/null');
       expect(script).toContain('cut -f1');
       expect(script).toContain('COMPREPLY=');
     });
@@ -365,7 +365,7 @@ describe('BashGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('_spool_complete_specs() {');
-      expect(script).toContain('spool __complete specs 2>/dev/null');
+      expect(script).toContain('spool-bun __complete specs 2>/dev/null');
       expect(script).toContain('cut -f1');
     });
 
@@ -383,8 +383,8 @@ describe('BashGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('_spool_complete_items() {');
-      expect(script).toContain('spool __complete changes 2>/dev/null');
-      expect(script).toContain('spool __complete specs 2>/dev/null');
+      expect(script).toContain('spool-bun __complete changes 2>/dev/null');
+      expect(script).toContain('spool-bun __complete specs 2>/dev/null');
     });
 
     it('should handle complex nested subcommands with flags', () => {
@@ -434,7 +434,7 @@ describe('BashGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script.trim().endsWith('complete -F _spool_completion spool')).toBe(true);
+      expect(script.trim().endsWith('complete -F _spool_completion spool-bun')).toBe(true);
     });
 
     it('should handle empty command list', () => {
@@ -444,7 +444,7 @@ describe('BashGenerator', () => {
 
       expect(script).toContain('# Bash completion script');
       expect(script).toContain('_spool_completion() {');
-      expect(script).toContain('complete -F _spool_completion spool');
+      expect(script).toContain('complete -F _spool_completion spool-bun');
     });
 
     it('should handle commands with no flags', () => {

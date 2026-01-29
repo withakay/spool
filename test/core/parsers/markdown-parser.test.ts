@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MarkdownParser } from '../../../src/core/parsers/markdown-parser.js';
+import { MarkdownParser } from '../../../spool-bun/src/core/parsers/markdown-parser.js';
 
 describe('MarkdownParser', () => {
   describe('parseSpec', () => {

@@ -1,9 +1,9 @@
-import { afterAll, describe, it, expect } from 'vitest';
 import { promises as fs } from 'fs';
-import path from 'path';
 import { tmpdir } from 'os';
-import { runCLI, cliProjectRoot } from '../helpers/run-cli.js';
-import { AI_TOOLS } from '../../src/core/config.js';
+import path from 'path';
+import { afterAll, describe, expect, it } from 'vitest';
+import { AI_TOOLS } from '../../spool-bun/src/core/config.js';
+import { cliProjectRoot, runCLI } from '../helpers/run-cli.js';
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -34,7 +34,7 @@ describe('spool CLI e2e basics', () => {
   it('shows help output', async () => {
     const result = await runCLI(['--help']);
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Usage: spool');
+    expect(result.stdout).toContain('Usage: spool-bun');
     expect(result.stderr).toBe('');
   });
 

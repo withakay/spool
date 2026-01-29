@@ -3,7 +3,7 @@ import {
   getExploreSkillTemplate,
   getNewChangeSkillTemplate,
   getApplySkillTemplate,
-} from '../../../src/core/templates/skill-templates.js';
+} from '../../../spool-bun/src/core/templates/skill-templates.js';
 
 describe('skill templates with spoolDir', () => {
   describe('getExploreSkillTemplate', () => {

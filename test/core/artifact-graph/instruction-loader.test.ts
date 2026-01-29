@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { getChangesPath } from '../../../src/core/project-config.js';
+import { getChangesPath } from '../../../spool-bun/src/core/project-config.js';
 import {
   loadTemplate,
   loadChangeContext,
   generateInstructions,
   formatChangeStatus,
   TemplateLoadError,
-} from '../../../src/core/artifact-graph/instruction-loader.js';
+} from '../../../spool-bun/src/core/artifact-graph/instruction-loader.js';
 
 describe('instruction-loader', () => {
   describe('loadTemplate', () => {

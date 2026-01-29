@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SkillsConfigurator } from '../../../src/core/configurators/skills.js';
-import { FileSystemUtils } from '../../../src/utils/file-system.js';
+import { SkillsConfigurator } from '../../../spool-bun/src/core/configurators/skills.js';
+import { FileSystemUtils } from '../../../spool-bun/src/utils/file-system.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 

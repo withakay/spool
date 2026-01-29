@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { detectShell, SupportedShell } from '../../src/utils/shell-detection.js';
+import { detectShell, SupportedShell } from '../../spool-bun/src/utils/shell-detection.js';
 
 describe('shell-detection', () => {
   let originalShell: string | undefined;

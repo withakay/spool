@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { FishInstaller } from '../../../../src/core/completions/installers/fish-installer.js';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
 import { randomUUID } from 'crypto';
+import { promises as fs } from 'fs';
+import os from 'os';
+import path from 'path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { FishInstaller } from '../../../../spool-bun/src/core/completions/installers/fish-installer.js';
 
 describe('FishInstaller', () => {
   let testHomeDir: string;
@@ -22,14 +22,18 @@ describe('FishInstaller', () => {
   describe('getInstallationPath', () => {
     it('should return standard fish completions path', () => {
       const result = installer.getInstallationPath();
-      expect(result).toBe(path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish'));
+      expect(result).toBe(
+        path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish')
+      );
     });
 
     it('should use homeDir from constructor', () => {
       const customHome = '/custom/home';
       const customInstaller = new FishInstaller(customHome);
       const result = customInstaller.getInstallationPath();
-      expect(result).toBe(path.join(customHome, '.config', 'fish', 'completions', 'spool.fish'));
+      expect(result).toBe(
+        path.join(customHome, '.config', 'fish', 'completions', 'spool-bun.fish')
+      );
     });
   });
 
@@ -89,7 +93,7 @@ complete -c spool -a 'init' -d 'Initialize Spool'
       expect(result.success).toBe(true);
       expect(result.message).toBe('Completion script installed successfully for Fish');
       expect(result.installedPath).toBe(
-        path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish')
+        path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish')
       );
       expect(result.backupPath).toBeUndefined();
       expect(result.instructions).toHaveLength(2);
@@ -101,7 +105,7 @@ complete -c spool -a 'init' -d 'Initialize Spool'
       const result = await installer.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish');
       const dirExists = await fs
         .access(path.dirname(targetPath))
         .then(() => true)
@@ -112,7 +116,7 @@ complete -c spool -a 'init' -d 'Initialize Spool'
     it('should write completion script content correctly', async () => {
       await installer.install(mockCompletionScript);
 
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish');
       const content = await fs.readFile(targetPath, 'utf-8');
       expect(content).toBe(mockCompletionScript);
     });
@@ -167,7 +171,7 @@ complete -c spool -a 'validate' -d 'Validate specs'
       expect(backupContent).toBe(originalScript);
 
       // Verify current file has updated content
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish');
       const currentContent = await fs.readFile(targetPath, 'utf-8');
       expect(currentContent).toBe(updatedScript);
     });
@@ -233,7 +237,7 @@ complete -c spool -a 'validate' -d 'Validate specs'
       const result = await installer.install('');
 
       expect(result.success).toBe(true);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish');
       const content = await fs.readFile(targetPath, 'utf-8');
       expect(content).toBe('');
     });
@@ -248,7 +252,7 @@ end
       const result = await installer.install(specialScript);
 
       expect(result.success).toBe(true);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish');
       const content = await fs.readFile(targetPath, 'utf-8');
       expect(content).toBe(specialScript);
     });
@@ -272,7 +276,7 @@ complete -c spool -a 'init'
 
     it('should remove the completion file', async () => {
       await installer.install(mockCompletionScript);
-      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+      const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool-bun.fish');
 
       await installer.uninstall();
 
@@ -305,7 +309,13 @@ complete -c spool -a 'init'
       'should return failure on permission error',
       async () => {
         await installer.install(mockCompletionScript);
-        const targetPath = path.join(testHomeDir, '.config', 'fish', 'completions', 'spool.fish');
+        const targetPath = path.join(
+          testHomeDir,
+          '.config',
+          'fish',
+          'completions',
+          'spool-bun.fish'
+        );
         const parentDir = path.dirname(targetPath);
 
         // Make parent directory read-only to simulate permission error

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { ChangeCommand } from '../../../src/commands/change.js';
-import { getChangesPath } from '../../../src/core/project-config.js';
+import { ChangeCommand } from '../../../spool-bun/src/commands/change.js';
+import { getChangesPath } from '../../../spool-bun/src/core/project-config.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';

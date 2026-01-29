@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { ChangeCommand } from '../../../src/commands/change.js';
+import { ChangeCommand } from '../../../spool-bun/src/commands/change.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
-import { getChangesPath } from '../../../src/core/project-config.js';
+import { getChangesPath } from '../../../spool-bun/src/core/project-config.js';
 
 describe('ChangeCommand.show/validate', () => {
   let cmd: ChangeCommand;

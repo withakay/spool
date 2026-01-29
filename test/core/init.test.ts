@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { InitCommand } from '../../src/core/init.js';
-import { getChangesPath, getSpoolPath, getSpecsPath } from '../../src/core/project-config.js';
+import { InitCommand } from '../../spool-bun/src/core/init.js';
+import { getChangesPath, getSpoolPath, getSpecsPath } from '../../spool-bun/src/core/project-config.js';
 
 const DONE = '__done__';
 

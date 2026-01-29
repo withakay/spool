@@ -1,4 +1,4 @@
-import { getSplash } from '../../../src/core/ui/splash.js';
+import { getSplash } from '../../../spool-bun/src/core/ui/splash.js';
 
 describe('getSplash', () => {
   it('returns a string', () => {

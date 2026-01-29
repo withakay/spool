@@ -8,8 +8,8 @@ import {
   getModuleInfo,
   resolveModuleId,
   resolveChangeId,
-} from '../../src/utils/item-discovery.js';
-import { getChangesPath, getModulesPath } from '../../src/core/project-config.js';
+} from '../../spool-bun/src/utils/item-discovery.js';
+import { getChangesPath, getModulesPath } from '../../spool-bun/src/core/project-config.js';
 
 describe('item-discovery utilities for ralph command', () => {
   let tempDir: string;

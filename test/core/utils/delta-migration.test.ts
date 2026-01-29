@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { moveDeltaSpecs } from '../../../src/core/utils/delta-migration.js';
+import { moveDeltaSpecs } from '../../../spool-bun/src/core/utils/delta-migration.js';
 import fs from 'fs/promises';
 import path from 'path';
 

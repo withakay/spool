@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { randomUUID } from 'crypto';
-import { FileSystemUtils } from '../../src/utils/file-system.js';
+import { FileSystemUtils } from '../../spool-bun/src/utils/file-system.js';
 
 describe('FileSystemUtils', () => {
   let testDir: string;

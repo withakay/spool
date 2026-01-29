@@ -3,7 +3,7 @@ import {
   isInteractive,
   resolveNoInteractive,
   InteractiveOptions,
-} from '../../src/utils/interactive.js';
+} from '../../spool-bun/src/utils/interactive.js';
 
 describe('interactive utilities', () => {
   let originalSpoolInteractive: string | undefined;

@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { ZshGenerator } from '../../../../src/core/completions/generators/zsh-generator.js';
-import { CommandDefinition } from '../../../../src/core/completions/types.js';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { ZshGenerator } from '../../../../spool-bun/src/core/completions/generators/zsh-generator.js';
+import { CommandDefinition } from '../../../../spool-bun/src/core/completions/types.js';
 
 describe('ZshGenerator', () => {
   let generator: ZshGenerator;
@@ -31,7 +31,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef spool');
+      expect(script).toContain('#compdef spool-bun');
       expect(script).toContain('# Zsh completion script for Spool CLI');
       expect(script).toContain('_spool() {');
     });
@@ -353,7 +353,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script.trim().endsWith('compdef _spool spool')).toBe(true);
+      expect(script.trim().endsWith('compdef _spool spool-bun')).toBe(true);
     });
 
     it('should handle empty command list', () => {
@@ -361,7 +361,7 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain('#compdef spool');
+      expect(script).toContain('#compdef spool-bun');
       expect(script).toContain('_spool() {');
     });
 

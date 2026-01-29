@@ -3,8 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { randomUUID } from 'crypto';
-import { validateChangeName, createChange } from '../../src/utils/change-utils.js';
-import { getChangesPath } from '../../src/core/project-config.js';
+import { validateChangeName, createChange } from '../../spool-bun/src/utils/change-utils.js';
+import { getChangesPath } from '../../spool-bun/src/core/project-config.js';
 
 describe('validateChangeName', () => {
   describe('valid names', () => {

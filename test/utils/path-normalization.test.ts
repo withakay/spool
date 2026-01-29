@@ -3,7 +3,7 @@ import {
   normalizeSpoolDir,
   replaceHardcodedSpoolPaths,
   replaceHardcodedDotSpoolPaths,
-} from '../../src/utils/path-normalization.js';
+} from '../../spool-bun/src/utils/path-normalization.js';
 
 describe('path normalization utilities', () => {
   describe('normalizeSpoolDir', () => {

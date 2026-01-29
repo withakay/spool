@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { PowerShellInstaller } from '../../../../src/core/completions/installers/powershell-installer.js';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
 import { randomUUID } from 'crypto';
+import { promises as fs } from 'fs';
+import os from 'os';
+import path from 'path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { PowerShellInstaller } from '../../../../spool-bun/src/core/completions/installers/powershell-installer.js';
 
 describe('PowerShellInstaller', () => {
   let testHomeDir: string;
@@ -380,7 +380,7 @@ $spoolCompleter = {
     param($wordToComplete, $commandAst, $cursorPosition)
     # Completion logic here
 }
-Register-ArgumentCompleter -CommandName spool -ScriptBlock $spoolCompleter
+Register-ArgumentCompleter -CommandName spool-bun -ScriptBlock $spoolCompleter
 `;
 
     it('should install completion script for the first time', async () => {

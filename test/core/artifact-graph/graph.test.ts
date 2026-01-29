@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ArtifactGraph } from '../../../src/core/artifact-graph/graph.js';
-import type { SchemaYaml } from '../../../src/core/artifact-graph/types.js';
+import { ArtifactGraph } from '../../../spool-bun/src/core/artifact-graph/graph.js';
+import type { SchemaYaml } from '../../../spool-bun/src/core/artifact-graph/types.js';
 
 describe('artifact-graph/graph', () => {
   const createSchema = (artifacts: SchemaYaml['artifacts']): SchemaYaml => ({

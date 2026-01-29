@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSchema, SchemaValidationError } from '../../../src/core/artifact-graph/schema.js';
+import { parseSchema, SchemaValidationError } from '../../../spool-bun/src/core/artifact-graph/schema.js';
 
 describe('artifact-graph/schema', () => {
   describe('parseSchema', () => {

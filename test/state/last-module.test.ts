@@ -8,7 +8,7 @@ import {
   getLastChangeName,
   setLastChangeName,
   clearState,
-} from '../../src/state/last-module.js';
+} from '../../spool-bun/src/state/last-module.js';
 
 describe('last-module state tracking', () => {
   let tempDir: string;

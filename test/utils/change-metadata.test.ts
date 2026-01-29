@@ -9,9 +9,9 @@ import {
   resolveSchemaForChange,
   validateSchemaName,
   ChangeMetadataError,
-} from '../../src/utils/change-metadata.js';
-import { ChangeMetadataSchema } from '../../src/core/artifact-graph/types.js';
-import { getChangesPath } from '../../src/core/project-config.js';
+} from '../../spool-bun/src/utils/change-metadata.js';
+import { ChangeMetadataSchema } from '../../spool-bun/src/core/artifact-graph/types.js';
+import { getChangesPath } from '../../spool-bun/src/core/project-config.js';
 
 describe('ChangeMetadataSchema', () => {
   describe('valid metadata', () => {

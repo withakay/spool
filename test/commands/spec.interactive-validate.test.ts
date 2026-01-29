@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { getSpecsPath } from '../../src/core/project-config.js';
+import { getSpecsPath } from '../../spool-bun/src/core/project-config.js';
 
 describe('spec validate (interactive behavior)', () => {
   const projectRoot = process.cwd();

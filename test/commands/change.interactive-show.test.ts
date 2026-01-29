@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { getChangesPath } from '../../src/core/project-config.js';
+import { getChangesPath } from '../../spool-bun/src/core/project-config.js';
 
 describe('change show (interactive behavior)', () => {
   const projectRoot = process.cwd();

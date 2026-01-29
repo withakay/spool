@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { getUserSchemasDir } from '../../../src/core/global-config.js';
+import { getUserSchemasDir } from '../../../spool-bun/src/core/global-config.js';
 import {
   resolveSchema,
   listSchemas,
   SchemaLoadError,
   getSchemaDir,
   getPackageSchemasDir,
-} from '../../../src/core/artifact-graph/resolver.js';
+} from '../../../spool-bun/src/core/artifact-graph/resolver.js';
 
 describe('artifact-graph/resolver', () => {
   let tempDir: string;
