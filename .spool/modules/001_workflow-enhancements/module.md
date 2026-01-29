@@ -14,3 +14,4 @@
 - [ ] 001-05_rationalize-cli-commands
 - [ ] 001-06_promote-x-instructions-to-stable
 - [ ] 001-07_validate-modules-include-archived
+- [ ] 001-08_allow-change-number-overflow

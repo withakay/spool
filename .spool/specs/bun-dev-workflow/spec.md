@@ -80,7 +80,6 @@ Test helpers SHALL use Bun to build the CLI before testing.
 The system SHALL support installing the local package globally for development testing.
 
 #### Scenario: Install package globally for testing
-- **WHEN** a developer runs `make dev-install`
+- **WHEN** a developer runs `make bun-dev-install`
 - **THEN** the package SHALL be available globally via Bun's global install mechanism
 - **AND** the `spool` command SHALL execute the local development version
-

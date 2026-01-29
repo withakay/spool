@@ -1,23 +1,31 @@
 # Spool Project Overview
 
-A minimal CLI tool that helps developers set up Spool file structures and keep AI instructions updated. The AI tools themselves handle all the change management complexity by working directly with markdown files.
+A CLI tool that helps developers set up Spool file structures and keep AI instructions updated.
+
+This repository currently contains two implementations:
+
+- **Supported**: `spool-rs/` (Rust)
+- **Deprecated legacy**: `spool-bun/` (TypeScript/Bun)
 
 ## Technology Stack
-- Language: TypeScript
-- Runtime: Node.js (≥20.19.0, ESM modules)
-- Package Manager: pnpm
-- CLI Framework: Commander.js
-- User Interaction: @inquirer/prompts
-- Distribution: npm package
+- Supported implementation
+  - Language: Rust
+  - Workspace: `spool-rs/` (Cargo)
+  - Distribution: native binaries
+
+- Deprecated legacy implementation
+  - Language: TypeScript
+  - Runtime: Node.js (ESM) / Bun
+  - Source: `spool-bun/src/`
+  - CLI Framework: Commander.js
+  - User Interaction: @inquirer/prompts
 
 ## Project Structure
 ```
-src/
-├── cli/        # CLI command implementations
-├── core/       # Core Spool logic (templates, structure)
-└── utils/      # Shared utilities (file operations, rollback)
+spool-rs/        # Supported Rust implementation
+spool-bun/       # Deprecated legacy TypeScript/Bun implementation
 
-dist/           # Compiled output (gitignored)
+dist/            # Legacy TS compiled output (gitignored)
 ```
 
 ## Conventions
@@ -40,14 +48,16 @@ dist/           # Compiled output (gitignored)
 - No verbose/debug modes initially (keep it simple)
 
 ## Testing Strategy
-- Manual testing via `pnpm link` during development
-- Smoke tests for critical paths only (init, help commands)
-- No unit tests initially - add when complexity grows
-- Test commands: `pnpm test:smoke` (when added)
+- Supported (Rust): `cargo test --workspace` (or `make test`)
+- Legacy (TypeScript/Bun): `bun run test`
 
 ## Development Workflow
-- Use pnpm for all package management
-- Run `pnpm run build` to compile TypeScript
-- Run `pnpm run dev` for development mode
-- Test locally with `pnpm link`
+- Default (supported): use the Makefile Rust defaults
+  - `make build`
+  - `make test`
+
+- Legacy (TypeScript/Bun): run Bun scripts from repo root
+  - `bun run build`
+  - `bun run test`
+
 - Follow Spool's own change-driven development process

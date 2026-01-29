@@ -19,3 +19,6 @@ parity test harness early and then port commands incrementally.
 - [ ] 006-08_port-plan-tasks-workflow-state
 - [ ] 006-09_port-ralph-loop
 - [ ] 006-10_packaging-and-transition-plan
+- [ ] 006-11_add-rust-task-backends
+- [ ] 006-12_spoolrs-init-parity
+- [ ] 006-13_demote-ts-spool-to-spool-bun

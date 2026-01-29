@@ -1,49 +1,40 @@
-# Rust Port Research Summary
+# Research: Interface/Trait-Based Task System + Taskwarrior Backend
+
+## Executive Summary
+
+Spool already has a structured task model (`tasks.md`) and parsing logic in TypeScript, but it is file-backed and not abstracted behind a backend interface. Rust currently has only checkbox-style task parsing, so the TS “enhanced tasks” format (waves, status, dependencies, diagnostics) is not yet feature-parity.
+
+To support alternative backends (like Taskwarrior) without breaking existing workflows, the safest path is:
+
+1. **Define a stable in-memory “Spool Task Model”** (IDs, status, deps, metadata) shared conceptually across TS and Rust.
+2. **Introduce a `TaskBackend` interface/trait** with a default **Markdown backend** (current behavior).
+3. **Add an optional Taskwarrior backend** that implements the same interface by shelling out to the `task` CLI and mapping Spool task fields onto Taskwarrior attributes.
+
+This yields a clean extension point (interface/trait) while preserving today’s `tasks.md` workflows and enabling power-user integrations.
 
 ## Key Findings
 
-- The Rust port must treat the current TypeScript `spool` CLI as the behavior
-  oracle and verify parity via tests, not interpretation.
-- Build a parity harness early that compares stdout, stderr, exit code, and
-  filesystem side effects.
-- Interactive flows require PTY-driven tests to validate prompt rendering and
-  selection behavior.
+- **Current Spool Task Tracking (TS)**: `src/core/tasks/task-tracking.ts` parses both checkbox and “enhanced” wave-based tasks, includes diagnostics and readiness checks, and can update task status in-place.
+- **Current Spool Task Tracking (Rust)**: `spool-rs/crates/spool-core/src/workflow/mod.rs` models apply instructions but currently only supports checkbox parsing (not the enhanced format).
+- **Canonical Task Format**: `src/core/templates/tasks-template.ts` ships the enhanced `tasks.md` template (waves, action/verify/done-when, dependencies).
+- **Taskwarrior Feasibility**: Taskwarrior supports JSON `export`/`import`, built-in `depends`, and custom metadata via UDAs, making it workable as a backend if we carefully handle configuration and ID mapping.
 
-## Stack Recommendations
+## Recommendation
 
-- CLI parsing: `clap` (stable, widely used, good help generation)
-- Errors/diagnostics: `thiserror` + `miette` (human-friendly) with a stable
-  user-facing message layer
-- JSON/YAML: `serde`, `serde_json`, `serde_yaml`
-- Color/terminal output: `anstream` + `anstyle` (integrates well with clap)
-- Prompts: `inquire` or `dialoguer` (validate multi-select + non-interactive)
-- Spinners/progress: `indicatif` (TTY-aware; can be disabled)
-- Testing: `assert_cmd`, `insta`, `tempfile`, plus PTY driver (`expectrl` or
-  `portable-pty`)
+Implement a backend abstraction with these two initial backends:
 
-## Feature / Command Parity Priorities
+- **`MarkdownTaskBackend` (default)**: backed by `.spool/changes/<change>/tasks.md` using the existing enhanced format.
+- **`TaskwarriorTaskBackend` (optional)**: backed by Taskwarrior tasks filtered by a stable scope key (e.g., `project:` prefix + tags), using `uuid` as the backend ID.
 
-1. Non-mutating commands: `--help`, `--version`, `list`, `show`, `validate`
-2. Mutating installers: `init`, `update` (byte-for-byte output)
-3. Artifact workflow: `status`, `instructions`, `templates`, `create`
-4. Interactive orchestration: `ralph`/`loop` (PTY, state files)
-5. Packaging + transition plan
+Keep the Spool task model “loss-minimizing”: preserve fields that don’t map cleanly to Taskwarrior (e.g., `Files`, `Verify`, `Done When`) via annotations or a single “payload” field.
 
-## Architecture Considerations
+## Next Steps
 
-- Prefer a Cargo workspace with a thin CLI crate and testable libraries.
-- Keep side effects (filesystem, env, process exec, TTY) behind traits.
-- Render user-facing output from pure functions where possible for stable
-  snapshots.
+1. Define a cross-language task data model (TS types + Rust structs) and status enum mapping.
+2. Add a backend interface/trait + Markdown backend adapter.
+3. Prototype a Taskwarrior backend with a minimal command set: list/get/add/start/stop/done/modify.
+4. Decide on metadata strategy: **UDAs** (best structure, requires config) vs **tags/annotations** (zero-config, less structured).
 
-## Pitfalls To Avoid
+## Research Files
 
-- Normalizing outputs too aggressively (hides drift).
-- Diverging template content or marker-managed blocks.
-- Letting interactive code paths differ from non-interactive flags/env.
-
-## Roadmap Implications
-
-- The parity harness is the gate for every ported command.
-- The Rust implementation should land command-by-command with parity tests
-  covering the same fixtures.
+- `.spool/research/investigations/todo-task-interface-taskwarrior.md`
