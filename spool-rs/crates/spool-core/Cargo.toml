@@ -12,8 +12,10 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }
 chrono = { workspace = true }
+rusqlite = { workspace = true }
 spool-fs = { path = "../spool-fs" }
 spool-templates = { path = "../spool-templates" }
+spool-harness = { path = "../spool-harness" }
 
 [dev-dependencies]
 tempfile = { workspace = true }

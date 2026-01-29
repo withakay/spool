@@ -237,7 +237,10 @@ fn parse_module_folder_name(folder: &str) -> Option<(String, String)> {
 }
 
 fn parse_modular_change_module_id(folder: &str) -> Option<&str> {
-    // TS regex: /^(\d{3})-(\d{2})_([a-z][a-z0-9-]*)$/
+    // Accept canonical folder names like:
+    // - "NNN-NN_name" (2+ digit change number)
+    // - "NNN-100_name" (overflow change number)
+    // NOTE: This is a fast path for listing; full canonicalization lives in `parse_change_id`.
     let bytes = folder.as_bytes();
     if bytes.len() < 8 {
         return None;
@@ -251,13 +254,30 @@ fn parse_modular_change_module_id(folder: &str) -> Option<&str> {
     if *bytes.get(3)? != b'-' {
         return None;
     }
-    if !bytes.get(4)?.is_ascii_digit() || !bytes.get(5)?.is_ascii_digit() {
+
+    // Scan digits until '_'
+    let mut i = 4usize;
+    let mut digit_count = 0usize;
+    while i < bytes.len() {
+        let b = bytes[i];
+        if b == b'_' {
+            break;
+        }
+        if !b.is_ascii_digit() {
+            return None;
+        }
+        digit_count += 1;
+        i += 1;
+    }
+    if i >= bytes.len() || bytes[i] != b'_' {
         return None;
     }
-    if *bytes.get(6)? != b'_' {
+    // Canonical change numbers are at least 2 digits ("01"), but be permissive.
+    if digit_count == 0 {
         return None;
     }
-    let name = &folder[7..];
+
+    let name = &folder[(i + 1)..];
     let mut chars = name.chars();
     let first = chars.next()?;
     if !first.is_ascii_lowercase() {
@@ -268,6 +288,7 @@ fn parse_modular_change_module_id(folder: &str) -> Option<&str> {
             return None;
         }
     }
+
     Some(&folder[0..3])
 }
 
@@ -431,5 +452,12 @@ bar
             .unwrap()
             .with_timezone(&Utc);
         assert_eq!(to_iso_millis(dt), "2026-01-26T00:00:00.123Z");
+    }
+
+    #[test]
+    fn parse_modular_change_module_id_allows_overflow_change_numbers() {
+        assert_eq!(parse_modular_change_module_id("001-02_foo"), Some("001"));
+        assert_eq!(parse_modular_change_module_id("001-100_foo"), Some("001"));
+        assert_eq!(parse_modular_change_module_id("001-1234_foo"), Some("001"));
     }
 }

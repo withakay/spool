@@ -201,7 +201,7 @@ fn allocate_next_change_number(spool_path: &Path, module_id: &str) -> Result<u32
 
     max_seen = max_seen.max(max_change_num_in_module_md(spool_path, module_id)?);
     if let Some(ms) = state.modules.get(module_id) {
-        max_seen = max_seen.max(ms.lastChangeNum);
+        max_seen = max_seen.max(ms.last_change_num);
     }
 
     let next = max_seen + 1;
@@ -209,8 +209,8 @@ fn allocate_next_change_number(spool_path: &Path, module_id: &str) -> Result<u32
     state.modules.insert(
         module_id.to_string(),
         ModuleAllocationState {
-            lastChangeNum: next,
-            updatedAt: updated_at,
+            last_change_num: next,
+            updated_at,
         },
     );
 
@@ -247,9 +247,10 @@ struct AllocationState {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 struct ModuleAllocationState {
-    lastChangeNum: u32,
-    updatedAt: String,
+    last_change_num: u32,
+    updated_at: String,
 }
 
 fn max_change_num_in_dir(dir: &Path, module_id: &str) -> u32 {

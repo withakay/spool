@@ -123,12 +123,8 @@ pub fn parse_change_id(input: &str) -> Result<ParsedChangeId, IdParseError> {
             Some("Module numbers must be between 0 and 999"),
         ));
     }
-    if change_num > 99 {
-        return Err(IdParseError::new(
-            format!("Change number {change_num} exceeds maximum (99)"),
-            Some("Change numbers must be between 0 and 99"),
-        ));
-    }
+    // NOTE: Do not enforce an upper bound for change numbers.
+    // Padding is for readability/sorting only; functionality is more important.
 
     // Validate name
     let mut chars = name_part.chars();
@@ -182,6 +178,27 @@ mod tests {
     fn parse_change_id_supports_extra_leading_zeros_for_change_num() {
         let parsed = parse_change_id("1-00003_bar").unwrap();
         assert_eq!(parsed.canonical.as_str(), "001-03_bar");
+    }
+
+    #[test]
+    fn parse_change_id_allows_three_digit_change_numbers() {
+        let parsed = parse_change_id("1-100_Bar").unwrap();
+        assert_eq!(parsed.canonical.as_str(), "001-100_bar");
+        assert_eq!(parsed.change_num, "100");
+    }
+
+    #[test]
+    fn parse_change_id_normalizes_excessive_padding_for_large_change_numbers() {
+        let parsed = parse_change_id("1-000100_bar").unwrap();
+        assert_eq!(parsed.canonical.as_str(), "001-100_bar");
+        assert_eq!(parsed.change_num, "100");
+    }
+
+    #[test]
+    fn parse_change_id_allows_large_change_numbers() {
+        let parsed = parse_change_id("1-1234_example").unwrap();
+        assert_eq!(parsed.canonical.as_str(), "001-1234_example");
+        assert_eq!(parsed.change_num, "1234");
     }
 
     #[test]

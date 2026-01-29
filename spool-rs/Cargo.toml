@@ -22,6 +22,10 @@ thiserror = "2.0.11"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 include_dir = "0.7.4"
+dialoguer = "0.11.0"
+crossterm = "0.28.1"
+indicatif = "0.17.11"
+rusqlite = { version = "0.31.0", features = ["bundled"] }
 
 [workspace.dependencies.insta]
 version = "1.42.0"

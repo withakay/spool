@@ -9,4 +9,6 @@ pub mod spool_dir;
 pub mod show;
 pub mod validate;
 
+pub mod ralph;
+
 pub mod workflow;

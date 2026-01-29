@@ -8,10 +8,14 @@ use spool_fs::update_file_with_markers;
 use crate::config::ConfigContext;
 use crate::spool_dir::get_spool_dir_name;
 
-const TOOL_CLAUDE: &str = "claude";
-const TOOL_CODEX: &str = "codex";
-const TOOL_GITHUB_COPILOT: &str = "github-copilot";
-const TOOL_OPENCODE: &str = "opencode";
+pub const TOOL_CLAUDE: &str = "claude";
+pub const TOOL_CODEX: &str = "codex";
+pub const TOOL_GITHUB_COPILOT: &str = "github-copilot";
+pub const TOOL_OPENCODE: &str = "opencode";
+
+pub fn available_tool_ids() -> &'static [&'static str] {
+    &[TOOL_CLAUDE, TOOL_CODEX, TOOL_GITHUB_COPILOT, TOOL_OPENCODE]
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InitOptions {

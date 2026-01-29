@@ -721,24 +721,6 @@ fn parse_checkbox_tasks(contents: &str) -> Vec<TaskItem> {
     tasks
 }
 
-fn spool_rel_path(spool_path: &Path, path: &Path) -> String {
-    // Render as `.spool/...`-like path if possible, otherwise absolute.
-    if let Ok(rel) = path.strip_prefix(spool_path) {
-        let mut p = PathBuf::from(".spool");
-        p.push(rel);
-        return p.to_string_lossy().to_string();
-    }
-    path.to_string_lossy().to_string()
-}
-
-fn artifact_output_path_string(spool_path: &Path, change: &str, generates: &str) -> String {
-    if generates.contains('*') {
-        return format!(".spool/changes/{change}/{generates}");
-    }
-    let change_dir = spool_path.join("changes").join(change);
-    spool_rel_path(spool_path, &change_dir.join(generates))
-}
-
 fn package_schemas_dir() -> PathBuf {
     // In this repo, schemas live at the repository root.
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -832,23 +814,4 @@ fn dir_contains_filename_suffix(dir: &Path, suffix: &str) -> bool {
     false
 }
 
-fn count_markdown_checkboxes(text: &str) -> (usize, usize) {
-    let mut total = 0usize;
-    let mut done = 0usize;
-    for line in text.lines() {
-        let l = line.trim_start();
-        if let Some(rest) = l.strip_prefix("- [") {
-            let c = rest.chars().next().unwrap_or(' ');
-            if c == ']' {
-                continue;
-            }
-            if rest.starts_with(" ]") {
-                total += 1;
-            } else if rest.to_ascii_lowercase().starts_with("x]") {
-                total += 1;
-                done += 1;
-            }
-        }
-    }
-    (total, done)
-}
+// (intentionally no checkbox counting helpers here; checkbox tasks are parsed into TaskItems)

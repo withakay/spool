@@ -12,6 +12,27 @@ use crate::CmdOutput;
 /// - This helper is intentionally minimal; interactive parity tests can extend
 ///   it to incremental reads/writes.
 pub fn run_pty(program: &Path, args: &[&str], cwd: &Path, home: &Path, input: &str) -> CmdOutput {
+    run_pty_with_interactive(program, args, cwd, home, input, false)
+}
+
+pub fn run_pty_interactive(
+    program: &Path,
+    args: &[&str],
+    cwd: &Path,
+    home: &Path,
+    input: &str,
+) -> CmdOutput {
+    run_pty_with_interactive(program, args, cwd, home, input, true)
+}
+
+fn run_pty_with_interactive(
+    program: &Path,
+    args: &[&str],
+    cwd: &Path,
+    home: &Path,
+    input: &str,
+    interactive: bool,
+) -> CmdOutput {
     let pty_system = native_pty_system();
     let pair = pty_system
         .openpty(PtySize {
@@ -27,9 +48,10 @@ pub fn run_pty(program: &Path, args: &[&str], cwd: &Path, home: &Path, input: &s
     cmd.cwd(cwd);
     cmd.env("CI", "1");
     cmd.env("NO_COLOR", "1");
-    cmd.env("SPOOL_INTERACTIVE", "0");
+    cmd.env("SPOOL_INTERACTIVE", if interactive { "1" } else { "0" });
     cmd.env("TERM", "dumb");
     cmd.env("HOME", home);
+    cmd.env("XDG_DATA_HOME", home);
 
     let mut child = pair.slave.spawn_command(cmd).expect("spawn_command");
     drop(pair.slave);
