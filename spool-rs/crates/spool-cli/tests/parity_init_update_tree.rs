@@ -75,6 +75,77 @@ fn assert_trees_equal(label: &str, a: &BTreeMap<String, Vec<u8>>, b: &BTreeMap<S
     }
 }
 
+fn parity_init_tree_for_tools(tools: &str) {
+    let repo = repo_root();
+
+    // Use a repo-local temp directory to avoid platform/CI permission issues.
+    let tmp_base = repo.join("spool-rs").join("target").join("tmp");
+    fs::create_dir_all(&tmp_base).unwrap();
+    let tmp = tempfile::Builder::new()
+        .prefix("spool-parity-")
+        .tempdir_in(&tmp_base)
+        .expect("tmp");
+
+    let ts_home = tmp.path().join("ts-home");
+    let rs_home = tmp.path().join("rs-home");
+    let ts_codex = tmp.path().join("ts-codex-home");
+    let rs_codex = tmp.path().join("rs-codex-home");
+    let ts_project = tmp.path().join("ts-project");
+    let rs_project = tmp.path().join("rs-project");
+    fs::create_dir_all(&ts_home).unwrap();
+    fs::create_dir_all(&rs_home).unwrap();
+    fs::create_dir_all(&ts_codex).unwrap();
+    fs::create_dir_all(&rs_codex).unwrap();
+    fs::create_dir_all(&ts_project).unwrap();
+    fs::create_dir_all(&rs_project).unwrap();
+
+    // TS oracle.
+    let mut ts = ts_oracle_command();
+    ts.args([
+        "init",
+        "--tools",
+        tools,
+        "--force",
+        ts_project.to_string_lossy().as_ref(),
+    ]);
+    with_common_env(&mut ts, &repo, &ts_home, &ts_codex);
+    run_ok(ts);
+
+    // Rust candidate.
+    let program: PathBuf = cargo_bin("spool");
+    let mut rs = Command::new(&program);
+    rs.args([
+        "init",
+        "--tools",
+        tools,
+        "--force",
+        rs_project.to_string_lossy().as_ref(),
+    ]);
+    with_common_env(&mut rs, &repo, &rs_home, &rs_codex);
+    run_ok(rs);
+
+    assert_trees_equal(
+        "project tree",
+        &collect_tree(&ts_project),
+        &collect_tree(&rs_project),
+    );
+    assert_trees_equal(
+        "codex home tree",
+        &collect_tree(&ts_codex),
+        &collect_tree(&rs_codex),
+    );
+}
+
+#[test]
+fn parity_init_tree_tools_none_matches_ts_oracle() {
+    parity_init_tree_for_tools("none");
+}
+
+#[test]
+fn parity_init_tree_tools_subset_matches_ts_oracle() {
+    parity_init_tree_for_tools("claude");
+}
+
 #[test]
 fn parity_init_tree_matches_ts_oracle() {
     let repo = repo_root();

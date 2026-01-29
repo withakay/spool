@@ -16,12 +16,16 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+dialoguer = { workspace = true }
+crossterm = { workspace = true }
+indicatif = { workspace = true }
 spool-core = { path = "../spool-core" }
 spool-fs = { path = "../spool-fs" }
 spool-templates = { path = "../spool-templates" }
 chrono = { workspace = true }
 spool-workflow = { path = "../spool-workflow" }
 spool-schemas = { path = "../spool-schemas" }
+spool-harness = { path = "../spool-harness" }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }

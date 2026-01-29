@@ -2,11 +2,15 @@ use chrono::{DateTime, Utc};
 use miette::Result;
 use spool_core::config::ConfigContext;
 use spool_core::installers::{install_default_templates, InitOptions, InstallMode};
+use spool_core::ralph as core_ralph;
 use spool_core::spool_dir::get_spool_path;
 use spool_core::{
     create as core_create, r#match::nearest_matches, show as core_show, validate as core_validate,
     workflow as core_workflow,
 };
+use spool_harness::stub::StubHarness;
+use spool_harness::Harness;
+use spool_harness::OpencodeHarness;
 use spool_workflow::planning as wf_planning;
 use spool_workflow::state as wf_state;
 use spool_workflow::tasks as wf_tasks;
@@ -116,6 +120,14 @@ fn main() -> Result<()> {
             handle_validate(&args[1..]);
             return Ok(());
         }
+        Some("ralph") => {
+            handle_ralph(&args[1..]);
+            return Ok(());
+        }
+        Some("loop") => {
+            handle_loop(&args[1..]);
+            return Ok(());
+        }
         _ => {}
     }
 
@@ -126,17 +138,22 @@ fn main() -> Result<()> {
 
 const LIST_HELP: &str = "Usage: spool list [options]\n\nList items (changes by default). Use --specs or --modules to list other items.\n\nOptions:\n  --specs         List specs instead of changes\n  --changes       List changes explicitly (default)\n  --modules       List modules instead of changes\n  --sort <order>  Sort order: \"recent\" (default) or \"name\" (default: \"recent\")\n  --json          Output as JSON (for programmatic use)\n  -h, --help      display help for command";
 
-const INIT_HELP: &str = "Usage: spool init [options] [path]\n\nInitialize Spool in your project\n\nOptions:\n  --tools <tools>    Configure AI tools non-interactively (all, none, or comma-separated ids)\n  -f, --force        Overwrite existing tool files without prompting\n  -h, --help         display help for command";
+const INIT_HELP: &str = "Usage: spool init [options] [path]\n\nInitialize Spool in your project\n\nNotes:\n  When run interactively and --tools is not provided, spool will prompt for tool selection.\n  In non-interactive contexts, you must provide --tools.\n\nOptions:\n  --tools <tools>    Configure AI tools non-interactively (all, none, or comma-separated ids)\n  -f, --force        Overwrite existing tool files without prompting\n  -h, --help         display help for command";
 
 const UPDATE_HELP: &str = "Usage: spool update [options] [path]\n\nUpdate Spool instruction files\n\nOptions:\n  --json          Output as JSON\n  -h, --help      display help for command";
 
-const TASKS_HELP: &str = "Usage: spool tasks <command> [options]\n\nTrack execution tasks for a change\n\nCommands:\n  init <change-id>                         Create enhanced tasks.md\n  status <change-id>                       Show task progress\n  next <change-id>                         Show the next available task\n  start <change-id> <task-id>              Mark a task in-progress\n  complete <change-id> <task-id>           Mark a task complete\n  add <change-id> <task-name> [--wave <n>]  Add a new task (enhanced only)\n  show <change-id>                         Print tasks.md\n\nOptions:\n  --wave <n>                               Wave number for add (default: 1)\n  -h, --help                               display help for command";
+const TASKS_HELP: &str = "Usage: spool tasks <command> [options]\n\nTrack execution tasks for a change\n\nCommands:\n  init <change-id>                         Create enhanced tasks.md\n  status <change-id>                       Show task progress\n  next <change-id>                         Show the next available task\n  start <change-id> <task-id>              Mark a task in-progress\n  complete <change-id> <task-id>           Mark a task complete\n  shelve <change-id> <task-id>             Shelve a task (reversible)\n  unshelve <change-id> <task-id>           Restore a shelved task to pending\n  add <change-id> <task-name> [--wave <n>]  Add a new task (enhanced only)\n  show <change-id>                         Print tasks.md\n\nOptions:\n  --wave <n>                               Wave number for add (default: 1)\n  -h, --help                               display help for command";
 
 const PLAN_HELP: &str = "Usage: spool plan <command> [options]\n\nProject planning tools\n\nCommands:\n  init                           Initialize planning structure\n  status                         Show current milestone progress\n\nOptions:\n  -h, --help                     display help for command";
 
 const STATE_HELP: &str = "Usage: spool state <command> [options]\n\nView and update planning/STATE.md\n\nCommands:\n  show                            Show current project state\n  decision <text>                 Record a decision\n  blocker <text>                  Record a blocker\n  note <text>                     Add a session note\n  focus <text>                    Set current focus\n  question <text>                 Add an open question\n\nOptions:\n  -h, --help                      display help for command";
 
 const WORKFLOW_HELP: &str = "Usage: spool workflow <command> [options]\n\nManage and run workflows\n\nCommands:\n  init                            Initialize workflow templates\n  list                            List available workflows\n  show <workflow-name>            Show workflow details\n\nOptions:\n  -h, --help                      display help for command";
+
+const RALPH_HELP: &str = "Usage: spool ralph [options] [prompt]\n\nRun the Ralph Wiggum iterative development loop\n\nOptions:\n  --change <id>               Target a specific change\n  --module <id>               Target a module (selects a change)\n  --harness <name>            Harness to run (default: opencode)\n  --model <model>             Model id for the harness\n  --min-iterations <n>         Minimum iterations before stopping (default: 1)\n  --max-iterations <n>         Maximum iterations (default: unlimited)\n  --completion-promise <name>  Completion promise token (default: COMPLETE)\n  --allow-all                  Allow all tool actions (dangerous)\n  --yolo                       Alias for --allow-all\n  --dangerously-allow-all      Alias for --allow-all\n  --no-commit                  Do not create git commits per iteration\n  --status                     Show current Ralph state for the change\n  --add-context <text>         Append extra context to the Ralph loop\n  --clear-context              Clear the Ralph loop context file\n  --no-interactive             Do not prompt for selections\n  -h, --help                   display help for command";
+
+const LOOP_HELP: &str =
+    "Usage: spool loop [options] [prompt]\n\nDeprecated alias for 'spool ralph'";
 
 fn handle_state(args: &[String]) {
     if args.iter().any(|a| a == "--help" || a == "-h") {
@@ -505,10 +522,15 @@ fn handle_tasks(args: &[String]) {
             if !errors.is_empty() {
                 println!("Errors");
                 for d in &errors {
-                    if let Some(id) = &d.task_id {
-                        println!("- {id}: {}", d.message);
+                    let loc = if let Some(line) = d.line {
+                        format!("{}:{}", path.display(), line)
                     } else {
-                        println!("- {}", d.message);
+                        path.display().to_string()
+                    };
+                    if let Some(id) = &d.task_id {
+                        println!("- {loc}: {id}: {}", d.message);
+                    } else {
+                        println!("- {loc}: {}", d.message);
                     }
                 }
                 println!();
@@ -517,21 +539,33 @@ fn handle_tasks(args: &[String]) {
             if !warnings.is_empty() {
                 println!("Warnings");
                 for d in &warnings {
-                    if let Some(id) = &d.task_id {
-                        println!("- {id}: {}", d.message);
+                    let loc = if let Some(line) = d.line {
+                        format!("{}:{}", path.display(), line)
                     } else {
-                        println!("- {}", d.message);
+                        path.display().to_string()
+                    };
+                    if let Some(id) = &d.task_id {
+                        println!("- {loc}: {id}: {}", d.message);
+                    } else {
+                        println!("- {loc}: {}", d.message);
                     }
                 }
                 println!();
             }
 
+            if !errors.is_empty() {
+                std::process::exit(1);
+            }
+
             match parsed.format {
                 wf_tasks::TasksFormat::Enhanced => {
+                    let done = parsed.progress.complete + parsed.progress.shelved;
                     println!(
-                        "Progress: {}/{} complete, {} in-progress, {} pending",
-                        parsed.progress.complete,
+                        "Progress: {}/{} done ({} complete, {} shelved), {} in-progress, {} pending",
+                        done,
                         parsed.progress.total,
+                        parsed.progress.complete,
+                        parsed.progress.shelved,
                         parsed.progress.in_progress,
                         parsed.progress.pending
                     );
@@ -544,13 +578,7 @@ fn handle_tasks(args: &[String]) {
                 }
             }
 
-            if !errors.is_empty() {
-                println!();
-                println!("Readiness unavailable until errors are fixed.");
-                return;
-            }
-
-            let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed.tasks);
+            let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
             println!();
             println!("Ready");
             for t in &ready {
@@ -573,6 +601,28 @@ fn handle_tasks(args: &[String]) {
                 ));
             };
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+
+            let errs: Vec<&wf_tasks::TaskDiagnostic> = parsed
+                .diagnostics
+                .iter()
+                .filter(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+                .collect();
+            if !errs.is_empty() {
+                eprintln!("Tasks file has validation errors:");
+                for d in &errs {
+                    let loc = if let Some(line) = d.line {
+                        format!("{}:{}", path.display(), line)
+                    } else {
+                        path.display().to_string()
+                    };
+                    if let Some(id) = &d.task_id {
+                        eprintln!("- {loc}: {id}: {}", d.message);
+                    } else {
+                        eprintln!("- {loc}: {}", d.message);
+                    }
+                }
+                std::process::exit(1);
+            }
 
             match parsed.format {
                 wf_tasks::TasksFormat::Checkbox => {
@@ -598,7 +648,7 @@ fn handle_tasks(args: &[String]) {
                         return;
                     }
 
-                    let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed.tasks);
+                    let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
                     if ready.is_empty() {
                         println!("No ready tasks.");
                         if let Some((t, blockers)) = blocked.first() {
@@ -653,10 +703,15 @@ fn handle_tasks(args: &[String]) {
                 .iter()
                 .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
             {
+                let loc = if let Some(line) = first_err.line {
+                    format!("{}:{}", path.display(), line)
+                } else {
+                    path.display().to_string()
+                };
                 if let Some(id) = &first_err.task_id {
-                    fail(&format!("{id}: {}", first_err.message));
+                    fail(&format!("{loc}: {id}: {}", first_err.message));
                 }
-                fail(&first_err.message);
+                fail(&format!("{loc}: {}", first_err.message));
             }
 
             let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
@@ -666,14 +721,20 @@ fn handle_tasks(args: &[String]) {
                 wf_tasks::TaskStatus::Pending => "pending",
                 wf_tasks::TaskStatus::InProgress => "in_progress",
                 wf_tasks::TaskStatus::Complete => "complete",
+                wf_tasks::TaskStatus::Shelved => "shelved",
             };
+            if task.status == wf_tasks::TaskStatus::Shelved {
+                fail(&format!(
+                    "Task \"{task_id}\" is shelved (run \"spool tasks unshelve {change_id} {task_id}\" first)"
+                ));
+            }
             if task.status != wf_tasks::TaskStatus::Pending {
                 fail(&format!(
                     "Task \"{task_id}\" is not pending (current: {status_label})"
                 ));
             }
 
-            let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed.tasks);
+            let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
             if !ready.iter().any(|t| t.id == task_id) {
                 if let Some((_, blockers)) = blocked.iter().find(|(t, _)| t.id == task_id) {
                     fail(&format_blockers(blockers));
@@ -685,6 +746,7 @@ fn handle_tasks(args: &[String]) {
                 &contents,
                 task_id,
                 wf_tasks::TaskStatus::InProgress,
+                chrono::Local::now(),
             );
             if let Err(e) = std::fs::write(&path, updated) {
                 fail(&e.to_string());
@@ -742,21 +804,125 @@ fn handle_tasks(args: &[String]) {
                 .iter()
                 .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
             {
+                let loc = if let Some(line) = first_err.line {
+                    format!("{}:{}", path.display(), line)
+                } else {
+                    path.display().to_string()
+                };
                 if let Some(id) = &first_err.task_id {
-                    fail(&format!("{id}: {}", first_err.message));
+                    fail(&format!("{loc}: {id}: {}", first_err.message));
                 }
-                fail(&first_err.message);
+                fail(&format!("{loc}: {}", first_err.message));
             }
 
             let updated = wf_tasks::update_enhanced_task_status(
                 &contents,
                 task_id,
                 wf_tasks::TaskStatus::Complete,
+                chrono::Local::now(),
             );
             if let Err(e) = std::fs::write(&path, updated) {
                 fail(&e.to_string());
             }
             eprintln!("✔ Task \"{task_id}\" marked as complete");
+        }
+        "shelve" => {
+            let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if task_id.is_empty() || task_id.starts_with('-') {
+                fail("Missing required argument <task-id>");
+            }
+            let path = wf_tasks::tasks_path(&spool_path, change_id);
+            let Ok(contents) = std::fs::read_to_string(&path) else {
+                fail(&format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ));
+            };
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            if parsed.format == wf_tasks::TasksFormat::Checkbox {
+                fail("Checkbox-only tasks.md does not support shelving.");
+            }
+            if let Some(first_err) = parsed
+                .diagnostics
+                .iter()
+                .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+            {
+                let loc = if let Some(line) = first_err.line {
+                    format!("{}:{}", path.display(), line)
+                } else {
+                    path.display().to_string()
+                };
+                if let Some(id) = &first_err.task_id {
+                    fail(&format!("{loc}: {id}: {}", first_err.message));
+                }
+                fail(&format!("{loc}: {}", first_err.message));
+            }
+
+            let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
+                fail(&format!("Task \"{task_id}\" not found in tasks.md"));
+            };
+            if task.status == wf_tasks::TaskStatus::Complete {
+                fail(&format!("Task \"{task_id}\" is already complete"));
+            }
+
+            let updated = wf_tasks::update_enhanced_task_status(
+                &contents,
+                task_id,
+                wf_tasks::TaskStatus::Shelved,
+                chrono::Local::now(),
+            );
+            if let Err(e) = std::fs::write(&path, updated) {
+                fail(&e.to_string());
+            }
+            eprintln!("✔ Task \"{task_id}\" shelved");
+        }
+        "unshelve" => {
+            let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if task_id.is_empty() || task_id.starts_with('-') {
+                fail("Missing required argument <task-id>");
+            }
+            let path = wf_tasks::tasks_path(&spool_path, change_id);
+            let Ok(contents) = std::fs::read_to_string(&path) else {
+                fail(&format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ));
+            };
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            if parsed.format == wf_tasks::TasksFormat::Checkbox {
+                fail("Checkbox-only tasks.md does not support shelving.");
+            }
+            if let Some(first_err) = parsed
+                .diagnostics
+                .iter()
+                .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+            {
+                let loc = if let Some(line) = first_err.line {
+                    format!("{}:{}", path.display(), line)
+                } else {
+                    path.display().to_string()
+                };
+                if let Some(id) = &first_err.task_id {
+                    fail(&format!("{loc}: {id}: {}", first_err.message));
+                }
+                fail(&format!("{loc}: {}", first_err.message));
+            }
+
+            let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
+                fail(&format!("Task \"{task_id}\" not found in tasks.md"));
+            };
+            if task.status != wf_tasks::TaskStatus::Shelved {
+                fail(&format!("Task \"{task_id}\" is not shelved"));
+            }
+
+            let updated = wf_tasks::update_enhanced_task_status(
+                &contents,
+                task_id,
+                wf_tasks::TaskStatus::Pending,
+                chrono::Local::now(),
+            );
+            if let Err(e) = std::fs::write(&path, updated) {
+                fail(&e.to_string());
+            }
+            eprintln!("✔ Task \"{task_id}\" unshelved (pending)");
         }
         "add" => {
             let task_name = args.get(2).map(|s| s.as_str()).unwrap_or("");
@@ -779,10 +945,15 @@ fn handle_tasks(args: &[String]) {
                 .iter()
                 .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
             {
+                let loc = if let Some(line) = first_err.line {
+                    format!("{}:{}", path.display(), line)
+                } else {
+                    path.display().to_string()
+                };
                 if let Some(id) = &first_err.task_id {
-                    fail(&format!("{id}: {}", first_err.message));
+                    fail(&format!("{loc}: {id}: {}", first_err.message));
                 }
-                fail(&first_err.message);
+                fail(&format!("{loc}: {}", first_err.message));
             }
 
             let mut max_n = 0u32;
@@ -797,8 +968,9 @@ fn handle_tasks(args: &[String]) {
             }
             let new_id = format!("{wave}.{}", max_n + 1);
 
+            let date = chrono::Local::now().format("%Y-%m-%d").to_string();
             let block = format!(
-                "\n### Task {new_id}: {task_name}\n- **Files**: `path/to/file.ts`\n- **Dependencies**: None\n- **Action**:\n  [Describe what needs to be done]\n- **Verify**: `[command to verify, e.g., npm test]`\n- **Done When**: [Success criteria]\n- **Status**: [ ] pending\n"
+                "\n### Task {new_id}: {task_name}\n- **Files**: `path/to/file.ts`\n- **Dependencies**: None\n- **Action**:\n  [Describe what needs to be done]\n- **Verify**: `[command to verify, e.g., npm test]`\n- **Done When**: [Success criteria]\n- **Updated At**: {date}\n- **Status**: [ ] pending\n"
             );
 
             let mut out = contents.clone();
@@ -812,11 +984,16 @@ fn handle_tasks(args: &[String]) {
             } else {
                 // Create wave section before checkpoints (or at end).
                 if let Some(pos) = out.find("## Checkpoints") {
-                    out.insert_str(pos, &format!("\n---\n\n## Wave {wave}\n"));
+                    out.insert_str(
+                        pos,
+                        &format!("\n---\n\n## Wave {wave}\n- **Depends On**: None\n"),
+                    );
                     let pos2 = out.find("## Checkpoints").unwrap_or(out.len());
                     out.insert_str(pos2, &block);
                 } else {
-                    out.push_str(&format!("\n---\n\n## Wave {wave}\n"));
+                    out.push_str(&format!(
+                        "\n---\n\n## Wave {wave}\n- **Depends On**: None\n"
+                    ));
                     out.push_str(&block);
                 }
             }
@@ -831,6 +1008,28 @@ fn handle_tasks(args: &[String]) {
             let Ok(contents) = std::fs::read_to_string(&path) else {
                 fail(&format!("tasks.md not found for \"{change_id}\""));
             };
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            let errs: Vec<&wf_tasks::TaskDiagnostic> = parsed
+                .diagnostics
+                .iter()
+                .filter(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+                .collect();
+            if !errs.is_empty() {
+                eprintln!("Tasks file has validation errors:");
+                for d in &errs {
+                    let loc = if let Some(line) = d.line {
+                        format!("{}:{}", path.display(), line)
+                    } else {
+                        path.display().to_string()
+                    };
+                    if let Some(id) = &d.task_id {
+                        eprintln!("- {loc}: {id}: {}", d.message);
+                    } else {
+                        eprintln!("- {loc}: {}", d.message);
+                    }
+                }
+                std::process::exit(1);
+            }
             print!("{contents}");
         }
         _ => {
@@ -1597,12 +1796,14 @@ fn handle_init(args: &[String]) {
     let force = args.iter().any(|a| a == "--force" || a == "-f");
     let tools_arg = parse_string_flag(args, "--tools");
 
-    let mut tools: BTreeSet<String> = BTreeSet::new();
-    for t in ["claude", "codex", "github-copilot", "opencode"] {
-        tools.insert(t.to_string());
-    }
+    // Positional path (defaults to current directory).
+    let target = last_positional(args).unwrap_or_else(|| ".".to_string());
+    let target_path = std::path::Path::new(&target);
+    let ctx = ConfigContext::from_process_env();
 
-    if let Some(raw) = tools_arg.as_deref() {
+    let all_ids = spool_core::installers::available_tool_ids();
+
+    let tools: BTreeSet<String> = if let Some(raw) = tools_arg.as_deref() {
         let raw = raw.trim();
         if raw.is_empty() {
             eprintln!("✖ Error: --tools cannot be empty");
@@ -1610,32 +1811,119 @@ fn handle_init(args: &[String]) {
         }
 
         if raw == "none" {
-            tools.clear();
-        } else if raw != "all" {
+            BTreeSet::new()
+        } else if raw == "all" {
+            all_ids.iter().map(|s| (*s).to_string()).collect()
+        } else {
+            let valid = all_ids.join(", ");
             let mut selected: BTreeSet<String> = BTreeSet::new();
             for part in raw.split(',') {
                 let id = part.trim();
                 if id.is_empty() {
                     continue;
                 }
-                match id {
-                    "claude" | "codex" | "github-copilot" | "opencode" => {
-                        selected.insert(id.to_string());
-                    }
-                    _ => {
-                        eprintln!("✖ Error: Unknown tool id '{id}'");
-                        std::process::exit(1);
-                    }
+                if all_ids.contains(&id) {
+                    selected.insert(id.to_string());
+                } else {
+                    eprintln!("✖ Error: Unknown tool id '{id}'. Valid tool ids: {valid}");
+                    std::process::exit(1);
                 }
             }
-            tools = selected;
+            selected
         }
-    }
+    } else {
+        use std::io::BufRead;
+        use std::io::{stdin, stdout, IsTerminal};
 
-    // Positional path (defaults to current directory).
-    let target = last_positional(args).unwrap_or_else(|| ".".to_string());
-    let target_path = std::path::Path::new(&target);
-    let ctx = ConfigContext::from_process_env();
+        // Match TS semantics: prompt only when interactive; otherwise require explicit --tools.
+        let ui = spool_core::output::resolve_ui_options(
+            false,
+            std::env::var("SPOOL_INTERACTIVE").ok().as_deref(),
+            false,
+            std::env::var("NO_COLOR").ok().as_deref(),
+        );
+        let is_tty = stdin().is_terminal() && stdout().is_terminal();
+        if !(ui.interactive && is_tty) {
+            eprintln!(
+                "✖ Error: Non-interactive init requires --tools (all, none, or comma-separated ids)."
+            );
+            std::process::exit(1);
+        }
+
+        println!(
+            "Welcome to Spool!\n\nStep 1/3\n\nConfigure your Spool tooling\nPress Enter to continue."
+        );
+        {
+            let mut line = String::new();
+            let mut locked = stdin().lock();
+            let _ = locked.read_line(&mut line);
+        }
+
+        println!(
+            "\nStep 2/3\n\nWhich natively supported AI tools do you use?\nUse ↑/↓ to move · Space to toggle · Enter reviews.\n"
+        );
+
+        let mut detected: BTreeSet<&'static str> = BTreeSet::new();
+        if target_path.join("CLAUDE.md").exists() || target_path.join(".claude").exists() {
+            detected.insert(spool_core::installers::TOOL_CLAUDE);
+        }
+        if target_path.join(".opencode").exists() {
+            detected.insert(spool_core::installers::TOOL_OPENCODE);
+        }
+        if target_path.join(".github").exists() {
+            detected.insert(spool_core::installers::TOOL_GITHUB_COPILOT);
+        }
+        let codex_home = std::env::var_os("CODEX_HOME")
+            .map(std::path::PathBuf::from)
+            .or_else(|| ctx.home_dir.clone().map(|h| h.join(".codex")));
+        if codex_home.is_some_and(|p| p.exists()) {
+            detected.insert(spool_core::installers::TOOL_CODEX);
+        }
+
+        let tool_items: Vec<(&'static str, &str)> = vec![
+            (spool_core::installers::TOOL_CLAUDE, "Claude Code"),
+            (spool_core::installers::TOOL_CODEX, "Codex"),
+            (
+                spool_core::installers::TOOL_GITHUB_COPILOT,
+                "GitHub Copilot",
+            ),
+            (spool_core::installers::TOOL_OPENCODE, "OpenCode"),
+        ];
+        let labels: Vec<String> = tool_items
+            .iter()
+            .map(|(id, label)| format!("{label} ({id})"))
+            .collect();
+        let defaults: Vec<bool> = tool_items
+            .iter()
+            .map(|(id, _)| detected.contains(id))
+            .collect();
+
+        let indices =
+            match dialoguer::MultiSelect::with_theme(&dialoguer::theme::ColorfulTheme::default())
+                .with_prompt("Select AI tools to configure")
+                .items(&labels)
+                .defaults(&defaults)
+                .interact()
+            {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("✖ Error: Failed to prompt for tools: {e}");
+                    std::process::exit(1);
+                }
+            };
+
+        println!("\nStep 3/3\n\nReview selections\nPress Enter to confirm.");
+        {
+            let mut line = String::new();
+            let mut locked = stdin().lock();
+            let _ = locked.read_line(&mut line);
+        }
+
+        indices
+            .into_iter()
+            .map(|i| tool_items[i].0.to_string())
+            .collect()
+    };
 
     let opts = InitOptions::new(tools, force);
     if let Err(e) = install_default_templates(target_path, &ctx, InstallMode::Init, &opts) {
@@ -1656,9 +1944,9 @@ fn handle_update(args: &[String]) {
     let target_path = std::path::Path::new(&target);
     let ctx = ConfigContext::from_process_env();
 
-    let tools: BTreeSet<String> = ["claude", "codex", "github-copilot", "opencode"]
-        .into_iter()
-        .map(|s| s.to_string())
+    let tools: BTreeSet<String> = spool_core::installers::available_tool_ids()
+        .iter()
+        .map(|s| (*s).to_string())
         .collect();
     let opts = InitOptions::new(tools, true);
 
@@ -2071,6 +2359,169 @@ fn handle_show_module(args: &[String]) {
 
 const VALIDATE_HELP: &str = "Usage: spool validate [options] [command] [item-name]\n\nValidate changes, specs, and modules\n\nOptions:\n  --all                          Validate everything\n  --changes                       Validate changes\n  --specs                         Validate specs\n  --modules                       Validate modules\n  --module <id>                   Validate a module by id\n  --type <type>                   Type: change, spec, or module\n  --strict                        Treat warnings as errors\n  --json                          Output as JSON\n  --concurrency <n>               Concurrency (default: 6)\n  --no-interactive                Disable interactive prompts\n  -h, --help                      display help for command\n\nCommands:\n  module [module-id]              Validate a module";
 
+fn handle_loop(args: &[String]) {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{LOOP_HELP}\n\n{RALPH_HELP}");
+        return;
+    }
+    // Match TS: loop is deprecated wrapper.
+    eprintln!("Warning: `spool loop` is deprecated. Use `spool ralph` instead.");
+    handle_ralph(args);
+}
+
+fn handle_ralph(args: &[String]) {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{RALPH_HELP}");
+        return;
+    }
+
+    fn fail(msg: &str) -> ! {
+        eprintln!();
+        eprintln!("✖ Error: {msg}");
+        std::process::exit(1);
+    }
+
+    fn parse_u32_flag(args: &[String], key: &str) -> Option<u32> {
+        parse_string_flag(args, key).and_then(|v| v.parse::<u32>().ok())
+    }
+
+    fn collect_prompt(args: &[String]) -> String {
+        // Collect positional args, skipping known flags + their values.
+        let mut out: Vec<String> = Vec::new();
+        let mut i = 0;
+        while i < args.len() {
+            let a = args[i].as_str();
+            let takes_value = matches!(
+                a,
+                "--change"
+                    | "--module"
+                    | "--harness"
+                    | "--model"
+                    | "--min-iterations"
+                    | "--max-iterations"
+                    | "--completion-promise"
+                    | "--add-context"
+                    | "--stub-script"
+            );
+
+            if takes_value {
+                i += 2;
+                continue;
+            }
+
+            if a.starts_with("--change=")
+                || a.starts_with("--module=")
+                || a.starts_with("--harness=")
+                || a.starts_with("--model=")
+                || a.starts_with("--min-iterations=")
+                || a.starts_with("--max-iterations=")
+                || a.starts_with("--completion-promise=")
+                || a.starts_with("--add-context=")
+                || a.starts_with("--stub-script=")
+            {
+                i += 1;
+                continue;
+            }
+
+            if a.starts_with('-') {
+                i += 1;
+                continue;
+            }
+
+            out.push(args[i].clone());
+            i += 1;
+        }
+        out.join(" ")
+    }
+
+    let change_id = parse_string_flag(args, "--change");
+    let module_id = parse_string_flag(args, "--module");
+
+    let harness = parse_string_flag(args, "--harness").unwrap_or_else(|| "opencode".to_string());
+    let model = parse_string_flag(args, "--model");
+
+    let min_iterations = parse_u32_flag(args, "--min-iterations").unwrap_or(1);
+    let max_iterations = parse_u32_flag(args, "--max-iterations");
+    let completion_promise =
+        parse_string_flag(args, "--completion-promise").unwrap_or_else(|| "COMPLETE".to_string());
+
+    let allow_all = args.iter().any(|a| {
+        matches!(
+            a.as_str(),
+            "--allow-all" | "--yolo" | "--dangerously-allow-all"
+        )
+    });
+    let no_commit = args.iter().any(|a| a == "--no-commit");
+    let status = args.iter().any(|a| a == "--status");
+    let add_context = parse_string_flag(args, "--add-context");
+    let clear_context = args.iter().any(|a| a == "--clear-context");
+    let interactive = !args.iter().any(|a| a == "--no-interactive");
+
+    // Hidden testing flag.
+    let stub_script = parse_string_flag(args, "--stub-script");
+
+    if !interactive
+        && change_id.is_none()
+        && module_id.is_none()
+        && !status
+        && add_context.is_none()
+        && !clear_context
+    {
+        fail("Either --change, --module, --status, --add-context, or --clear-context must be specified");
+    }
+
+    if clear_context && change_id.is_none() {
+        fail("--change is required for --clear-context");
+    }
+    if add_context.is_some() && change_id.is_none() {
+        fail("--change is required for --add-context");
+    }
+    if status && change_id.is_none() && module_id.is_none() {
+        fail("--change is required for --status, or provide --module to auto-select");
+    }
+
+    let prompt = collect_prompt(args);
+
+    let ctx = ConfigContext::from_process_env();
+    let spool_path = get_spool_path(Path::new("."), &ctx);
+
+    let mut harness_impl: Box<dyn Harness> = match harness.as_str() {
+        "opencode" => Box::new(OpencodeHarness::default()),
+        "stub" => {
+            let mut p = stub_script.map(std::path::PathBuf::from);
+            if p.is_none() {
+                // Prefer env var in CI, but allow missing.
+                p = None;
+            }
+            match StubHarness::from_env_or_default(p) {
+                Ok(h) => Box::new(h),
+                Err(e) => fail(&e.to_string()),
+            }
+        }
+        _ => fail(&format!("Unknown harness: {h}", h = harness)),
+    };
+
+    let opts = core_ralph::RalphOptions {
+        prompt,
+        change_id,
+        module_id,
+        model,
+        min_iterations,
+        max_iterations,
+        completion_promise,
+        allow_all,
+        no_commit,
+        interactive,
+        status,
+        add_context,
+        clear_context,
+    };
+
+    if let Err(e) = core_ralph::run_ralph(&spool_path, opts, harness_impl.as_mut()) {
+        fail(&e.to_string());
+    }
+}
+
 fn handle_validate(args: &[String]) {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{VALIDATE_HELP}");
@@ -2098,7 +2549,353 @@ fn handle_validate(args: &[String]) {
     }
 
     if bulk {
-        eprintln!("✖ Error: Bulk validation is not implemented in Rust yet");
+        let ctx = ConfigContext::from_process_env();
+        let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+
+        let want_all = args.iter().any(|a| a == "--all");
+        let want_changes = want_all || args.iter().any(|a| a == "--changes");
+        let want_specs = want_all || args.iter().any(|a| a == "--specs");
+        let want_modules = want_all || args.iter().any(|a| a == "--modules");
+
+        #[derive(serde::Serialize)]
+        struct Item {
+            id: String,
+            #[serde(rename = "type")]
+            typ: String,
+            valid: bool,
+            issues: Vec<core_validate::ValidationIssue>,
+            #[serde(rename = "durationMs")]
+            duration_ms: u32,
+        }
+
+        let mut items: Vec<Item> = Vec::new();
+
+        if want_changes {
+            let modules_dir = spool_path.join("modules");
+            let mut module_ids: std::collections::BTreeSet<String> =
+                std::collections::BTreeSet::new();
+            if let Ok(entries) = std::fs::read_dir(&modules_dir) {
+                for e in entries.flatten() {
+                    if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
+                        continue;
+                    }
+                    let name = e.file_name().to_string_lossy().to_string();
+                    if name.starts_with('.') {
+                        continue;
+                    }
+                    let Some((id_part, _)) = name.split_once('_') else {
+                        continue;
+                    };
+                    if id_part.len() == 3 && id_part.chars().all(|c| c.is_ascii_digit()) {
+                        module_ids.insert(id_part.to_string());
+                    }
+                }
+            }
+
+            let changes_dir = spool_path.join("changes");
+            let mut change_dirs: Vec<String> = Vec::new();
+            if let Ok(entries) = std::fs::read_dir(&changes_dir) {
+                for e in entries.flatten() {
+                    if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
+                        continue;
+                    }
+                    let name = e.file_name().to_string_lossy().to_string();
+                    if name.starts_with('.') || name == "archive" {
+                        continue;
+                    }
+                    change_dirs.push(name);
+                }
+            }
+            change_dirs.sort();
+
+            let mut parsed: std::collections::BTreeMap<String, spool_core::id::ParsedChangeId> =
+                std::collections::BTreeMap::new();
+            let mut numeric_to_dirs: std::collections::BTreeMap<String, Vec<String>> =
+                std::collections::BTreeMap::new();
+
+            for dir_name in &change_dirs {
+                match spool_core::id::parse_change_id(dir_name) {
+                    Ok(p) => {
+                        let numeric = format!("{}-{}", p.module_id, p.change_num);
+                        numeric_to_dirs
+                            .entry(numeric)
+                            .or_default()
+                            .push(dir_name.clone());
+                        parsed.insert(dir_name.clone(), p);
+                    }
+                    Err(_) => {
+                        // handled per-item below
+                    }
+                }
+            }
+
+            let mut duplicate_by_dir: std::collections::BTreeMap<String, Vec<String>> =
+                std::collections::BTreeMap::new();
+            for (numeric, dirs) in &numeric_to_dirs {
+                if dirs.len() <= 1 {
+                    continue;
+                }
+                for d in dirs {
+                    let others: Vec<String> = dirs.iter().filter(|x| *x != d).cloned().collect();
+                    duplicate_by_dir
+                        .entry(d.clone())
+                        .or_default()
+                        .extend(others);
+                    // also attach numeric id context as a message later
+                    let _ = numeric;
+                }
+            }
+
+            for dir_name in change_dirs {
+                let mut issues: Vec<core_validate::ValidationIssue> = Vec::new();
+
+                // Directory naming / parsing
+                let parsed_change = match spool_core::id::parse_change_id(&dir_name) {
+                    Ok(p) => Some(p),
+                    Err(e) => {
+                        issues.push(core_validate::ValidationIssue {
+                            level: core_validate::LEVEL_ERROR.to_string(),
+                            path: "id".to_string(),
+                            message: if let Some(hint) = e.hint.as_deref() {
+                                format!(
+                                    "Invalid change directory name '{dir_name}': {} (hint: {hint})",
+                                    e.error
+                                )
+                            } else {
+                                format!("Invalid change directory name '{dir_name}': {}", e.error)
+                            },
+                            line: None,
+                            column: None,
+                            metadata: None,
+                        });
+                        None
+                    }
+                };
+
+                // Module existence
+                if let Some(p) = &parsed_change {
+                    if !module_ids.contains(p.module_id.as_str()) {
+                        issues.push(core_validate::ValidationIssue {
+                            level: core_validate::LEVEL_ERROR.to_string(),
+                            path: "module".to_string(),
+                            message: format!(
+                                "Change '{}' refers to missing module '{}'",
+                                dir_name, p.module_id
+                            ),
+                            line: None,
+                            column: None,
+                            metadata: None,
+                        });
+                    }
+                }
+
+                // Duplicate numeric change IDs
+                if let Some(p) = parsed.get(&dir_name) {
+                    let numeric = format!("{}-{}", p.module_id, p.change_num);
+                    if let Some(others) = duplicate_by_dir.get(&dir_name) {
+                        issues.push(core_validate::ValidationIssue {
+                            level: core_validate::LEVEL_ERROR.to_string(),
+                            path: "id".to_string(),
+                            message: format!(
+                                "Duplicate numeric change id {numeric}: also found at {}",
+                                others.join(", ")
+                            ),
+                            line: None,
+                            column: None,
+                            metadata: None,
+                        });
+                    }
+                }
+
+                // Existing delta validation (if we can)
+                let report = if parsed_change.is_some() {
+                    core_validate::validate_change(&spool_path, &dir_name, strict).unwrap_or_else(
+                        |e| {
+                            core_validate::ValidationReport::new(
+                                vec![core_validate::ValidationIssue {
+                                    level: core_validate::LEVEL_ERROR.to_string(),
+                                    path: "validate".to_string(),
+                                    message: format!("Validation failed: {e}"),
+                                    line: None,
+                                    column: None,
+                                    metadata: None,
+                                }],
+                                strict,
+                            )
+                        },
+                    )
+                } else {
+                    core_validate::ValidationReport::new(vec![], strict)
+                };
+
+                let mut merged = report.issues.clone();
+                merged.extend(issues);
+                let merged_report = core_validate::ValidationReport::new(merged, strict);
+
+                items.push(Item {
+                    id: dir_name,
+                    typ: "change".to_string(),
+                    valid: merged_report.valid,
+                    issues: merged_report.issues,
+                    duration_ms: 1,
+                });
+            }
+        }
+
+        if want_specs {
+            for spec_id in list_spec_ids(&spool_path) {
+                let report = core_validate::validate_spec(&spool_path, &spec_id, strict)
+                    .unwrap_or_else(|e| {
+                        core_validate::ValidationReport::new(
+                            vec![core_validate::ValidationIssue {
+                                level: core_validate::LEVEL_ERROR.to_string(),
+                                path: "validate".to_string(),
+                                message: format!("Validation failed: {e}"),
+                                line: None,
+                                column: None,
+                                metadata: None,
+                            }],
+                            strict,
+                        )
+                    });
+                items.push(Item {
+                    id: spec_id,
+                    typ: "spec".to_string(),
+                    valid: report.valid,
+                    issues: report.issues,
+                    duration_ms: 1,
+                });
+            }
+        }
+
+        if want_modules {
+            let modules_dir = spool_path.join("modules");
+            let mut module_inputs: Vec<String> = Vec::new();
+            if let Ok(entries) = std::fs::read_dir(&modules_dir) {
+                for e in entries.flatten() {
+                    if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
+                        continue;
+                    }
+                    let name = e.file_name().to_string_lossy().to_string();
+                    if name.starts_with('.') {
+                        continue;
+                    }
+                    module_inputs.push(name);
+                }
+            }
+            module_inputs.sort();
+
+            for m in module_inputs {
+                let (_full_name, report) = core_validate::validate_module(&spool_path, &m, strict)
+                    .unwrap_or_else(|e| {
+                        (
+                            m.clone(),
+                            core_validate::ValidationReport::new(
+                                vec![core_validate::ValidationIssue {
+                                    level: core_validate::LEVEL_ERROR.to_string(),
+                                    path: "validate".to_string(),
+                                    message: format!("Validation failed: {e}"),
+                                    line: None,
+                                    column: None,
+                                    metadata: None,
+                                }],
+                                strict,
+                            ),
+                        )
+                    });
+
+                items.push(Item {
+                    id: m,
+                    typ: "module".to_string(),
+                    valid: report.valid,
+                    issues: report.issues,
+                    duration_ms: 1,
+                });
+            }
+        }
+
+        let passed = items.iter().filter(|i| i.valid).count() as u32;
+        let failed = items.len() as u32 - passed;
+
+        if want_json {
+            #[derive(serde::Serialize)]
+            struct Totals {
+                items: u32,
+                passed: u32,
+                failed: u32,
+            }
+            #[derive(serde::Serialize)]
+            struct ByType {
+                items: u32,
+                passed: u32,
+                failed: u32,
+            }
+            #[derive(serde::Serialize)]
+            struct Summary {
+                totals: Totals,
+                #[serde(rename = "byType")]
+                by_type: std::collections::BTreeMap<String, ByType>,
+            }
+            #[derive(serde::Serialize)]
+            struct Envelope {
+                items: Vec<Item>,
+                summary: Summary,
+                version: &'static str,
+            }
+
+            let mut by_type: std::collections::BTreeMap<String, ByType> =
+                std::collections::BTreeMap::new();
+            for it in &items {
+                let entry = by_type.entry(it.typ.clone()).or_insert(ByType {
+                    items: 0,
+                    passed: 0,
+                    failed: 0,
+                });
+                entry.items += 1;
+                if it.valid {
+                    entry.passed += 1;
+                } else {
+                    entry.failed += 1;
+                }
+            }
+
+            let env = Envelope {
+                items,
+                summary: Summary {
+                    totals: Totals {
+                        items: passed + failed,
+                        passed,
+                        failed,
+                    },
+                    by_type,
+                },
+                version: "1.0",
+            };
+            let rendered = serde_json::to_string_pretty(&env).expect("json should serialize");
+            println!("{rendered}");
+            if failed > 0 {
+                std::process::exit(1);
+            }
+            return;
+        }
+
+        if failed == 0 {
+            println!("All items valid ({passed} checked)");
+            return;
+        }
+        eprintln!(
+            "Validation failed: {failed} of {} items invalid",
+            passed + failed
+        );
+        for it in &items {
+            if it.valid {
+                continue;
+            }
+            eprintln!("- {} {} has issues", it.typ, it.id);
+            for issue in &it.issues {
+                eprintln!("  - [{}] {}: {}", issue.level, issue.path, issue.message);
+            }
+        }
         std::process::exit(1);
     }
 
