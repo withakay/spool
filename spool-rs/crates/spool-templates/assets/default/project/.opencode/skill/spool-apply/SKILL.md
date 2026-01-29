@@ -46,12 +46,20 @@ Implement tasks from a completed Spool change proposal.
 6. **Implement tasks systematically**
 
    For each pending task in tasks.md:
-   - **Start the task**: Mark as in-progress if the task format supports it
+   - **Start the task**:
+     - Enhanced tasks.md: `spool tasks start <change-id> <task-id>`
+     - Checkbox tasks.md: start is implicit (there is no in-progress state)
    - **Understand the task**: Read relevant specs and design sections
    - **Implement the changes**: Write code, tests, documentation as needed
    - **Verify the implementation**: Run tests, check functionality
-   - **Mark the task complete**: Change `- [ ]` to `- [x]` in tasks.md
+   - **Mark the task complete**:
+     - Enhanced tasks.md: `spool tasks complete <change-id> <task-id>`
+     - Checkbox tasks.md: `spool tasks complete <change-id> <index>`
    - **Show progress**: Briefly report what was completed
+
+   Use the tasks CLI to drive execution order:
+   - Next ready task: `spool tasks next <change-id>`
+   - Progress summary: `spool tasks status <change-id>`
 
    **Pause if:**
    - Task requirements are unclear → ask for clarification
