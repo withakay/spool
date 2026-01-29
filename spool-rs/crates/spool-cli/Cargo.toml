@@ -33,3 +33,4 @@ insta = { workspace = true }
 predicates = { workspace = true }
 tempfile = { workspace = true }
 spool-test-support = { path = "../spool-test-support" }
+

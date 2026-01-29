@@ -1,7 +1,11 @@
 use chrono::{DateTime, Utc};
-use miette::Result;
+mod cli_error;
+mod diagnostics;
+
+use crate::cli_error::{fail, silent_fail, CliError, CliResult};
 use spool_core::config::ConfigContext;
 use spool_core::installers::{install_default_templates, InitOptions, InstallMode};
+use spool_core::paths as core_paths;
 use spool_core::ralph as core_ralph;
 use spool_core::spool_dir::get_spool_path;
 use spool_core::{
@@ -20,7 +24,7 @@ use std::path::Path;
 
 const HELP: &str = "Usage: spool [options] [command]\n\nAI-native system for spec-driven development\n\nOptions:\n  -V, --version                    output the version number\n  --no-color                       Disable color output\n  -h, --help                       display help for command\n\nCommands:\n  init [options] [path]            Initialize Spool in your project\n  update [options] [path]          Update Spool instruction files\n  tasks                            Track execution tasks for a change\n  plan                             Project planning tools\n  state                            View and update planning/STATE.md\n  workflow                         Manage and run workflows\n  list [options]                   List items (changes by default). Use --specs\n                                   or --modules to list other items.\n  dashboard                        Display an interactive dashboard of specs and\n                                   changes\n  archive [options] [change-name]  Archive a completed change and update main\n                                   specs\n  config [options]                 View and modify global Spool configuration\n  create                           Create items\n  validate [options] [item-name]   Validate changes, specs, and modules\n  show [options] [item-name]       Show a change or spec\n  completions                      Manage shell completions for Spool CLI\n  status [options]                 [Experimental] Display artifact completion\n                                   status for a change\n  x-templates [options]            [Experimental] Show resolved template paths\n                                   for all artifacts in a schema\n  x-schemas [options]              [Experimental] List available workflow\n                                   schemas with descriptions\n  agent                            Commands that generate machine-readable\n                                   output for AI agents\n  ralph [options] [prompt]         Run iterative AI loop against a change\n                                   proposal\n  split [change-id]                Split a large change into smaller changes\n  help [command]                   display help for command";
 
-fn main() -> Result<()> {
+fn main() {
     // Ensure tracing can be enabled for debugging without changing user output.
     let _ = tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
@@ -39,6 +43,16 @@ fn main() -> Result<()> {
         }
     }
 
+    if let Err(e) = run(&args) {
+        if !e.is_silent() {
+            eprintln!();
+            eprintln!("✖ Error: {e}");
+        }
+        std::process::exit(1);
+    }
+}
+
+fn run(args: &[String]) -> CliResult<()> {
     // Match Commander: `spool --help` shows top-level help, but `spool <cmd> --help`
     // shows subcommand help.
     let first = args.first().map(|s| s.as_str());
@@ -57,75 +71,75 @@ fn main() -> Result<()> {
 
     match args.first().map(|s| s.as_str()) {
         Some("create") => {
-            handle_create(&args[1..]);
+            handle_create(&args[1..])?;
             return Ok(());
         }
         Some("new") => {
-            handle_new(&args[1..]);
+            handle_new(&args[1..])?;
             return Ok(());
         }
         Some("init") => {
-            handle_init(&args[1..]);
+            handle_init(&args[1..])?;
             return Ok(());
         }
         Some("update") => {
-            handle_update(&args[1..]);
+            handle_update(&args[1..])?;
             return Ok(());
         }
         Some("list") => {
-            handle_list(&args[1..]);
+            handle_list(&args[1..])?;
             return Ok(());
         }
         Some("plan") => {
-            handle_plan(&args[1..]);
+            handle_plan(&args[1..])?;
             return Ok(());
         }
         Some("state") => {
-            handle_state(&args[1..]);
+            handle_state(&args[1..])?;
             return Ok(());
         }
         Some("tasks") => {
-            handle_tasks(&args[1..]);
+            handle_tasks(&args[1..])?;
             return Ok(());
         }
         Some("workflow") => {
-            handle_workflow(&args[1..]);
+            handle_workflow(&args[1..])?;
             return Ok(());
         }
         Some("status") => {
-            handle_status(&args[1..]);
+            handle_status(&args[1..])?;
             return Ok(());
         }
         Some("templates") | Some("x-templates") => {
-            handle_templates(&args[1..]);
+            handle_templates(&args[1..])?;
             return Ok(());
         }
         Some("instructions") => {
-            handle_instructions(&args[1..]);
+            handle_instructions(&args[1..])?;
             return Ok(());
         }
         Some("agent") => {
-            handle_agent(&args[1..]);
+            handle_agent(&args[1..])?;
             return Ok(());
         }
         Some("x-instructions") => {
-            handle_x_instructions(&args[1..]);
+            handle_x_instructions(&args[1..])?;
             return Ok(());
         }
         Some("show") => {
-            handle_show(&args[1..]);
+            handle_show(&args[1..])?;
             return Ok(());
         }
         Some("validate") => {
-            handle_validate(&args[1..]);
+            handle_validate(&args[1..])?;
             return Ok(());
         }
         Some("ralph") => {
-            handle_ralph(&args[1..]);
+            handle_ralph(&args[1..])?;
             return Ok(());
         }
         Some("loop") => {
-            handle_loop(&args[1..]);
+            handle_loop(&args[1..])?;
             return Ok(());
         }
         _ => {}
@@ -155,16 +169,10 @@ const RALPH_HELP: &str = "Usage: spool ralph [options] [prompt]\n\nRun the Ralph
 const LOOP_HELP: &str =
     "Usage: spool loop [options] [prompt]\n\nDeprecated alias for 'spool ralph'";
 
-fn handle_state(args: &[String]) {
+fn handle_state(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{STATE_HELP}");
-        return;
-    }
-
-    fn fail(msg: &str) -> ! {
-        eprintln!();
-        eprintln!("✖ Error: {msg}");
-        std::process::exit(1);
+        return Ok(());
     }
 
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
@@ -178,27 +186,25 @@ fn handle_state(args: &[String]) {
         .unwrap_or_else(|| ".spool".to_string());
     let state_path = spool_path.join("planning").join("STATE.md");
     if !state_path.exists() {
-        fail(&format!(
+        return Err(CliError::msg(format!(
             "STATE.md not found. Run \"spool init\" first or create {}/planning/STATE.md",
             spool_dir
-        ));
+        )));
     }
 
     if sub == "show" {
-        let Ok(contents) = std::fs::read_to_string(&state_path) else {
-            fail("Failed to read STATE.md");
-        };
+        let contents = std::fs::read_to_string(&state_path)
+            .map_err(|_| CliError::msg("Failed to read STATE.md"))?;
         print!("{contents}");
-        return;
+        return Ok(());
     }
 
     if text.trim().is_empty() {
-        fail("Missing required text");
+        return Err(CliError::msg("Missing required text"));
     }
 
-    let Ok(contents) = std::fs::read_to_string(&state_path) else {
-        fail("Failed to read STATE.md");
-    };
+    let contents = std::fs::read_to_string(&state_path)
+        .map_err(|_| CliError::msg("Failed to read STATE.md"))?;
     let date = wf_state::now_date();
 
     let updated = match sub {
@@ -215,12 +221,10 @@ fn handle_state(args: &[String]) {
 
     let updated = match updated {
         Ok(v) => v,
-        Err(e) => fail(&e),
+        Err(e) => return Err(CliError::msg(e)),
     };
 
-    if let Err(e) = std::fs::write(&state_path, updated) {
-        fail(&e.to_string());
-    }
+    std::fs::write(&state_path, updated).map_err(|e| CliError::msg(e.to_string()))?;
 
     match sub {
         "decision" => eprintln!("✔ Decision recorded: {text}"),
@@ -230,18 +234,14 @@ fn handle_state(args: &[String]) {
         "question" => eprintln!("✔ Question added: {text}"),
         _ => {}
     }
+
+    Ok(())
 }
 
-fn handle_workflow(args: &[String]) {
+fn handle_workflow(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{WORKFLOW_HELP}");
-        return;
-    }
-
-    fn fail(msg: &str) -> ! {
-        eprintln!();
-        eprintln!("✖ Error: {msg}");
-        std::process::exit(1);
+        return Ok(());
     }
 
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
@@ -252,21 +252,21 @@ fn handle_workflow(args: &[String]) {
 
     match sub {
         "init" => {
-            if let Err(e) = wf_workflow::init_workflow_structure(&spool_path) {
-                fail(&e.to_string());
-            }
+            wf_workflow::init_workflow_structure(&spool_path)
+                .map_err(|e| CliError::msg(e.to_string()))?;
             println!("Created workflows directory with example workflows:");
             println!("  - research.yaml  (domain investigation)");
             println!("  - execute.yaml   (task execution)");
             println!("  - review.yaml    (adversarial review)");
             println!();
             println!("Prompt templates are installed via `spool init`.");
+            Ok(())
         }
         "list" => {
             let workflows = wf_workflow::list_workflows(&spool_path);
             if workflows.is_empty() {
                 println!("No workflows found. Run `spool workflow init` to create examples.");
-                return;
+                return Ok(());
             }
             println!("Available workflows:");
             println!();
@@ -287,14 +287,14 @@ fn handle_workflow(args: &[String]) {
                     }
                 }
             }
+            Ok(())
         }
         "show" => {
             if wf_name.is_empty() || wf_name.starts_with('-') {
-                fail("Missing required argument <workflow-name>");
+                return Err(CliError::msg("Missing required argument <workflow-name>"));
             }
             let wf = wf_workflow::load_workflow(&spool_path, wf_name)
-                .map_err(|e| format!("Invalid workflow: {e}"))
-                .unwrap_or_else(|e| fail(&e));
+                .map_err(|e| CliError::msg(format!("Invalid workflow: {e}")))?;
 
             fn agent_label(a: &spool_schemas::AgentType) -> &'static str {
                 match a {
@@ -338,23 +338,18 @@ fn handle_workflow(args: &[String]) {
                 }
                 println!();
             }
+            Ok(())
         }
-        _ => {
-            fail(&format!("Unknown workflow subcommand '{sub}'"));
-        }
+        _ => Err(CliError::msg(format!(
+            "Unknown workflow subcommand '{sub}'"
+        ))),
     }
 }
 
-fn handle_plan(args: &[String]) {
+fn handle_plan(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{PLAN_HELP}");
-        return;
-    }
-
-    fn fail(msg: &str) -> ! {
-        eprintln!();
-        eprintln!("✖ Error: {msg}");
-        std::process::exit(1);
+        return Ok(());
     }
 
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
@@ -369,25 +364,28 @@ fn handle_plan(args: &[String]) {
 
     match sub {
         "init" => {
-            if let Err(e) =
-                wf_planning::init_planning_structure(&spool_path, &current_date, &spool_dir)
-            {
-                fail(&e.to_string());
-            }
+            wf_planning::init_planning_structure(&spool_path, &current_date, &spool_dir)
+                .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Planning structure initialized");
             println!("Created:");
             println!("  - {}/planning/PROJECT.md", spool_dir);
             println!("  - {}/planning/ROADMAP.md", spool_dir);
             println!("  - {}/planning/STATE.md", spool_dir);
+            Ok(())
         }
         "status" => {
             let roadmap_path = wf_planning::planning_dir(&spool_path).join("ROADMAP.md");
-            let Ok(contents) = std::fs::read_to_string(&roadmap_path) else {
-                fail("ROADMAP.md not found. Run \"spool init\" or \"spool plan init\" first.");
-            };
+            let contents = std::fs::read_to_string(&roadmap_path).map_err(|_| {
+                CliError::msg(
+                    "ROADMAP.md not found. Run \"spool init\" or \"spool plan init\" first.",
+                )
+            })?;
+
             let Some((milestone, status, phase)) = wf_planning::read_current_progress(&contents)
             else {
-                fail("Could not find current milestone section in ROADMAP.md");
+                return Err(CliError::msg(
+                    "Could not find current milestone section in ROADMAP.md",
+                ));
             };
             let phases = wf_planning::read_phase_rows(&contents);
 
@@ -409,23 +407,16 @@ fn handle_plan(args: &[String]) {
                 };
                 println!("  {icon} Phase {num}: {name} [{st}]");
             }
+            Ok(())
         }
-        _ => {
-            fail(&format!("Unknown plan subcommand '{sub}'"));
-        }
+        _ => Err(CliError::msg(format!("Unknown plan subcommand '{sub}'"))),
     }
 }
 
-fn handle_tasks(args: &[String]) {
+fn handle_tasks(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{TASKS_HELP}");
-        return;
-    }
-
-    fn fail(msg: &str) -> ! {
-        eprintln!();
-        eprintln!("✖ Error: {msg}");
-        std::process::exit(1);
+        return Ok(());
     }
 
     fn parse_wave_flag(args: &[String]) -> u32 {
@@ -459,21 +450,21 @@ fn handle_tasks(args: &[String]) {
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
     let change_id = args.get(1).map(|s| s.as_str()).unwrap_or("");
     if change_id.is_empty() || change_id.starts_with('-') {
-        fail("Missing required argument <change-id>");
+        return fail("Missing required argument <change-id>");
     }
 
     let ctx = ConfigContext::from_process_env();
     let spool_path = get_spool_path(Path::new("."), &ctx);
-    let change_dir = spool_path.join("changes").join(change_id);
+    let change_dir = core_paths::change_dir(&spool_path, change_id);
 
     match sub {
         "init" => {
             if !change_dir.exists() {
-                fail(&format!("Change '{change_id}' not found"));
+                return fail(format!("Change '{change_id}' not found"));
             }
             let path = wf_tasks::tasks_path(&spool_path, change_id);
             if path.exists() {
-                fail(&format!(
+                return fail(format!(
                     "tasks.md already exists for \"{change_id}\". Use \"tasks add\" to add tasks."
                 ));
             }
@@ -481,15 +472,11 @@ fn handle_tasks(args: &[String]) {
             let now = chrono::Local::now();
             let contents = wf_tasks::enhanced_tasks_template(change_id, now);
             if let Some(parent) = path.parent() {
-                if let Err(e) = std::fs::create_dir_all(parent) {
-                    eprintln!("✖ Error: {e}");
-                    std::process::exit(1);
-                }
+                std::fs::create_dir_all(parent).map_err(|e| CliError::msg(e.to_string()))?;
             }
-            if let Err(e) = std::fs::write(&path, contents) {
-                fail(&e.to_string());
-            }
+            std::fs::write(&path, contents).map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Enhanced tasks.md created for \"{change_id}\"");
+            Ok(())
         }
         "status" => {
             let path = wf_tasks::tasks_path(&spool_path, change_id);
@@ -497,64 +484,32 @@ fn handle_tasks(args: &[String]) {
                 println!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
                 );
-                return;
+                return Ok(());
             }
 
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!("Failed to read {}", path.display()));
-            };
+            let contents = std::fs::read_to_string(&path)
+                .map_err(|_| CliError::msg(format!("Failed to read {}", path.display())))?;
 
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
 
             println!("Tasks for: {change_id}");
             println!("──────────────────────────────────────────────────");
             println!();
 
-            let mut errors: Vec<&wf_tasks::TaskDiagnostic> = Vec::new();
-            let mut warnings: Vec<&wf_tasks::TaskDiagnostic> = Vec::new();
-            for d in &parsed.diagnostics {
-                match d.level {
-                    wf_tasks::DiagnosticLevel::Error => errors.push(d),
-                    wf_tasks::DiagnosticLevel::Warning => warnings.push(d),
-                }
-            }
-
-            if !errors.is_empty() {
-                println!("Errors");
-                for d in &errors {
-                    let loc = if let Some(line) = d.line {
-                        format!("{}:{}", path.display(), line)
-                    } else {
-                        path.display().to_string()
-                    };
-                    if let Some(id) = &d.task_id {
-                        println!("- {loc}: {id}: {}", d.message);
-                    } else {
-                        println!("- {loc}: {}", d.message);
-                    }
-                }
-                println!();
-            }
-
+            let warnings = diagnostics::render_task_diagnostics(
+                &path,
+                &parsed.diagnostics,
+                wf_tasks::DiagnosticLevel::Warning,
+            );
             if !warnings.is_empty() {
                 println!("Warnings");
-                for d in &warnings {
-                    let loc = if let Some(line) = d.line {
-                        format!("{}:{}", path.display(), line)
-                    } else {
-                        path.display().to_string()
-                    };
-                    if let Some(id) = &d.task_id {
-                        println!("- {loc}: {id}: {}", d.message);
-                    } else {
-                        println!("- {loc}: {}", d.message);
-                    }
-                }
+                print!("{warnings}");
                 println!();
-            }
-
-            if !errors.is_empty() {
-                std::process::exit(1);
             }
 
             match parsed.format {
@@ -592,36 +547,21 @@ fn handle_tasks(args: &[String]) {
                     println!("    - {b}");
                 }
             }
+
+            Ok(())
         }
         "next" => {
             let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!(
+            let contents = std::fs::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
-                ));
-            };
+                ))
+            })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
 
-            let errs: Vec<&wf_tasks::TaskDiagnostic> = parsed
-                .diagnostics
-                .iter()
-                .filter(|d| d.level == wf_tasks::DiagnosticLevel::Error)
-                .collect();
-            if !errs.is_empty() {
-                eprintln!("Tasks file has validation errors:");
-                for d in &errs {
-                    let loc = if let Some(line) = d.line {
-                        format!("{}:{}", path.display(), line)
-                    } else {
-                        path.display().to_string()
-                    };
-                    if let Some(id) = &d.task_id {
-                        eprintln!("- {loc}: {id}: {}", d.message);
-                    } else {
-                        eprintln!("- {loc}: {}", d.message);
-                    }
-                }
-                std::process::exit(1);
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
             }
 
             match parsed.format {
@@ -641,11 +581,12 @@ fn handle_tasks(args: &[String]) {
                     } else {
                         println!("All tasks complete!");
                     }
+                    Ok(())
                 }
                 wf_tasks::TasksFormat::Enhanced => {
                     if parsed.progress.remaining == 0 {
                         println!("All tasks complete!");
-                        return;
+                        return Ok(());
                     }
 
                     let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
@@ -655,7 +596,7 @@ fn handle_tasks(args: &[String]) {
                             println!("First blocked task: {} - {}", t.id, t.name);
                             println!("{}", format_blockers(blockers));
                         }
-                        return;
+                        return Ok(());
                     }
 
                     let t = &ready[0];
@@ -680,42 +621,35 @@ fn handle_tasks(args: &[String]) {
                     }
                     println!();
                     println!("Run \"spool tasks start {change_id} {}\" to begin", t.id);
+                    Ok(())
                 }
             }
         }
         "start" => {
             let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
             if task_id.is_empty() || task_id.starts_with('-') {
-                fail("Missing required argument <task-id>");
+                return fail("Missing required argument <task-id>");
             }
             let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!(
+            let contents = std::fs::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
-                ));
-            };
+                ))
+            })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
             if parsed.format == wf_tasks::TasksFormat::Checkbox {
-                fail("Checkbox-only tasks.md does not support in-progress. Use \"spool tasks complete\" when done.");
+                return fail(
+                    "Checkbox-only tasks.md does not support in-progress. Use \"spool tasks complete\" when done.",
+                );
             }
-            if let Some(first_err) = parsed
-                .diagnostics
-                .iter()
-                .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
             {
-                let loc = if let Some(line) = first_err.line {
-                    format!("{}:{}", path.display(), line)
-                } else {
-                    path.display().to_string()
-                };
-                if let Some(id) = &first_err.task_id {
-                    fail(&format!("{loc}: {id}: {}", first_err.message));
-                }
-                fail(&format!("{loc}: {}", first_err.message));
+                return Err(CliError::msg(msg));
             }
 
             let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
-                fail(&format!("Task \"{task_id}\" not found in tasks.md"));
+                return fail(format!("Task \"{task_id}\" not found in tasks.md"));
             };
             let status_label = match task.status {
                 wf_tasks::TaskStatus::Pending => "pending",
@@ -724,12 +658,12 @@ fn handle_tasks(args: &[String]) {
                 wf_tasks::TaskStatus::Shelved => "shelved",
             };
             if task.status == wf_tasks::TaskStatus::Shelved {
-                fail(&format!(
+                return fail(format!(
                     "Task \"{task_id}\" is shelved (run \"spool tasks unshelve {change_id} {task_id}\" first)"
                 ));
             }
             if task.status != wf_tasks::TaskStatus::Pending {
-                fail(&format!(
+                return fail(format!(
                     "Task \"{task_id}\" is not pending (current: {status_label})"
                 ));
             }
@@ -737,9 +671,9 @@ fn handle_tasks(args: &[String]) {
             let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
             if !ready.iter().any(|t| t.id == task_id) {
                 if let Some((_, blockers)) = blocked.iter().find(|(t, _)| t.id == task_id) {
-                    fail(&format_blockers(blockers));
+                    return fail(format_blockers(blockers));
                 }
-                fail("Task is blocked");
+                return fail("Task is blocked");
             }
 
             let updated = wf_tasks::update_enhanced_task_status(
@@ -748,27 +682,26 @@ fn handle_tasks(args: &[String]) {
                 wf_tasks::TaskStatus::InProgress,
                 chrono::Local::now(),
             );
-            if let Err(e) = std::fs::write(&path, updated) {
-                fail(&e.to_string());
-            }
+            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" marked as in-progress");
+            Ok(())
         }
         "complete" => {
             let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
             if task_id.is_empty() || task_id.starts_with('-') {
-                fail("Missing required argument <task-id>");
+                return fail("Missing required argument <task-id>");
             }
             let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!(
+            let contents = std::fs::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
-                ));
-            };
+                ))
+            })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
             if parsed.format == wf_tasks::TasksFormat::Checkbox {
                 // 1-based index
                 let Ok(idx) = task_id.parse::<usize>() else {
-                    fail(&format!("Task \"{task_id}\" not found"));
+                    return fail(format!("Task \"{task_id}\" not found"));
                 };
                 let mut count = 0usize;
                 let mut lines: Vec<String> = contents.lines().map(|l| l.to_string()).collect();
@@ -788,31 +721,18 @@ fn handle_tasks(args: &[String]) {
                     }
                 }
                 if count < idx {
-                    fail(&format!("Task \"{task_id}\" not found"));
+                    return fail(format!("Task \"{task_id}\" not found"));
                 }
                 let mut out = lines.join("\n");
                 out.push('\n');
-                if let Err(e) = std::fs::write(&path, out) {
-                    fail(&e.to_string());
-                }
+                std::fs::write(&path, out).map_err(|e| CliError::msg(e.to_string()))?;
                 eprintln!("✔ Task \"{task_id}\" marked as complete");
-                return;
+                return Ok(());
             }
 
-            if let Some(first_err) = parsed
-                .diagnostics
-                .iter()
-                .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
             {
-                let loc = if let Some(line) = first_err.line {
-                    format!("{}:{}", path.display(), line)
-                } else {
-                    path.display().to_string()
-                };
-                if let Some(id) = &first_err.task_id {
-                    fail(&format!("{loc}: {id}: {}", first_err.message));
-                }
-                fail(&format!("{loc}: {}", first_err.message));
+                return Err(CliError::msg(msg));
             }
 
             let updated = wf_tasks::update_enhanced_task_status(
@@ -821,47 +741,36 @@ fn handle_tasks(args: &[String]) {
                 wf_tasks::TaskStatus::Complete,
                 chrono::Local::now(),
             );
-            if let Err(e) = std::fs::write(&path, updated) {
-                fail(&e.to_string());
-            }
+            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" marked as complete");
+            Ok(())
         }
         "shelve" => {
             let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
             if task_id.is_empty() || task_id.starts_with('-') {
-                fail("Missing required argument <task-id>");
+                return fail("Missing required argument <task-id>");
             }
             let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!(
+            let contents = std::fs::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
-                ));
-            };
+                ))
+            })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
             if parsed.format == wf_tasks::TasksFormat::Checkbox {
-                fail("Checkbox-only tasks.md does not support shelving.");
+                return fail("Checkbox-only tasks.md does not support shelving.");
             }
-            if let Some(first_err) = parsed
-                .diagnostics
-                .iter()
-                .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
             {
-                let loc = if let Some(line) = first_err.line {
-                    format!("{}:{}", path.display(), line)
-                } else {
-                    path.display().to_string()
-                };
-                if let Some(id) = &first_err.task_id {
-                    fail(&format!("{loc}: {id}: {}", first_err.message));
-                }
-                fail(&format!("{loc}: {}", first_err.message));
+                return Err(CliError::msg(msg));
             }
 
             let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
-                fail(&format!("Task \"{task_id}\" not found in tasks.md"));
+                return fail(format!("Task \"{task_id}\" not found in tasks.md"));
             };
             if task.status == wf_tasks::TaskStatus::Complete {
-                fail(&format!("Task \"{task_id}\" is already complete"));
+                return fail(format!("Task \"{task_id}\" is already complete"));
             }
 
             let updated = wf_tasks::update_enhanced_task_status(
@@ -870,47 +779,36 @@ fn handle_tasks(args: &[String]) {
                 wf_tasks::TaskStatus::Shelved,
                 chrono::Local::now(),
             );
-            if let Err(e) = std::fs::write(&path, updated) {
-                fail(&e.to_string());
-            }
+            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" shelved");
+            Ok(())
         }
         "unshelve" => {
             let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
             if task_id.is_empty() || task_id.starts_with('-') {
-                fail("Missing required argument <task-id>");
+                return fail("Missing required argument <task-id>");
             }
             let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!(
+            let contents = std::fs::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
-                ));
-            };
+                ))
+            })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
             if parsed.format == wf_tasks::TasksFormat::Checkbox {
-                fail("Checkbox-only tasks.md does not support shelving.");
+                return fail("Checkbox-only tasks.md does not support shelving.");
             }
-            if let Some(first_err) = parsed
-                .diagnostics
-                .iter()
-                .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
             {
-                let loc = if let Some(line) = first_err.line {
-                    format!("{}:{}", path.display(), line)
-                } else {
-                    path.display().to_string()
-                };
-                if let Some(id) = &first_err.task_id {
-                    fail(&format!("{loc}: {id}: {}", first_err.message));
-                }
-                fail(&format!("{loc}: {}", first_err.message));
+                return Err(CliError::msg(msg));
             }
 
             let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
-                fail(&format!("Task \"{task_id}\" not found in tasks.md"));
+                return fail(format!("Task \"{task_id}\" not found in tasks.md"));
             };
             if task.status != wf_tasks::TaskStatus::Shelved {
-                fail(&format!("Task \"{task_id}\" is not shelved"));
+                return fail(format!("Task \"{task_id}\" is not shelved"));
             }
 
             let updated = wf_tasks::update_enhanced_task_status(
@@ -919,41 +817,32 @@ fn handle_tasks(args: &[String]) {
                 wf_tasks::TaskStatus::Pending,
                 chrono::Local::now(),
             );
-            if let Err(e) = std::fs::write(&path, updated) {
-                fail(&e.to_string());
-            }
+            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" unshelved (pending)");
+            Ok(())
         }
         "add" => {
             let task_name = args.get(2).map(|s| s.as_str()).unwrap_or("");
             if task_name.is_empty() || task_name.starts_with('-') {
-                fail("Missing required argument <task-name>");
+                return fail("Missing required argument <task-name>");
             }
             let wave = parse_wave_flag(args);
             let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!(
+            let contents = std::fs::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
-                ));
-            };
+                ))
+            })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
             if parsed.format != wf_tasks::TasksFormat::Enhanced {
-                fail("Cannot add tasks to checkbox-only tracking file. Convert to enhanced format first.");
+                return fail(
+                    "Cannot add tasks to checkbox-only tracking file. Convert to enhanced format first.",
+                );
             }
-            if let Some(first_err) = parsed
-                .diagnostics
-                .iter()
-                .find(|d| d.level == wf_tasks::DiagnosticLevel::Error)
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
             {
-                let loc = if let Some(line) = first_err.line {
-                    format!("{}:{}", path.display(), line)
-                } else {
-                    path.display().to_string()
-                };
-                if let Some(id) = &first_err.task_id {
-                    fail(&format!("{loc}: {id}: {}", first_err.message));
-                }
-                fail(&format!("{loc}: {}", first_err.message));
+                return Err(CliError::msg(msg));
             }
 
             let mut max_n = 0u32;
@@ -998,43 +887,24 @@ fn handle_tasks(args: &[String]) {
                 }
             }
 
-            if let Err(e) = std::fs::write(&path, out) {
-                fail(&e.to_string());
-            }
+            std::fs::write(&path, out).map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task {new_id} \"{task_name}\" added to Wave {wave}");
+            Ok(())
         }
         "show" => {
             let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let Ok(contents) = std::fs::read_to_string(&path) else {
-                fail(&format!("tasks.md not found for \"{change_id}\""));
-            };
+            let contents = std::fs::read_to_string(&path)
+                .map_err(|_| CliError::msg(format!("tasks.md not found for \"{change_id}\"")))?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
-            let errs: Vec<&wf_tasks::TaskDiagnostic> = parsed
-                .diagnostics
-                .iter()
-                .filter(|d| d.level == wf_tasks::DiagnosticLevel::Error)
-                .collect();
-            if !errs.is_empty() {
-                eprintln!("Tasks file has validation errors:");
-                for d in &errs {
-                    let loc = if let Some(line) = d.line {
-                        format!("{}:{}", path.display(), line)
-                    } else {
-                        path.display().to_string()
-                    };
-                    if let Some(id) = &d.task_id {
-                        eprintln!("- {loc}: {id}: {}", d.message);
-                    } else {
-                        eprintln!("- {loc}: {}", d.message);
-                    }
-                }
-                std::process::exit(1);
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
             }
             print!("{contents}");
+            Ok(())
         }
-        _ => {
-            fail(&format!("Unknown tasks subcommand '{sub}'"));
-        }
+        _ => fail(format!("Unknown tasks subcommand '{sub}'")),
     }
 }
 
@@ -1052,15 +922,14 @@ const AGENT_HELP: &str = "Usage: spool agent [command] [options]\n\nCommands tha
 
 const AGENT_INSTRUCTION_HELP: &str = "Usage: spool agent instruction <artifact> [options]\n\nGenerate enriched instructions\n\nOptions:\n  --change <name>               Change id (directory name)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
 
-fn handle_create(args: &[String]) {
+fn handle_create(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{CREATE_HELP}");
-        return;
+        return Ok(());
     }
 
     let Some(kind) = args.first().map(|s| s.as_str()) else {
-        eprintln!("✖ Error: Missing required argument <type>");
-        std::process::exit(1);
+        return fail("Missing required argument <type>");
     };
 
     let ctx = ConfigContext::from_process_env();
@@ -1070,8 +939,7 @@ fn handle_create(args: &[String]) {
         "module" => {
             let name = args.get(1).map(|s| s.as_str()).unwrap_or("");
             if name.is_empty() || name.starts_with('-') {
-                eprintln!("✖ Error: Missing required argument <name>");
-                std::process::exit(1);
+                return fail("Missing required argument <name>");
             }
             let scope = parse_string_flag(args, "--scope")
                 .map(|raw| split_csv(&raw))
@@ -1080,27 +948,21 @@ fn handle_create(args: &[String]) {
                 .map(|raw| split_csv(&raw))
                 .unwrap_or_default();
 
-            match core_create::create_module(&spool_path, name, scope, depends_on) {
-                Ok(r) => {
-                    if !r.created {
-                        println!("Module \"{}\" already exists as {}", name, r.folder_name);
-                        return;
-                    }
-                    println!("Created module: {}", r.folder_name);
-                    println!("  Path: {}", r.module_dir.display());
-                    println!("  Edit: spool/modules/{}/module.md", r.folder_name);
-                }
-                Err(e) => {
-                    eprintln!("✖ Error: {e}");
-                    std::process::exit(1);
-                }
+            let r = core_create::create_module(&spool_path, name, scope, depends_on)
+                .map_err(|e| CliError::msg(e.to_string()))?;
+            if !r.created {
+                println!("Module \"{}\" already exists as {}", name, r.folder_name);
+                return Ok(());
             }
+            println!("Created module: {}", r.folder_name);
+            println!("  Path: {}", r.module_dir.display());
+            println!("  Edit: spool/modules/{}/module.md", r.folder_name);
+            Ok(())
         }
         "change" => {
             let name = args.get(1).map(|s| s.as_str()).unwrap_or("");
             if name.is_empty() || name.starts_with('-') {
-                eprintln!("✖ Error: Missing required argument <name>");
-                std::process::exit(1);
+                return fail("Missing required argument <name>");
             }
             let schema_opt = parse_string_flag(args, "--schema");
             let schema = schema_opt
@@ -1146,39 +1008,31 @@ fn handle_create(args: &[String]) {
                         "✔ Created change '{}' at {}/changes/{}/ (schema: {})",
                         r.change_id, spool_dir, r.change_id, schema
                     );
+                    Ok(())
                 }
-                Err(e) => {
-                    eprintln!("✖ Error: {e}");
-                    std::process::exit(1);
-                }
+                Err(e) => Err(CliError::msg(e.to_string())),
             }
         }
-        _ => {
-            eprintln!("✖ Error: Unknown create type '{kind}'");
-            std::process::exit(1);
-        }
+        _ => fail(format!("Unknown create type '{kind}'")),
     }
 }
 
-fn handle_new(args: &[String]) {
+fn handle_new(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{NEW_HELP}");
-        return;
+        return Ok(());
     }
 
     let Some(kind) = args.first().map(|s| s.as_str()) else {
-        eprintln!("✖ Error: Missing required argument <type>");
-        std::process::exit(1);
+        return fail("Missing required argument <type>");
     };
     if kind != "change" {
-        eprintln!("✖ Error: Unknown new type '{kind}'");
-        std::process::exit(1);
+        return fail(format!("Unknown new type '{kind}'"));
     }
 
     let name = args.get(1).map(|s| s.as_str()).unwrap_or("");
     if name.is_empty() || name.starts_with('-') {
-        eprintln!("✖ Error: Missing required argument <name>");
-        std::process::exit(1);
+        return fail("Missing required argument <name>");
     }
 
     let schema_opt = parse_string_flag(args, "--schema");
@@ -1225,18 +1079,16 @@ fn handle_new(args: &[String]) {
                 "✔ Created change '{}' at {}/changes/{}/ (schema: {})",
                 r.change_id, spool_dir, r.change_id, schema
             );
+            Ok(())
         }
-        Err(e) => {
-            eprintln!("✖ Error: {e}");
-            std::process::exit(1);
-        }
+        Err(e) => Err(CliError::msg(e.to_string())),
     }
 }
 
-fn handle_status(args: &[String]) {
+fn handle_status(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{STATUS_HELP}");
-        return;
+        return Ok(());
     }
 
     let want_json = args.iter().any(|a| a == "--json");
@@ -1245,14 +1097,14 @@ fn handle_status(args: &[String]) {
         let ctx = ConfigContext::from_process_env();
         let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
         let changes = core_workflow::list_available_changes(&spool_path);
-        eprintln!("✖ Error: Missing required option --change");
+        let mut msg = "Missing required option --change".to_string();
         if !changes.is_empty() {
-            eprintln!("\nAvailable changes:");
+            msg.push_str("\n\nAvailable changes:\n");
             for c in changes {
-                eprintln!("  {c}");
+                msg.push_str(&format!("  {c}\n"));
             }
         }
-        std::process::exit(1);
+        return fail(msg);
     }
 
     let schema = parse_string_flag(args, "--schema");
@@ -1267,34 +1119,31 @@ fn handle_status(args: &[String]) {
         match core_workflow::compute_change_status(&spool_path, &change, schema.as_deref(), &ctx) {
             Ok(s) => s,
             Err(core_workflow::WorkflowError::InvalidChangeName) => {
-                eprintln!("✖ Error: Invalid change name");
-                std::process::exit(1);
+                return fail("Invalid change name");
             }
             Err(core_workflow::WorkflowError::ChangeNotFound(name)) => {
                 let changes = core_workflow::list_available_changes(&spool_path);
-                eprintln!("✖ Error: Change '{name}' not found");
+                let mut msg = format!("Change '{name}' not found");
                 if !changes.is_empty() {
-                    eprintln!("\nAvailable changes:");
+                    msg.push_str("\n\nAvailable changes:\n");
                     for c in changes {
-                        eprintln!("  {c}");
+                        msg.push_str(&format!("  {c}\n"));
                     }
                 }
-                std::process::exit(1);
+                return fail(msg);
             }
             Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
-                eprintln!("✖ Error: Schema '{name}' not found");
-                std::process::exit(1);
+                return fail(format!("Schema '{name}' not found"));
             }
             Err(e) => {
-                eprintln!("✖ Error: {e}");
-                std::process::exit(1);
+                return Err(CliError::msg(e.to_string()));
             }
         };
 
     if want_json {
         let rendered = serde_json::to_string_pretty(&status).expect("json should serialize");
         println!("{rendered}");
-        return;
+        return Ok(());
     }
 
     let total = status.artifacts.len();
@@ -1329,6 +1178,8 @@ fn handle_status(args: &[String]) {
     if status.is_complete {
         println!("\nAll artifacts complete!");
     }
+
+    Ok(())
 }
 
 fn handle_templates(args: &[String]) {
@@ -2037,7 +1888,7 @@ fn handle_list(args: &[String]) {
         }
         _ => {
             // changes
-            let changes_dir = spool_path.join("changes");
+            let changes_dir = core_paths::changes_dir(&spool_path);
             if !changes_dir.exists() {
                 eprintln!("✖ Error: No Spool changes directory found. Run 'spool init' first.");
                 std::process::exit(1);
@@ -2222,13 +2073,13 @@ fn handle_show(args: &[String]) {
 
     match resolved_type.as_str() {
         "spec" => {
-            let spec_path = spool_path.join("specs").join(&item).join("spec.md");
+            let spec_path = core_paths::spec_markdown_path(&spool_path, &item);
             let md = match std::fs::read_to_string(&spec_path) {
                 Ok(c) => c,
                 Err(_) => {
                     eprintln!(
                         "✖ Error: Spec '{item}' not found at {p}",
-                        p = format!("{}/specs/{}/spec.md", spool_path.display(), item)
+                        p = spec_path.display()
                     );
                     std::process::exit(1);
                 }
@@ -2264,12 +2115,12 @@ fn handle_show(args: &[String]) {
             }
         }
         "change" => {
-            let change_path = spool_path.join("changes").join(&item);
+            let change_path = core_paths::change_dir(&spool_path, &item);
             let proposal_path = change_path.join("proposal.md");
             if !proposal_path.exists() {
                 eprintln!(
                     "✖ Error: Change '{item}' not found at {p}",
-                    p = format!("{}/changes/{}/proposal.md", spool_path.display(), item)
+                    p = proposal_path.display()
                 );
                 std::process::exit(1);
             }
@@ -2467,7 +2318,9 @@ fn handle_ralph(args: &[String]) {
         && add_context.is_none()
         && !clear_context
     {
-        fail("Either --change, --module, --status, --add-context, or --clear-context must be specified");
+        fail(
+            "Either --change, --module, --status, --add-context, or --clear-context must be specified",
+        );
     }
 
     if clear_context && change_id.is_none() {
@@ -2522,15 +2375,14 @@ fn handle_ralph(args: &[String]) {
     }
 }
 
-fn handle_validate(args: &[String]) {
+fn handle_validate(args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{VALIDATE_HELP}");
-        return;
+        return Ok(());
     }
 
     if args.first().map(|s| s.as_str()) == Some("module") {
-        handle_validate_module(&args[1..]);
-        return;
+        return handle_validate_module(&args[1..]);
     }
 
     let want_json = args.iter().any(|a| a == "--json");
@@ -2542,10 +2394,9 @@ fn handle_validate(args: &[String]) {
 
     let item = last_positional(args);
     if item.is_none() && !bulk {
-        eprintln!(
-            "Nothing to validate. Try one of:\n  spool validate --all\n  spool validate --changes\n  spool validate --specs\n  spool validate <item-name>\nOr run in an interactive terminal."
+        return fail(
+            "Nothing to validate. Try one of:\n  spool validate --all\n  spool validate --changes\n  spool validate --specs\n  spool validate <item-name>\nOr run in an interactive terminal.",
         );
-        std::process::exit(1);
     }
 
     if bulk {
@@ -2571,7 +2422,7 @@ fn handle_validate(args: &[String]) {
         let mut items: Vec<Item> = Vec::new();
 
         if want_changes {
-            let modules_dir = spool_path.join("modules");
+            let modules_dir = core_paths::modules_dir(&spool_path);
             let mut module_ids: std::collections::BTreeSet<String> =
                 std::collections::BTreeSet::new();
             if let Ok(entries) = std::fs::read_dir(&modules_dir) {
@@ -2592,7 +2443,7 @@ fn handle_validate(args: &[String]) {
                 }
             }
 
-            let changes_dir = spool_path.join("changes");
+            let changes_dir = core_paths::changes_dir(&spool_path);
             let mut change_dirs: Vec<String> = Vec::new();
             if let Ok(entries) = std::fs::read_dir(&changes_dir) {
                 for e in entries.flatten() {
@@ -2769,7 +2620,7 @@ fn handle_validate(args: &[String]) {
         }
 
         if want_modules {
-            let modules_dir = spool_path.join("modules");
+            let modules_dir = core_paths::modules_dir(&spool_path);
             let mut module_inputs: Vec<String> = Vec::new();
             if let Ok(entries) = std::fs::read_dir(&modules_dir) {
                 for e in entries.flatten() {
@@ -2874,14 +2725,14 @@ fn handle_validate(args: &[String]) {
             let rendered = serde_json::to_string_pretty(&env).expect("json should serialize");
             println!("{rendered}");
             if failed > 0 {
-                std::process::exit(1);
+                return silent_fail();
             }
-            return;
+            return Ok(());
         }
 
         if failed == 0 {
             println!("All items valid ({passed} checked)");
-            return;
+            return Ok(());
         }
         eprintln!(
             "Validation failed: {failed} of {} items invalid",
@@ -2896,7 +2747,7 @@ fn handle_validate(args: &[String]) {
                 eprintln!("  - [{}] {}: {}", issue.level, issue.path, issue.message);
             }
         }
-        std::process::exit(1);
+        return silent_fail();
     }
 
     let item = item.expect("checked");
@@ -2907,8 +2758,7 @@ fn handle_validate(args: &[String]) {
     let resolved_type = match explicit {
         Some("change") | Some("spec") | Some("module") => explicit.unwrap().to_string(),
         Some(_) => {
-            eprintln!("✖ Error: Invalid type. Expected 'change', 'spec', or 'module'.");
-            std::process::exit(1);
+            return fail("Invalid type. Expected 'change', 'spec', or 'module'.");
         }
         None => detect_item_type(&spool_path, &item),
     };
@@ -2916,76 +2766,82 @@ fn handle_validate(args: &[String]) {
     // Special-case: TS `--type module <id>` behaves like validating a spec by id.
     if resolved_type == "module" {
         let report = validate_spec_by_id_or_enoent(&spool_path, &item, strict);
+        let valid = report.valid;
         render_validate_result("spec", &item, report, want_json);
-        return;
+        if !valid {
+            return silent_fail();
+        }
+        return Ok(());
     }
 
     if resolved_type == "ambiguous" {
-        eprintln!(
+        return fail(format!(
             "Ambiguous item '{item}' matches both a change and a spec.\nUse --type change or --type spec to disambiguate."
-        );
-        std::process::exit(1);
+        ));
     }
 
     match resolved_type.as_str() {
         "spec" => {
-            let spec_path = spool_path.join("specs").join(&item).join("spec.md");
+            let spec_path = core_paths::spec_markdown_path(&spool_path, &item);
             if !spec_path.exists() {
                 let candidates = list_spec_ids(&spool_path);
                 let suggestions = nearest_matches(&item, &candidates, 5);
-                eprintln!("Unknown spec '{item}'");
+                let mut msg = format!("Unknown spec '{item}'");
                 if !suggestions.is_empty() {
-                    eprintln!("Did you mean: {}?", suggestions.join(", "));
+                    msg.push_str(&format!("\nDid you mean: {}?", suggestions.join(", ")));
                 }
-                std::process::exit(1);
+                return fail(msg);
             }
-            let report =
-                core_validate::validate_spec(&spool_path, &item, strict).unwrap_or_else(|e| {
-                    eprintln!("✖ Error: {e}");
-                    std::process::exit(1);
-                });
+            let report = core_validate::validate_spec(&spool_path, &item, strict)
+                .map_err(|e| CliError::msg(e.to_string()))?;
+            let valid = report.valid;
             render_validate_result("spec", &item, report, want_json);
+            if !valid {
+                return silent_fail();
+            }
+            Ok(())
         }
         "change" => {
-            let proposal = spool_path.join("changes").join(&item).join("proposal.md");
+            let proposal = core_paths::change_dir(&spool_path, &item).join("proposal.md");
             if !proposal.exists() {
                 let candidates = list_change_ids(&spool_path);
                 let suggestions = nearest_matches(&item, &candidates, 5);
-                eprintln!("Unknown change '{item}'");
+                let mut msg = format!("Unknown change '{item}'");
                 if !suggestions.is_empty() {
-                    eprintln!("Did you mean: {}?", suggestions.join(", "));
+                    msg.push_str(&format!("\nDid you mean: {}?", suggestions.join(", ")));
                 }
-                std::process::exit(1);
+                return fail(msg);
             }
-            let report =
-                core_validate::validate_change(&spool_path, &item, strict).unwrap_or_else(|e| {
-                    eprintln!("✖ Error: {e}");
-                    std::process::exit(1);
-                });
+            let report = core_validate::validate_change(&spool_path, &item, strict)
+                .map_err(|e| CliError::msg(e.to_string()))?;
+            let valid = report.valid;
             render_validate_result("change", &item, report, want_json);
+            if !valid {
+                return silent_fail();
+            }
+            Ok(())
         }
         _ => {
             // unknown
             let candidates = list_candidate_items(&spool_path);
             let suggestions = nearest_matches(&item, &candidates, 5);
-            eprintln!("Unknown item '{item}'");
+            let mut msg = format!("Unknown item '{item}'");
             if !suggestions.is_empty() {
-                eprintln!("Did you mean: {}?", suggestions.join(", "));
+                msg.push_str(&format!("\nDid you mean: {}?", suggestions.join(", ")));
             }
-            std::process::exit(1);
+            fail(msg)
         }
     }
 }
 
-fn handle_validate_module(args: &[String]) {
+fn handle_validate_module(args: &[String]) -> CliResult<()> {
     // TS prints a spinner line even in non-interactive environments.
     eprintln!("- Validating module...");
     let module_id = last_positional(args);
     if module_id.is_none() {
-        eprintln!(
-            "Nothing to validate. Try one of:\n  spool validate module <module-id>\nOr run in an interactive terminal."
+        return fail(
+            "Nothing to validate. Try one of:\n  spool validate module <module-id>\nOr run in an interactive terminal.",
         );
-        std::process::exit(1);
     }
     let module_id = module_id.expect("checked");
 
@@ -2993,19 +2849,15 @@ fn handle_validate_module(args: &[String]) {
     let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
 
     let (full_name, report) = core_validate::validate_module(&spool_path, &module_id, false)
-        .unwrap_or_else(|e| {
-            eprintln!("✖ Error: {e}");
-            std::process::exit(1);
-        });
+        .map_err(|e| CliError::msg(e.to_string()))?;
     if report.valid {
         println!("Module '{full_name}' is valid");
-        return;
+        return Ok(());
     }
-    eprintln!("Module '{full_name}' has issues");
-    for issue in &report.issues {
-        eprintln!("✗ [{}] {}: {}", issue.level, issue.path, issue.message);
-    }
-    std::process::exit(1);
+
+    let mut msg = format!("Module '{full_name}' has issues\n");
+    msg.push_str(&diagnostics::render_validation_issues(&report.issues));
+    fail(msg)
 }
 
 fn validate_spec_by_id_or_enoent(
@@ -3013,7 +2865,7 @@ fn validate_spec_by_id_or_enoent(
     spec_id: &str,
     strict: bool,
 ) -> core_validate::ValidationReport {
-    let path = spool_path.join("specs").join(spec_id).join("spec.md");
+    let path = core_paths::spec_markdown_path(spool_path, spec_id);
     match std::fs::read_to_string(&path) {
         Ok(md) => core_validate::validate_spec_markdown(&md, strict),
         Err(e) => {
@@ -3140,12 +2992,10 @@ fn render_validate_result(
 }
 
 fn detect_item_type(spool_path: &std::path::Path, item: &str) -> String {
-    let is_change = spool_path
-        .join("changes")
-        .join(item)
+    let is_change = core_paths::change_dir(spool_path, item)
         .join("proposal.md")
         .exists();
-    let is_spec = spool_path.join("specs").join(item).join("spec.md").exists();
+    let is_spec = core_paths::spec_markdown_path(spool_path, item).exists();
     match (is_change, is_spec) {
         (true, true) => "ambiguous".to_string(),
         (true, false) => "change".to_string(),
@@ -3155,7 +3005,7 @@ fn detect_item_type(spool_path: &std::path::Path, item: &str) -> String {
 }
 
 fn list_spec_ids(spool_path: &std::path::Path) -> Vec<String> {
-    let specs_dir = spool_path.join("specs");
+    let specs_dir = core_paths::specs_dir(spool_path);
     if !specs_dir.exists() {
         return vec![];
     }
@@ -3175,7 +3025,7 @@ fn list_spec_ids(spool_path: &std::path::Path) -> Vec<String> {
 }
 
 fn list_change_ids(spool_path: &std::path::Path) -> Vec<String> {
-    let changes_dir = spool_path.join("changes");
+    let changes_dir = core_paths::changes_dir(spool_path);
     if !changes_dir.exists() {
         return vec![];
     }
