@@ -1600,7 +1600,36 @@ fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
     eprintln!("- Generating instructions...");
 
     if artifact == "apply" {
-        return fail("Invalid artifact 'apply'");
+        // Match TS/ora: spinner output is written to stderr.
+        eprintln!("- Generating apply instructions...");
+
+        let apply = match core_workflow::compute_apply_instructions(
+            spool_path,
+            &change,
+            schema.as_deref(),
+            ctx,
+        ) {
+            Ok(r) => r,
+            Err(core_workflow::WorkflowError::InvalidChangeName) => {
+                return fail("Invalid change name");
+            }
+            Err(core_workflow::WorkflowError::ChangeNotFound(name)) => {
+                return fail(format!("Change '{name}' not found"));
+            }
+            Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
+                return fail(schema_not_found_message(ctx, &name));
+            }
+            Err(e) => return Err(to_cli_error(e)),
+        };
+
+        if want_json {
+            let rendered = serde_json::to_string_pretty(&apply).expect("json should serialize");
+            println!("{rendered}");
+            return Ok(());
+        }
+
+        print_apply_instructions_text(&apply);
+        return Ok(());
     }
 
     let resolved = match core_workflow::resolve_instructions(
