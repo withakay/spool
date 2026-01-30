@@ -13,15 +13,13 @@ The Rust implementation MUST only replace managed blocks and MUST preserve user-
 - THEN only the managed block content is replaced
 - AND user edits outside the block remain unchanged
 
-### Requirement: Non-interactive installers match TypeScript byte-for-byte
+### Requirement: Installer outputs are deterministic and validated in Rust
 
-When run in non-interactive mode, Rust MUST produce the same files and bytes as TypeScript.
+Installer outputs MUST be deterministic under non-interactive flags and MUST be validated by Rust test coverage.
 
-#### Scenario: `init` output tree matches
-- GIVEN a clean repository
-- WHEN `spool init` is run with non-interactive flags
-- THEN Rust produces the same file tree as TypeScript
-- AND every file byte sequence matches
+#### Scenario: Rust tests validate installers
+- WHEN running `cargo test --workspace`
+- THEN installer-related tests MUST validate the expected file outputs
 
 ### Requirement: Path conventions match existing behavior
 
@@ -31,4 +29,3 @@ Installer outputs MUST use the correct path conventions.
 - GIVEN OpenCode installation selected
 - WHEN `spool init` installs skills/commands/plugins
 - THEN it writes under `.opencode/skill/`, `.opencode/command/`, and `.opencode/plugin/`
-
