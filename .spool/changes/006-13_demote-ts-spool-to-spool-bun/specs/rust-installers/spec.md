@@ -24,5 +24,12 @@ Installers MUST remove or disable any cached legacy TypeScript `spool` that woul
 ## REMOVED Requirements
 
 ### Requirement: Non-interactive installers match TypeScript byte-for-byte
+This requirement is removed; installer verification MUST NOT require executing the TypeScript/Bun implementation.
+
+#### Scenario: Rust installers do not depend on TypeScript
+- **WHEN** a developer runs `spool init` in non-interactive mode
+- **THEN** installer outputs MUST be validated using Rust-owned templates and/or Rust golden tests
+- **AND** the validation process SHALL NOT execute TypeScript/Bun code
+
 **Reason**: The TypeScript/Bun implementation is deprecated and is no longer the canonical source for installer outputs.
 **Migration**: Treat Rust `spool init` outputs as canonical and validate outputs via templates and/or golden tests instead of comparing to the TypeScript implementation.
