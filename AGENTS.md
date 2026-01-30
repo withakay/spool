@@ -21,15 +21,11 @@ Keep this managed block so 'spool update' can refresh the instructions.
 
 `spool-rs/` is the supported Spool implementation and should be favored for all new work.
 
-`spool-bun/` contains the legacy TypeScript/Bun implementation and is **deprecated**. Only touch it when needed for compatibility or to keep parity during the transition.
-
 ## Prompt Templates
 
-If the request mentions editing/updating a Spool prompt (skills, slash commands, agents instructions, markdown etc.), start in `spool-bun/src/core/templates/` (legacy TypeScript templates).
-
-For Rust-installed project templates, see `spool-rs/crates/spool-templates/`.
-
-See `spool-bun/src/core/templates/AGENTS.md` for what to edit.
+Spool project/home templates are owned by the Rust embedded assets:
+- `spool-rs/crates/spool-templates/assets/default/project/`
+- `spool-rs/crates/spool-templates/assets/default/home/`
 
 ## Rust `spool init` Embedded Markdown
 

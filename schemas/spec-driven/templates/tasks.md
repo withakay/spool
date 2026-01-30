@@ -27,7 +27,7 @@ spool tasks show <!-- CHANGE_ID -->
 - **Dependencies**: None
 - **Action**:
   <!-- Describe what should be implemented -->
-- **Verify**: <!-- command to verify, e.g., bun run test:unit -->
+- **Verify**: <!-- command to verify, e.g., cargo test --workspace -->
 - **Done When**: <!-- acceptance criteria, e.g., tests pass -->
 - **Updated At**: <!-- YYYY-MM-DD -->
 - **Status**: [ ] pending
