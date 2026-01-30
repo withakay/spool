@@ -98,17 +98,17 @@ mod tests {
     #[test]
     fn repo_config_overrides_global_config() {
         let td = tempfile::tempdir().unwrap();
-        std::fs::write(
-            td.path().join("spool.json"),
+        crate::io::write_std(
+            &td.path().join("spool.json"),
             "{\"projectPath\":\".repo-spool\"}",
         )
         .unwrap();
 
         let home = tempfile::tempdir().unwrap();
         let cfg_dir = home.path().join(".config/spool");
-        std::fs::create_dir_all(&cfg_dir).unwrap();
-        std::fs::write(
-            cfg_dir.join("config.json"),
+        crate::io::create_dir_all_std(&cfg_dir).unwrap();
+        crate::io::write_std(
+            &cfg_dir.join("config.json"),
             "{\"projectPath\":\".global-spool\"}",
         )
         .unwrap();
@@ -125,8 +125,8 @@ mod tests {
     fn get_spool_path_normalizes_dotdot_segments() {
         let td = tempfile::tempdir().unwrap();
         let repo = td.path();
-        std::fs::create_dir_all(repo.join("a")).unwrap();
-        std::fs::create_dir_all(repo.join("b")).unwrap();
+        crate::io::create_dir_all_std(&repo.join("a")).unwrap();
+        crate::io::create_dir_all_std(&repo.join("b")).unwrap();
 
         let ctx = ConfigContext::default();
         let p = repo.join("a/../b");

@@ -226,7 +226,7 @@ pub fn validate_change_name_input(name: &str) -> bool {
 
 pub fn read_change_schema(spool_path: &Path, change: &str) -> String {
     let meta = crate::paths::change_meta_path(spool_path, change);
-    if let Ok(s) = fs::read_to_string(meta) {
+    if let Ok(Some(s)) = crate::io::read_to_string_optional(&meta) {
         for line in s.lines() {
             let l = line.trim();
             if let Some(rest) = l.strip_prefix("schema:") {
@@ -241,38 +241,20 @@ pub fn read_change_schema(spool_path: &Path, change: &str) -> String {
 }
 
 pub fn list_available_changes(spool_path: &Path) -> Vec<String> {
-    let changes_dir = crate::paths::changes_dir(spool_path);
-    let Ok(entries) = fs::read_dir(changes_dir) else {
-        return Vec::new();
-    };
-    let mut out = Vec::new();
-    for e in entries.flatten() {
-        if e.file_type().ok().is_some_and(|t| t.is_dir()) {
-            let name = e.file_name().to_string_lossy().to_string();
-            if name == "archive" {
-                continue;
-            }
-            out.push(name);
-        }
-    }
-    out.sort();
-    out
+    crate::discovery::list_change_dir_names(spool_path).unwrap_or_default()
 }
 
 pub fn list_available_schemas(ctx: &ConfigContext) -> Vec<String> {
     let mut set: BTreeSet<String> = BTreeSet::new();
     for dir in [Some(package_schemas_dir()), user_schemas_dir(ctx)] {
         let Some(dir) = dir else { continue };
-        let Ok(entries) = fs::read_dir(dir) else {
+        let Ok(names) = crate::discovery::list_dir_names(&dir) else {
             continue;
         };
-        for e in entries.flatten() {
-            if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-                continue;
-            }
-            let schema_dir = e.path();
+        for name in names {
+            let schema_dir = dir.join(&name);
             if schema_dir.join("schema.yaml").exists() {
-                set.insert(e.file_name().to_string_lossy().to_string());
+                set.insert(name);
             }
         }
     }
@@ -285,15 +267,15 @@ pub fn resolve_schema(
 ) -> Result<ResolvedSchema, WorkflowError> {
     let name = schema_name.unwrap_or(default_schema_name());
     let user_dir = user_schemas_dir(ctx).map(|d| d.join(name));
-    if let Some(d) = user_dir {
-        if d.join("schema.yaml").exists() {
-            let schema = load_schema_yaml(&d)?;
-            return Ok(ResolvedSchema {
-                schema,
-                schema_dir: d,
-                source: SchemaSource::User,
-            });
-        }
+    if let Some(d) = user_dir
+        && d.join("schema.yaml").exists()
+    {
+        let schema = load_schema_yaml(&d)?;
+        return Ok(ResolvedSchema {
+            schema,
+            schema_dir: d,
+            source: SchemaSource::User,
+        });
     }
 
     let pkg = package_schemas_dir().join(name);
@@ -515,7 +497,7 @@ pub fn resolve_instructions(
         .collect();
     unlocks.sort();
 
-    let template = fs::read_to_string(templates_dir.join(&a.template))?;
+    let template = crate::io::read_to_string_std(&templates_dir.join(&a.template))?;
 
     Ok(InstructionsResponse {
         change_name: change.to_string(),
@@ -598,7 +580,7 @@ pub fn compute_apply_instructions(
         tracks_path = Some(p.to_string_lossy().to_string());
         tracks_file_exists = p.exists();
         if tracks_file_exists {
-            let content = fs::read_to_string(&p)?;
+            let content = crate::io::read_to_string_std(&p)?;
             tracks_format = Some("checkbox".to_string());
             tasks = parse_checkbox_tasks(&content);
         }
@@ -743,7 +725,7 @@ fn user_schemas_dir(ctx: &ConfigContext) -> Option<PathBuf> {
 }
 
 fn load_schema_yaml(schema_dir: &Path) -> Result<SchemaYaml, WorkflowError> {
-    let s = fs::read_to_string(schema_dir.join("schema.yaml"))?;
+    let s = crate::io::read_to_string_std(&schema_dir.join("schema.yaml"))?;
     Ok(serde_yaml::from_str(&s)?)
 }
 
