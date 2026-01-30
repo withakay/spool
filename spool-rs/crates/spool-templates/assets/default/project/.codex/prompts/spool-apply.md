@@ -1,9 +1,12 @@
 ---
- description: Implement an approved Spool change and keep tasks in sync.
- argument-hint: change-id
- ---
- 
- $ARGUMENTS
+description: Implement an approved Spool change and keep tasks in sync.
+argument-hint: change-id
+---
+
+<UserRequest>
+  (paste change id or implementation request here)
+</UserRequest>
+
 <!-- SPOOL:START -->
 Use the Spool agent skill `spool-apply` as the source of truth for this workflow.
 

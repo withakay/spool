@@ -1,9 +1,12 @@
 ---
- description: Route spool commands via the spool skill (skill-first, CLI fallback).
- argument-hint: spool command
- ---
- 
- $ARGUMENTS
+description: Route spool commands via the spool skill (skill-first, CLI fallback).
+argument-hint: spool command
+---
+
+<SpoolCommand>
+  (paste the spool command here, e.g. apply 006-18_dedupe-harness-prompts)
+</SpoolCommand>
+
 <!-- SPOOL:START -->
 Use the Spool agent skill `spool` as the source of truth for this workflow.
 

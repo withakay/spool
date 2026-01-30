@@ -18,7 +18,7 @@ This skill MUST:
 
 The requested command is provided either:
 - As plain text following the word "spool" in the user request, or
-- In the prompt arguments ($ARGUMENTS), or
+- In prompt arguments (if your harness provides them), or
 - In a <SpoolCommand> block
 
 ## Steps

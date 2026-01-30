@@ -1,9 +1,12 @@
 ---
- description: Scaffold a new Spool change and validate strictly.
- argument-hint: request or feature description
- ---
- 
- $ARGUMENTS
+description: Scaffold a new Spool change and validate strictly.
+argument-hint: request or feature description
+---
+
+<UserRequest>
+  (paste the request here)
+</UserRequest>
+
 <!-- SPOOL:START -->
 Use the Spool agent skill `spool-proposal` as the source of truth for this workflow.
 
