@@ -1,5 +1,5 @@
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use chrono::Utc;
 use miette::{Result, miette};
@@ -45,7 +45,6 @@ pub fn install_default_templates(
     let spool_dir = spool_templates::normalize_spool_dir(&spool_dir_name);
 
     install_project_templates(project_root, &spool_dir, mode, opts)?;
-    install_home_templates(ctx, &spool_dir, mode, opts)?;
     Ok(())
 }
 
@@ -78,46 +77,6 @@ fn install_project_templates(
     Ok(())
 }
 
-fn install_home_templates(
-    ctx: &ConfigContext,
-    spool_dir: &str,
-    mode: InstallMode,
-    opts: &InitOptions,
-) -> Result<()> {
-    if !opts.tools.contains(TOOL_CODEX) {
-        return Ok(());
-    }
-
-    // Codex honors CODEX_HOME when set; otherwise defaults to $HOME/.codex.
-    let base = if let Some(v) = std::env::var_os("CODEX_HOME") {
-        PathBuf::from(v)
-    } else {
-        let home = ctx
-            .home_dir
-            .clone()
-            .ok_or_else(|| miette!("Cannot install Codex prompts: HOME is not set"))?;
-        home.join(".codex")
-    };
-
-    for f in spool_templates::default_home_files() {
-        // Templates are stored under `.codex/...` when installing into HOME.
-        // When CODEX_HOME is set, strip the leading `.codex/` to match Codex conventions.
-        let rel = f.relative_path;
-        let rel = if std::env::var_os("CODEX_HOME").is_some() {
-            rel.strip_prefix(".codex/").unwrap_or(rel)
-        } else {
-            rel
-        };
-
-        let rel = spool_templates::render_rel_path(rel, spool_dir);
-        let bytes = spool_templates::render_bytes(f.contents, spool_dir);
-        let target = base.join(rel.as_ref());
-        write_one(&target, &bytes, mode, opts)?;
-    }
-
-    Ok(())
-}
-
 fn should_install_project_rel(rel: &str, tools: &BTreeSet<String>) -> bool {
     // Always install Spool project assets.
     if rel == "AGENTS.md" {
@@ -136,6 +95,9 @@ fn should_install_project_rel(rel: &str, tools: &BTreeSet<String>) -> bool {
     }
     if rel.starts_with(".github/") {
         return tools.contains(TOOL_GITHUB_COPILOT);
+    }
+    if rel.starts_with(".codex/") {
+        return tools.contains(TOOL_CODEX);
     }
 
     // Unknown/unclassified: only install when tools=all (caller controls via set contents).

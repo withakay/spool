@@ -1714,10 +1714,7 @@ fn handle_init(rt: &Runtime, args: &[String]) -> CliResult<()> {
         if target_path.join(".github").exists() {
             detected.insert(spool_core::installers::TOOL_GITHUB_COPILOT);
         }
-        let codex_home = std::env::var_os("CODEX_HOME")
-            .map(std::path::PathBuf::from)
-            .or_else(|| ctx.home_dir.clone().map(|h| h.join(".codex")));
-        if codex_home.is_some_and(|p| p.exists()) {
+        if target_path.join(".codex").exists() {
             detected.insert(spool_core::installers::TOOL_CODEX);
         }
 
