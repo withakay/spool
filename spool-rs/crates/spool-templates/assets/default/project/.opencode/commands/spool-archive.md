@@ -1,14 +1,14 @@
 ---
 description: Archive a deployed Spool change and update specs.
 ---
-<ChangeId>
+<UserRequest>
   $ARGUMENTS
-</ChangeId>
+</UserRequest>
 <!-- SPOOL:START -->
 Use the Spool agent skill `spool-archive` as the source of truth for this workflow.
 
 **Input**
-- The change ID is provided in the prompt arguments or <ChangeId> block.
+ - The change ID is provided in the prompt arguments or <UserRequest> block.
 
 **Instructions**
 Tell the model to use the `spool-archive` skill to complete this workflow, using any supplied arguments or context from the prompt.
