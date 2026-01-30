@@ -1,2 +1,0 @@
-Unknown item 'does-not-exist'
-Did you mean: cli-list, cli-completion, cli-config, cli-init, cli-tasks?
