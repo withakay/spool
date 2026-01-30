@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use miette::{IntoDiagnostic, Result};
+use miette::Result;
 use serde::Serialize;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -52,12 +52,12 @@ pub struct ChangeDelta {
 
 pub fn read_spec_markdown(spool_path: &Path, id: &str) -> Result<String> {
     let path = crate::paths::spec_markdown_path(spool_path, id);
-    std::fs::read_to_string(&path).into_diagnostic()
+    crate::io::read_to_string(&path)
 }
 
 pub fn read_change_proposal_markdown(spool_path: &Path, change_id: &str) -> Result<String> {
     let path = crate::paths::change_dir(spool_path, change_id).join("proposal.md");
-    std::fs::read_to_string(&path).into_diagnostic()
+    crate::io::read_to_string(&path)
 }
 
 pub fn parse_spec_show_json(id: &str, markdown: &str) -> SpecShowJson {
@@ -83,12 +83,8 @@ pub fn read_change_delta_spec_paths(spool_path: &Path, change_id: &str) -> Resul
     }
 
     let mut out: Vec<PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(&specs_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
-            continue;
-        }
-        let spec_md = entry.path().join("spec.md");
+    for name in crate::discovery::list_dir_names(&specs_dir)? {
+        let spec_md = specs_dir.join(name).join("spec.md");
         if spec_md.exists() {
             out.push(spec_md);
         }
@@ -118,7 +114,7 @@ pub struct DeltaSpecFile {
 }
 
 pub fn load_delta_spec_file(path: &Path) -> Result<DeltaSpecFile> {
-    let markdown = std::fs::read_to_string(path).into_diagnostic()?;
+    let markdown = crate::io::read_to_string(path)?;
     let spec = path
         .parent()
         .and_then(|p| p.file_name())
@@ -175,9 +171,7 @@ fn parse_delta_spec_file(file: &DeltaSpecFile) -> Vec<ChangeDelta> {
 fn parse_delta_op_header(line: &str) -> Option<String> {
     // Example: "## ADDED Requirements"
     let t = line.trim();
-    let Some(rest) = t.strip_prefix("## ") else {
-        return None;
-    };
+    let rest = t.strip_prefix("## ")?;
     let rest = rest.trim();
     let op = rest.strip_suffix(" Requirements").unwrap_or(rest).trim();
     if matches!(op, "ADDED" | "MODIFIED" | "REMOVED" | "RENAMED") {
@@ -268,7 +262,8 @@ fn parse_requirement_block(lines: &[&str], start: usize) -> (String, Requirement
 
 fn extract_section_text(markdown: &str, header: &str) -> String {
     let lines = extract_section_lines(markdown, header);
-    collapse_whitespace(&lines.join(" ").trim().to_string())
+    let joined = lines.join(" ");
+    collapse_whitespace(joined.trim())
 }
 
 fn extract_section_lines(markdown: &str, header: &str) -> Vec<String> {

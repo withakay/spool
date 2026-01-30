@@ -1,11 +1,15 @@
 use std::path::{Path, PathBuf};
 
-use miette::{IntoDiagnostic, Result};
+use miette::Result;
 use serde::Serialize;
 
 use crate::show::{
     DeltaSpecFile, load_delta_spec_file, parse_change_show_json, parse_spec_show_json,
 };
+
+mod issue;
+
+pub use issue::{error, info, issue, warning, with_line, with_loc, with_metadata};
 
 pub type ValidationLevel = &'static str;
 
@@ -131,7 +135,7 @@ pub fn validate_spec_markdown(markdown: &str, strict: bool) -> ValidationReport 
 
 pub fn validate_spec(spool_path: &Path, spec_id: &str, strict: bool) -> Result<ValidationReport> {
     let path = crate::paths::spec_markdown_path(spool_path, spec_id);
-    let markdown = std::fs::read_to_string(&path).into_diagnostic()?;
+    let markdown = crate::io::read_to_string(&path)?;
     Ok(validate_spec_markdown(&markdown, strict))
 }
 
@@ -234,10 +238,6 @@ pub struct ResolvedModule {
 
 pub fn resolve_module(spool_path: &Path, input: &str) -> Result<Option<ResolvedModule>> {
     let modules_dir = crate::paths::modules_dir(spool_path);
-    if !modules_dir.exists() {
-        return Ok(None);
-    }
-
     let trimmed = input.trim();
     if trimmed.is_empty() {
         return Ok(None);
@@ -248,15 +248,7 @@ pub fn resolve_module(spool_path: &Path, input: &str) -> Result<Option<ResolvedM
         wanted_id = Some(format!("{num:03}"));
     }
 
-    for entry in std::fs::read_dir(&modules_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
-            continue;
-        }
-        let full_name = entry.file_name().to_string_lossy().to_string();
-        if full_name.starts_with('.') {
-            continue;
-        }
+    for full_name in crate::discovery::list_module_dir_names(spool_path)? {
         // folder format: NNN_name
         let Some((id_part, _)) = full_name.split_once('_') else {
             continue;
@@ -269,7 +261,7 @@ pub fn resolve_module(spool_path: &Path, input: &str) -> Result<Option<ResolvedM
             || wanted_id.as_deref().is_some_and(|w| w == id_part)
             || trimmed == id_part
         {
-            let module_dir = entry.path();
+            let module_dir = modules_dir.join(&full_name);
             let module_md = module_dir.join("module.md");
             return Ok(Some(ResolvedModule {
                 id: id_part.to_string(),
@@ -298,7 +290,7 @@ pub fn validate_module(
     };
 
     let mut issues: Vec<ValidationIssue> = Vec::new();
-    let md = match std::fs::read_to_string(&r.module_md) {
+    let md = match crate::io::read_to_string_std(&r.module_md) {
         Ok(c) => c,
         Err(_) => {
             issues.push(issue(
@@ -335,17 +327,6 @@ pub fn validate_module(
     }
 
     Ok((r.full_name, ValidationReport::new(issues, strict)))
-}
-
-fn issue(level: ValidationLevel, path: &str, message: impl Into<String>) -> ValidationIssue {
-    ValidationIssue {
-        level: level.to_string(),
-        path: path.to_string(),
-        message: message.into(),
-        line: None,
-        column: None,
-        metadata: None,
-    }
 }
 
 fn extract_section(markdown: &str, header: &str) -> String {
