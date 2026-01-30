@@ -12,8 +12,6 @@
 
 <p align="center">
   <a href="https://github.com/withakay/Spool/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/withakay/Spool/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://www.npmjs.com/package/@withakay/spool"><img alt="npm version" src="https://img.shields.io/npm/v/@withakay/spool?style=flat-square" /></a>
-  <a href="https://nodejs.org/"><img alt="node version" src="https://img.shields.io/node/v/@withakay/spool?style=flat-square" /></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" /></a>
 </p>
 
@@ -37,12 +35,12 @@ It’s designed for the reality of AI-assisted development where work spans mult
 
 ### Prerequisites
 
-- Node.js >= 20.19.0
+- Rust toolchain (rustup + cargo)
 
 ### Install
 
 ```bash
-npm install -g @withakay/spool@latest
+make rust-install
 spool --version
 ```
 
@@ -202,14 +200,14 @@ spool archive <change-id> -y
 - [ ] Run `spool init` and verify `.spool/planning/` + `.spool/research/` templates exist
 - [ ] Run `spool workflow init` and verify `.spool/workflows/*.yaml` are created
 - [ ] Verify research and review slash commands are available in at least one supported tool
-- [ ] Run `bun run build` (or `npm run build`) to verify TypeScript compilation
+- [ ] Run `make build` to verify the Rust CLI builds
 
 ## Contributing
 
 ```bash
-bun install
-bun run build
-bun run test
+make build
+make test
+make lint
 ```
 
 ## License
