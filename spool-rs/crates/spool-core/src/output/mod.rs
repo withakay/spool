@@ -48,11 +48,11 @@ mod tests {
 
     #[test]
     fn resolve_interactive_respects_cli_and_env() {
-        assert_eq!(resolve_interactive(false, None), true);
-        assert_eq!(resolve_interactive(false, Some("1")), true);
-        assert_eq!(resolve_interactive(false, Some("0")), false);
-        assert_eq!(resolve_interactive(true, None), false);
-        assert_eq!(resolve_interactive(true, Some("1")), false);
+        assert!(resolve_interactive(false, None));
+        assert!(resolve_interactive(false, Some("1")));
+        assert!(!resolve_interactive(false, Some("0")));
+        assert!(!resolve_interactive(true, None));
+        assert!(!resolve_interactive(true, Some("1")));
     }
 
     #[test]

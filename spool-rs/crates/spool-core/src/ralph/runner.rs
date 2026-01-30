@@ -225,29 +225,9 @@ fn infer_module_from_change(change_id: &str) -> Result<String> {
 }
 
 fn changes_for_module(spool_path: &Path, module_id: &str) -> Result<Vec<String>> {
-    let changes_dir = crate::paths::changes_dir(spool_path);
-    if !changes_dir.exists() {
-        return Ok(vec![]);
-    }
     let prefix = format!("{module}-", module = module_id);
-    let mut out = Vec::new();
-    let entries = std::fs::read_dir(&changes_dir)
-        .map_err(|e| miette!("I/O error reading {p}: {e}", p = changes_dir.display()))?;
-    for entry in entries {
-        let entry =
-            entry.map_err(|e| miette!("I/O error reading {p}: {e}", p = changes_dir.display()))?;
-        let ft = entry
-            .file_type()
-            .map_err(|e| miette!("I/O error reading {p}: {e}", p = changes_dir.display()))?;
-        if !ft.is_dir() {
-            continue;
-        }
-        let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with(&prefix) {
-            out.push(name);
-        }
-    }
-    out.sort();
+    let mut out = crate::discovery::list_change_dir_names(spool_path)?;
+    out.retain(|name| name.starts_with(&prefix));
     Ok(out)
 }
 

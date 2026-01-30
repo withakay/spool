@@ -1,6 +1,5 @@
 use miette::{Result, miette};
 use serde::{Deserialize, Serialize};
-use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -38,8 +37,7 @@ pub fn load_state(spool_path: &Path, change_id: &str) -> Result<Option<RalphStat
     if !p.exists() {
         return Ok(None);
     }
-    let raw = fs::read_to_string(&p)
-        .map_err(|e| miette!("I/O error reading {p}: {e}", p = p.display()))?;
+    let raw = crate::io::read_to_string(&p)?;
     let state = serde_json::from_str(&raw)
         .map_err(|e| miette!("JSON error parsing {p}: {e}", p = p.display()))?;
     Ok(Some(state))
@@ -47,12 +45,11 @@ pub fn load_state(spool_path: &Path, change_id: &str) -> Result<Option<RalphStat
 
 pub fn save_state(spool_path: &Path, change_id: &str, state: &RalphState) -> Result<()> {
     let dir = ralph_state_dir(spool_path, change_id);
-    fs::create_dir_all(&dir)
-        .map_err(|e| miette!("I/O error creating {p}: {e}", p = dir.display()))?;
+    crate::io::create_dir_all(&dir)?;
     let p = ralph_state_json_path(spool_path, change_id);
     let raw = serde_json::to_string_pretty(state)
         .map_err(|e| miette!("JSON error serializing state: {e}"))?;
-    fs::write(&p, raw).map_err(|e| miette!("I/O error writing {p}: {e}", p = p.display()))?;
+    crate::io::write(&p, raw)?;
     Ok(())
 }
 
@@ -61,21 +58,14 @@ pub fn load_context(spool_path: &Path, change_id: &str) -> Result<String> {
     if !p.exists() {
         return Ok(String::new());
     }
-    Ok(fs::read_to_string(&p)
-        .map_err(|e| miette!("I/O error reading {p}: {e}", p = p.display()))?)
+    crate::io::read_to_string(&p)
 }
 
 pub fn append_context(spool_path: &Path, change_id: &str, text: &str) -> Result<()> {
     let dir = ralph_state_dir(spool_path, change_id);
-    fs::create_dir_all(&dir)
-        .map_err(|e| miette!("I/O error creating {p}: {e}", p = dir.display()))?;
+    crate::io::create_dir_all(&dir)?;
     let p = ralph_context_path(spool_path, change_id);
-    let mut existing = if p.exists() {
-        fs::read_to_string(&p)
-            .map_err(|e| miette!("I/O error reading {p}: {e}", p = p.display()))?
-    } else {
-        String::new()
-    };
+    let mut existing = crate::io::read_to_string_optional(&p)?.unwrap_or_default();
 
     let trimmed = text.trim();
     if trimmed.is_empty() {
@@ -87,15 +77,14 @@ pub fn append_context(spool_path: &Path, change_id: &str, text: &str) -> Result<
     }
     existing.push_str(trimmed);
     existing.push('\n');
-    fs::write(&p, existing).map_err(|e| miette!("I/O error writing {p}: {e}", p = p.display()))?;
+    crate::io::write(&p, existing)?;
     Ok(())
 }
 
 pub fn clear_context(spool_path: &Path, change_id: &str) -> Result<()> {
     let dir = ralph_state_dir(spool_path, change_id);
-    fs::create_dir_all(&dir)
-        .map_err(|e| miette!("I/O error creating {p}: {e}", p = dir.display()))?;
+    crate::io::create_dir_all(&dir)?;
     let p = ralph_context_path(spool_path, change_id);
-    fs::write(&p, "").map_err(|e| miette!("I/O error writing {p}: {e}", p = p.display()))?;
+    crate::io::write(&p, "")?;
     Ok(())
 }

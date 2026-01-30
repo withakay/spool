@@ -1,6 +1,5 @@
 use crate::validate;
 use miette::{Result, miette};
-use std::fs;
 use std::path::Path;
 
 pub struct BuildPromptOptions {
@@ -56,16 +55,16 @@ pub fn build_ralph_prompt(
 ) -> Result<String> {
     let mut sections: Vec<String> = Vec::new();
 
-    if let Some(change_id) = options.change_id.as_deref() {
-        if let Some(ctx) = load_change_context(spool_path, change_id)? {
-            sections.push(ctx);
-        }
+    if let Some(change_id) = options.change_id.as_deref()
+        && let Some(ctx) = load_change_context(spool_path, change_id)?
+    {
+        sections.push(ctx);
     }
 
-    if let Some(module_id) = options.module_id.as_deref() {
-        if let Some(ctx) = load_module_context(spool_path, module_id)? {
-            sections.push(ctx);
-        }
+    if let Some(module_id) = options.module_id.as_deref()
+        && let Some(ctx) = load_module_context(spool_path, module_id)?
+    {
+        sections.push(ctx);
     }
 
     sections.push(user_prompt.to_string());
@@ -99,8 +98,7 @@ fn load_change_context(spool_path: &Path, change_id: &str) -> Result<Option<Stri
         return Ok(None);
     }
 
-    let proposal = fs::read_to_string(&proposal_path)
-        .map_err(|e| miette!("I/O error reading {p}: {e}", p = proposal_path.display()))?;
+    let proposal = crate::io::read_to_string(&proposal_path)?;
     Ok(Some(format!(
         "## Change Proposal ({id})\n\n{proposal}",
         id = resolved,
@@ -119,18 +117,10 @@ fn resolve_change_id(changes_dir: &Path, input: &str) -> Result<Option<String>> 
     }
 
     let mut matches: Vec<String> = Vec::new();
-    let entries = fs::read_dir(changes_dir)
-        .map_err(|e| miette!("I/O error reading {p}: {e}", p = changes_dir.display()))?;
-    for entry in entries {
-        let entry =
-            entry.map_err(|e| miette!("I/O error reading {p}: {e}", p = changes_dir.display()))?;
-        let ft = entry
-            .file_type()
-            .map_err(|e| miette!("I/O error reading {p}: {e}", p = changes_dir.display()))?;
-        if !ft.is_dir() {
+    for name in crate::discovery::list_dir_names(changes_dir)? {
+        if name == "archive" {
             continue;
         }
-        let name = entry.file_name().to_string_lossy().to_string();
         if name.starts_with(input) {
             matches.push(name);
         }
@@ -160,12 +150,7 @@ fn load_module_context(spool_path: &Path, module_id: &str) -> Result<Option<Stri
         return Ok(None);
     }
 
-    let module_content = fs::read_to_string(&resolved.module_md).map_err(|e| {
-        miette!(
-            "I/O error reading {p}: {e}",
-            p = resolved.module_md.display()
-        )
-    })?;
+    let module_content = crate::io::read_to_string(&resolved.module_md)?;
     Ok(Some(format!(
         "## Module ({id})\n\n{content}",
         id = resolved.id,
