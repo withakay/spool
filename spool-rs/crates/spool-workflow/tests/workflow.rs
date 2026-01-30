@@ -25,6 +25,6 @@ fn load_workflow_parses_and_counts_tasks() {
 
     let wf = workflow::load_workflow(&spool_path, "research").expect("load");
     assert_eq!(wf.id, "research");
-    assert!(wf.waves.len() >= 1);
+    assert!(!wf.waves.is_empty());
     assert!(workflow::count_tasks(&wf) >= 1);
 }

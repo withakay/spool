@@ -82,16 +82,11 @@ pub struct TaskItem {
     pub header_line_index: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TaskKind {
+    #[default]
     Normal,
     Checkpoint,
-}
-
-impl Default for TaskKind {
-    fn default() -> Self {
-        TaskKind::Normal
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -520,31 +515,28 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
             continue;
         }
 
-        if current_task.id.is_none() {
-            if let Some(w) = current_wave {
-                if let Some(cap) = wave_dep_re.captures(line) {
-                    let raw = cap[1].trim().to_string();
-                    let entry = waves.entry(w).or_insert_with(|| WaveBuilder {
-                        header_line_index: line_idx,
-                        depends_on_raw: None,
-                        depends_on_line_index: None,
-                    });
-                    if entry.depends_on_raw.is_some() {
-                        diagnostics.push(TaskDiagnostic {
-                            level: DiagnosticLevel::Warning,
-                            message: format!(
-                                "Wave {w}: duplicate Depends On line; using the first one"
-                            ),
-                            task_id: None,
-                            line: Some(line_idx + 1),
-                        });
-                    } else {
-                        entry.depends_on_raw = Some(raw);
-                        entry.depends_on_line_index = Some(line_idx);
-                    }
-                    continue;
-                }
+        if current_task.id.is_none()
+            && let Some(w) = current_wave
+            && let Some(cap) = wave_dep_re.captures(line)
+        {
+            let raw = cap[1].trim().to_string();
+            let entry = waves.entry(w).or_insert_with(|| WaveBuilder {
+                header_line_index: line_idx,
+                depends_on_raw: None,
+                depends_on_line_index: None,
+            });
+            if entry.depends_on_raw.is_some() {
+                diagnostics.push(TaskDiagnostic {
+                    level: DiagnosticLevel::Warning,
+                    message: format!("Wave {w}: duplicate Depends On line; using the first one"),
+                    task_id: None,
+                    line: Some(line_idx + 1),
+                });
+            } else {
+                entry.depends_on_raw = Some(raw);
+                entry.depends_on_line_index = Some(line_idx);
             }
+            continue;
         }
 
         if let Some(cap) = task_re.captures(line) {
@@ -956,8 +948,7 @@ pub fn update_enhanced_task_status(
 
     if let Some(start) = start_idx {
         let mut end = lines.len();
-        for i in (start + 1)..lines.len() {
-            let line = lines[i].as_str();
+        for (i, line) in lines.iter().enumerate().skip(start + 1) {
             if line.starts_with("### ") || line.starts_with("## ") {
                 end = i;
                 break;
@@ -966,8 +957,8 @@ pub fn update_enhanced_task_status(
 
         let mut status_idx: Option<usize> = None;
         let mut updated_idx: Option<usize> = None;
-        for i in (start + 1)..end {
-            let l = lines[i].trim_start();
+        for (i, line) in lines.iter().enumerate().take(end).skip(start + 1) {
+            let l = line.trim_start();
             if status_idx.is_none() && l.starts_with("- **Status**:") {
                 status_idx = Some(i);
             }
