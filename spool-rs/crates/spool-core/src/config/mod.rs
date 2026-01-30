@@ -40,9 +40,7 @@ impl ConfigContext {
 
 pub fn load_project_config(project_root: &Path) -> Option<ProjectConfig> {
     let path = project_root.join(PROJECT_CONFIG_FILE_NAME);
-    let Ok(contents) = std::fs::read_to_string(&path) else {
-        return None;
-    };
+    let contents = crate::io::read_to_string_optional(&path).ok().flatten()?;
 
     match serde_json::from_str(&contents) {
         Ok(v) => Some(v),
@@ -86,7 +84,7 @@ pub fn load_global_config(ctx: &ConfigContext) -> GlobalConfig {
         return GlobalConfig::default();
     };
 
-    let Ok(contents) = std::fs::read_to_string(&path) else {
+    let Some(contents) = crate::io::read_to_string_optional(&path).ok().flatten() else {
         return GlobalConfig::default();
     };
 
