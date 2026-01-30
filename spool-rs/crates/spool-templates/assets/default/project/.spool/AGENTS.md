@@ -19,7 +19,7 @@ Instructions for AI coding assistants using Spool for spec-driven development.
 Create proposal when you need to:
 - Add features or functionality
 - Make breaking changes (API, schema)
-- Change architecture or patterns  
+- Change architecture or patterns
 - Optimize performance (changes behavior)
 - Update security patterns
 
@@ -69,7 +69,7 @@ After deployment, create separate PR to:
 **Context Checklist:**
 - [ ] Read relevant specs in `specs/[capability]/spec.md`
 - [ ] Check pending changes in `changes/` for conflicts
-- [ ] Read `.spool/project.md` for conventions
+  - [ ] Read `.spool/project.md` for conventions
 - [ ] Run `spool list` to see active changes
 - [ ] Run `spool list --specs` to see existing capabilities
 
@@ -174,7 +174,7 @@ spool validate --modules    # Validate all modules
 ```
 New request?
 ├─ Bug fix restoring spec behavior? → Fix directly
-├─ Typo/format/comment? → Fix directly  
+├─ Typo/format/comment? → Fix directly
 ├─ New feature/capability? → Create proposal
 ├─ Breaking change? → Create proposal
 ├─ Architecture change? → Create proposal
