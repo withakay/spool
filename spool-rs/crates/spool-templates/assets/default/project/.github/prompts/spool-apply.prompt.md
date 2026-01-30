@@ -1,8 +1,11 @@
 ---
- description: Implement an approved Spool change and keep tasks in sync.
- ---
- 
- $ARGUMENTS
+description: Implement an approved Spool change and keep tasks in sync.
+---
+
+<UserRequest>
+  ${input:change_id:Change ID (e.g. 006-18_dedupe-harness-prompts) or implementation request}
+</UserRequest>
+
 <!-- SPOOL:START -->
 Use the Spool agent skill `spool-apply` as the source of truth for this workflow.
 

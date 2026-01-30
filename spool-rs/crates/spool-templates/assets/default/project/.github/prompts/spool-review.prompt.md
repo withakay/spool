@@ -1,13 +1,16 @@
 ---
- description: Conduct adversarial review via Spool review skill.
- ---
- 
-  $ARGUMENTS
+description: Conduct adversarial review via Spool review skill.
+---
+
+<UserRequest>
+  ${input:request:Change ID or review target}
+</UserRequest>
+
 <!-- SPOOL:START -->
 Use the Spool agent skill `spool-review` as the source of truth for this workflow.
 
 **Input**
-- The change ID or review target is provided in the prompt arguments or <ChangeId> block.
+- The change ID or review target is provided in the prompt arguments or <UserRequest> block.
 
 **Instructions**
 Tell the model to use the `spool-review` skill to complete this workflow, using any supplied arguments or context from the prompt.
