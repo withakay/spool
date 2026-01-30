@@ -13,11 +13,11 @@ cargo clippy --workspace -- -D warnings
 
 ## Packaging + Transition Plan
 
-Spool is transitioning from a TypeScript npm distribution (`@withakay/spool`) to a Rust binary.
+Spool is distributed as a Rust binary.
 
-Chosen distribution approach:
+Distribution approach:
 - Publish platform-specific Rust release archives via GitHub Releases (with SHA-256 checksums)
-- Keep publishing `@withakay/spool` as a thin npm wrapper that downloads the correct binary and exposes the `spool` command
+- Support local developer installs via `make rust-install`
 
 Initial release target matrix:
 - `x86_64-apple-darwin`
@@ -44,10 +44,11 @@ powershell -Command "Compress-Archive -Path target/release/spool.exe -Destinatio
 powershell -Command "Get-FileHash spool-v${env:VERSION}-${env:TARGET}.zip -Algorithm SHA256 | Format-List" > spool-v${env:VERSION}-${env:TARGET}.sha256
 ```
 
-npm wrapper behavior (`@withakay/spool`):
-- `postinstall` downloads `spool-vX.Y.Z-<target>` from GitHub Releases, verifies checksum, extracts to `dist/`
-- `bin/spool.js` resolves the installed binary and `spawn`s it, streaming stdout/stderr and preserving exit code
-- Optional developer override: `SPOOL_RS_BIN=/abs/path/to/spool`
+Optional developer install:
+```bash
+make rust-install
+spool --version
+```
 
 ## Coverage
 
@@ -87,11 +88,4 @@ Binary (per platform):
 Checksum:
 ```bash
 shasum -a 256 -c spool-vX.Y.Z-<target>.sha256
-```
-
-npm wrapper:
-```bash
-npm i -g @withakay/spool@X.Y.Z
-spool --version
-spool --help
 ```
