@@ -43,3 +43,7 @@ pub fn fail<T>(message: impl Into<String>) -> CliResult<T> {
 pub fn silent_fail<T>() -> CliResult<T> {
     Err(CliError::silent())
 }
+
+pub fn to_cli_error<E: fmt::Display>(e: E) -> CliError {
+    CliError::msg(e.to_string())
+}

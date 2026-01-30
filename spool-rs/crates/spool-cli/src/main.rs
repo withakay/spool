@@ -2,27 +2,63 @@ use chrono::{DateTime, Utc};
 mod cli_error;
 mod diagnostics;
 
-use crate::cli_error::{fail, silent_fail, CliError, CliResult};
+use crate::cli_error::{CliError, CliResult, fail, silent_fail, to_cli_error};
 use spool_core::config::ConfigContext;
-use spool_core::installers::{install_default_templates, InitOptions, InstallMode};
+use spool_core::installers::{InitOptions, InstallMode, install_default_templates};
 use spool_core::paths as core_paths;
 use spool_core::ralph as core_ralph;
+use spool_core::repo_index::RepoIndex;
 use spool_core::spool_dir::get_spool_path;
 use spool_core::{
     create as core_create, r#match::nearest_matches, show as core_show, validate as core_validate,
     workflow as core_workflow,
 };
-use spool_harness::stub::StubHarness;
 use spool_harness::Harness;
 use spool_harness::OpencodeHarness;
+use spool_harness::stub::StubHarness;
 use spool_workflow::planning as wf_planning;
 use spool_workflow::state as wf_state;
 use spool_workflow::tasks as wf_tasks;
 use spool_workflow::workflow as wf_workflow;
 use std::collections::BTreeSet;
 use std::path::Path;
+use std::path::PathBuf;
+use std::sync::OnceLock;
 
 const HELP: &str = "Usage: spool [options] [command]\n\nAI-native system for spec-driven development\n\nOptions:\n  -V, --version                    output the version number\n  --no-color                       Disable color output\n  -h, --help                       display help for command\n\nCommands:\n  init [options] [path]            Initialize Spool in your project\n  update [options] [path]          Update Spool instruction files\n  tasks                            Track execution tasks for a change\n  plan                             Project planning tools\n  state                            View and update planning/STATE.md\n  workflow                         Manage and run workflows\n  list [options]                   List items (changes by default). Use --specs\n                                   or --modules to list other items.\n  dashboard                        Display an interactive dashboard of specs and\n                                   changes\n  archive [options] [change-name]  Archive a completed change and update main\n                                   specs\n  config [options]                 View and modify global Spool configuration\n  create                           Create items\n  validate [options] [item-name]   Validate changes, specs, and modules\n  show [options] [item-name]       Show a change or spec\n  completions                      Manage shell completions for Spool CLI\n  status [options]                 [Experimental] Display artifact completion\n                                   status for a change\n  x-templates [options]            [Experimental] Show resolved template paths\n                                   for all artifacts in a schema\n  x-schemas [options]              [Experimental] List available workflow\n                                   schemas with descriptions\n  agent                            Commands that generate machine-readable\n                                   output for AI agents\n  ralph [options] [prompt]         Run iterative AI loop against a change\n                                   proposal\n  split [change-id]                Split a large change into smaller changes\n  help [command]                   display help for command";
+
+struct Runtime {
+    ctx: ConfigContext,
+    cwd: PathBuf,
+    spool_path: OnceLock<PathBuf>,
+    repo_index: OnceLock<RepoIndex>,
+}
+
+impl Runtime {
+    fn new() -> Self {
+        Self {
+            ctx: ConfigContext::from_process_env(),
+            cwd: PathBuf::from("."),
+            spool_path: OnceLock::new(),
+            repo_index: OnceLock::new(),
+        }
+    }
+
+    fn ctx(&self) -> &ConfigContext {
+        &self.ctx
+    }
+
+    fn spool_path(&self) -> &Path {
+        self.spool_path
+            .get_or_init(|| get_spool_path(&self.cwd, &self.ctx))
+            .as_path()
+    }
+
+    fn repo_index(&self) -> &RepoIndex {
+        self.repo_index
+            .get_or_init(|| RepoIndex::load(self.spool_path()).unwrap_or_default())
+    }
+}
 
 fn main() {
     // Ensure tracing can be enabled for debugging without changing user output.
@@ -69,77 +105,79 @@ fn run(args: &[String]) -> CliResult<()> {
         return Ok(());
     }
 
+    let rt = Runtime::new();
+
     match args.first().map(|s| s.as_str()) {
         Some("create") => {
-            handle_create(&args[1..])?;
+            handle_create(&rt, &args[1..])?;
             return Ok(());
         }
         Some("new") => {
-            handle_new(&args[1..])?;
+            handle_new(&rt, &args[1..])?;
             return Ok(());
         }
         Some("init") => {
-            handle_init(&args[1..])?;
+            handle_init(&rt, &args[1..])?;
             return Ok(());
         }
         Some("update") => {
-            handle_update(&args[1..])?;
+            handle_update(&rt, &args[1..])?;
             return Ok(());
         }
         Some("list") => {
-            handle_list(&args[1..])?;
+            handle_list(&rt, &args[1..])?;
             return Ok(());
         }
         Some("plan") => {
-            handle_plan(&args[1..])?;
+            handle_plan(&rt, &args[1..])?;
             return Ok(());
         }
         Some("state") => {
-            handle_state(&args[1..])?;
+            handle_state(&rt, &args[1..])?;
             return Ok(());
         }
         Some("tasks") => {
-            handle_tasks(&args[1..])?;
+            handle_tasks(&rt, &args[1..])?;
             return Ok(());
         }
         Some("workflow") => {
-            handle_workflow(&args[1..])?;
+            handle_workflow(&rt, &args[1..])?;
             return Ok(());
         }
         Some("status") => {
-            handle_status(&args[1..])?;
+            handle_status(&rt, &args[1..])?;
             return Ok(());
         }
         Some("templates") | Some("x-templates") => {
-            handle_templates(&args[1..])?;
+            handle_templates(&rt, &args[1..])?;
             return Ok(());
         }
         Some("instructions") => {
-            handle_instructions(&args[1..])?;
+            handle_instructions(&rt, &args[1..])?;
             return Ok(());
         }
         Some("agent") => {
-            handle_agent(&args[1..])?;
+            handle_agent(&rt, &args[1..])?;
             return Ok(());
         }
         Some("x-instructions") => {
-            handle_x_instructions(&args[1..])?;
+            handle_x_instructions(&rt, &args[1..])?;
             return Ok(());
         }
         Some("show") => {
-            handle_show(&args[1..])?;
+            handle_show(&rt, &args[1..])?;
             return Ok(());
         }
         Some("validate") => {
-            handle_validate(&args[1..])?;
+            handle_validate(&rt, &args[1..])?;
             return Ok(());
         }
         Some("ralph") => {
-            handle_ralph(&args[1..])?;
+            handle_ralph(&rt, &args[1..])?;
             return Ok(());
         }
         Some("loop") => {
-            handle_loop(&args[1..])?;
+            handle_loop(&rt, &args[1..])?;
             return Ok(());
         }
         _ => {}
@@ -169,7 +207,7 @@ const RALPH_HELP: &str = "Usage: spool ralph [options] [prompt]\n\nRun the Ralph
 const LOOP_HELP: &str =
     "Usage: spool loop [options] [prompt]\n\nDeprecated alias for 'spool ralph'";
 
-fn handle_state(args: &[String]) -> CliResult<()> {
+fn handle_state(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{STATE_HELP}");
         return Ok(());
@@ -178,8 +216,7 @@ fn handle_state(args: &[String]) -> CliResult<()> {
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
     let text = args.iter().skip(1).cloned().collect::<Vec<_>>().join(" ");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
     let spool_dir = spool_path
         .file_name()
         .map(|s| s.to_string_lossy().to_string())
@@ -193,7 +230,7 @@ fn handle_state(args: &[String]) -> CliResult<()> {
     }
 
     if sub == "show" {
-        let contents = std::fs::read_to_string(&state_path)
+        let contents = spool_core::io::read_to_string(&state_path)
             .map_err(|_| CliError::msg("Failed to read STATE.md"))?;
         print!("{contents}");
         return Ok(());
@@ -203,7 +240,7 @@ fn handle_state(args: &[String]) -> CliResult<()> {
         return Err(CliError::msg("Missing required text"));
     }
 
-    let contents = std::fs::read_to_string(&state_path)
+    let contents = spool_core::io::read_to_string(&state_path)
         .map_err(|_| CliError::msg("Failed to read STATE.md"))?;
     let date = wf_state::now_date();
 
@@ -224,7 +261,7 @@ fn handle_state(args: &[String]) -> CliResult<()> {
         Err(e) => return Err(CliError::msg(e)),
     };
 
-    std::fs::write(&state_path, updated).map_err(|e| CliError::msg(e.to_string()))?;
+    spool_core::io::write(&state_path, updated.as_bytes()).map_err(to_cli_error)?;
 
     match sub {
         "decision" => eprintln!("✔ Decision recorded: {text}"),
@@ -238,7 +275,7 @@ fn handle_state(args: &[String]) -> CliResult<()> {
     Ok(())
 }
 
-fn handle_workflow(args: &[String]) -> CliResult<()> {
+fn handle_workflow(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{WORKFLOW_HELP}");
         return Ok(());
@@ -247,13 +284,11 @@ fn handle_workflow(args: &[String]) -> CliResult<()> {
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
     let wf_name = args.get(1).map(|s| s.as_str()).unwrap_or("");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
     match sub {
         "init" => {
-            wf_workflow::init_workflow_structure(&spool_path)
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            wf_workflow::init_workflow_structure(spool_path).map_err(to_cli_error)?;
             println!("Created workflows directory with example workflows:");
             println!("  - research.yaml  (domain investigation)");
             println!("  - execute.yaml   (task execution)");
@@ -263,7 +298,7 @@ fn handle_workflow(args: &[String]) -> CliResult<()> {
             Ok(())
         }
         "list" => {
-            let workflows = wf_workflow::list_workflows(&spool_path);
+            let workflows = wf_workflow::list_workflows(spool_path);
             if workflows.is_empty() {
                 println!("No workflows found. Run `spool workflow init` to create examples.");
                 return Ok(());
@@ -271,7 +306,7 @@ fn handle_workflow(args: &[String]) -> CliResult<()> {
             println!("Available workflows:");
             println!();
             for name in workflows {
-                match wf_workflow::load_workflow(&spool_path, &name) {
+                match wf_workflow::load_workflow(spool_path, &name) {
                     Ok(wf) => {
                         println!("  {name}");
                         println!("    {}", wf.description);
@@ -293,7 +328,7 @@ fn handle_workflow(args: &[String]) -> CliResult<()> {
             if wf_name.is_empty() || wf_name.starts_with('-') {
                 return Err(CliError::msg("Missing required argument <workflow-name>"));
             }
-            let wf = wf_workflow::load_workflow(&spool_path, wf_name)
+            let wf = wf_workflow::load_workflow(spool_path, wf_name)
                 .map_err(|e| CliError::msg(format!("Invalid workflow: {e}")))?;
 
             fn agent_label(a: &spool_schemas::AgentType) -> &'static str {
@@ -346,7 +381,7 @@ fn handle_workflow(args: &[String]) -> CliResult<()> {
     }
 }
 
-fn handle_plan(args: &[String]) -> CliResult<()> {
+fn handle_plan(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{PLAN_HELP}");
         return Ok(());
@@ -354,8 +389,7 @@ fn handle_plan(args: &[String]) -> CliResult<()> {
 
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
     let spool_dir = spool_path
         .file_name()
         .map(|s| s.to_string_lossy().to_string())
@@ -364,7 +398,7 @@ fn handle_plan(args: &[String]) -> CliResult<()> {
 
     match sub {
         "init" => {
-            wf_planning::init_planning_structure(&spool_path, &current_date, &spool_dir)
+            wf_planning::init_planning_structure(spool_path, &current_date, &spool_dir)
                 .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Planning structure initialized");
             println!("Created:");
@@ -374,8 +408,8 @@ fn handle_plan(args: &[String]) -> CliResult<()> {
             Ok(())
         }
         "status" => {
-            let roadmap_path = wf_planning::planning_dir(&spool_path).join("ROADMAP.md");
-            let contents = std::fs::read_to_string(&roadmap_path).map_err(|_| {
+            let roadmap_path = wf_planning::planning_dir(spool_path).join("ROADMAP.md");
+            let contents = spool_core::io::read_to_string(&roadmap_path).map_err(|_| {
                 CliError::msg(
                     "ROADMAP.md not found. Run \"spool init\" or \"spool plan init\" first.",
                 )
@@ -413,26 +447,19 @@ fn handle_plan(args: &[String]) -> CliResult<()> {
     }
 }
 
-fn handle_tasks(args: &[String]) -> CliResult<()> {
+fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{TASKS_HELP}");
         return Ok(());
     }
 
     fn parse_wave_flag(args: &[String]) -> u32 {
-        let mut i = 0;
-        while i < args.len() {
-            if args[i] == "--wave" {
-                if let Some(v) = args.get(i + 1) {
-                    if let Ok(n) = v.parse::<u32>() {
-                        return n;
-                    }
-                }
-                return 1;
-            }
-            i += 1;
-        }
-        1
+        args.iter()
+            .enumerate()
+            .find(|(_, a)| *a == "--wave")
+            .and_then(|(i, _)| args.get(i + 1))
+            .and_then(|v| v.parse::<u32>().ok())
+            .unwrap_or(1)
     }
 
     fn format_blockers(blockers: &[String]) -> String {
@@ -453,16 +480,15 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
         return fail("Missing required argument <change-id>");
     }
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(Path::new("."), &ctx);
-    let change_dir = core_paths::change_dir(&spool_path, change_id);
+    let spool_path = rt.spool_path();
+    let change_dir = core_paths::change_dir(spool_path, change_id);
 
     match sub {
         "init" => {
             if !change_dir.exists() {
                 return fail(format!("Change '{change_id}' not found"));
             }
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
+            let path = wf_tasks::tasks_path(spool_path, change_id);
             if path.exists() {
                 return fail(format!(
                     "tasks.md already exists for \"{change_id}\". Use \"tasks add\" to add tasks."
@@ -472,14 +498,15 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
             let now = chrono::Local::now();
             let contents = wf_tasks::enhanced_tasks_template(change_id, now);
             if let Some(parent) = path.parent() {
-                std::fs::create_dir_all(parent).map_err(|e| CliError::msg(e.to_string()))?;
+                spool_core::io::create_dir_all(parent).map_err(|e| CliError::msg(e.to_string()))?;
             }
-            std::fs::write(&path, contents).map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, contents.as_bytes())
+                .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Enhanced tasks.md created for \"{change_id}\"");
             Ok(())
         }
         "status" => {
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
+            let path = wf_tasks::tasks_path(spool_path, change_id);
             if !path.exists() {
                 println!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
@@ -487,7 +514,7 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 return Ok(());
             }
 
-            let contents = std::fs::read_to_string(&path)
+            let contents = spool_core::io::read_to_string(&path)
                 .map_err(|_| CliError::msg(format!("Failed to read {}", path.display())))?;
 
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
@@ -551,8 +578,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
             Ok(())
         }
         "next" => {
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let contents = std::fs::read_to_string(&path).map_err(|_| {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
                 CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
                 ))
@@ -630,8 +657,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
             if task_id.is_empty() || task_id.starts_with('-') {
                 return fail("Missing required argument <task-id>");
             }
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let contents = std::fs::read_to_string(&path).map_err(|_| {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
                 CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
                 ))
@@ -682,7 +709,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::InProgress,
                 chrono::Local::now(),
             );
-            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes())
+                .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" marked as in-progress");
             Ok(())
         }
@@ -691,8 +719,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
             if task_id.is_empty() || task_id.starts_with('-') {
                 return fail("Missing required argument <task-id>");
             }
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let contents = std::fs::read_to_string(&path).map_err(|_| {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
                 CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
                 ))
@@ -713,7 +741,7 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                     }
                     count += 1;
                     if count == idx {
-                        if let Some(rest) = t.splitn(2, "]").nth(1) {
+                        if let Some((_, rest)) = t.split_once(']') {
                             let prefix = if t.starts_with('*') { "* [x]" } else { "- [x]" };
                             *line = format!("{}{}", prefix, rest);
                         }
@@ -725,7 +753,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 }
                 let mut out = lines.join("\n");
                 out.push('\n');
-                std::fs::write(&path, out).map_err(|e| CliError::msg(e.to_string()))?;
+                spool_core::io::write(&path, out.as_bytes())
+                    .map_err(|e| CliError::msg(e.to_string()))?;
                 eprintln!("✔ Task \"{task_id}\" marked as complete");
                 return Ok(());
             }
@@ -741,7 +770,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::Complete,
                 chrono::Local::now(),
             );
-            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes())
+                .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" marked as complete");
             Ok(())
         }
@@ -750,8 +780,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
             if task_id.is_empty() || task_id.starts_with('-') {
                 return fail("Missing required argument <task-id>");
             }
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let contents = std::fs::read_to_string(&path).map_err(|_| {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
                 CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
                 ))
@@ -779,7 +809,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::Shelved,
                 chrono::Local::now(),
             );
-            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes())
+                .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" shelved");
             Ok(())
         }
@@ -788,8 +819,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
             if task_id.is_empty() || task_id.starts_with('-') {
                 return fail("Missing required argument <task-id>");
             }
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let contents = std::fs::read_to_string(&path).map_err(|_| {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
                 CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
                 ))
@@ -817,7 +848,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::Pending,
                 chrono::Local::now(),
             );
-            std::fs::write(&path, updated).map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes())
+                .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task \"{task_id}\" unshelved (pending)");
             Ok(())
         }
@@ -827,8 +859,8 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 return fail("Missing required argument <task-name>");
             }
             let wave = parse_wave_flag(args);
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let contents = std::fs::read_to_string(&path).map_err(|_| {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
                 CliError::msg(format!(
                     "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
                 ))
@@ -847,12 +879,11 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
 
             let mut max_n = 0u32;
             for t in &parsed.tasks {
-                if let Some((w, n)) = t.id.split_once('.') {
-                    if let (Ok(w), Ok(n)) = (w.parse::<u32>(), n.parse::<u32>()) {
-                        if w == wave {
-                            max_n = max_n.max(n);
-                        }
-                    }
+                if let Some((w, n)) = t.id.split_once('.')
+                    && let (Ok(w), Ok(n)) = (w.parse::<u32>(), n.parse::<u32>())
+                    && w == wave
+                {
+                    max_n = max_n.max(n);
                 }
             }
             let new_id = format!("{wave}.{}", max_n + 1);
@@ -887,13 +918,14 @@ fn handle_tasks(args: &[String]) -> CliResult<()> {
                 }
             }
 
-            std::fs::write(&path, out).map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, out.as_bytes())
+                .map_err(|e| CliError::msg(e.to_string()))?;
             eprintln!("✔ Task {new_id} \"{task_name}\" added to Wave {wave}");
             Ok(())
         }
         "show" => {
-            let path = wf_tasks::tasks_path(&spool_path, change_id);
-            let contents = std::fs::read_to_string(&path)
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path)
                 .map_err(|_| CliError::msg(format!("tasks.md not found for \"{change_id}\"")))?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
 
@@ -922,7 +954,7 @@ const AGENT_HELP: &str = "Usage: spool agent [command] [options]\n\nCommands tha
 
 const AGENT_INSTRUCTION_HELP: &str = "Usage: spool agent instruction <artifact> [options]\n\nGenerate enriched instructions\n\nOptions:\n  --change <name>               Change id (directory name)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
 
-fn handle_create(args: &[String]) -> CliResult<()> {
+fn handle_create(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{CREATE_HELP}");
         return Ok(());
@@ -932,8 +964,7 @@ fn handle_create(args: &[String]) -> CliResult<()> {
         return fail("Missing required argument <type>");
     };
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
     match kind {
         "module" => {
@@ -948,7 +979,7 @@ fn handle_create(args: &[String]) -> CliResult<()> {
                 .map(|raw| split_csv(&raw))
                 .unwrap_or_default();
 
-            let r = core_create::create_module(&spool_path, name, scope, depends_on)
+            let r = core_create::create_module(spool_path, name, scope, depends_on)
                 .map_err(|e| CliError::msg(e.to_string()))?;
             if !r.created {
                 println!("Module \"{}\" already exists as {}", name, r.folder_name);
@@ -992,7 +1023,7 @@ fn handle_create(args: &[String]) -> CliResult<()> {
             );
 
             match core_create::create_change(
-                &spool_path,
+                spool_path,
                 name,
                 &schema,
                 module.as_deref(),
@@ -1017,7 +1048,7 @@ fn handle_create(args: &[String]) -> CliResult<()> {
     }
 }
 
-fn handle_new(args: &[String]) -> CliResult<()> {
+fn handle_new(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{NEW_HELP}");
         return Ok(());
@@ -1042,8 +1073,7 @@ fn handle_new(args: &[String]) -> CliResult<()> {
     let module = parse_string_flag(args, "--module");
     let description = parse_string_flag(args, "--description");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
     let module_id = module
         .as_deref()
@@ -1064,7 +1094,7 @@ fn handle_new(args: &[String]) -> CliResult<()> {
     );
 
     match core_create::create_change(
-        &spool_path,
+        spool_path,
         name,
         &schema,
         module.as_deref(),
@@ -1085,7 +1115,7 @@ fn handle_new(args: &[String]) -> CliResult<()> {
     }
 }
 
-fn handle_status(args: &[String]) -> CliResult<()> {
+fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{STATUS_HELP}");
         return Ok(());
@@ -1094,9 +1124,7 @@ fn handle_status(args: &[String]) -> CliResult<()> {
     let want_json = args.iter().any(|a| a == "--json");
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
-        let ctx = ConfigContext::from_process_env();
-        let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
-        let changes = core_workflow::list_available_changes(&spool_path);
+        let changes = core_workflow::list_available_changes(rt.spool_path());
         let mut msg = "Missing required option --change".to_string();
         if !changes.is_empty() {
             msg.push_str("\n\nAvailable changes:\n");
@@ -1108,21 +1136,21 @@ fn handle_status(args: &[String]) -> CliResult<()> {
     }
 
     let schema = parse_string_flag(args, "--schema");
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let ctx = rt.ctx();
+    let spool_path = rt.spool_path();
 
     // Match TS/ora: spinner output is written to stderr.
     eprintln!("- Loading change status...");
 
     let change = change.expect("checked above");
     let status =
-        match core_workflow::compute_change_status(&spool_path, &change, schema.as_deref(), &ctx) {
+        match core_workflow::compute_change_status(spool_path, &change, schema.as_deref(), ctx) {
             Ok(s) => s,
             Err(core_workflow::WorkflowError::InvalidChangeName) => {
                 return fail("Invalid change name");
             }
             Err(core_workflow::WorkflowError::ChangeNotFound(name)) => {
-                let changes = core_workflow::list_available_changes(&spool_path);
+                let changes = core_workflow::list_available_changes(spool_path);
                 let mut msg = format!("Change '{name}' not found");
                 if !changes.is_empty() {
                     msg.push_str("\n\nAvailable changes:\n");
@@ -1133,7 +1161,7 @@ fn handle_status(args: &[String]) -> CliResult<()> {
                 return fail(msg);
             }
             Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
-                return fail(format!("Schema '{name}' not found"));
+                return fail(schema_not_found_message(ctx, &name));
             }
             Err(e) => {
                 return Err(CliError::msg(e.to_string()));
@@ -1182,10 +1210,10 @@ fn handle_status(args: &[String]) -> CliResult<()> {
     Ok(())
 }
 
-fn handle_templates(args: &[String]) {
+fn handle_templates(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{TEMPLATES_HELP}");
-        return;
+        return Ok(());
     }
     let want_json = args.iter().any(|a| a == "--json");
     let schema = parse_string_flag(args, "--schema");
@@ -1195,28 +1223,16 @@ fn handle_templates(args: &[String]) {
     // Match TS/ora: spinner output is written to stderr.
     eprintln!("- Loading templates...");
 
-    let ctx = ConfigContext::from_process_env();
+    let ctx = rt.ctx();
     let schema_name = schema
         .clone()
         .unwrap_or_else(|| core_workflow::default_schema_name().to_string());
-    let resolved = match core_workflow::resolve_schema(Some(&schema_name), &ctx) {
+    let resolved = match core_workflow::resolve_schema(Some(&schema_name), ctx) {
         Ok(v) => v,
         Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
-            let schemas = core_workflow::list_available_schemas(&ctx);
-            if schemas.is_empty() {
-                eprintln!("✖ Error: Schema '{name}' not found");
-            } else {
-                eprintln!(
-                    "✖ Error: Schema '{name}' not found. Available schemas:\n  {}",
-                    schemas.join("\n  ")
-                );
-            }
-            std::process::exit(1);
+            return fail(schema_not_found_message(ctx, &name));
         }
-        Err(e) => {
-            eprintln!("✖ Error: {e}");
-            std::process::exit(1);
-        }
+        Err(e) => return Err(CliError::msg(e.to_string())),
     };
 
     let templates_dir = resolved.schema_dir.join("templates");
@@ -1238,7 +1254,7 @@ fn handle_templates(args: &[String]) {
         }
         let rendered = serde_json::to_string_pretty(&out).expect("json should serialize");
         println!("{rendered}");
-        return;
+        return Ok(());
     }
 
     println!("Schema: {}", resolved.schema.name);
@@ -1256,12 +1272,14 @@ fn handle_templates(args: &[String]) {
         println!("{}:", a.id);
         println!("  {}", templates_dir.join(&a.template).to_string_lossy());
     }
+
+    Ok(())
 }
 
-fn handle_instructions(args: &[String]) {
+fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{INSTRUCTIONS_HELP}");
-        return;
+        return Ok(());
     }
 
     eprintln!(
@@ -1278,124 +1296,109 @@ fn handle_instructions(args: &[String]) {
     });
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
-        eprintln!("✖ Error: Missing required option --change");
-        std::process::exit(1);
+        return fail("Missing required option --change");
     }
     let change = change.expect("checked above");
     let schema = parse_string_flag(args, "--schema");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let ctx = rt.ctx();
+    let spool_path = rt.spool_path();
 
     let Some(artifact) = artifact else {
         let schema_name = schema
             .clone()
             .unwrap_or_else(|| core_workflow::default_schema_name().to_string());
-        eprintln!("✖ Error: Missing required argument <artifact>");
-        if let Ok(r) = core_workflow::resolve_schema(Some(&schema_name), &ctx) {
-            eprintln!("\nValid artifacts:");
-            for a in r.schema.artifacts {
-                eprintln!("  {}", a.id);
+        let mut msg = "Missing required argument <artifact>".to_string();
+        if let Ok(r) = core_workflow::resolve_schema(Some(&schema_name), ctx) {
+            let list = r
+                .schema
+                .artifacts
+                .into_iter()
+                .map(|a| a.id)
+                .collect::<Vec<_>>();
+            if !list.is_empty() {
+                msg.push_str(&format!("\n\nValid artifacts:\n  {}", list.join("\n  ")));
             }
         }
-        std::process::exit(1);
+        return fail(msg);
     };
 
     if artifact == "apply" {
         // Match TS/ora: spinner output is written to stderr.
         eprintln!("- Generating apply instructions...");
         let apply = match core_workflow::compute_apply_instructions(
-            &spool_path,
+            spool_path,
             &change,
             schema.as_deref(),
-            &ctx,
+            ctx,
         ) {
             Ok(r) => r,
             Err(core_workflow::WorkflowError::InvalidChangeName) => {
-                eprintln!("✖ Error: Invalid change name");
-                std::process::exit(1);
+                return fail("Invalid change name");
             }
             Err(core_workflow::WorkflowError::ChangeNotFound(name)) => {
-                eprintln!("✖ Error: Change '{name}' not found");
-                std::process::exit(1);
+                return fail(format!("Change '{name}' not found"));
             }
             Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
-                let schemas = core_workflow::list_available_schemas(&ctx);
-                if schemas.is_empty() {
-                    eprintln!("✖ Error: Schema '{name}' not found");
-                } else {
-                    eprintln!(
-                        "✖ Error: Schema '{name}' not found. Available schemas:\n  {}",
-                        schemas.join("\n  ")
-                    );
-                }
-                std::process::exit(1);
+                return fail(schema_not_found_message(ctx, &name));
             }
-            Err(e) => {
-                eprintln!("✖ Error: {e}");
-                std::process::exit(1);
-            }
+            Err(e) => return Err(CliError::msg(e.to_string())),
         };
 
         if want_json {
             let rendered = serde_json::to_string_pretty(&apply).expect("json should serialize");
             println!("{rendered}");
-            return;
+            return Ok(());
         }
 
         print_apply_instructions_text(&apply);
-        return;
+        return Ok(());
     }
 
     // Match TS/ora: spinner output is written to stderr.
     eprintln!("- Generating instructions...");
 
     let resolved = match core_workflow::resolve_instructions(
-        &spool_path,
+        spool_path,
         &change,
         schema.as_deref(),
         artifact,
-        &ctx,
+        ctx,
     ) {
         Ok(r) => r,
         Err(core_workflow::WorkflowError::ArtifactNotFound(name)) => {
             let schema_name = schema
                 .clone()
-                .unwrap_or_else(|| core_workflow::read_change_schema(&spool_path, &change));
-            eprintln!("✖ Error: Artifact '{name}' not found in schema '{schema_name}'.");
-            if let Ok(r) = core_workflow::resolve_schema(Some(&schema_name), &ctx) {
-                eprintln!("\nValid artifacts:");
-                for a in r.schema.artifacts {
-                    eprintln!("  {}", a.id);
+                .unwrap_or_else(|| core_workflow::read_change_schema(spool_path, &change));
+            let mut msg = format!("Artifact '{name}' not found in schema '{schema_name}'.");
+            if let Ok(r) = core_workflow::resolve_schema(Some(&schema_name), ctx) {
+                let list = r
+                    .schema
+                    .artifacts
+                    .into_iter()
+                    .map(|a| a.id)
+                    .collect::<Vec<_>>();
+                if !list.is_empty() {
+                    msg.push_str(&format!("\n\nValid artifacts:\n  {}", list.join("\n  ")));
                 }
             }
-            std::process::exit(1);
+            return fail(msg);
         }
         Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
-            let schemas = core_workflow::list_available_schemas(&ctx);
-            if schemas.is_empty() {
-                eprintln!("✖ Error: Schema '{name}' not found");
-            } else {
-                eprintln!(
-                    "✖ Error: Schema '{name}' not found. Available schemas:\n  {}",
-                    schemas.join("\n  ")
-                );
-            }
-            std::process::exit(1);
+            return fail(schema_not_found_message(ctx, &name));
         }
-        Err(e) => {
-            eprintln!("✖ Error: {e}");
-            std::process::exit(1);
-        }
+        Err(e) => return Err(CliError::msg(e.to_string())),
     };
 
     if want_json {
         let rendered = serde_json::to_string_pretty(&resolved).expect("json should serialize");
         println!("{rendered}");
-        return;
+        return Ok(());
     }
 
     print_artifact_instructions_text(&resolved);
+
+    Ok(())
 }
 
 fn print_artifact_instructions_text(instructions: &core_workflow::InstructionsResponse) {
@@ -1494,14 +1497,14 @@ fn print_apply_instructions_text(instructions: &core_workflow::ApplyInstructions
     println!("Schema: {}", instructions.schema_name);
     println!();
 
-    if instructions.state == "blocked" {
-        if let Some(missing) = &instructions.missing_artifacts {
-            println!("### ⚠️ Blocked");
-            println!();
-            println!("Missing artifacts: {}", missing.join(", "));
-            println!("Use the spool-continue-change skill to create these first.");
-            println!();
-        }
+    if instructions.state == "blocked"
+        && let Some(missing) = &instructions.missing_artifacts
+    {
+        println!("### ⚠️ Blocked");
+        println!();
+        println!("Missing artifacts: {}", missing.join(", "));
+        println!("Use the spool-continue-change skill to create these first.");
+        println!();
     }
 
     let entries: Vec<(&String, &String)> = instructions.context_files.iter().collect();
@@ -1522,16 +1525,16 @@ fn print_apply_instructions_text(instructions: &core_workflow::ApplyInstructions
             println!("- format: {fmt}");
         }
         println!("- path: {tracks_path}");
-        if let Some(diags) = &instructions.tracks_diagnostics {
-            if !diags.is_empty() {
-                let errors = diags.iter().filter(|d| d.level == "error").count();
-                let warnings = diags.iter().filter(|d| d.level == "warning").count();
-                if errors > 0 {
-                    println!("- errors: {errors}");
-                }
-                if warnings > 0 {
-                    println!("- warnings: {warnings}");
-                }
+        if let Some(diags) = &instructions.tracks_diagnostics
+            && !diags.is_empty()
+        {
+            let errors = diags.iter().filter(|d| d.level == "error").count();
+            let warnings = diags.iter().filter(|d| d.level == "warning").count();
+            if errors > 0 {
+                println!("- errors: {errors}");
+            }
+            if warnings > 0 {
+                println!("- warnings: {warnings}");
             }
         }
         println!();
@@ -1566,82 +1569,79 @@ fn print_apply_instructions_text(instructions: &core_workflow::ApplyInstructions
     println!("{}", instructions.instruction);
 }
 
-fn handle_agent(args: &[String]) {
+fn handle_agent(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{AGENT_HELP}");
-        return;
+        return Ok(());
     }
     match args.first().map(|s| s.as_str()) {
-        Some("instruction") => handle_agent_instruction(&args[1..]),
+        Some("instruction") => handle_agent_instruction(rt, &args[1..]),
         _ => {
             println!("{AGENT_HELP}");
+            Ok(())
         }
     }
 }
 
-fn handle_agent_instruction(args: &[String]) {
+fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{AGENT_INSTRUCTION_HELP}");
-        return;
+        return Ok(());
     }
     let want_json = args.iter().any(|a| a == "--json");
     let artifact = args.first().map(|s| s.as_str()).unwrap_or("");
     if artifact.is_empty() || artifact.starts_with('-') {
-        eprintln!("✖ Error: Missing required argument <artifact>");
-        std::process::exit(1);
+        return fail("Missing required argument <artifact>");
     }
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
-        eprintln!("✖ Error: Missing required option --change");
-        std::process::exit(1);
+        return fail("Missing required option --change");
     }
     let change = change.expect("checked above");
     let schema = parse_string_flag(args, "--schema");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let ctx = rt.ctx();
+    let spool_path = rt.spool_path();
 
     // Match TS/ora: spinner output is written to stderr.
     eprintln!("- Generating instructions...");
 
     if artifact == "apply" {
-        eprintln!("✖ Error: Invalid artifact 'apply'");
-        std::process::exit(1);
+        return fail("Invalid artifact 'apply'");
     }
 
     let resolved = match core_workflow::resolve_instructions(
-        &spool_path,
+        spool_path,
         &change,
         schema.as_deref(),
         artifact,
-        &ctx,
+        ctx,
     ) {
         Ok(r) => r,
-        Err(e) => {
-            eprintln!("✖ Error: {e}");
-            std::process::exit(1);
-        }
+        Err(e) => return Err(CliError::msg(e.to_string())),
     };
 
     if want_json {
         let rendered = serde_json::to_string_pretty(&resolved).expect("json should serialize");
         println!("{rendered}");
-        return;
+        return Ok(());
     }
     print_artifact_instructions_text(&resolved);
+
+    Ok(())
 }
 
-fn handle_x_instructions(args: &[String]) {
+fn handle_x_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
     eprintln!(
         "Warning: \"spool x-instructions\" is deprecated. Use \"spool agent instruction\" instead."
     );
-    handle_agent_instruction(args);
+    handle_agent_instruction(rt, args)
 }
 
-fn handle_init(args: &[String]) {
+fn handle_init(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{INIT_HELP}");
-        return;
+        return Ok(());
     }
 
     let force = args.iter().any(|a| a == "--force" || a == "-f");
@@ -1650,15 +1650,14 @@ fn handle_init(args: &[String]) {
     // Positional path (defaults to current directory).
     let target = last_positional(args).unwrap_or_else(|| ".".to_string());
     let target_path = std::path::Path::new(&target);
-    let ctx = ConfigContext::from_process_env();
+    let ctx = rt.ctx();
 
     let all_ids = spool_core::installers::available_tool_ids();
 
     let tools: BTreeSet<String> = if let Some(raw) = tools_arg.as_deref() {
         let raw = raw.trim();
         if raw.is_empty() {
-            eprintln!("✖ Error: --tools cannot be empty");
-            std::process::exit(1);
+            return fail("--tools cannot be empty");
         }
 
         if raw == "none" {
@@ -1676,15 +1675,14 @@ fn handle_init(args: &[String]) {
                 if all_ids.contains(&id) {
                     selected.insert(id.to_string());
                 } else {
-                    eprintln!("✖ Error: Unknown tool id '{id}'. Valid tool ids: {valid}");
-                    std::process::exit(1);
+                    return fail(format!("Unknown tool id '{id}'. Valid tool ids: {valid}"));
                 }
             }
             selected
         }
     } else {
         use std::io::BufRead;
-        use std::io::{stdin, stdout, IsTerminal};
+        use std::io::{IsTerminal, stdin, stdout};
 
         // Match TS semantics: prompt only when interactive; otherwise require explicit --tools.
         let ui = spool_core::output::resolve_ui_options(
@@ -1695,10 +1693,9 @@ fn handle_init(args: &[String]) {
         );
         let is_tty = stdin().is_terminal() && stdout().is_terminal();
         if !(ui.interactive && is_tty) {
-            eprintln!(
-                "✖ Error: Non-interactive init requires --tools (all, none, or comma-separated ids)."
+            return fail(
+                "Non-interactive init requires --tools (all, none, or comma-separated ids).",
             );
-            std::process::exit(1);
         }
 
         println!(
@@ -1758,8 +1755,7 @@ fn handle_init(args: &[String]) {
             {
                 Ok(v) => v,
                 Err(e) => {
-                    eprintln!("✖ Error: Failed to prompt for tools: {e}");
-                    std::process::exit(1);
+                    return Err(CliError::msg(format!("Failed to prompt for tools: {e}")));
                 }
             };
 
@@ -1777,23 +1773,23 @@ fn handle_init(args: &[String]) {
     };
 
     let opts = InitOptions::new(tools, force);
-    if let Err(e) = install_default_templates(target_path, &ctx, InstallMode::Init, &opts) {
-        eprintln!("✖ Error: {e}");
-        std::process::exit(1);
-    }
+    install_default_templates(target_path, ctx, InstallMode::Init, &opts)
+        .map_err(|e| CliError::msg(e.to_string()))?;
+
+    Ok(())
 }
 
-fn handle_update(args: &[String]) {
+fn handle_update(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{UPDATE_HELP}");
-        return;
+        return Ok(());
     }
 
     // `--json` is accepted for parity with TS but not implemented yet.
     let _want_json = args.iter().any(|a| a == "--json");
     let target = last_positional(args).unwrap_or_else(|| ".".to_string());
     let target_path = std::path::Path::new(&target);
-    let ctx = ConfigContext::from_process_env();
+    let ctx = rt.ctx();
 
     let tools: BTreeSet<String> = spool_core::installers::available_tool_ids()
         .iter()
@@ -1801,16 +1797,16 @@ fn handle_update(args: &[String]) {
         .collect();
     let opts = InitOptions::new(tools, true);
 
-    if let Err(e) = install_default_templates(target_path, &ctx, InstallMode::Update, &opts) {
-        eprintln!("✖ Error: {e}");
-        std::process::exit(1);
-    }
+    install_default_templates(target_path, ctx, InstallMode::Update, &opts)
+        .map_err(|e| CliError::msg(e.to_string()))?;
+
+    Ok(())
 }
 
-fn handle_list(args: &[String]) {
+fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{LIST_HELP}");
-        return;
+        return Ok(());
     }
 
     let want_specs = args.iter().any(|a| a == "--specs");
@@ -1827,24 +1823,23 @@ fn handle_list(args: &[String]) {
         "changes"
     };
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
     match mode {
         "modules" => {
-            let modules = spool_core::list::list_modules(&spool_path).unwrap_or_default();
+            let modules = spool_core::list::list_modules(spool_path).unwrap_or_default();
             if want_json {
                 let payload = ModulesResponse { modules };
                 let rendered =
                     serde_json::to_string_pretty(&payload).expect("json should serialize");
                 println!("{rendered}");
-                return;
+                return Ok(());
             }
 
             if modules.is_empty() {
                 println!("No modules found.");
                 println!("Create one with: spool create module <name>");
-                return;
+                return Ok(());
             }
 
             println!("Modules:\n");
@@ -1863,11 +1858,11 @@ fn handle_list(args: &[String]) {
             println!();
         }
         "specs" => {
-            let specs = spool_core::list::list_specs(&spool_path).unwrap_or_default();
+            let specs = spool_core::list::list_specs(spool_path).unwrap_or_default();
             if specs.is_empty() {
                 // TS prints a plain sentence even for `--json`.
                 println!("No specs found.");
-                return;
+                return Ok(());
             }
 
             if want_json {
@@ -1875,7 +1870,7 @@ fn handle_list(args: &[String]) {
                 let rendered =
                     serde_json::to_string_pretty(&payload).expect("json should serialize");
                 println!("{rendered}");
-                return;
+                return Ok(());
             }
 
             println!("Specs:");
@@ -1888,38 +1883,22 @@ fn handle_list(args: &[String]) {
         }
         _ => {
             // changes
-            let changes_dir = core_paths::changes_dir(&spool_path);
+            let changes_dir = core_paths::changes_dir(spool_path);
             if !changes_dir.exists() {
-                eprintln!("✖ Error: No Spool changes directory found. Run 'spool init' first.");
-                std::process::exit(1);
+                return fail("No Spool changes directory found. Run 'spool init' first.");
             }
 
             let mut items: Vec<(String, u32, u32, DateTime<Utc>)> = Vec::new();
-            let entries = std::fs::read_dir(&changes_dir).unwrap_or_else(|_| {
-                eprintln!("✖ Error: No Spool changes directory found. Run 'spool init' first.");
-                std::process::exit(1);
-            });
-            for entry in entries.flatten() {
-                let ft = match entry.file_type() {
-                    Ok(t) => t,
-                    Err(_) => continue,
-                };
-                if !ft.is_dir() {
-                    continue;
-                }
-                let name = entry.file_name().to_string_lossy().to_string();
-                if name == "archive" {
-                    continue;
-                }
-                let change_path = entry.path();
+            for name in &rt.repo_index().change_dir_names {
+                let change_path = core_paths::change_dir(spool_path, name);
                 let tasks_path = change_path.join("tasks.md");
-                let (total, completed) = match std::fs::read_to_string(&tasks_path) {
-                    Ok(c) => spool_core::list::count_tasks_markdown(&c),
-                    Err(_) => (0, 0),
-                };
+                let (total, completed) = spool_core::io::read_to_string_optional(&tasks_path)
+                    .map_err(|e| CliError::msg(e.to_string()))?
+                    .map(|c| spool_core::list::count_tasks_markdown(&c))
+                    .unwrap_or((0, 0));
                 let lm = spool_core::list::last_modified_recursive(&change_path)
                     .unwrap_or_else(|_| Utc::now());
-                items.push((name, completed, total, lm));
+                items.push((name.clone(), completed, total, lm));
             }
 
             if items.is_empty() {
@@ -1931,7 +1910,7 @@ fn handle_list(args: &[String]) {
                 } else {
                     println!("No active changes found.");
                 }
-                return;
+                return Ok(());
             }
 
             if sort == "name" {
@@ -1964,7 +1943,7 @@ fn handle_list(args: &[String]) {
                 let rendered =
                     serde_json::to_string_pretty(&payload).expect("json should serialize");
                 println!("{rendered}");
-                return;
+                return Ok(());
             }
 
             println!("Changes:");
@@ -1977,20 +1956,21 @@ fn handle_list(args: &[String]) {
             }
         }
     }
+
+    Ok(())
 }
 
 const SHOW_HELP: &str = "Usage: spool show [options] [command] [item-name]\n\nShow a change or spec\n\nOptions:\n  --json                          Output as JSON\n  --type <type>                   Type: change or spec\n  --no-interactive                Disable interactive prompts\n  --deltas-only                   Change JSON only: only include deltas\n  --requirements-only             Change JSON only: only include deltas (deprecated)\n  --requirements                  Spec JSON only: exclude scenarios\n  --no-scenarios                  Spec JSON only: exclude scenarios\n  -r, --requirement <id>          Spec JSON only: select requirement (1-based)\n  -h, --help                      display help for command\n\nCommands:\n  module [options] [module-id]    Show a module";
 
-fn handle_show(args: &[String]) {
+fn handle_show(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{SHOW_HELP}");
-        return;
+        return Ok(());
     }
 
     // Parse subcommand: `spool show module <id>`
     if args.first().map(|s| s.as_str()) == Some("module") {
-        handle_show_module(&args[1..]);
-        return;
+        return handle_show_module(rt, &args[1..]);
     }
 
     let want_json = args.iter().any(|a| a == "--json");
@@ -2017,40 +1997,30 @@ fn handle_show(args: &[String]) {
         if ui.interactive {
             // Interactive selection is not implemented yet.
         }
-        eprintln!(
-            "Nothing to show. Try one of:\n  spool show <item>\n  spool show (for interactive selection)\nOr run in an interactive terminal."
+        return fail(
+            "Nothing to show. Try one of:\n  spool show <item>\n  spool show (for interactive selection)\nOr run in an interactive terminal.",
         );
-        std::process::exit(1);
     }
     let item = item.expect("checked");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
     let explicit = typ.as_deref();
     let resolved_type = match explicit {
         Some("change") | Some("spec") => explicit.unwrap().to_string(),
-        Some(_) => {
-            eprintln!("✖ Error: Invalid type. Expected 'change' or 'spec'.");
-            std::process::exit(1);
-        }
-        None => detect_item_type(&spool_path, &item),
+        Some(_) => return fail("Invalid type. Expected 'change' or 'spec'."),
+        None => detect_item_type(rt, &item),
     };
 
     if resolved_type == "ambiguous" {
-        eprintln!(
+        return fail(format!(
             "Ambiguous item '{item}' matches both a change and a spec.\nUse --type change or --type spec to disambiguate."
-        );
-        std::process::exit(1);
+        ));
     }
     if resolved_type == "unknown" {
-        let candidates = list_candidate_items(&spool_path);
+        let candidates = list_candidate_items(rt);
         let suggestions = nearest_matches(&item, &candidates, 5);
-        eprintln!("Unknown item '{item}'");
-        if !suggestions.is_empty() {
-            eprintln!("Did you mean: {}?", suggestions.join(", "));
-        }
-        std::process::exit(1);
+        return fail(unknown_with_suggestions("item", &item, &suggestions));
     }
 
     // Warn on ignored flags (matches TS behavior closely).
@@ -2073,21 +2043,16 @@ fn handle_show(args: &[String]) {
 
     match resolved_type.as_str() {
         "spec" => {
-            let spec_path = core_paths::spec_markdown_path(&spool_path, &item);
-            let md = match std::fs::read_to_string(&spec_path) {
-                Ok(c) => c,
-                Err(_) => {
-                    eprintln!(
-                        "✖ Error: Spec '{item}' not found at {p}",
-                        p = spec_path.display()
-                    );
-                    std::process::exit(1);
-                }
-            };
+            let spec_path = core_paths::spec_markdown_path(spool_path, &item);
+            let md = spool_core::io::read_to_string(&spec_path).map_err(|_| {
+                CliError::msg(format!(
+                    "Spec '{item}' not found at {}",
+                    spec_path.display()
+                ))
+            })?;
             if want_json {
                 if requirements && requirement_idx.is_some() {
-                    eprintln!("✖ Error: Cannot use --requirement with --requirements");
-                    std::process::exit(1);
+                    return fail("Cannot use --requirement with --requirements");
                 }
                 let mut json = core_show::parse_spec_show_json(&item, &md);
 
@@ -2099,11 +2064,10 @@ fn handle_show(args: &[String]) {
                 }
                 if let Some(one_based) = requirement_idx {
                     if one_based == 0 || one_based > json.requirements.len() {
-                        eprintln!(
-                            "✖ Error: Requirement index out of range. Expected 1..={}",
+                        return fail(format!(
+                            "Requirement index out of range. Expected 1..={}",
                             json.requirements.len()
-                        );
-                        std::process::exit(1);
+                        ));
                     }
                     json.requirements = vec![json.requirements[one_based - 1].clone()];
                     json.requirement_count = json.requirements.len() as u32;
@@ -2113,21 +2077,21 @@ fn handle_show(args: &[String]) {
             } else {
                 print!("{md}");
             }
+            Ok(())
         }
         "change" => {
-            let change_path = core_paths::change_dir(&spool_path, &item);
+            let change_path = core_paths::change_dir(spool_path, &item);
             let proposal_path = change_path.join("proposal.md");
             if !proposal_path.exists() {
-                eprintln!(
-                    "✖ Error: Change '{item}' not found at {p}",
-                    p = proposal_path.display()
-                );
-                std::process::exit(1);
+                return fail(format!(
+                    "Change '{item}' not found at {}",
+                    proposal_path.display()
+                ));
             }
             if want_json {
                 let mut files: Vec<core_show::DeltaSpecFile> = Vec::new();
                 let paths =
-                    core_show::read_change_delta_spec_paths(&spool_path, &item).unwrap_or_default();
+                    core_show::read_change_delta_spec_paths(spool_path, &item).unwrap_or_default();
                 for p in paths {
                     if let Ok(f) = core_show::load_delta_spec_file(&p) {
                         files.push(f);
@@ -2137,14 +2101,12 @@ fn handle_show(args: &[String]) {
                 let rendered = serde_json::to_string_pretty(&json).expect("json should serialize");
                 println!("{rendered}");
             } else {
-                let md = std::fs::read_to_string(&proposal_path).unwrap_or_default();
+                let md = spool_core::io::read_to_string_or_default(&proposal_path);
                 print!("{md}");
             }
+            Ok(())
         }
-        _ => {
-            eprintln!("✖ Error: Unhandled show type");
-            std::process::exit(1);
-        }
+        _ => fail("Unhandled show type"),
     }
 }
 
@@ -2179,57 +2141,50 @@ fn ignored_show_flags(
     out
 }
 
-fn handle_show_module(args: &[String]) {
+fn handle_show_module(rt: &Runtime, args: &[String]) -> CliResult<()> {
     // Minimal module show: print module.md if present.
     let want_json = args.iter().any(|a| a == "--json");
     if want_json {
-        eprintln!("✖ Error: Module JSON output is not implemented");
-        std::process::exit(1);
+        return fail("Module JSON output is not implemented");
     }
     let module_id = last_positional(args);
     if module_id.is_none() {
-        eprintln!(
-            "Nothing to show. Try one of:\n  spool show module <module-id>\nOr run in an interactive terminal."
+        return fail(
+            "Nothing to show. Try one of:\n  spool show module <module-id>\nOr run in an interactive terminal.",
         );
-        std::process::exit(1);
     }
     let module_id = module_id.expect("checked");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
-    let resolved = core_validate::resolve_module(&spool_path, &module_id).unwrap_or(None);
+    let resolved = core_validate::resolve_module(spool_path, &module_id)
+        .map_err(|e| CliError::msg(e.to_string()))?;
     let Some(m) = resolved else {
-        eprintln!("✖ Error: Module '{module_id}' not found");
-        std::process::exit(1);
+        return fail(format!("Module '{module_id}' not found"));
     };
 
-    let md = std::fs::read_to_string(&m.module_md).unwrap_or_default();
+    let md = spool_core::io::read_to_string_or_default(&m.module_md);
     print!("{md}");
+
+    Ok(())
 }
 
 const VALIDATE_HELP: &str = "Usage: spool validate [options] [command] [item-name]\n\nValidate changes, specs, and modules\n\nOptions:\n  --all                          Validate everything\n  --changes                       Validate changes\n  --specs                         Validate specs\n  --modules                       Validate modules\n  --module <id>                   Validate a module by id\n  --type <type>                   Type: change, spec, or module\n  --strict                        Treat warnings as errors\n  --json                          Output as JSON\n  --concurrency <n>               Concurrency (default: 6)\n  --no-interactive                Disable interactive prompts\n  -h, --help                      display help for command\n\nCommands:\n  module [module-id]              Validate a module";
 
-fn handle_loop(args: &[String]) {
+fn handle_loop(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{LOOP_HELP}\n\n{RALPH_HELP}");
-        return;
+        return Ok(());
     }
     // Match TS: loop is deprecated wrapper.
     eprintln!("Warning: `spool loop` is deprecated. Use `spool ralph` instead.");
-    handle_ralph(args);
+    handle_ralph(rt, args)
 }
 
-fn handle_ralph(args: &[String]) {
+fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{RALPH_HELP}");
-        return;
-    }
-
-    fn fail(msg: &str) -> ! {
-        eprintln!();
-        eprintln!("✖ Error: {msg}");
-        std::process::exit(1);
+        return Ok(());
     }
 
     fn parse_u32_flag(args: &[String], key: &str) -> Option<u32> {
@@ -2318,28 +2273,27 @@ fn handle_ralph(args: &[String]) {
         && add_context.is_none()
         && !clear_context
     {
-        fail(
+        return fail(
             "Either --change, --module, --status, --add-context, or --clear-context must be specified",
         );
     }
 
     if clear_context && change_id.is_none() {
-        fail("--change is required for --clear-context");
+        return fail("--change is required for --clear-context");
     }
     if add_context.is_some() && change_id.is_none() {
-        fail("--change is required for --add-context");
+        return fail("--change is required for --add-context");
     }
     if status && change_id.is_none() && module_id.is_none() {
-        fail("--change is required for --status, or provide --module to auto-select");
+        return fail("--change is required for --status, or provide --module to auto-select");
     }
 
     let prompt = collect_prompt(args);
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
     let mut harness_impl: Box<dyn Harness> = match harness.as_str() {
-        "opencode" => Box::new(OpencodeHarness::default()),
+        "opencode" => Box::new(OpencodeHarness),
         "stub" => {
             let mut p = stub_script.map(std::path::PathBuf::from);
             if p.is_none() {
@@ -2348,10 +2302,10 @@ fn handle_ralph(args: &[String]) {
             }
             match StubHarness::from_env_or_default(p) {
                 Ok(h) => Box::new(h),
-                Err(e) => fail(&e.to_string()),
+                Err(e) => return Err(CliError::msg(e.to_string())),
             }
         }
-        _ => fail(&format!("Unknown harness: {h}", h = harness)),
+        _ => return fail(format!("Unknown harness: {h}", h = harness)),
     };
 
     let opts = core_ralph::RalphOptions {
@@ -2370,19 +2324,20 @@ fn handle_ralph(args: &[String]) {
         clear_context,
     };
 
-    if let Err(e) = core_ralph::run_ralph(&spool_path, opts, harness_impl.as_mut()) {
-        fail(&e.to_string());
-    }
+    core_ralph::run_ralph(spool_path, opts, harness_impl.as_mut())
+        .map_err(|e| CliError::msg(e.to_string()))?;
+
+    Ok(())
 }
 
-fn handle_validate(args: &[String]) -> CliResult<()> {
+fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{VALIDATE_HELP}");
         return Ok(());
     }
 
     if args.first().map(|s| s.as_str()) == Some("module") {
-        return handle_validate_module(&args[1..]);
+        return handle_validate_module(rt, &args[1..]);
     }
 
     let want_json = args.iter().any(|a| a == "--json");
@@ -2400,8 +2355,8 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
     }
 
     if bulk {
-        let ctx = ConfigContext::from_process_env();
-        let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+        let spool_path = rt.spool_path();
+        let repo_index = rt.repo_index();
 
         let want_all = args.iter().any(|a| a == "--all");
         let want_changes = want_all || args.iter().any(|a| a == "--changes");
@@ -2422,42 +2377,9 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
         let mut items: Vec<Item> = Vec::new();
 
         if want_changes {
-            let modules_dir = core_paths::modules_dir(&spool_path);
-            let mut module_ids: std::collections::BTreeSet<String> =
-                std::collections::BTreeSet::new();
-            if let Ok(entries) = std::fs::read_dir(&modules_dir) {
-                for e in entries.flatten() {
-                    if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-                        continue;
-                    }
-                    let name = e.file_name().to_string_lossy().to_string();
-                    if name.starts_with('.') {
-                        continue;
-                    }
-                    let Some((id_part, _)) = name.split_once('_') else {
-                        continue;
-                    };
-                    if id_part.len() == 3 && id_part.chars().all(|c| c.is_ascii_digit()) {
-                        module_ids.insert(id_part.to_string());
-                    }
-                }
-            }
+            let module_ids = repo_index.module_ids.clone();
 
-            let changes_dir = core_paths::changes_dir(&spool_path);
-            let mut change_dirs: Vec<String> = Vec::new();
-            if let Ok(entries) = std::fs::read_dir(&changes_dir) {
-                for e in entries.flatten() {
-                    if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-                        continue;
-                    }
-                    let name = e.file_name().to_string_lossy().to_string();
-                    if name.starts_with('.') || name == "archive" {
-                        continue;
-                    }
-                    change_dirs.push(name);
-                }
-            }
-            change_dirs.sort();
+            let change_dirs = repo_index.change_dir_names.clone();
 
             let mut parsed: std::collections::BTreeMap<String, spool_core::id::ParsedChangeId> =
                 std::collections::BTreeMap::new();
@@ -2504,73 +2426,55 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
                 let parsed_change = match spool_core::id::parse_change_id(&dir_name) {
                     Ok(p) => Some(p),
                     Err(e) => {
-                        issues.push(core_validate::ValidationIssue {
-                            level: core_validate::LEVEL_ERROR.to_string(),
-                            path: "id".to_string(),
-                            message: if let Some(hint) = e.hint.as_deref() {
-                                format!(
-                                    "Invalid change directory name '{dir_name}': {} (hint: {hint})",
-                                    e.error
-                                )
-                            } else {
-                                format!("Invalid change directory name '{dir_name}': {}", e.error)
-                            },
-                            line: None,
-                            column: None,
-                            metadata: None,
-                        });
+                        let msg = if let Some(hint) = e.hint.as_deref() {
+                            format!(
+                                "Invalid change directory name '{dir_name}': {} (hint: {hint})",
+                                e.error
+                            )
+                        } else {
+                            format!("Invalid change directory name '{dir_name}': {}", e.error)
+                        };
+                        issues.push(core_validate::error("id", msg));
                         None
                     }
                 };
 
                 // Module existence
-                if let Some(p) = &parsed_change {
-                    if !module_ids.contains(p.module_id.as_str()) {
-                        issues.push(core_validate::ValidationIssue {
-                            level: core_validate::LEVEL_ERROR.to_string(),
-                            path: "module".to_string(),
-                            message: format!(
-                                "Change '{}' refers to missing module '{}'",
-                                dir_name, p.module_id
-                            ),
-                            line: None,
-                            column: None,
-                            metadata: None,
-                        });
-                    }
+                if let Some(p) = &parsed_change
+                    && !module_ids.contains(p.module_id.as_str())
+                {
+                    issues.push(core_validate::error(
+                        "module",
+                        format!(
+                            "Change '{}' refers to missing module '{}'",
+                            dir_name, p.module_id
+                        ),
+                    ));
                 }
 
                 // Duplicate numeric change IDs
                 if let Some(p) = parsed.get(&dir_name) {
                     let numeric = format!("{}-{}", p.module_id, p.change_num);
                     if let Some(others) = duplicate_by_dir.get(&dir_name) {
-                        issues.push(core_validate::ValidationIssue {
-                            level: core_validate::LEVEL_ERROR.to_string(),
-                            path: "id".to_string(),
-                            message: format!(
+                        issues.push(core_validate::error(
+                            "id",
+                            format!(
                                 "Duplicate numeric change id {numeric}: also found at {}",
                                 others.join(", ")
                             ),
-                            line: None,
-                            column: None,
-                            metadata: None,
-                        });
+                        ));
                     }
                 }
 
                 // Existing delta validation (if we can)
                 let report = if parsed_change.is_some() {
-                    core_validate::validate_change(&spool_path, &dir_name, strict).unwrap_or_else(
+                    core_validate::validate_change(spool_path, &dir_name, strict).unwrap_or_else(
                         |e| {
                             core_validate::ValidationReport::new(
-                                vec![core_validate::ValidationIssue {
-                                    level: core_validate::LEVEL_ERROR.to_string(),
-                                    path: "validate".to_string(),
-                                    message: format!("Validation failed: {e}"),
-                                    line: None,
-                                    column: None,
-                                    metadata: None,
-                                }],
+                                vec![core_validate::error(
+                                    "validate",
+                                    format!("Validation failed: {e}"),
+                                )],
                                 strict,
                             )
                         },
@@ -2594,18 +2498,14 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
         }
 
         if want_specs {
-            for spec_id in list_spec_ids(&spool_path) {
-                let report = core_validate::validate_spec(&spool_path, &spec_id, strict)
+            for spec_id in list_spec_ids_from_index(spool_path, repo_index) {
+                let report = core_validate::validate_spec(spool_path, &spec_id, strict)
                     .unwrap_or_else(|e| {
                         core_validate::ValidationReport::new(
-                            vec![core_validate::ValidationIssue {
-                                level: core_validate::LEVEL_ERROR.to_string(),
-                                path: "validate".to_string(),
-                                message: format!("Validation failed: {e}"),
-                                line: None,
-                                column: None,
-                                metadata: None,
-                            }],
+                            vec![core_validate::error(
+                                "validate",
+                                format!("Validation failed: {e}"),
+                            )],
                             strict,
                         )
                     });
@@ -2620,36 +2520,16 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
         }
 
         if want_modules {
-            let modules_dir = core_paths::modules_dir(&spool_path);
-            let mut module_inputs: Vec<String> = Vec::new();
-            if let Ok(entries) = std::fs::read_dir(&modules_dir) {
-                for e in entries.flatten() {
-                    if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-                        continue;
-                    }
-                    let name = e.file_name().to_string_lossy().to_string();
-                    if name.starts_with('.') {
-                        continue;
-                    }
-                    module_inputs.push(name);
-                }
-            }
-            module_inputs.sort();
-
-            for m in module_inputs {
-                let (_full_name, report) = core_validate::validate_module(&spool_path, &m, strict)
+            for m in repo_index.module_dir_names.clone() {
+                let (_full_name, report) = core_validate::validate_module(spool_path, &m, strict)
                     .unwrap_or_else(|e| {
                         (
                             m.clone(),
                             core_validate::ValidationReport::new(
-                                vec![core_validate::ValidationIssue {
-                                    level: core_validate::LEVEL_ERROR.to_string(),
-                                    path: "validate".to_string(),
-                                    message: format!("Validation failed: {e}"),
-                                    line: None,
-                                    column: None,
-                                    metadata: None,
-                                }],
+                                vec![core_validate::error(
+                                    "validate",
+                                    format!("Validation failed: {e}"),
+                                )],
                                 strict,
                             ),
                         )
@@ -2751,8 +2631,7 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
     }
 
     let item = item.expect("checked");
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
     let explicit = typ.as_deref();
     let resolved_type = match explicit {
@@ -2760,15 +2639,14 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
         Some(_) => {
             return fail("Invalid type. Expected 'change', 'spec', or 'module'.");
         }
-        None => detect_item_type(&spool_path, &item),
+        None => detect_item_type(rt, &item),
     };
 
     // Special-case: TS `--type module <id>` behaves like validating a spec by id.
     if resolved_type == "module" {
-        let report = validate_spec_by_id_or_enoent(&spool_path, &item, strict);
-        let valid = report.valid;
-        render_validate_result("spec", &item, report, want_json);
-        if !valid {
+        let report = validate_spec_by_id_or_enoent(spool_path, &item, strict);
+        let ok = render_validate_result("spec", &item, report, want_json);
+        if !ok {
             return silent_fail();
         }
         return Ok(());
@@ -2782,59 +2660,62 @@ fn handle_validate(args: &[String]) -> CliResult<()> {
 
     match resolved_type.as_str() {
         "spec" => {
-            let spec_path = core_paths::spec_markdown_path(&spool_path, &item);
+            let spec_path = core_paths::spec_markdown_path(spool_path, &item);
             if !spec_path.exists() {
-                let candidates = list_spec_ids(&spool_path);
+                let candidates = list_spec_ids(rt);
                 let suggestions = nearest_matches(&item, &candidates, 5);
-                let mut msg = format!("Unknown spec '{item}'");
-                if !suggestions.is_empty() {
-                    msg.push_str(&format!("\nDid you mean: {}?", suggestions.join(", ")));
-                }
-                return fail(msg);
+                return fail(unknown_with_suggestions("spec", &item, &suggestions));
             }
-            let report = core_validate::validate_spec(&spool_path, &item, strict)
+            let report = core_validate::validate_spec(spool_path, &item, strict)
                 .map_err(|e| CliError::msg(e.to_string()))?;
-            let valid = report.valid;
-            render_validate_result("spec", &item, report, want_json);
-            if !valid {
+            let ok = render_validate_result("spec", &item, report, want_json);
+            if !ok {
                 return silent_fail();
             }
             Ok(())
         }
         "change" => {
-            let proposal = core_paths::change_dir(&spool_path, &item).join("proposal.md");
+            let proposal = core_paths::change_dir(spool_path, &item).join("proposal.md");
             if !proposal.exists() {
-                let candidates = list_change_ids(&spool_path);
+                let candidates = list_change_ids(rt);
                 let suggestions = nearest_matches(&item, &candidates, 5);
-                let mut msg = format!("Unknown change '{item}'");
-                if !suggestions.is_empty() {
-                    msg.push_str(&format!("\nDid you mean: {}?", suggestions.join(", ")));
-                }
-                return fail(msg);
+                return fail(unknown_with_suggestions("change", &item, &suggestions));
             }
-            let report = core_validate::validate_change(&spool_path, &item, strict)
+            let report = core_validate::validate_change(spool_path, &item, strict)
                 .map_err(|e| CliError::msg(e.to_string()))?;
-            let valid = report.valid;
-            render_validate_result("change", &item, report, want_json);
-            if !valid {
+            let ok = render_validate_result("change", &item, report, want_json);
+            if !ok {
                 return silent_fail();
             }
             Ok(())
         }
         _ => {
             // unknown
-            let candidates = list_candidate_items(&spool_path);
+            let candidates = list_candidate_items(rt);
             let suggestions = nearest_matches(&item, &candidates, 5);
-            let mut msg = format!("Unknown item '{item}'");
-            if !suggestions.is_empty() {
-                msg.push_str(&format!("\nDid you mean: {}?", suggestions.join(", ")));
-            }
-            fail(msg)
+            fail(unknown_with_suggestions("item", &item, &suggestions))
         }
     }
 }
 
-fn handle_validate_module(args: &[String]) -> CliResult<()> {
+fn schema_not_found_message(ctx: &ConfigContext, name: &str) -> String {
+    let schemas = core_workflow::list_available_schemas(ctx);
+    let mut msg = format!("Schema '{name}' not found");
+    if !schemas.is_empty() {
+        msg.push_str(&format!(". Available schemas:\n  {}", schemas.join("\n  ")));
+    }
+    msg
+}
+
+fn unknown_with_suggestions(kind: &str, item: &str, suggestions: &[String]) -> String {
+    let mut msg = format!("Unknown {kind} '{item}'");
+    if !suggestions.is_empty() {
+        msg.push_str(&format!("\nDid you mean: {}?", suggestions.join(", ")));
+    }
+    msg
+}
+
+fn handle_validate_module(rt: &Runtime, args: &[String]) -> CliResult<()> {
     // TS prints a spinner line even in non-interactive environments.
     eprintln!("- Validating module...");
     let module_id = last_positional(args);
@@ -2845,10 +2726,9 @@ fn handle_validate_module(args: &[String]) -> CliResult<()> {
     }
     let module_id = module_id.expect("checked");
 
-    let ctx = ConfigContext::from_process_env();
-    let spool_path = get_spool_path(std::path::Path::new("."), &ctx);
+    let spool_path = rt.spool_path();
 
-    let (full_name, report) = core_validate::validate_module(&spool_path, &module_id, false)
+    let (full_name, report) = core_validate::validate_module(spool_path, &module_id, false)
         .map_err(|e| CliError::msg(e.to_string()))?;
     if report.valid {
         println!("Module '{full_name}' is valid");
@@ -2866,19 +2746,12 @@ fn validate_spec_by_id_or_enoent(
     strict: bool,
 ) -> core_validate::ValidationReport {
     let path = core_paths::spec_markdown_path(spool_path, spec_id);
-    match std::fs::read_to_string(&path) {
+    match spool_core::io::read_to_string_std(&path) {
         Ok(md) => core_validate::validate_spec_markdown(&md, strict),
-        Err(e) => {
-            let issue = core_validate::ValidationIssue {
-                level: core_validate::LEVEL_ERROR.to_string(),
-                path: "file".to_string(),
-                message: format!("ENOENT: {e}"),
-                line: None,
-                column: None,
-                metadata: None,
-            };
-            core_validate::ValidationReport::new(vec![issue], strict)
-        }
+        Err(e) => core_validate::ValidationReport::new(
+            vec![core_validate::error("file", format!("ENOENT: {e}"))],
+            strict,
+        ),
     }
 }
 
@@ -2887,7 +2760,7 @@ fn render_validate_result(
     id: &str,
     report: core_validate::ValidationReport,
     want_json: bool,
-) {
+) -> bool {
     if want_json {
         // Match TS validate JSON envelope for single-item validation.
         #[derive(serde::Serialize)]
@@ -2957,10 +2830,7 @@ fn render_validate_result(
         };
         let rendered = serde_json::to_string_pretty(&env).expect("json should serialize");
         println!("{rendered}");
-        if report.valid {
-            return;
-        }
-        std::process::exit(1);
+        return report.valid;
     }
 
     let label = if typ == "spec" {
@@ -2973,7 +2843,7 @@ fn render_validate_result(
 
     if report.valid {
         println!("{label} '{id}' is valid");
-        return;
+        return true;
     }
 
     eprintln!("{label} '{id}' has issues");
@@ -2988,14 +2858,20 @@ fn render_validate_result(
         eprintln!("  - Each requirement MUST include at least one #### Scenario: block");
         eprintln!("  - Re-run with --json to see structured report");
     }
-    std::process::exit(1);
+
+    false
 }
 
-fn detect_item_type(spool_path: &std::path::Path, item: &str) -> String {
-    let is_change = core_paths::change_dir(spool_path, item)
-        .join("proposal.md")
-        .exists();
-    let is_spec = core_paths::spec_markdown_path(spool_path, item).exists();
+fn detect_item_type(rt: &Runtime, item: &str) -> String {
+    let spool_path = rt.spool_path();
+    let idx = rt.repo_index();
+
+    let is_change = idx.change_dir_names.iter().any(|n| n == item)
+        && core_paths::change_dir(spool_path, item)
+            .join("proposal.md")
+            .exists();
+    let is_spec = idx.spec_dir_names.iter().any(|n| n == item)
+        && core_paths::spec_markdown_path(spool_path, item).exists();
     match (is_change, is_spec) {
         (true, true) => "ambiguous".to_string(),
         (true, false) => "change".to_string(),
@@ -3004,53 +2880,50 @@ fn detect_item_type(spool_path: &std::path::Path, item: &str) -> String {
     }
 }
 
-fn list_spec_ids(spool_path: &std::path::Path) -> Vec<String> {
-    let specs_dir = core_paths::specs_dir(spool_path);
-    if !specs_dir.exists() {
-        return vec![];
-    }
-    let mut ids = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(&specs_dir) {
-        for e in entries.flatten() {
-            if e.file_type().ok().is_some_and(|t| t.is_dir()) {
-                let id = e.file_name().to_string_lossy().to_string();
-                if e.path().join("spec.md").exists() {
-                    ids.push(id);
-                }
-            }
-        }
-    }
-    ids.sort();
-    ids
+fn list_spec_ids(rt: &Runtime) -> Vec<String> {
+    list_spec_ids_from_index(rt.spool_path(), rt.repo_index())
 }
 
-fn list_change_ids(spool_path: &std::path::Path) -> Vec<String> {
-    let changes_dir = core_paths::changes_dir(spool_path);
-    if !changes_dir.exists() {
-        return vec![];
-    }
-    let mut ids = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(&changes_dir) {
-        for e in entries.flatten() {
-            if e.file_type().ok().is_some_and(|t| t.is_dir()) {
-                let name = e.file_name().to_string_lossy().to_string();
-                if name == "archive" {
-                    continue;
-                }
-                if e.path().join("proposal.md").exists() {
-                    ids.push(name);
-                }
-            }
-        }
-    }
-    ids.sort();
-    ids
+fn list_change_ids(rt: &Runtime) -> Vec<String> {
+    list_change_ids_from_index(rt.spool_path(), rt.repo_index())
 }
 
-fn list_candidate_items(spool_path: &std::path::Path) -> Vec<String> {
-    let mut items = list_spec_ids(spool_path);
-    items.extend(list_change_ids(spool_path));
+fn list_candidate_items(rt: &Runtime) -> Vec<String> {
+    let mut items = list_spec_ids(rt);
+    items.extend(list_change_ids(rt));
     items
+}
+
+fn list_spec_ids_from_index(
+    spool_path: &Path,
+    idx: &spool_core::repo_index::RepoIndex,
+) -> Vec<String> {
+    let specs_dir = core_paths::specs_dir(spool_path);
+    let mut ids: Vec<String> = Vec::new();
+    for id in &idx.spec_dir_names {
+        if specs_dir.join(id).join("spec.md").exists() {
+            ids.push(id.clone());
+        }
+    }
+    ids.sort();
+    ids
+}
+
+fn list_change_ids_from_index(
+    spool_path: &Path,
+    idx: &spool_core::repo_index::RepoIndex,
+) -> Vec<String> {
+    let mut ids: Vec<String> = Vec::new();
+    for name in &idx.change_dir_names {
+        if core_paths::change_dir(spool_path, name)
+            .join("proposal.md")
+            .exists()
+        {
+            ids.push(name.clone());
+        }
+    }
+    ids.sort();
+    ids
 }
 
 fn parse_string_flag(args: &[String], key: &str) -> Option<String> {
