@@ -8,8 +8,10 @@ use crate::show::{
 };
 
 mod issue;
+mod report;
 
 pub use issue::{error, info, issue, warning, with_line, with_loc, with_metadata};
+pub use report::{ReportBuilder, report};
 
 pub type ValidationLevel = &'static str;
 
@@ -82,25 +84,19 @@ impl ValidationReport {
 pub fn validate_spec_markdown(markdown: &str, strict: bool) -> ValidationReport {
     let json = parse_spec_show_json("<spec>", markdown);
 
-    let mut issues: Vec<ValidationIssue> = Vec::new();
+    let mut r = report(strict);
 
     if json.overview.trim().is_empty() {
-        issues.push(issue(
-            LEVEL_ERROR,
-            "purpose",
-            "Purpose section cannot be empty",
-        ));
+        r.push(error("purpose", "Purpose section cannot be empty"));
     } else if json.overview.len() < MIN_PURPOSE_LENGTH {
-        issues.push(issue(
-            LEVEL_WARNING,
+        r.push(warning(
             "purpose",
             "Purpose section is too brief (less than 50 characters)",
         ));
     }
 
     if json.requirements.is_empty() {
-        issues.push(issue(
-            LEVEL_ERROR,
+        r.push(error(
             "requirements",
             "Spec must have at least one requirement",
         ));
@@ -109,28 +105,20 @@ pub fn validate_spec_markdown(markdown: &str, strict: bool) -> ValidationReport 
     for (idx, req) in json.requirements.iter().enumerate() {
         let path = format!("requirements[{idx}]");
         if req.text.trim().is_empty() {
-            issues.push(issue(
-                LEVEL_ERROR,
-                &path,
-                "Requirement text cannot be empty",
-            ));
+            r.push(error(&path, "Requirement text cannot be empty"));
         }
         if req.scenarios.is_empty() {
-            issues.push(issue(
-                LEVEL_ERROR,
-                &path,
-                "Requirement must have at least one scenario",
-            ));
+            r.push(error(&path, "Requirement must have at least one scenario"));
         }
         for (sidx, sc) in req.scenarios.iter().enumerate() {
             let sp = format!("{path}.scenarios[{sidx}]");
             if sc.raw_text.trim().is_empty() {
-                issues.push(issue(LEVEL_ERROR, &sp, "Scenario text cannot be empty"));
+                r.push(error(&sp, "Scenario text cannot be empty"));
             }
         }
     }
 
-    ValidationReport::new(issues, strict)
+    r.finish()
 }
 
 pub fn validate_spec(spool_path: &Path, spec_id: &str, strict: bool) -> Result<ValidationReport> {
@@ -146,12 +134,9 @@ pub fn validate_change(
 ) -> Result<ValidationReport> {
     let paths = crate::show::read_change_delta_spec_paths(spool_path, change_id)?;
     if paths.is_empty() {
-        let issues = vec![issue(
-            LEVEL_ERROR,
-            "specs",
-            "Change must have at least one delta",
-        )];
-        return Ok(ValidationReport::new(issues, strict));
+        let mut r = report(strict);
+        r.push(error("specs", "Change must have at least one delta"));
+        return Ok(r.finish());
     }
 
     let mut files: Vec<DeltaSpecFile> = Vec::new();
@@ -160,19 +145,14 @@ pub fn validate_change(
     }
 
     let show = parse_change_show_json(change_id, &files);
-    let mut issues: Vec<ValidationIssue> = Vec::new();
+    let mut rep = report(strict);
     if show.deltas.is_empty() {
-        issues.push(issue(
-            LEVEL_ERROR,
-            "specs",
-            "Change must have at least one delta",
-        ));
-        return Ok(ValidationReport::new(issues, strict));
+        rep.push(error("specs", "Change must have at least one delta"));
+        return Ok(rep.finish());
     }
 
     if show.deltas.len() > MAX_DELTAS_PER_CHANGE {
-        issues.push(issue(
-            LEVEL_INFO,
+        rep.push(info(
             "deltas",
             "Consider splitting changes with more than 10 deltas",
         ));
@@ -181,51 +161,31 @@ pub fn validate_change(
     for (idx, d) in show.deltas.iter().enumerate() {
         let base = format!("deltas[{idx}]");
         if d.description.trim().is_empty() {
-            issues.push(issue(
-                LEVEL_ERROR,
-                &base,
-                "Delta description cannot be empty",
-            ));
+            rep.push(error(&base, "Delta description cannot be empty"));
         } else if d.description.trim().len() < 20 {
-            issues.push(issue(
-                LEVEL_WARNING,
-                &base,
-                "Delta description is too brief",
-            ));
+            rep.push(warning(&base, "Delta description is too brief"));
         }
 
         if d.requirements.is_empty() {
-            issues.push(issue(
-                LEVEL_WARNING,
-                &base,
-                "Delta should include requirements",
-            ));
+            rep.push(warning(&base, "Delta should include requirements"));
         }
 
-        for (ridx, r) in d.requirements.iter().enumerate() {
+        for (ridx, req) in d.requirements.iter().enumerate() {
             let rp = format!("{base}.requirements[{ridx}]");
-            if r.text.trim().is_empty() {
-                issues.push(issue(LEVEL_ERROR, &rp, "Requirement text cannot be empty"));
+            if req.text.trim().is_empty() {
+                rep.push(error(&rp, "Requirement text cannot be empty"));
             }
-            let up = r.text.to_ascii_uppercase();
+            let up = req.text.to_ascii_uppercase();
             if !up.contains("SHALL") && !up.contains("MUST") {
-                issues.push(issue(
-                    LEVEL_ERROR,
-                    &rp,
-                    "Requirement must contain SHALL or MUST keyword",
-                ));
+                rep.push(error(&rp, "Requirement must contain SHALL or MUST keyword"));
             }
-            if r.scenarios.is_empty() {
-                issues.push(issue(
-                    LEVEL_ERROR,
-                    &rp,
-                    "Requirement must have at least one scenario",
-                ));
+            if req.scenarios.is_empty() {
+                rep.push(error(&rp, "Requirement must have at least one scenario"));
             }
         }
     }
 
-    Ok(ValidationReport::new(issues, strict))
+    Ok(rep.finish())
 }
 
 #[derive(Debug, Clone)]
@@ -282,36 +242,25 @@ pub fn validate_module(
 ) -> Result<(String, ValidationReport)> {
     let resolved = resolve_module(spool_path, module_input)?;
     let Some(r) = resolved else {
-        let issues = vec![issue(LEVEL_ERROR, "module", "Module not found")];
-        return Ok((
-            module_input.to_string(),
-            ValidationReport::new(issues, strict),
-        ));
+        let mut rep = report(strict);
+        rep.push(error("module", "Module not found"));
+        return Ok((module_input.to_string(), rep.finish()));
     };
 
-    let mut issues: Vec<ValidationIssue> = Vec::new();
+    let mut rep = report(strict);
     let md = match crate::io::read_to_string_std(&r.module_md) {
         Ok(c) => c,
         Err(_) => {
-            issues.push(issue(
-                LEVEL_ERROR,
-                "file",
-                "Module must have a Purpose section",
-            ));
-            return Ok((r.full_name, ValidationReport::new(issues, strict)));
+            rep.push(error("file", "Module must have a Purpose section"));
+            return Ok((r.full_name, rep.finish()));
         }
     };
 
     let purpose = extract_section(&md, "Purpose");
     if purpose.trim().is_empty() {
-        issues.push(issue(
-            LEVEL_ERROR,
-            "purpose",
-            "Module must have a Purpose section",
-        ));
+        rep.push(error("purpose", "Module must have a Purpose section"));
     } else if purpose.trim().len() < MIN_MODULE_PURPOSE_LENGTH {
-        issues.push(issue(
-            LEVEL_ERROR,
+        rep.push(error(
             "purpose",
             "Module purpose must be at least 20 characters",
         ));
@@ -319,14 +268,13 @@ pub fn validate_module(
 
     let scope = extract_section(&md, "Scope");
     if scope.trim().is_empty() {
-        issues.push(issue(
-            LEVEL_ERROR,
+        rep.push(error(
             "scope",
             "Module must have a Scope section with at least one capability (use \"*\" for unrestricted)",
         ));
     }
 
-    Ok((r.full_name, ValidationReport::new(issues, strict)))
+    Ok((r.full_name, rep.finish()))
 }
 
 fn extract_section(markdown: &str, header: &str) -> String {
