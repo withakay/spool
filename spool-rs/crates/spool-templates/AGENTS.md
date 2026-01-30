@@ -5,9 +5,9 @@ This crate owns the files installed by the Rust CLI via `spool init` / `spool up
 ## Where to edit
 
 - Project templates: `spool-rs/crates/spool-templates/assets/default/project/`
-  - Tool prompts/skills/commands: `.opencode/`, `.claude/`, `.github/`
+  - Tool prompts/skills/commands: `.opencode/`, `.claude/`, `.github/`, `.codex/`
   - Spool project docs: `.spool/`
-- Home templates: `spool-rs/crates/spool-templates/assets/default/home/` (e.g. `.codex/...`)
+- Home templates: `spool-rs/crates/spool-templates/assets/default/home/` (currently unused by default)
 
 Do NOT edit the checked-in, repo-root `.opencode/`, `.claude/`, `.github/`, or `.spool/` files directly when changing what `spool init` installs; those are outputs.
 
