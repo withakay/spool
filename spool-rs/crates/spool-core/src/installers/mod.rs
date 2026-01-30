@@ -66,10 +66,10 @@ fn install_project_templates(
         }
 
         let mut bytes = spool_templates::render_bytes(f.contents, spool_dir).into_owned();
-        if rel.as_ref() == state_rel {
-            if let Ok(s) = std::str::from_utf8(&bytes) {
-                bytes = s.replace("__CURRENT_DATE__", &current_date).into_bytes();
-            }
+        if rel.as_ref() == state_rel
+            && let Ok(s) = std::str::from_utf8(&bytes)
+        {
+            bytes = s.replace("__CURRENT_DATE__", &current_date).into_bytes();
         }
         let target = project_root.join(rel.as_ref());
         write_one(&target, &bytes, mode, opts)?;
@@ -149,43 +149,41 @@ fn write_one(
     opts: &InitOptions,
 ) -> Result<()> {
     if let Some(parent) = target.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| miette!("Failed to create directory {}: {e}", parent.display()))?;
+        crate::io::create_dir_all(parent)?;
     }
 
     // Marker-managed files: template contains markers; we extract the inner block.
-    if let Ok(text) = std::str::from_utf8(rendered_bytes) {
-        if let Some(block) = spool_templates::extract_managed_block(text) {
-            if target.exists() {
-                if mode == InstallMode::Init && !opts.force {
-                    // If the file exists but doesn't contain Spool markers, mimic TS init behavior:
-                    // refuse to overwrite without --force.
-                    let existing = std::fs::read_to_string(target).unwrap_or_default();
-                    let has_start = existing.contains(spool_templates::SPOOL_START_MARKER);
-                    let has_end = existing.contains(spool_templates::SPOOL_END_MARKER);
-                    if !(has_start && has_end) {
-                        return Err(miette!(
-                            "Refusing to overwrite existing file without markers: {} (re-run with --force)",
-                            target.display()
-                        ));
-                    }
+    if let Ok(text) = std::str::from_utf8(rendered_bytes)
+        && let Some(block) = spool_templates::extract_managed_block(text)
+    {
+        if target.exists() {
+            if mode == InstallMode::Init && !opts.force {
+                // If the file exists but doesn't contain Spool markers, mimic TS init behavior:
+                // refuse to overwrite without --force.
+                let existing = crate::io::read_to_string_or_default(target);
+                let has_start = existing.contains(spool_templates::SPOOL_START_MARKER);
+                let has_end = existing.contains(spool_templates::SPOOL_END_MARKER);
+                if !(has_start && has_end) {
+                    return Err(miette!(
+                        "Refusing to overwrite existing file without markers: {} (re-run with --force)",
+                        target.display()
+                    ));
                 }
-
-                update_file_with_markers(
-                    target,
-                    block,
-                    spool_templates::SPOOL_START_MARKER,
-                    spool_templates::SPOOL_END_MARKER,
-                )
-                .map_err(|e| miette!("Failed to update markers in {}: {e}", target.display()))?;
-            } else {
-                // New file: write the template bytes verbatim so output matches embedded assets.
-                std::fs::write(target, rendered_bytes)
-                    .map_err(|e| miette!("Failed to write {}: {e}", target.display()))?;
             }
 
-            return Ok(());
+            update_file_with_markers(
+                target,
+                block,
+                spool_templates::SPOOL_START_MARKER,
+                spool_templates::SPOOL_END_MARKER,
+            )
+            .map_err(|e| miette!("Failed to update markers in {}: {e}", target.display()))?;
+        } else {
+            // New file: write the template bytes verbatim so output matches embedded assets.
+            crate::io::write(target, rendered_bytes)?;
         }
+
+        return Ok(());
     }
 
     // Non-marker-managed files: init refuses to overwrite unless --force.
@@ -196,7 +194,6 @@ fn write_one(
         ));
     }
 
-    std::fs::write(target, rendered_bytes)
-        .map_err(|e| miette!("Failed to write {}: {e}", target.display()))?;
+    crate::io::write(target, rendered_bytes)?;
     Ok(())
 }

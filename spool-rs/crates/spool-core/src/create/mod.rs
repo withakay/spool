@@ -58,7 +58,7 @@ pub fn create_module(
     }
 
     let modules_dir = crate::paths::modules_dir(spool_path);
-    fs::create_dir_all(&modules_dir)?;
+    crate::io::create_dir_all_std(&modules_dir)?;
 
     // If a module with the same name already exists, return it.
     if let Some(existing) = find_module_by_name(&modules_dir, name) {
@@ -87,7 +87,7 @@ pub fn create_module(
     let next_id = next_module_id(&modules_dir)?;
     let folder = format!("{next_id}_{name}");
     let module_dir = modules_dir.join(&folder);
-    fs::create_dir_all(&module_dir)?;
+    crate::io::create_dir_all_std(&module_dir)?;
 
     let title = to_title_case(name);
     let md = generate_module_content(
@@ -98,7 +98,7 @@ pub fn create_module(
         &[],
     );
     let module_md = module_dir.join("module.md");
-    fs::write(&module_md, md)?;
+    crate::io::write_std(&module_md, md)?;
 
     Ok(CreateModuleResult {
         module_id: next_id,
@@ -127,7 +127,7 @@ pub fn create_change(
 
     // Ensure module exists (create ungrouped if missing).
     if !modules_dir.exists() {
-        fs::create_dir_all(&modules_dir)?;
+        crate::io::create_dir_all_std(&modules_dir)?;
     }
     if !module_exists(&modules_dir, &module_id) {
         if module_id == "000" {
@@ -141,19 +141,19 @@ pub fn create_change(
     let folder = format!("{module_id}-{next_num:02}_{name}");
 
     let changes_dir = crate::paths::changes_dir(spool_path);
-    fs::create_dir_all(&changes_dir)?;
+    crate::io::create_dir_all_std(&changes_dir)?;
     let change_dir = changes_dir.join(&folder);
     if change_dir.exists() {
         return Err(CreateError::ChangeAlreadyExists(folder));
     }
-    fs::create_dir_all(&change_dir)?;
+    crate::io::create_dir_all_std(&change_dir)?;
 
     write_change_metadata(&change_dir, schema)?;
 
     if let Some(desc) = description {
         // Match TS: README header uses the change id, not the raw name.
         let readme = format!("# {folder}\n\n{desc}\n");
-        fs::write(change_dir.join("README.md"), readme)?;
+        crate::io::write_std(&change_dir.join("README.md"), readme)?;
     }
 
     add_change_to_module(spool_path, &module_id, &folder)?;
@@ -167,20 +167,20 @@ pub fn create_change(
 fn write_change_metadata(change_dir: &Path, schema: &str) -> Result<(), CreateError> {
     let created = Utc::now().format("%Y-%m-%d").to_string();
     let content = format!("schema: {schema}\ncreated: {created}\n");
-    fs::write(change_dir.join(".spool.yaml"), content)?;
+    crate::io::write_std(&change_dir.join(".spool.yaml"), content)?;
     Ok(())
 }
 
 fn allocate_next_change_number(spool_path: &Path, module_id: &str) -> Result<u32, CreateError> {
     // Lock file + JSON state mirrors TS implementation.
     let state_dir = spool_path.join("workflows").join(".state");
-    fs::create_dir_all(&state_dir)?;
+    crate::io::create_dir_all_std(&state_dir)?;
     let lock_path = state_dir.join("change-allocations.lock");
     let state_path = state_dir.join("change-allocations.json");
 
     let lock = acquire_lock(&lock_path)?;
     let mut state: AllocationState = if state_path.exists() {
-        serde_json::from_str(&fs::read_to_string(&state_path)?)?
+        serde_json::from_str(&crate::io::read_to_string_std(&state_path)?)?
     } else {
         AllocationState::default()
     };
@@ -212,7 +212,7 @@ fn allocate_next_change_number(spool_path: &Path, module_id: &str) -> Result<u32
         },
     );
 
-    fs::write(&state_path, serde_json::to_string_pretty(&state)?)?;
+    crate::io::write_std(&state_path, serde_json::to_string_pretty(&state)?)?;
 
     drop(lock);
     let _ = fs::remove_file(&lock_path);
@@ -253,23 +253,18 @@ struct ModuleAllocationState {
 
 fn max_change_num_in_dir(dir: &Path, module_id: &str) -> u32 {
     let mut max_seen = 0;
-    let Ok(entries) = fs::read_dir(dir) else {
+    let Ok(entries) = crate::discovery::list_dir_names(dir) else {
         return 0;
     };
-    for e in entries.flatten() {
-        if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-            continue;
-        }
-        let name = e.file_name().to_string_lossy().to_string();
+    for name in entries {
         if name == "archive" {
             continue;
         }
-        if let Ok(parsed) = parse_change_id(&name) {
-            if parsed.module_id.as_str() == module_id {
-                if let Ok(n) = parsed.change_num.parse::<u32>() {
-                    max_seen = max_seen.max(n);
-                }
-            }
+        if let Ok(parsed) = parse_change_id(&name)
+            && parsed.module_id.as_str() == module_id
+            && let Ok(n) = parsed.change_num.parse::<u32>()
+        {
+            max_seen = max_seen.max(n);
         }
     }
     max_seen
@@ -277,62 +272,49 @@ fn max_change_num_in_dir(dir: &Path, module_id: &str) -> u32 {
 
 fn max_change_num_in_archived_change_dirs(archive_dir: &Path, module_id: &str) -> u32 {
     let mut max_seen = 0;
-    let Ok(entries) = fs::read_dir(archive_dir) else {
+    let Ok(entries) = crate::discovery::list_dir_names(archive_dir) else {
         return 0;
     };
-    for e in entries.flatten() {
-        if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-            continue;
-        }
-        let name = e.file_name().to_string_lossy().to_string();
+    for name in entries {
         // archived dirs are like 2026-01-26-006-05_port-list-show-validate
         if name.len() <= 11 {
             continue;
         }
         // Find substring after first 11 chars date + dash
         let change_part = &name[11..];
-        if let Ok(parsed) = parse_change_id(change_part) {
-            if parsed.module_id.as_str() == module_id {
-                if let Ok(n) = parsed.change_num.parse::<u32>() {
-                    max_seen = max_seen.max(n);
-                }
-            }
+        if let Ok(parsed) = parse_change_id(change_part)
+            && parsed.module_id.as_str() == module_id
+            && let Ok(n) = parsed.change_num.parse::<u32>()
+        {
+            max_seen = max_seen.max(n);
         }
     }
     max_seen
 }
 
 fn find_module_by_name(modules_dir: &Path, name: &str) -> Option<String> {
-    let Ok(entries) = fs::read_dir(modules_dir) else {
+    let Ok(entries) = crate::discovery::list_dir_names(modules_dir) else {
         return None;
     };
-    for e in entries.flatten() {
-        if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-            continue;
-        }
-        let folder = e.file_name().to_string_lossy().to_string();
-        if let Ok(parsed) = parse_module_id(&folder) {
-            if parsed.module_name.as_deref() == Some(name) {
-                return Some(folder);
-            }
+    for folder in entries {
+        if let Ok(parsed) = parse_module_id(&folder)
+            && parsed.module_name.as_deref() == Some(name)
+        {
+            return Some(folder);
         }
     }
     None
 }
 
 fn module_exists(modules_dir: &Path, module_id: &str) -> bool {
-    let Ok(entries) = fs::read_dir(modules_dir) else {
+    let Ok(entries) = crate::discovery::list_dir_names(modules_dir) else {
         return false;
     };
-    for e in entries.flatten() {
-        if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-            continue;
-        }
-        let folder = e.file_name().to_string_lossy().to_string();
-        if let Ok(parsed) = parse_module_id(&folder) {
-            if parsed.module_id.as_str() == module_id {
-                return true;
-            }
+    for folder in entries {
+        if let Ok(parsed) = parse_module_id(&folder)
+            && parsed.module_id.as_str() == module_id
+        {
+            return true;
         }
     }
     false
@@ -340,16 +322,12 @@ fn module_exists(modules_dir: &Path, module_id: &str) -> bool {
 
 fn next_module_id(modules_dir: &Path) -> Result<String, CreateError> {
     let mut max_seen: u32 = 0;
-    if let Ok(entries) = fs::read_dir(modules_dir) {
-        for e in entries.flatten() {
-            if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-                continue;
-            }
-            let folder = e.file_name().to_string_lossy().to_string();
-            if let Ok(parsed) = parse_module_id(&folder) {
-                if let Ok(n) = parsed.module_id.as_str().parse::<u32>() {
-                    max_seen = max_seen.max(n);
-                }
+    if let Ok(entries) = crate::discovery::list_dir_names(modules_dir) {
+        for folder in entries {
+            if let Ok(parsed) = parse_module_id(&folder)
+                && let Ok(n) = parsed.module_id.as_str().parse::<u32>()
+            {
+                max_seen = max_seen.max(n);
             }
         }
     }
@@ -491,7 +469,7 @@ fn add_change_to_module(
     let module_folder = find_module_by_id(&modules_dir, module_id)
         .ok_or_else(|| CreateError::ModuleNotFound(module_id.to_string()))?;
     let module_md = modules_dir.join(&module_folder).join("module.md");
-    let existing = fs::read_to_string(&module_md)?;
+    let existing = crate::io::read_to_string_std(&module_md)?;
 
     let title = extract_title(&existing)
         .or_else(|| module_folder.split('_').nth(1).map(to_title_case))
@@ -512,23 +490,19 @@ fn add_change_to_module(
     }
 
     let md = generate_module_content(&title, purpose.as_deref(), &scope, &depends_on, &changes);
-    fs::write(module_md, md)?;
+    crate::io::write_std(&module_md, md)?;
     Ok(())
 }
 
 fn find_module_by_id(modules_dir: &Path, module_id: &str) -> Option<String> {
-    let Ok(entries) = fs::read_dir(modules_dir) else {
+    let Ok(entries) = crate::discovery::list_dir_names(modules_dir) else {
         return None;
     };
-    for e in entries.flatten() {
-        if !e.file_type().ok().is_some_and(|t| t.is_dir()) {
-            continue;
-        }
-        let folder = e.file_name().to_string_lossy().to_string();
-        if let Ok(parsed) = parse_module_id(&folder) {
-            if parsed.module_id.as_str() == module_id {
-                return Some(folder);
-            }
+    for folder in entries {
+        if let Ok(parsed) = parse_module_id(&folder)
+            && parsed.module_id.as_str() == module_id
+        {
+            return Some(folder);
         }
     }
     None
@@ -540,17 +514,15 @@ fn max_change_num_in_module_md(spool_path: &Path, module_id: &str) -> Result<u32
         return Ok(0);
     };
     let module_md = modules_dir.join(folder).join("module.md");
-    let content = fs::read_to_string(&module_md).unwrap_or_default();
+    let content = crate::io::read_to_string_or_default(&module_md);
     let mut max_seen: u32 = 0;
     for token in content.split_whitespace() {
         if let Ok(parsed) = parse_change_id(
             token.trim_matches(|c: char| !c.is_ascii_alphanumeric() && c != '-' && c != '_'),
-        ) {
-            if parsed.module_id.as_str() == module_id {
-                if let Ok(n) = parsed.change_num.parse::<u32>() {
-                    max_seen = max_seen.max(n);
-                }
-            }
+        ) && parsed.module_id.as_str() == module_id
+            && let Ok(n) = parsed.change_num.parse::<u32>()
+        {
+            max_seen = max_seen.max(n);
         }
     }
     Ok(max_seen)
@@ -712,9 +684,9 @@ fn generate_module_content<T: AsRef<str>>(
 
 fn create_ungrouped_module(spool_path: &Path) -> Result<(), CreateError> {
     let modules_dir = crate::paths::modules_dir(spool_path);
-    fs::create_dir_all(&modules_dir)?;
+    crate::io::create_dir_all_std(&modules_dir)?;
     let dir = modules_dir.join("000_ungrouped");
-    fs::create_dir_all(&dir)?;
+    crate::io::create_dir_all_std(&dir)?;
     let empty: [&str; 0] = [];
     let md = generate_module_content(
         "Ungrouped",
@@ -723,6 +695,6 @@ fn create_ungrouped_module(spool_path: &Path) -> Result<(), CreateError> {
         &empty,
         &[],
     );
-    fs::write(dir.join("module.md"), md)?;
+    crate::io::write_std(&dir.join("module.md"), md)?;
     Ok(())
 }
