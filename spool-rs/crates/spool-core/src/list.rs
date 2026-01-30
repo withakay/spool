@@ -33,27 +33,16 @@ pub struct SpecListItem {
 }
 
 pub fn list_modules(spool_path: &Path) -> Result<Vec<ModuleListItem>> {
-    let modules_dir = crate::paths::modules_dir(spool_path);
     let changes_dir = crate::paths::changes_dir(spool_path);
 
     let mut modules: Vec<ModuleListItem> = Vec::new();
-    if !modules_dir.exists() {
-        return Ok(modules);
-    }
+    let modules_dir = crate::paths::modules_dir(spool_path);
 
-    for entry in std::fs::read_dir(&modules_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
-            continue;
-        }
-        let full_name = entry.file_name().to_string_lossy().to_string();
-        if full_name.starts_with('.') {
-            continue;
-        }
+    for full_name in crate::discovery::list_module_dir_names(spool_path)? {
         let Some((id, name)) = parse_module_folder_name(&full_name) else {
             continue;
         };
-        if std::fs::metadata(entry.path().join("module.md")).is_err() {
+        if std::fs::metadata(modules_dir.join(&full_name).join("module.md")).is_err() {
             continue;
         }
         let change_count = count_changes_for_module(&changes_dir, &id)?;
@@ -70,24 +59,10 @@ pub fn list_modules(spool_path: &Path) -> Result<Vec<ModuleListItem>> {
 }
 
 pub fn list_change_dirs(spool_path: &Path) -> Result<Vec<PathBuf>> {
-    let changes_dir = crate::paths::changes_dir(spool_path);
-    if !changes_dir.exists() {
-        return Ok(vec![]);
-    }
-
-    let mut dirs: Vec<PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(&changes_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
-            continue;
-        }
-        let name = entry.file_name().to_string_lossy().to_string();
-        if name == "archive" {
-            continue;
-        }
-        dirs.push(entry.path());
-    }
-    Ok(dirs)
+    Ok(crate::discovery::list_change_dir_names(spool_path)?
+        .into_iter()
+        .map(|name| crate::paths::change_dir(spool_path, &name))
+        .collect())
 }
 
 pub fn count_tasks_markdown(contents: &str) -> (u32, u32) {
@@ -143,10 +118,10 @@ pub fn last_modified_recursive(path: &Path) -> Result<DateTime<Utc>> {
             Ok(m) => m,
             Err(_) => continue,
         };
-        if let Ok(m) = meta.modified() {
-            if m > max {
-                max = m;
-            }
+        if let Ok(m) = meta.modified()
+            && m > max
+        {
+            max = m;
         }
         if meta.is_dir() {
             let iter = match std::fs::read_dir(&p) {
@@ -178,20 +153,11 @@ pub fn to_iso_millis(dt: DateTime<Utc>) -> String {
 }
 
 pub fn list_specs(spool_path: &Path) -> Result<Vec<SpecListItem>> {
-    let specs_dir = crate::paths::specs_dir(spool_path);
-    if !specs_dir.exists() {
-        return Ok(vec![]);
-    }
-
     let mut specs: Vec<SpecListItem> = Vec::new();
-    for entry in std::fs::read_dir(&specs_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
-            continue;
-        }
-        let id = entry.file_name().to_string_lossy().to_string();
-        let spec_md = entry.path().join("spec.md");
-        let content = std::fs::read_to_string(&spec_md).unwrap_or_default();
+    let specs_dir = crate::paths::specs_dir(spool_path);
+    for id in crate::discovery::list_spec_dir_names(spool_path)? {
+        let spec_md = specs_dir.join(&id).join("spec.md");
+        let content = crate::io::read_to_string_or_default(&spec_md);
         let requirement_count = if content.is_empty() {
             0
         } else {
@@ -297,22 +263,17 @@ fn count_changes_for_module(changes_dir: &Path, module_id: &str) -> Result<usize
         return Ok(0);
     }
     let mut count = 0usize;
-    for entry in std::fs::read_dir(changes_dir).into_diagnostic()? {
-        let entry = entry.into_diagnostic()?;
-        if !entry.file_type().into_diagnostic()?.is_dir() {
+    for name in crate::discovery::list_dir_names(changes_dir)? {
+        if name == "archive" {
             continue;
         }
-        let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with('.') || name == "archive" {
+        if std::fs::metadata(changes_dir.join(&name).join("proposal.md")).is_err() {
             continue;
         }
-        if std::fs::metadata(entry.path().join("proposal.md")).is_err() {
-            continue;
-        }
-        if let Some(mid) = parse_modular_change_module_id(&name) {
-            if mid == module_id {
-                count += 1;
-            }
+        if let Some(mid) = parse_modular_change_module_id(&name)
+            && mid == module_id
+        {
+            count += 1;
         }
     }
     Ok(count)
@@ -367,7 +328,7 @@ fn parse_sections(content: &str) -> Vec<Section> {
     sections
 }
 
-fn attach_section(sections: &mut Vec<Section>, stack: &mut Vec<Section>, section: Section) {
+fn attach_section(sections: &mut Vec<Section>, stack: &mut [Section], section: Section) {
     if let Some(parent) = stack.last_mut() {
         parent.children.push(section);
     } else {
