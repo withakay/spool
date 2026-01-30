@@ -399,7 +399,7 @@ fn handle_plan(rt: &Runtime, args: &[String]) -> CliResult<()> {
     match sub {
         "init" => {
             wf_planning::init_planning_structure(spool_path, &current_date, &spool_dir)
-                .map_err(|e| CliError::msg(e.to_string()))?;
+                .map_err(to_cli_error)?;
             eprintln!("✔ Planning structure initialized");
             println!("Created:");
             println!("  - {}/planning/PROJECT.md", spool_dir);
@@ -498,10 +498,9 @@ fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
             let now = chrono::Local::now();
             let contents = wf_tasks::enhanced_tasks_template(change_id, now);
             if let Some(parent) = path.parent() {
-                spool_core::io::create_dir_all(parent).map_err(|e| CliError::msg(e.to_string()))?;
+                spool_core::io::create_dir_all(parent).map_err(to_cli_error)?;
             }
-            spool_core::io::write(&path, contents.as_bytes())
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, contents.as_bytes()).map_err(to_cli_error)?;
             eprintln!("✔ Enhanced tasks.md created for \"{change_id}\"");
             Ok(())
         }
@@ -709,8 +708,7 @@ fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::InProgress,
                 chrono::Local::now(),
             );
-            spool_core::io::write(&path, updated.as_bytes())
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
             eprintln!("✔ Task \"{task_id}\" marked as in-progress");
             Ok(())
         }
@@ -753,8 +751,7 @@ fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 }
                 let mut out = lines.join("\n");
                 out.push('\n');
-                spool_core::io::write(&path, out.as_bytes())
-                    .map_err(|e| CliError::msg(e.to_string()))?;
+                spool_core::io::write(&path, out.as_bytes()).map_err(to_cli_error)?;
                 eprintln!("✔ Task \"{task_id}\" marked as complete");
                 return Ok(());
             }
@@ -770,8 +767,7 @@ fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::Complete,
                 chrono::Local::now(),
             );
-            spool_core::io::write(&path, updated.as_bytes())
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
             eprintln!("✔ Task \"{task_id}\" marked as complete");
             Ok(())
         }
@@ -809,8 +805,7 @@ fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::Shelved,
                 chrono::Local::now(),
             );
-            spool_core::io::write(&path, updated.as_bytes())
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
             eprintln!("✔ Task \"{task_id}\" shelved");
             Ok(())
         }
@@ -848,8 +843,7 @@ fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 wf_tasks::TaskStatus::Pending,
                 chrono::Local::now(),
             );
-            spool_core::io::write(&path, updated.as_bytes())
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
             eprintln!("✔ Task \"{task_id}\" unshelved (pending)");
             Ok(())
         }
@@ -918,8 +912,7 @@ fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 }
             }
 
-            spool_core::io::write(&path, out.as_bytes())
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            spool_core::io::write(&path, out.as_bytes()).map_err(to_cli_error)?;
             eprintln!("✔ Task {new_id} \"{task_name}\" added to Wave {wave}");
             Ok(())
         }
@@ -980,7 +973,7 @@ fn handle_create(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 .unwrap_or_default();
 
             let r = core_create::create_module(spool_path, name, scope, depends_on)
-                .map_err(|e| CliError::msg(e.to_string()))?;
+                .map_err(to_cli_error)?;
             if !r.created {
                 println!("Module \"{}\" already exists as {}", name, r.folder_name);
                 return Ok(());
@@ -1041,7 +1034,7 @@ fn handle_create(rt: &Runtime, args: &[String]) -> CliResult<()> {
                     );
                     Ok(())
                 }
-                Err(e) => Err(CliError::msg(e.to_string())),
+                Err(e) => Err(to_cli_error(e)),
             }
         }
         _ => fail(format!("Unknown create type '{kind}'")),
@@ -1111,7 +1104,7 @@ fn handle_new(rt: &Runtime, args: &[String]) -> CliResult<()> {
             );
             Ok(())
         }
-        Err(e) => Err(CliError::msg(e.to_string())),
+        Err(e) => Err(to_cli_error(e)),
     }
 }
 
@@ -1164,7 +1157,7 @@ fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 return fail(schema_not_found_message(ctx, &name));
             }
             Err(e) => {
-                return Err(CliError::msg(e.to_string()));
+                return Err(to_cli_error(e));
             }
         };
 
@@ -1232,7 +1225,7 @@ fn handle_templates(rt: &Runtime, args: &[String]) -> CliResult<()> {
         Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
             return fail(schema_not_found_message(ctx, &name));
         }
-        Err(e) => return Err(CliError::msg(e.to_string())),
+        Err(e) => return Err(to_cli_error(e)),
     };
 
     let templates_dir = resolved.schema_dir.join("templates");
@@ -1342,7 +1335,7 @@ fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
             Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
                 return fail(schema_not_found_message(ctx, &name));
             }
-            Err(e) => return Err(CliError::msg(e.to_string())),
+            Err(e) => return Err(to_cli_error(e)),
         };
 
         if want_json {
@@ -1387,7 +1380,7 @@ fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
         Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
             return fail(schema_not_found_message(ctx, &name));
         }
-        Err(e) => return Err(CliError::msg(e.to_string())),
+        Err(e) => return Err(to_cli_error(e)),
     };
 
     if want_json {
@@ -1618,7 +1611,7 @@ fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
         ctx,
     ) {
         Ok(r) => r,
-        Err(e) => return Err(CliError::msg(e.to_string())),
+        Err(e) => return Err(to_cli_error(e)),
     };
 
     if want_json {
@@ -1773,8 +1766,7 @@ fn handle_init(rt: &Runtime, args: &[String]) -> CliResult<()> {
     };
 
     let opts = InitOptions::new(tools, force);
-    install_default_templates(target_path, ctx, InstallMode::Init, &opts)
-        .map_err(|e| CliError::msg(e.to_string()))?;
+    install_default_templates(target_path, ctx, InstallMode::Init, &opts).map_err(to_cli_error)?;
 
     Ok(())
 }
@@ -1798,7 +1790,7 @@ fn handle_update(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let opts = InitOptions::new(tools, true);
 
     install_default_templates(target_path, ctx, InstallMode::Update, &opts)
-        .map_err(|e| CliError::msg(e.to_string()))?;
+        .map_err(to_cli_error)?;
 
     Ok(())
 }
@@ -1893,7 +1885,7 @@ fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 let change_path = core_paths::change_dir(spool_path, name);
                 let tasks_path = change_path.join("tasks.md");
                 let (total, completed) = spool_core::io::read_to_string_optional(&tasks_path)
-                    .map_err(|e| CliError::msg(e.to_string()))?
+                    .map_err(to_cli_error)?
                     .map(|c| spool_core::list::count_tasks_markdown(&c))
                     .unwrap_or((0, 0));
                 let lm = spool_core::list::last_modified_recursive(&change_path)
@@ -2157,8 +2149,7 @@ fn handle_show_module(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
     let spool_path = rt.spool_path();
 
-    let resolved = core_validate::resolve_module(spool_path, &module_id)
-        .map_err(|e| CliError::msg(e.to_string()))?;
+    let resolved = core_validate::resolve_module(spool_path, &module_id).map_err(to_cli_error)?;
     let Some(m) = resolved else {
         return fail(format!("Module '{module_id}' not found"));
     };
@@ -2302,7 +2293,7 @@ fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
             }
             match StubHarness::from_env_or_default(p) {
                 Ok(h) => Box::new(h),
-                Err(e) => return Err(CliError::msg(e.to_string())),
+                Err(e) => return Err(to_cli_error(e)),
             }
         }
         _ => return fail(format!("Unknown harness: {h}", h = harness)),
@@ -2324,8 +2315,7 @@ fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
         clear_context,
     };
 
-    core_ralph::run_ralph(spool_path, opts, harness_impl.as_mut())
-        .map_err(|e| CliError::msg(e.to_string()))?;
+    core_ralph::run_ralph(spool_path, opts, harness_impl.as_mut()).map_err(to_cli_error)?;
 
     Ok(())
 }
@@ -2666,8 +2656,8 @@ fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 let suggestions = nearest_matches(&item, &candidates, 5);
                 return fail(unknown_with_suggestions("spec", &item, &suggestions));
             }
-            let report = core_validate::validate_spec(spool_path, &item, strict)
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            let report =
+                core_validate::validate_spec(spool_path, &item, strict).map_err(to_cli_error)?;
             let ok = render_validate_result("spec", &item, report, want_json);
             if !ok {
                 return silent_fail();
@@ -2681,8 +2671,8 @@ fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 let suggestions = nearest_matches(&item, &candidates, 5);
                 return fail(unknown_with_suggestions("change", &item, &suggestions));
             }
-            let report = core_validate::validate_change(spool_path, &item, strict)
-                .map_err(|e| CliError::msg(e.to_string()))?;
+            let report =
+                core_validate::validate_change(spool_path, &item, strict).map_err(to_cli_error)?;
             let ok = render_validate_result("change", &item, report, want_json);
             if !ok {
                 return silent_fail();
@@ -2728,8 +2718,8 @@ fn handle_validate_module(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
     let spool_path = rt.spool_path();
 
-    let (full_name, report) = core_validate::validate_module(spool_path, &module_id, false)
-        .map_err(|e| CliError::msg(e.to_string()))?;
+    let (full_name, report) =
+        core_validate::validate_module(spool_path, &module_id, false).map_err(to_cli_error)?;
     if report.valid {
         println!("Module '{full_name}' is valid");
         return Ok(());
