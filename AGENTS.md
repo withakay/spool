@@ -25,11 +25,21 @@ Keep this managed block so 'spool update' can refresh the instructions.
 
 ## Prompt Templates
 
-If the request mentions editing/updating a Spool prompt (skills, slash commands, agents instructions, etc.), start in `spool-bun/src/core/templates/` (legacy TypeScript templates).
+If the request mentions editing/updating a Spool prompt (skills, slash commands, agents instructions, markdown etc.), start in `spool-bun/src/core/templates/` (legacy TypeScript templates).
 
 For Rust-installed project templates, see `spool-rs/crates/spool-templates/`.
 
 See `spool-bun/src/core/templates/AGENTS.md` for what to edit.
+
+## Rust `spool init` Embedded Markdown
+
+`spool init` (Rust CLI) installs files from embedded assets, not from this repo's checked-in `.opencode/` directory.
+
+- Project templates live under `spool-rs/crates/spool-templates/assets/default/project/` (includes `.spool/`, `.opencode/`, `.claude/`, `.github/`, etc.)
+- Home templates live under `spool-rs/crates/spool-templates/assets/default/home/` (e.g., `.codex/...`)
+- Assets are embedded via `include_dir!` in `spool-rs/crates/spool-templates/src/lib.rs` and written by `spool-rs/crates/spool-core/src/installers/mod.rs`
+
+If you want agents to learn new workflows (e.g., task tracking), update the embedded skill markdown in those assets.
 
 ## Development Commands
 
@@ -71,35 +81,14 @@ This differs from other tools like Claude Code which use plural forms (`.claude/
 
 When writing tests or code that references OpenCode paths, always use the singular form.
 
-## Markdown Templating
+## Coding conventions
 
-**IMPORTANT**: When the proposal or specs mention installation via `spool init`, this means the artifact should be:
-- Templated in TypeScript using the template system
-- Path-aware (using `replaceHardcodedDotSpoolPaths` for `.spool/` path normalization)
-- Installed via the appropriate configurator (e.g., `SkillsConfigurator`)
+When working in the Rust codebase use the skill `rust-style` to guide naming, structuring, and formatting etc.
 
-**Pattern** (legacy TypeScript templates): Skills use `SkillTemplate` interface, slash commands use `CommandTemplate` interface:
-```typescript
-// Skills - spool-bun/src/core/templates/skill-templates.ts
-export function getExampleSkillTemplate(spoolDir: string = '.spool'): SkillTemplate {
-  return {
-    name: 'Example Skill',
-    description: '...',
-    instructions: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
-  };
-}
-
-// Slash Commands - spool-bun/src/core/templates/skill-templates.ts
-export function getExampleCommandTemplate(spoolDir: string = '.spool'): CommandTemplate {
-  return {
-    name: 'Example Command',
-    description: '...',
-    category: 'Workflow',
-    tags: ['example'],
-    content: replaceHardcodedDotSpoolPaths(rawInstructions, spoolDir)
-  };
-}
-```
-
-**Do not**: Direct file copies or hardcoded `.spool/` paths in install logic
-**Do**: Use template functions with `spoolDir` parameter for path normalization
+Guiding Principles:
+- YAGNI: Avoid adding features or abstractions until they are needed.
+- KISS: Keep it simple and straightforward; prefer clarity over cleverness.
+- DRY: Avoid duplication by abstracting common patterns into reusable functions, modules or crates.
+- Idiomatic Rust: Follow Rust best practices and conventions for safety, performance, and readability.
+- Comprehensive Testing: Write tests for new features and edge cases to ensure reliability.
+- Documentation: Document public APIs, complex logic, and usage examples to aid future maintainers.

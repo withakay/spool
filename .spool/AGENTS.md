@@ -2,11 +2,6 @@
 
 Instructions for AI coding assistants using Spool for spec-driven development.
 
-## Repo Implementations
-
-- **Supported**: `spool-rs/` (favor this for all new work)
-- **Deprecated legacy**: `spool-bun/` (TypeScript/Bun; only touch for compatibility/parity)
-
 ## TL;DR Quick Checklist
 
 - Search existing work: `spool list --specs`, `spool list`, `spool list --modules`
@@ -304,7 +299,7 @@ Set up the initial project structure and tooling.
 <!-- Hybrid: existing changes auto-discovered + planned -->
 - [ ] 001-01_init-repo
 - [ ] 001-02_add-readme (planned)
-- [x] 001-03_setup-linting
+ - [x] 001-03_setup-linting
 ```
 
 ### Scope Enforcement

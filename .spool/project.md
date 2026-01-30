@@ -1,63 +1,31 @@
-# Spool Project Overview
+# Project Context
 
-A CLI tool that helps developers set up Spool file structures and keep AI instructions updated.
+## Purpose
+[Describe your project's purpose and goals]
 
-This repository currently contains two implementations:
+## Tech Stack
+- [List your primary technologies]
+- [e.g., TypeScript, React, Node.js]
 
-- **Supported**: `spool-rs/` (Rust)
-- **Deprecated legacy**: `spool-bun/` (TypeScript/Bun)
+## Project Conventions
 
-## Technology Stack
-- Supported implementation
-  - Language: Rust
-  - Workspace: `spool-rs/` (Cargo)
-  - Distribution: native binaries
+### Code Style
+[Describe your code style preferences, formatting rules, and naming conventions]
 
-- Deprecated legacy implementation
-  - Language: TypeScript
-  - Runtime: Node.js (ESM) / Bun
-  - Source: `spool-bun/src/`
-  - CLI Framework: Commander.js
-  - User Interaction: @inquirer/prompts
+### Architecture Patterns
+[Document your architectural decisions and patterns]
 
-## Project Structure
-```
-spool-rs/        # Supported Rust implementation
-spool-bun/       # Deprecated legacy TypeScript/Bun implementation
+### Testing Strategy
+[Explain your testing approach and requirements]
 
-dist/            # Legacy TS compiled output (gitignored)
-```
+### Git Workflow
+[Describe your branching strategy and commit conventions]
 
-## Conventions
-- TypeScript strict mode enabled
-- Async/await for all asynchronous operations
-- Minimal dependencies principle
-- Clear separation of CLI, core logic, and utilities
-- AI-friendly code with descriptive names
+## Domain Context
+[Add domain-specific knowledge that AI assistants need to understand]
 
-## Error Handling
-- Let errors bubble up to CLI level for consistent user messaging
-- Use native Error types with descriptive messages
-- Exit with appropriate codes: 0 (success), 1 (general error), 2 (misuse)
-- No try-catch in utility functions, handle at command level
+## Important Constraints
+[List any technical, business, or regulatory constraints]
 
-## Logging
-- Use console methods directly (no logging library)
-- console.log() for normal output
-- console.error() for errors (outputs to stderr)
-- No verbose/debug modes initially (keep it simple)
-
-## Testing Strategy
-- Supported (Rust): `cargo test --workspace` (or `make test`)
-- Legacy (TypeScript/Bun): `bun run test`
-
-## Development Workflow
-- Default (supported): use the Makefile Rust defaults
-  - `make build`
-  - `make test`
-
-- Legacy (TypeScript/Bun): run Bun scripts from repo root
-  - `bun run build`
-  - `bun run test`
-
-- Follow Spool's own change-driven development process
+## External Dependencies
+[Document key external services, APIs, or systems]

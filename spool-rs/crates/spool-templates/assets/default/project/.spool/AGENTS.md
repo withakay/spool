@@ -54,7 +54,7 @@ Track these steps as TODOs and complete them one by one.
 3. **Read tasks.md** - Get implementation checklist
 4. **Implement tasks sequentially** - Complete in order
 5. **Confirm completion** - Ensure every item in `tasks.md` is finished before updating statuses
-6. **Update checklist** - After all work is done, set every task to `- [x]` so the list reflects reality
+6. **Update statuses** - Prefer `spool tasks start|complete` for enhanced tasks.md; for legacy checkbox lists, set `- [x]` so the list reflects reality
 7. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
 
 ### Stage 3: Archiving Changes
@@ -98,6 +98,13 @@ spool list --specs          # List specifications
 spool show [item]           # Display change or spec
 spool validate [item]       # Validate changes or specs
 spool archive <change-id> [--yes|-y]   # Archive after deployment (add --yes for non-interactive runs)
+
+# Task tracking (enhanced tasks.md)
+spool tasks status <change-id>         # Show progress summary
+spool tasks next <change-id>           # Show next ready task
+spool tasks start <change-id> <task-id>
+spool tasks complete <change-id> <task-id>
+spool tasks show <change-id>           # Print tasks.md
 
 # Module commands
 spool list --modules         # List all modules
