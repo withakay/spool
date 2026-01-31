@@ -27,7 +27,7 @@ None - this change adds new functionality without modifying existing spec-level 
 - **CLI**: `spool list` output format will show "completed" status
 - **spool-archive skill**: Needs update to support interactive selection flow
 - **User workflows**: Clearer path from completion to archiving
-- **Code affected**: 
+- **Code affected**:
   - `spool-rs/crates/spool-core/src/list.rs` (status logic)
   - `spool-rs/crates/spool-cli/src/commands/list.rs` (display)
   - `.claude/skills/spool-archive/` (skill instructions)

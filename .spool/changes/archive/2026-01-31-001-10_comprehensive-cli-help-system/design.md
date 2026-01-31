@@ -57,7 +57,7 @@ if args.iter().any(|a| a == "--help" || a == "-h") {
 
 **Choice**: Add `spool help --all` as the primary interface, with `spool --help-all` as an alias.
 
-**Rationale**: 
+**Rationale**:
 - `help --all` follows the existing `help [command]` pattern
 - `--help-all` provides convenience for those expecting global flags
 - Both are easy to implement

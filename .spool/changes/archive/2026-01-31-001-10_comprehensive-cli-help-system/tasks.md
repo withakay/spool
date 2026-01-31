@@ -72,7 +72,7 @@ ______________________________________________________________________
       path: &'static str,  // e.g., "spool agent instruction"
       help: &'static str,  // the help constant
   }
-  
+
   const ALL_HELP: &[CommandHelp] = &[
       CommandHelp { path: "spool", help: HELP },
       CommandHelp { path: "spool init", help: INIT_HELP },
