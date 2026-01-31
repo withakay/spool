@@ -1,10 +1,10 @@
 use crate::config::ConfigContext;
 use serde::{Deserialize, Serialize};
+use spool_templates::SPOOL_END_MARKER;
 use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use spool_templates::SPOOL_END_MARKER;
 
 #[derive(Debug, thiserror::Error)]
 pub enum WorkflowError {
@@ -808,7 +808,8 @@ fn parse_enhanced_tasks(contents: &str) -> Vec<TaskItem> {
 
         if let Some(rest) = l.strip_prefix("- **Status**:") {
             let status = rest.trim();
-            if let Some(status) = status.strip_prefix("[x]")
+            if let Some(status) = status
+                .strip_prefix("[x]")
                 .or_else(|| status.strip_prefix("[X]"))
             {
                 current_done = true;
@@ -852,49 +853,6 @@ pub fn load_user_guidance(spool_path: &Path) -> Result<Option<String>, WorkflowE
     }
 
     Ok(Some(content.to_string()))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn load_user_guidance_returns_trimmed_content_after_marker() {
-        let dir = tempfile::tempdir().expect("tempdir should succeed");
-        let spool_path = dir.path();
-
-        let content = "<!-- SPOOL:START -->\nheader\n<!-- SPOOL:END -->\n\nPrefer BDD.\n";
-        std::fs::write(spool_path.join("user-guidance.md"), content)
-            .expect("write should succeed");
-
-        let guidance = load_user_guidance(spool_path)
-            .expect("load should succeed")
-            .expect("should be present");
-
-        assert_eq!(guidance, "Prefer BDD.");
-    }
-
-    #[test]
-    fn parse_enhanced_tasks_extracts_ids_status_and_done() {
-        let contents = r#"### Task 1.1: First
-- **Status**: [x] complete
-
-### Task 1.2: Second
-- **Status**: [ ] in-progress
-"#;
-
-        let tasks = parse_enhanced_tasks(contents);
-        assert_eq!(tasks.len(), 2);
-        assert_eq!(tasks[0].id, "1.1");
-        assert_eq!(tasks[0].description, "First");
-        assert!(tasks[0].done);
-        assert_eq!(tasks[0].status.as_deref(), Some("complete"));
-
-        assert_eq!(tasks[1].id, "1.2");
-        assert_eq!(tasks[1].description, "Second");
-        assert!(!tasks[1].done);
-        assert_eq!(tasks[1].status.as_deref(), Some("in-progress"));
-    }
 }
 
 fn package_schemas_dir() -> PathBuf {
@@ -991,3 +949,45 @@ fn dir_contains_filename_suffix(dir: &Path, suffix: &str) -> bool {
 }
 
 // (intentionally no checkbox counting helpers here; checkbox tasks are parsed into TaskItems)
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn load_user_guidance_returns_trimmed_content_after_marker() {
+        let dir = tempfile::tempdir().expect("tempdir should succeed");
+        let spool_path = dir.path();
+
+        let content = "<!-- SPOOL:START -->\nheader\n<!-- SPOOL:END -->\n\nPrefer BDD.\n";
+        std::fs::write(spool_path.join("user-guidance.md"), content).expect("write should succeed");
+
+        let guidance = load_user_guidance(spool_path)
+            .expect("load should succeed")
+            .expect("should be present");
+
+        assert_eq!(guidance, "Prefer BDD.");
+    }
+
+    #[test]
+    fn parse_enhanced_tasks_extracts_ids_status_and_done() {
+        let contents = r#"### Task 1.1: First
+ - **Status**: [x] complete
+
+ ### Task 1.2: Second
+ - **Status**: [ ] in-progress
+ "#;
+
+        let tasks = parse_enhanced_tasks(contents);
+        assert_eq!(tasks.len(), 2);
+        assert_eq!(tasks[0].id, "1.1");
+        assert_eq!(tasks[0].description, "First");
+        assert!(tasks[0].done);
+        assert_eq!(tasks[0].status.as_deref(), Some("complete"));
+
+        assert_eq!(tasks[1].id, "1.2");
+        assert_eq!(tasks[1].description, "Second");
+        assert!(!tasks[1].done);
+        assert_eq!(tasks[1].status.as_deref(), Some("in-progress"));
+    }
+}

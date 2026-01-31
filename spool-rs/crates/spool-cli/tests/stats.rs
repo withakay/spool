@@ -1,4 +1,3 @@
-use assert_cmd::Command;
 use predicates::str::contains;
 
 fn make_repo() -> tempfile::TempDir {
@@ -28,7 +27,7 @@ fn stats_counts_command_end_events() {
     let line = "{\"event_version\":1,\"event_id\":\"00000000-0000-0000-0000-000000000000\",\"timestamp\":\"2026-01-31T00:00:00Z\",\"event_type\":\"command_end\",\"spool_version\":\"0.0.0\",\"command_id\":\"spool.tasks.status\",\"session_id\":\"s1\",\"project_id\":\"p1\",\"pid\":1,\"outcome\":\"success\",\"duration_ms\":1}\n";
     std::fs::write(&log_path, line).unwrap();
 
-    let mut cmd = Command::cargo_bin("spool").unwrap();
+    let mut cmd = assert_cmd::cargo::cargo_bin_cmd!("spool");
     cmd.current_dir(repo.path())
         .arg("stats")
         .env("CI", "1")

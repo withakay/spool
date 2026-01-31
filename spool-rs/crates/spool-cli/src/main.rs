@@ -3,7 +3,6 @@ mod cli_error;
 mod diagnostics;
 
 use crate::cli_error::{CliError, CliResult, fail, silent_fail, to_cli_error};
-use spool_logging::{Logger as ExecLogger, Outcome as LogOutcome};
 use spool_core::config::ConfigContext;
 use spool_core::installers::{InitOptions, InstallMode, install_default_templates};
 use spool_core::paths as core_paths;
@@ -17,6 +16,7 @@ use spool_core::{
 use spool_harness::Harness;
 use spool_harness::OpencodeHarness;
 use spool_harness::stub::StubHarness;
+use spool_logging::{Logger as ExecLogger, Outcome as LogOutcome};
 use spool_workflow::planning as wf_planning;
 use spool_workflow::state as wf_state;
 use spool_workflow::tasks as wf_tasks;
@@ -139,118 +139,217 @@ fn run(args: &[String]) -> CliResult<()> {
 
     match args.first().map(|s| s.as_str()) {
         Some("create") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_create(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_create(&rt, &args[1..]),
+            );
         }
         Some("new") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_new(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_new(&rt, &args[1..]),
+            );
         }
         Some("init") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_init(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_init(&rt, &args[1..]),
+            );
         }
         Some("update") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_update(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_update(&rt, &args[1..]),
+            );
         }
         Some("list") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_list(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_list(&rt, &args[1..]),
+            );
         }
         Some("plan") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_plan(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_plan(&rt, &args[1..]),
+            );
         }
         Some("state") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_state(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_state(&rt, &args[1..]),
+            );
         }
         Some("tasks") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_tasks(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_tasks(&rt, &args[1..]),
+            );
         }
         Some("workflow") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_workflow(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_workflow(&rt, &args[1..]),
+            );
         }
         Some("status") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_status(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_status(&rt, &args[1..]),
+            );
         }
         Some("stats") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_stats(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_stats(&rt, &args[1..]),
+            );
         }
         Some("config") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_config(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_config(&rt, &args[1..]),
+            );
         }
         Some("agent-config") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_agent_config(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_agent_config(&rt, &args[1..]),
+            );
         }
         Some("templates") | Some("x-templates") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_templates(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_templates(&rt, &args[1..]),
+            );
         }
         Some("instructions") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_instructions(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_instructions(&rt, &args[1..]),
+            );
         }
         Some("agent") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_agent(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_agent(&rt, &args[1..]),
+            );
         }
         Some("x-instructions") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_x_instructions(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_x_instructions(&rt, &args[1..]),
+            );
         }
         Some("show") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_show(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_show(&rt, &args[1..]),
+            );
         }
         Some("validate") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_validate(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_validate(&rt, &args[1..]),
+            );
         }
         Some("ralph") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_ralph(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_ralph(&rt, &args[1..]),
+            );
         }
         Some("loop") => {
-            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-                handle_loop(&rt, &args[1..])
-            });
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_loop(&rt, &args[1..]),
+            );
+        }
+        Some("archive") => {
+            return with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || handle_archive(&rt, &args[1..]),
+            );
         }
         _ => {}
     }
 
-    with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
-        // Temporary fallback for unimplemented commands.
-        println!("{HELP}");
-        Ok(())
-    })
+    with_logging(
+        &rt,
+        &command_id,
+        &project_root,
+        &spool_path_for_logging,
+        || {
+            // Temporary fallback for unimplemented commands.
+            println!("{HELP}");
+            Ok(())
+        },
+    )
 }
 
 fn with_logging<F>(
@@ -300,7 +399,11 @@ fn command_id_from_args(args: &[String]) -> String {
         return "spool".to_string();
     };
 
-    let cmd = if cmd == "x-templates" { "templates" } else { cmd };
+    let cmd = if cmd == "x-templates" {
+        "templates"
+    } else {
+        cmd
+    };
 
     let mut parts: Vec<&str> = Vec::new();
     parts.push(cmd);
@@ -363,7 +466,10 @@ fn project_root_for_logging(rt: &Runtime, args: &[String]) -> PathBuf {
     }
 
     let spool_path = rt.spool_path();
-    spool_path.parent().map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from("."))
+    spool_path
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."))
 }
 
 const LIST_HELP: &str = "Usage: spool list [options]\n\nList items (changes by default). Use --specs or --modules to list other items.\n\nOptions:\n  --specs         List specs instead of changes\n  --changes       List changes explicitly (default)\n  --modules       List modules instead of changes\n  --sort <order>  Sort order: \"recent\" (default) or \"name\" (default: \"recent\")\n  --json          Output as JSON (for programmatic use)\n  -h, --help      display help for command";
@@ -384,6 +490,8 @@ const RALPH_HELP: &str = "Usage: spool ralph [options] [prompt]\n\nRun the Ralph
 
 const LOOP_HELP: &str =
     "Usage: spool loop [options] [prompt]\n\nDeprecated alias for 'spool ralph'";
+
+const ARCHIVE_HELP: &str = "Usage: spool archive [change-name] [options]\n\nArchive a completed change and update main specs\n\nOptions:\n  --yes, -y              Skip confirmation prompts\n  --skip-specs           Skip spec updates\n  --no-validate          Skip validation checks\n  -h, --help             display help for command";
 
 fn handle_state(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
@@ -1479,7 +1587,10 @@ fn handle_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
         }
         "list" => {
             let v = read_json_object_or_empty(&path)?;
-            println!("{}", serde_json::to_string_pretty(&v).unwrap_or_else(|_| "{}".to_string()));
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&v).unwrap_or_else(|_| "{}".to_string())
+            );
             Ok(())
         }
         "get" => {
@@ -1571,7 +1682,11 @@ fn handle_agent_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
             Ok(())
         }
         "summary" => {
-            let r = spool_core::config::load_cascading_project_config(project_root, spool_path, rt.ctx());
+            let r = spool_core::config::load_cascading_project_config(
+                project_root,
+                spool_path,
+                rt.ctx(),
+            );
             println!("Project config sources:");
             if r.loaded_from.is_empty() {
                 println!("  (none)");
@@ -1582,7 +1697,10 @@ fn handle_agent_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
             }
             println!();
             println!("Merged config:");
-            println!("{}", serde_json::to_string_pretty(&r.merged).unwrap_or_else(|_| "{}".to_string()));
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&r.merged).unwrap_or_else(|_| "{}".to_string())
+            );
             Ok(())
         }
         "get" => {
@@ -1590,7 +1708,11 @@ fn handle_agent_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
             if path.is_empty() || path.starts_with('-') {
                 return fail("Missing required argument <path>");
             }
-            let r = spool_core::config::load_cascading_project_config(project_root, spool_path, rt.ctx());
+            let r = spool_core::config::load_cascading_project_config(
+                project_root,
+                spool_path,
+                rt.ctx(),
+            );
             let Some(value) = json_get_path(&r.merged, path) else {
                 return fail("Path not found");
             };
@@ -2739,6 +2861,172 @@ fn handle_loop(rt: &Runtime, args: &[String]) -> CliResult<()> {
     handle_ralph(rt, args)
 }
 
+fn handle_archive(rt: &Runtime, args: &[String]) -> CliResult<()> {
+    use spool_core::archive;
+
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{ARCHIVE_HELP}");
+        return Ok(());
+    }
+
+    let spool_path = rt.spool_path();
+    let changes_dir = core_paths::changes_dir(spool_path);
+
+    if !changes_dir.exists() {
+        return fail("No Spool changes directory found. Run 'spool init' first.");
+    }
+
+    // Parse options
+    let skip_validation = args.iter().any(|a| a == "--no-validate");
+    let skip_specs = args.iter().any(|a| a == "--skip-specs");
+    let auto_confirm = args.iter().any(|a| a == "--yes" || a == "-y");
+
+    // Get change name (first positional arg)
+    let change_name = args
+        .iter()
+        .find(|a| !a.starts_with('-'))
+        .map(|s| s.as_str());
+
+    // If no change specified, list available changes and prompt for selection
+    let change_name = if let Some(name) = change_name {
+        name.to_string()
+    } else {
+        let available = archive::list_available_changes(spool_path).map_err(to_cli_error)?;
+        if available.is_empty() {
+            return fail("No changes found to archive.");
+        }
+
+        println!("Available changes:");
+        for (idx, name) in available.iter().enumerate() {
+            println!("  {}. {}", idx + 1, name);
+        }
+        println!();
+
+        // Simple selection (in a real implementation, would use interactive prompt)
+        // For now, just fail with message
+        return fail("Please specify a change name: spool archive <change-name>");
+    };
+
+    // Verify change exists
+    if !archive::change_exists(spool_path, &change_name) {
+        return fail(format!("Change '{}' not found", change_name));
+    }
+
+    // Check task completion unless skipping validation
+    if !skip_validation {
+        let tasks_path = core_paths::change_dir(spool_path, &change_name).join("tasks.md");
+        if tasks_path.exists() {
+            let contents = spool_core::io::read_to_string(&tasks_path).map_err(to_cli_error)?;
+            match archive::check_task_completion(&contents) {
+                archive::TaskStatus::HasIncomplete { pending, total } => {
+                    println!(
+                        "Warning: Change has {} incomplete tasks out of {}",
+                        pending, total
+                    );
+                    if !auto_confirm {
+                        println!("Continue with archive anyway? [y/N]: ");
+                        let mut input = String::new();
+                        std::io::stdin()
+                            .read_line(&mut input)
+                            .map_err(|_| CliError::msg("Failed to read input"))?;
+                        let input = input.trim().to_lowercase();
+                        if input != "y" && input != "yes" {
+                            println!("Archive cancelled.");
+                            return Ok(());
+                        }
+                    }
+                }
+                archive::TaskStatus::AllComplete => {
+                    eprintln!("✔ All tasks complete");
+                }
+                archive::TaskStatus::NoTasks => {
+                    // No tasks.md or no tasks, proceed
+                }
+            }
+        }
+    }
+
+    // Generate archive name
+    let archive_name = archive::generate_archive_name(&change_name);
+
+    // Check if archive already exists
+    if archive::archive_exists(spool_path, &archive_name) {
+        return fail(format!("Archive '{}' already exists", archive_name));
+    }
+
+    let mut specs_updated: Vec<String> = Vec::new();
+
+    // Handle spec updates unless skipped
+    if !skip_specs {
+        let spec_names =
+            archive::discover_change_specs(spool_path, &change_name).map_err(to_cli_error)?;
+
+        if !spec_names.is_empty() {
+            let (new_specs, existing_specs) = archive::categorize_specs(spool_path, &spec_names);
+
+            // Show confirmation
+            if !new_specs.is_empty() || !existing_specs.is_empty() {
+                println!("The following specs will be updated:");
+                println!();
+
+                if !new_specs.is_empty() {
+                    println!("NEW specs to be created:");
+                    for spec in &new_specs {
+                        println!("  - {}", spec);
+                    }
+                    println!();
+                }
+
+                if !existing_specs.is_empty() {
+                    println!("EXISTING specs to be updated:");
+                    for spec in &existing_specs {
+                        println!("  - {}", spec);
+                    }
+                    println!();
+                }
+
+                if !auto_confirm {
+                    println!(
+                        "Update {} specs and archive '{}'? [y/N]: ",
+                        spec_names.len(),
+                        change_name
+                    );
+                    let mut input = String::new();
+                    std::io::stdin()
+                        .read_line(&mut input)
+                        .map_err(|_| CliError::msg("Failed to read input"))?;
+                    let input = input.trim().to_lowercase();
+                    if input != "y" && input != "yes" {
+                        println!("Skipping spec updates, continuing with archive...");
+                    } else {
+                        // Copy specs to main
+                        specs_updated =
+                            archive::copy_specs_to_main(spool_path, &change_name, &spec_names)
+                                .map_err(to_cli_error)?;
+                        eprintln!("✔ Updated {} specs", specs_updated.len());
+                    }
+                } else {
+                    // Copy specs to main
+                    specs_updated =
+                        archive::copy_specs_to_main(spool_path, &change_name, &spec_names)
+                            .map_err(to_cli_error)?;
+                    eprintln!("✔ Updated {} specs", specs_updated.len());
+                }
+            }
+        }
+    }
+
+    // Move to archive
+    archive::move_to_archive(spool_path, &change_name, &archive_name).map_err(to_cli_error)?;
+
+    eprintln!("✔ Archived '{}' as '{}'", change_name, archive_name);
+    if !specs_updated.is_empty() {
+        eprintln!("  Updated specs: {}", specs_updated.join(", "));
+    }
+
+    Ok(())
+}
+
 fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
         println!("{RALPH_HELP}");
@@ -3504,12 +3792,8 @@ fn read_json_object_or_empty(path: &Path) -> CliResult<serde_json::Value> {
     let Ok(contents) = std::fs::read_to_string(path) else {
         return Ok(serde_json::Value::Object(serde_json::Map::new()));
     };
-    let v: serde_json::Value = serde_json::from_str(&contents).map_err(|e| {
-        CliError::msg(format!(
-            "Invalid JSON in {}: {e}",
-            path.display()
-        ))
-    })?;
+    let v: serde_json::Value = serde_json::from_str(&contents)
+        .map_err(|e| CliError::msg(format!("Invalid JSON in {}: {e}", path.display())))?;
     match v {
         serde_json::Value::Object(_) => Ok(v),
         _ => Err(CliError::msg(format!(
@@ -3560,9 +3844,7 @@ fn json_get_path<'a>(root: &'a serde_json::Value, path: &str) -> Option<&'a serd
         let serde_json::Value::Object(map) = cur else {
             return None;
         };
-        let Some(next) = map.get(p) else {
-            return None;
-        };
+        let next = map.get(p)?;
         cur = next;
     }
     Some(cur)

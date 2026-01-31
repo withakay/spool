@@ -69,9 +69,7 @@ pub fn load_project_config(project_root: &Path) -> Option<ProjectConfig> {
 }
 
 fn load_json_object(path: &Path) -> Option<Value> {
-    let Some(contents) = crate::io::read_to_string_optional(path).ok().flatten() else {
-        return None;
-    };
+    let contents = crate::io::read_to_string_optional(path).ok().flatten()?;
 
     let v: Value = match serde_json::from_str(&contents) {
         Ok(v) => v,
@@ -155,7 +153,11 @@ pub struct CascadingProjectConfig {
     pub loaded_from: Vec<PathBuf>,
 }
 
-pub fn project_config_paths(project_root: &Path, spool_path: &Path, ctx: &ConfigContext) -> Vec<PathBuf> {
+pub fn project_config_paths(
+    project_root: &Path,
+    spool_path: &Path,
+    ctx: &ConfigContext,
+) -> Vec<PathBuf> {
     let mut out: Vec<PathBuf> = Vec::new();
 
     out.push(project_root.join(REPO_CONFIG_FILE_NAME));
@@ -192,7 +194,10 @@ pub fn load_cascading_project_config(
         loaded_from.push(path);
     }
 
-    CascadingProjectConfig { merged, loaded_from }
+    CascadingProjectConfig {
+        merged,
+        loaded_from,
+    }
 }
 
 pub fn global_config_path(ctx: &ConfigContext) -> Option<PathBuf> {
@@ -311,11 +316,7 @@ mod tests {
     fn cascading_project_config_ignores_invalid_json_sources() {
         let repo = tempfile::tempdir().unwrap();
 
-        crate::io::write_std(
-            &repo.path().join("spool.json"),
-            "{\"a\":1}",
-        )
-        .unwrap();
+        crate::io::write_std(&repo.path().join("spool.json"), "{\"a\":1}").unwrap();
         crate::io::write_std(&repo.path().join(".spool.json"), "not-json").unwrap();
 
         let ctx = ConfigContext::default();

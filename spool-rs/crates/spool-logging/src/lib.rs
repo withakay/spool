@@ -57,10 +57,10 @@ impl Logger {
         let session_id = resolve_session_id(spool_path);
         let file_path = log_file_path(&config_dir, &project_id, &session_id);
 
-        if let Some(parent) = file_path.parent() {
-            if let Err(e) = std::fs::create_dir_all(parent) {
-                log::debug!("telemetry: create_dir_all failed: {e}");
-            }
+        if let Some(parent) = file_path.parent()
+            && let Err(e) = std::fs::create_dir_all(parent)
+        {
+            log::debug!("telemetry: create_dir_all failed: {e}");
         }
 
         Some(Self {
@@ -91,7 +91,12 @@ impl Logger {
         self.write_event("command_end", Some(outcome), Some(duration_ms));
     }
 
-    fn write_event(&self, event_type: &'static str, outcome: Option<Outcome>, duration_ms: Option<u64>) {
+    fn write_event(
+        &self,
+        event_type: &'static str,
+        outcome: Option<Outcome>,
+        duration_ms: Option<u64>,
+    ) {
         #[derive(Serialize)]
         struct Event {
             event_version: u32,
@@ -178,10 +183,10 @@ fn resolve_session_id(spool_path: Option<&Path>) -> String {
         session_id: session_id.clone(),
         created_at,
     };
-    if let Ok(contents) = serde_json::to_string(&state) {
-        if let Err(e) = std::fs::write(&path, contents) {
-            log::debug!("telemetry: failed to write session.json: {e}");
-        }
+    if let Ok(contents) = serde_json::to_string(&state)
+        && let Err(e) = std::fs::write(&path, contents)
+    {
+        log::debug!("telemetry: failed to write session.json: {e}");
     }
 
     session_id
