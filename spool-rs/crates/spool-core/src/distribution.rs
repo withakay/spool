@@ -1,4 +1,4 @@
-use miette::{miette, Result};
+use miette::{Result, miette};
 use std::path::{Path, PathBuf};
 
 const GITHUB_REPO: &str = "withakay/spool";
@@ -17,24 +17,43 @@ pub struct FileManifest {
     pub is_dir: bool,
 }
 
-fn opencode_spool_skills_file_paths() -> Vec<String> {
-    let prefix = ".opencode/skills/spool-skills/";
+/// List of skills in spool-skills/skills/ that should be distributed.
+/// These are the skill directory names (without spool- prefix).
+const SPOOL_SKILLS: &[&str] = &[
+    "brainstorming",
+    "dispatching-parallel-agents",
+    "finishing-a-development-branch",
+    "receiving-code-review",
+    "requesting-code-review",
+    "subagent-driven-development",
+    "systematic-debugging",
+    "test-driven-development",
+    "using-git-worktrees",
+    "using-spool-skills",
+    "verification-before-completion",
+    "writing-skills",
+];
 
-    let mut out: Vec<String> = Vec::new();
-    for f in spool_templates::default_project_files() {
-        let Some(rel) = f.relative_path.strip_prefix(prefix) else {
-            continue;
-        };
-        if rel.is_empty() {
-            continue;
-        }
+/// Returns manifest entries for spool-skills.
+/// Source paths are relative to spool-skills/ (e.g., "skills/brainstorming/SKILL.md")
+/// Dest paths have spool- prefix (e.g., "spool-brainstorming/SKILL.md")
+fn spool_skills_manifests(skills_dir: &std::path::Path) -> Vec<FileManifest> {
+    let mut manifests = Vec::new();
 
-        out.push(format!("skills/{rel}"));
+    for skill_name in SPOOL_SKILLS {
+        // Source: skills/<skill>/SKILL.md (relative to spool-skills/)
+        let source = format!("skills/{}/SKILL.md", skill_name);
+        // Dest: spool-<skill>/SKILL.md under the target skills dir
+        let dest = skills_dir.join(format!("spool-{}/SKILL.md", skill_name));
+
+        manifests.push(FileManifest {
+            source,
+            dest,
+            is_dir: false,
+        });
     }
 
-    out.sort();
-    out.dedup();
-    out
+    manifests
 }
 
 pub fn detect_source_mode(repo_root: &Path, version: &str) -> SourceMode {
@@ -152,37 +171,42 @@ pub fn opencode_manifests(config_dir: &Path) -> Vec<FileManifest> {
         is_dir: false,
     });
 
-    let base = config_dir.join("skills").join("spool-skills");
-    for src in opencode_spool_skills_file_paths() {
-        let rel = src.strip_prefix("skills/").unwrap_or(src.as_str());
-        let dest = base.join(rel);
-        out.push(FileManifest {
-            source: src,
-            dest,
-            is_dir: false,
-        });
-    }
+    // Skills go directly under skills/ (flat structure with spool- prefix)
+    let skills_dir = config_dir.join("skills");
+    out.extend(spool_skills_manifests(&skills_dir));
 
     out
 }
 
 pub fn claude_manifests(project_root: &Path) -> Vec<FileManifest> {
-    vec![FileManifest {
+    let mut out = vec![FileManifest {
         source: "adapters/claude/session-start.sh".to_string(),
         dest: project_root.join(".claude").join("session-start.sh"),
         is_dir: false,
-    }]
+    }];
+
+    // Skills go directly under .claude/skills/ (flat structure with spool- prefix)
+    let skills_dir = project_root.join(".claude").join("skills");
+    out.extend(spool_skills_manifests(&skills_dir));
+
+    out
 }
 
 pub fn codex_manifests(project_root: &Path) -> Vec<FileManifest> {
-    vec![FileManifest {
+    let mut out = vec![FileManifest {
         source: ".codex/spool-skills-bootstrap.md".to_string(),
         dest: project_root
             .join(".codex")
             .join("instructions")
             .join("spool-skills-bootstrap.md"),
         is_dir: false,
-    }]
+    }];
+
+    // Skills go directly under .codex/skills/ (flat structure with spool- prefix)
+    let skills_dir = project_root.join(".codex").join("skills");
+    out.extend(spool_skills_manifests(&skills_dir));
+
+    out
 }
 
 pub fn install_manifests(
