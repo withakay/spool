@@ -4,6 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use spool_templates::SPOOL_END_MARKER;
 
 #[derive(Debug, thiserror::Error)]
 pub enum WorkflowError {
@@ -581,8 +582,21 @@ pub fn compute_apply_instructions(
         tracks_file_exists = p.exists();
         if tracks_file_exists {
             let content = crate::io::read_to_string_std(&p)?;
-            tracks_format = Some("checkbox".to_string());
-            tasks = parse_checkbox_tasks(&content);
+            let checkbox = parse_checkbox_tasks(&content);
+            if !checkbox.is_empty() {
+                tracks_format = Some("checkbox".to_string());
+                tasks = checkbox;
+            } else {
+                let enhanced = parse_enhanced_tasks(&content);
+                if !enhanced.is_empty() {
+                    tracks_format = Some("enhanced".to_string());
+                    tasks = enhanced;
+                } else if looks_like_enhanced_tasks(&content) {
+                    tracks_format = Some("enhanced".to_string());
+                } else {
+                    tracks_format = Some("unknown".to_string());
+                }
+            }
         }
     }
 
@@ -590,12 +604,31 @@ pub fn compute_apply_instructions(
     let total = tasks.len();
     let complete = tasks.iter().filter(|t| t.done).count();
     let remaining = total.saturating_sub(complete);
+    let mut in_progress: Option<usize> = None;
+    let mut pending: Option<usize> = None;
+    if tracks_format.as_deref() == Some("enhanced") {
+        let mut in_progress_count = 0;
+        let mut pending_count = 0;
+        for task in &tasks {
+            let Some(status) = task.status.as_deref() else {
+                continue;
+            };
+            let status = status.trim();
+            match status {
+                "in-progress" | "in_progress" | "in progress" => in_progress_count += 1,
+                "pending" => pending_count += 1,
+                _ => {}
+            }
+        }
+        in_progress = Some(in_progress_count);
+        pending = Some(pending_count);
+    }
     let progress = ProgressInfo {
         total,
         complete,
         remaining,
-        in_progress: None,
-        pending: None,
+        in_progress,
+        pending,
     };
 
     // Determine state and instruction.
@@ -701,6 +734,167 @@ fn parse_checkbox_tasks(contents: &str) -> Vec<TaskItem> {
         });
     }
     tasks
+}
+
+fn looks_like_enhanced_tasks(contents: &str) -> bool {
+    for line in contents.lines() {
+        let l = line.trim_start();
+        if l.starts_with("### Task ") {
+            return true;
+        }
+    }
+    false
+}
+
+fn parse_enhanced_tasks(contents: &str) -> Vec<TaskItem> {
+    let mut tasks: Vec<TaskItem> = Vec::new();
+    let mut current_id: Option<String> = None;
+    let mut current_desc: Option<String> = None;
+    let mut current_done = false;
+    let mut current_status: Option<String> = None;
+
+    fn push_current(
+        tasks: &mut Vec<TaskItem>,
+        current_id: &mut Option<String>,
+        current_desc: &mut Option<String>,
+        current_done: &mut bool,
+        current_status: &mut Option<String>,
+    ) {
+        let Some(desc) = current_desc.take() else {
+            current_id.take();
+            *current_done = false;
+            *current_status = None;
+            return;
+        };
+        let id = current_id
+            .take()
+            .filter(|s| !s.trim().is_empty())
+            .unwrap_or_else(|| (tasks.len() + 1).to_string());
+        tasks.push(TaskItem {
+            id,
+            description: desc,
+            done: *current_done,
+            status: current_status.take(),
+        });
+        *current_done = false;
+    }
+
+    for line in contents.lines() {
+        let l = line.trim_start();
+
+        if let Some(rest) = l.strip_prefix("### Task ") {
+            push_current(
+                &mut tasks,
+                &mut current_id,
+                &mut current_desc,
+                &mut current_done,
+                &mut current_status,
+            );
+
+            let (id, desc) = rest.split_once(':').unwrap_or((rest, ""));
+            let id = id.trim();
+            let desc = if desc.trim().is_empty() {
+                rest.trim()
+            } else {
+                desc.trim()
+            };
+
+            current_id = Some(id.to_string());
+            current_desc = Some(desc.to_string());
+            current_done = false;
+            current_status = Some("pending".to_string());
+            continue;
+        }
+
+        if let Some(rest) = l.strip_prefix("- **Status**:") {
+            let status = rest.trim();
+            if let Some(status) = status.strip_prefix("[x]")
+                .or_else(|| status.strip_prefix("[X]"))
+            {
+                current_done = true;
+                current_status = Some(status.trim().to_string());
+                continue;
+            }
+            if let Some(status) = status.strip_prefix("[ ]") {
+                current_done = false;
+                current_status = Some(status.trim().to_string());
+                continue;
+            }
+        }
+    }
+
+    push_current(
+        &mut tasks,
+        &mut current_id,
+        &mut current_desc,
+        &mut current_done,
+        &mut current_status,
+    );
+
+    tasks
+}
+
+pub fn load_user_guidance(spool_path: &Path) -> Result<Option<String>, WorkflowError> {
+    let path = spool_path.join("user-guidance.md");
+    if !path.exists() {
+        return Ok(None);
+    }
+
+    let content = crate::io::read_to_string_std(&path)?;
+    let content = content.replace("\r\n", "\n");
+    let content = match content.find(SPOOL_END_MARKER) {
+        Some(i) => &content[i + SPOOL_END_MARKER.len()..],
+        None => content.as_str(),
+    };
+    let content = content.trim();
+    if content.is_empty() {
+        return Ok(None);
+    }
+
+    Ok(Some(content.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn load_user_guidance_returns_trimmed_content_after_marker() {
+        let dir = tempfile::tempdir().expect("tempdir should succeed");
+        let spool_path = dir.path();
+
+        let content = "<!-- SPOOL:START -->\nheader\n<!-- SPOOL:END -->\n\nPrefer BDD.\n";
+        std::fs::write(spool_path.join("user-guidance.md"), content)
+            .expect("write should succeed");
+
+        let guidance = load_user_guidance(spool_path)
+            .expect("load should succeed")
+            .expect("should be present");
+
+        assert_eq!(guidance, "Prefer BDD.");
+    }
+
+    #[test]
+    fn parse_enhanced_tasks_extracts_ids_status_and_done() {
+        let contents = r#"### Task 1.1: First
+- **Status**: [x] complete
+
+### Task 1.2: Second
+- **Status**: [ ] in-progress
+"#;
+
+        let tasks = parse_enhanced_tasks(contents);
+        assert_eq!(tasks.len(), 2);
+        assert_eq!(tasks[0].id, "1.1");
+        assert_eq!(tasks[0].description, "First");
+        assert!(tasks[0].done);
+        assert_eq!(tasks[0].status.as_deref(), Some("complete"));
+
+        assert_eq!(tasks[1].id, "1.2");
+        assert_eq!(tasks[1].description, "Second");
+        assert!(!tasks[1].done);
+        assert_eq!(tasks[1].status.as_deref(), Some("in-progress"));
+    }
 }
 
 fn package_schemas_dir() -> PathBuf {
