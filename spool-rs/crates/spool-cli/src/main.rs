@@ -28,7 +28,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-const HELP: &str = "Usage: spool [options] [command]\n\nAI-native system for spec-driven development\n\nOptions:\n  -V, --version                    output the version number\n  --no-color                       Disable color output\n  -h, --help                       display help for command\n\nCommands:\n  init [options] [path]            Initialize Spool in your project\n  update [options] [path]          Update Spool instruction files\n  tasks                            Track execution tasks for a change\n  plan                             Project planning tools\n  state                            View and update planning/STATE.md\n  workflow                         Manage and run workflows\n  list [options]                   List items (changes by default). Use --specs\n                                   or --modules to list other items.\n  dashboard                        Display an interactive dashboard of specs and\n                                   changes\n  archive [options] [change-name]  Archive a completed change and update main\n                                   specs\n  config [options]                 View and modify global Spool configuration\n  create                           Create items\n  validate [options] [item-name]   Validate changes, specs, and modules\n  show [options] [item-name]       Show a change or spec\n  completions                      Manage shell completions for Spool CLI\n  status [options]                 [Experimental] Display artifact completion\n                                   status for a change\n  x-templates [options]            [Experimental] Show resolved template paths\n                                   for all artifacts in a schema\n  x-schemas [options]              [Experimental] List available workflow\n                                   schemas with descriptions\n  agent                            Commands that generate machine-readable\n                                   output for AI agents\n  ralph [options] [prompt]         Run iterative AI loop against a change\n                                   proposal\n  split [change-id]                Split a large change into smaller changes\n  help [command]                   display help for command";
+const HELP: &str = "Usage: spool [options] [command]\n\nAI-native system for spec-driven development\n\nOptions:\n  -V, --version                    output the version number\n  --no-color                       Disable color output\n  -h, --help                       display help for command\n\nCommands:\n  init [--tools <...>] [path]      Initialize Spool in your project\n  update [options] [path]          Update Spool instruction files\n  tasks                            Track execution tasks for a change\n  plan                             Project planning tools\n  state                            View and update planning/STATE.md\n  workflow                         Manage and run workflows\n  list [--json|--specs|--modules]  List items (changes by default). Use --specs\n                                   or --modules to list other items.\n  dashboard                        Display an interactive dashboard of specs and\n                                   changes\n  archive [--json] [change-name]   Archive a completed change and update main\n                                   specs\n  config [options]                 View and modify global Spool configuration\n  create                           Create items\n  validate [--json|--all] [item]   Validate changes, specs, and modules\n  show [options] [item-name]       Show a change or spec\n  completions                      Manage shell completions for Spool CLI\n  status [options]                 [Experimental] Display artifact completion\n                                   status for a change\n  x-templates [options]            [Experimental] Show resolved template paths\n                                   for all artifacts in a schema\n  x-schemas [options]              [Experimental] List available workflow\n                                   schemas with descriptions\n  agent                            Commands that generate machine-readable\n                                   output for AI agents\n  ralph [options] [prompt]         Run iterative AI loop against a change\n                                   proposal\n  split [change-id]                Split a large change into smaller changes\n  help [command]                   display help for command\n\nRun 'spool <command> -h' for command options, or 'spool help --all' for complete reference.";
 
 struct Runtime {
     ctx: ConfigContext,
@@ -118,8 +118,18 @@ fn run(args: &[String]) -> CliResult<()> {
     // Match Commander: `spool --help` shows top-level help, but `spool <cmd> --help`
     // shows subcommand help.
     let first = args.first().map(|s| s.as_str());
-    let looks_like_global_help =
-        args.is_empty() || matches!(first, Some("--help") | Some("-h") | Some("help"));
+
+    // Handle --help-all global flag
+    if args.iter().any(|a| a == "--help-all") {
+        return handle_help_all(&args[1..]);
+    }
+
+    // Handle help command with possible --all flag
+    if first == Some("help") {
+        return handle_help(&args[1..]);
+    }
+
+    let looks_like_global_help = args.is_empty() || matches!(first, Some("--help") | Some("-h"));
     if looks_like_global_help {
         println!("{HELP}");
         return Ok(());
@@ -478,7 +488,7 @@ const INIT_HELP: &str = "Usage: spool init [options] [path]\n\nInitialize Spool 
 
 const UPDATE_HELP: &str = "Usage: spool update [options] [path]\n\nUpdate Spool instruction files\n\nOptions:\n  --json          Output as JSON\n  -h, --help      display help for command";
 
-const TASKS_HELP: &str = "Usage: spool tasks <command> [options]\n\nTrack execution tasks for a change\n\nCommands:\n  init <change-id>                         Create enhanced tasks.md\n  status <change-id>                       Show task progress\n  next <change-id>                         Show the next available task\n  start <change-id> <task-id>              Mark a task in-progress\n  complete <change-id> <task-id>           Mark a task complete\n  shelve <change-id> <task-id>             Shelve a task (reversible)\n  unshelve <change-id> <task-id>           Restore a shelved task to pending\n  add <change-id> <task-name> [--wave <n>]  Add a new task (enhanced only)\n  show <change-id>                         Print tasks.md\n\nOptions:\n  --wave <n>                               Wave number for add (default: 1)\n  -h, --help                               display help for command";
+const TASKS_HELP: &str = "Usage: spool tasks <command> [options]\n\nTrack execution tasks for a change\n\nCommands:\n  init <change-id>                         Create enhanced tasks.md\n  status <change-id>                       Show task progress\n  next <change-id>                         Show the next available task\n  start <change-id> <task-id>              Mark a task in-progress\n  complete <change-id> <task-id>           Mark a task complete\n  shelve <change-id> <task-id>             Shelve a task (reversible)\n  unshelve <change-id> <task-id>           Restore a shelved task to pending\n  add <change-id> <task-name> [--wave <n>]  Add a new task (enhanced only)\n  show <change-id>                         Print tasks.md\n\nOptions:\n  --wave <n>                               Wave number for add (default: 1)\n  -h, --help                               display help for command\n\nRun 'spool -h' to see all commands.";
 
 const PLAN_HELP: &str = "Usage: spool plan <command> [options]\n\nProject planning tools\n\nCommands:\n  init                           Initialize planning structure\n  status                         Show current milestone progress\n\nOptions:\n  -h, --help                     display help for command";
 
@@ -1227,7 +1237,7 @@ const STATUS_HELP: &str = "Usage: spool status [options]\n\n[Experimental] Displ
 
 const STATS_HELP: &str = "Usage: spool stats [options]\n\nShow local execution usage stats\n\nOptions:\n  -h, --help      display help for command";
 
-const CONFIG_HELP: &str = "Usage: spool config <command> [options]\n\nView and modify global Spool configuration\n\nCommands:\n  path                      Print config file path\n  list                      Print config JSON\n  get <key>                 Read value by path\n  set <key> <value>         Set value by path\n  unset <key>               Remove value by path\n\nOptions:\n  --string                  Treat <value> as a string\n  -h, --help                display help for command";
+const CONFIG_HELP: &str = "Usage: spool config <command> [options]\n\nView and modify global Spool configuration\n\nCommands:\n  path                      Print config file path\n  list                      Print config JSON\n  get <key>                 Read value by path\n  set <key> <value>         Set value by path\n  unset <key>               Remove value by path\n\nOptions:\n  --string                  Treat <value> as a string\n  -h, --help                display help for command\n\nRun 'spool -h' to see all commands.";
 
 const AGENT_CONFIG_HELP: &str = "Usage: spool agent-config <command> [options]\n\nManage project configuration (merged across sources)\n\nCommands:\n  init                      Create <spool-dir>/config.json if missing\n  summary                   Print merged config summary and sources\n  get <path>                Read merged value by path\n  set <path> <value>        Set value in <spool-dir>/config.json\n\nOptions:\n  --string                  Treat <value> as a string\n  -h, --help                display help for command";
 
@@ -1235,7 +1245,7 @@ const TEMPLATES_HELP: &str = "Usage: spool templates [options]\n\n[Experimental]
 
 const INSTRUCTIONS_HELP: &str = "Usage: spool instructions <artifact> [options]\n\n[Experimental] Show instructions for generating an artifact\n\nOptions:\n  --change <name>               Change id (directory name)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
 
-const AGENT_HELP: &str = "Usage: spool agent [command] [options]\n\nCommands that generate machine-readable output for AI agents\n\nCommands:\n  instruction <artifact> [options]   Generate enriched instructions\n\nOptions:\n  -h, --help                         display help for command";
+const AGENT_HELP: &str = "Usage: spool agent [command] [options]\n\nCommands that generate machine-readable output for AI agents\n\nCommands:\n  instruction <artifact> [options]   Generate enriched instructions\n\nOptions:\n  -h, --help                         display help for command\n\nRun 'spool agent <command> -h' for subcommand options.";
 
 const AGENT_INSTRUCTION_HELP: &str = "Usage: spool agent instruction <artifact> [options]\n\nGenerate enriched instructions\n\nArtifacts:\n  bootstrap                      Tool-specific bootstrap preamble (requires --tool)\n  apply                          Apply instructions for a change (requires --change)\n  <artifact-id>                  Schema artifact instructions (requires --change)\n\nOptions:\n  --change <name>               Change id (directory name, required for most artifacts)\n  --tool <tool>                 Tool name for bootstrap (opencode|claude|codex)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
 
@@ -2319,12 +2329,14 @@ fn print_apply_instructions_text(instructions: &core_workflow::ApplyInstructions
 }
 
 fn handle_agent(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{AGENT_HELP}");
-        return Ok(());
-    }
+    // Check for subcommand first - subcommand handlers have their own help checks
     match args.first().map(|s| s.as_str()) {
         Some("instruction") => handle_agent_instruction(rt, &args[1..]),
+        // Show parent help only if no valid subcommand or explicit help request
+        _ if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") => {
+            println!("{AGENT_HELP}");
+            Ok(())
+        }
         _ => {
             println!("{AGENT_HELP}");
             Ok(())
@@ -2983,6 +2995,96 @@ fn handle_show_module(rt: &Runtime, args: &[String]) -> CliResult<()> {
 }
 
 const VALIDATE_HELP: &str = "Usage: spool validate [options] [command] [item-name]\n\nValidate changes, specs, and modules\n\nOptions:\n  --all                          Validate everything\n  --changes                       Validate changes\n  --specs                         Validate specs\n  --modules                       Validate modules\n  --module <id>                   Validate a module by id\n  --type <type>                   Type: change, spec, or module\n  --strict                        Treat warnings as errors\n  --json                          Output as JSON\n  --concurrency <n>               Concurrency (default: 6)\n  --no-interactive                Disable interactive prompts\n  -h, --help                      display help for command\n\nCommands:\n  module [module-id]              Validate a module";
+
+/// Command help entry for the help dump system
+struct CommandHelpEntry {
+    path: &'static str,
+    help: &'static str,
+}
+
+/// All command help entries for `spool help --all`
+const ALL_HELP: &[CommandHelpEntry] = &[
+    CommandHelpEntry { path: "spool", help: HELP },
+    CommandHelpEntry { path: "spool init", help: INIT_HELP },
+    CommandHelpEntry { path: "spool update", help: UPDATE_HELP },
+    CommandHelpEntry { path: "spool tasks", help: TASKS_HELP },
+    CommandHelpEntry { path: "spool plan", help: PLAN_HELP },
+    CommandHelpEntry { path: "spool state", help: STATE_HELP },
+    CommandHelpEntry { path: "spool workflow", help: WORKFLOW_HELP },
+    CommandHelpEntry { path: "spool list", help: LIST_HELP },
+    CommandHelpEntry { path: "spool archive", help: ARCHIVE_HELP },
+    CommandHelpEntry { path: "spool config", help: CONFIG_HELP },
+    CommandHelpEntry { path: "spool create", help: CREATE_HELP },
+    CommandHelpEntry { path: "spool validate", help: VALIDATE_HELP },
+    CommandHelpEntry { path: "spool show", help: SHOW_HELP },
+    CommandHelpEntry { path: "spool status", help: STATUS_HELP },
+    CommandHelpEntry { path: "spool agent", help: AGENT_HELP },
+    CommandHelpEntry { path: "spool agent instruction", help: AGENT_INSTRUCTION_HELP },
+    CommandHelpEntry { path: "spool ralph", help: RALPH_HELP },
+    CommandHelpEntry { path: "spool agent-config", help: AGENT_CONFIG_HELP },
+    CommandHelpEntry { path: "spool x-templates", help: TEMPLATES_HELP },
+    CommandHelpEntry { path: "spool stats", help: STATS_HELP },
+];
+
+const HELP_ALL_HELP: &str = "Usage: spool help [command] [options]\n\nDisplay help information\n\nOptions:\n  --all           Show help for all commands\n  --json          Output as JSON (with --all)\n  -h, --help      display help for command";
+
+fn handle_help(args: &[String]) -> CliResult<()> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{HELP_ALL_HELP}");
+        return Ok(());
+    }
+
+    if args.iter().any(|a| a == "--all") {
+        return handle_help_all(args);
+    }
+
+    // Show global help by default
+    println!("{HELP}");
+    Ok(())
+}
+
+fn handle_help_all(args: &[String]) -> CliResult<()> {
+    let json_output = args.iter().any(|a| a == "--json");
+
+    if json_output {
+        // JSON output for programmatic use
+        let commands: Vec<serde_json::Value> = ALL_HELP
+            .iter()
+            .map(|entry| {
+                serde_json::json!({
+                    "path": entry.path,
+                    "help": entry.help,
+                })
+            })
+            .collect();
+
+        let output = serde_json::json!({
+            "version": "1.0",
+            "commands": commands,
+        });
+        println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default());
+    } else {
+        // Human-readable output
+        println!("================================================================================");
+        println!("SPOOL CLI REFERENCE");
+        println!("================================================================================\n");
+
+        for (i, entry) in ALL_HELP.iter().enumerate() {
+            if i > 0 {
+                println!("\n--------------------------------------------------------------------------------\n");
+            }
+            println!("{}", entry.path);
+            println!("{}", "-".repeat(entry.path.len()));
+            println!("{}", entry.help);
+        }
+
+        println!("\n================================================================================");
+        println!("Run 'spool <command> -h' for detailed command help.");
+        println!("================================================================================");
+    }
+
+    Ok(())
+}
 
 fn handle_loop(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
