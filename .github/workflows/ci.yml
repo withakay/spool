@@ -73,7 +73,12 @@ jobs:
         run: cargo fmt --manifest-path spool-rs/Cargo.toml --all -- --check
 
       - name: Rust clippy
-        run: cargo clippy --manifest-path spool-rs/Cargo.toml --workspace --all-targets -- -D warnings
+        run: |
+          cargo clippy --manifest-path spool-rs/Cargo.toml --workspace --all-targets -- \
+            -D warnings \
+            -D clippy::dbg_macro \
+            -D clippy::todo \
+            -D clippy::unimplemented
 
   required-checks-pr:
     name: All checks passed

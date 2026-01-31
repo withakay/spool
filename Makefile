@@ -51,7 +51,11 @@ rust-test:
 
 rust-lint:
 	cargo fmt --manifest-path spool-rs/Cargo.toml --all -- --check
-	cargo clippy --manifest-path spool-rs/Cargo.toml --workspace --all-targets -- -D warnings
+	cargo clippy --manifest-path spool-rs/Cargo.toml --workspace --all-targets -- \
+		-D warnings \
+		-D clippy::dbg_macro \
+		-D clippy::todo \
+		-D clippy::unimplemented
 
 rust-install:
 	@set -e; \
