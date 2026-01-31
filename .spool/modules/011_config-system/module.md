@@ -10,5 +10,5 @@
 
 ## Changes
 
-- \[ \] 011-01_cascading-config-merging
-- \[ \] 011-02_cascading-config-merging
+- [ ] 011-01_cascading-config-merging
+- [ ] 011-02_cascading-config-merging

@@ -10,4 +10,4 @@
 
 ## Changes
 
-- \[ \] 004-01_new-splash-screen
+- [ ] 004-01_new-splash-screen

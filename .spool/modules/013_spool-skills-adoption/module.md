@@ -16,8 +16,8 @@ Adopt and adapt the vendored `spool-skills/` (fork of Superpowers skills) into S
 
 ## Changes
 
-- [ ] 013-01_opencode-adapter
-- [ ] 013-02_claude-code-integration
-- [ ] 013-03_codex-bootstrap
-- [ ] 013-04_bootstrap-artifact-cli
-- [ ] 013-05_distribution-fetch-mechanics
+- [x] 013-01_opencode-adapter
+- [x] 013-02_claude-code-integration
+- [x] 013-03_codex-bootstrap
+- [x] 013-04_bootstrap-artifact-cli
+- [x] 013-05_distribution-fetch-mechanics

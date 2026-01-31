@@ -10,5 +10,5 @@
 
 ## Changes
 
-- \[ \] 007-01_my-change
-- \[ \] 007-02_my-change
+- [ ] 007-01_my-change
+- [ ] 007-02_my-change

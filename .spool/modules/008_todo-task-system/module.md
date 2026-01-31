@@ -10,5 +10,5 @@ Track work related to a backend-agnostic task/todo system in Spool (with optiona
 
 ## Changes
 
-- \[ \] 008-01_add-rust-task-backends
-- \[ \] 008-02_sqlite-validation-for-enhanced-tasks
+- [ ] 008-01_add-rust-task-backends
+- [ ] 008-02_sqlite-validation-for-enhanced-tasks

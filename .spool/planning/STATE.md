@@ -12,7 +12,7 @@ Last Updated: 2026-01-31
 
 ## Open Questions
 
-- \[ \] \[Question needing resolution\]
+- [ ] \[Question needing resolution\]
 
 ## Blockers
 

@@ -10,4 +10,4 @@ Add an optional Git worktree-based workspace layout so Spool can isolate changes
 - global-config
 
 ## Changes
-- [ ] 012-01_add-git-worktree-support
+- [x] 012-01_add-git-worktree-support

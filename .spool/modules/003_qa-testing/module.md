@@ -10,4 +10,4 @@ Quality Assurance testing area containing scripts and integration tests that sho
 
 ## Changes
 
-- \[ \] 003-01_add-qa-testing-area
+- [ ] 003-01_add-qa-testing-area

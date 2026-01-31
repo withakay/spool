@@ -40,7 +40,7 @@ Brief summary of the proposed architecture from a scaling perspective.
 - **At Scale**: What breaks and when
 - **Impact**: Performance/cost/reliability effect
 - **Mitigation**: Optimization strategy
-- **Status**: \[ \] Not addressed
+- **Status**: [ ] Not addressed
 
 ## Scaling Recommendations
 
@@ -59,6 +59,6 @@ Brief summary of the proposed architecture from a scaling perspective.
 
 ## Verdict
 
-- \[ \] Scales adequately for expected load
-- \[ \] Needs optimization before launch
-- \[ \] Requires architectural changes
+- [ ] Scales adequately for expected load
+- [ ] Needs optimization before launch
+- [ ] Requires architectural changes

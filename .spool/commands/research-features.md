@@ -21,22 +21,22 @@ Brief overview of the competitive landscape.
 
 Features users expect as baseline:
 
-- \[ \] Feature 1 - Why it's expected
-- \[ \] Feature 2 - Why it's expected
+- [ ] Feature 1 - Why it's expected
+- [ ] Feature 2 - Why it's expected
 
 ### Differentiators
 
 Features that provide competitive advantage:
 
-- \[ \] Feature A - Value proposition
-- \[ \] Feature B - Value proposition
+- [ ] Feature A - Value proposition
+- [ ] Feature B - Value proposition
 
 ### Nice to Have
 
 Lower priority features:
 
-- \[ \] Feature X
-- \[ \] Feature Y
+- [ ] Feature X
+- [ ] Feature Y
 
 ### Feature Prioritization Matrix
 

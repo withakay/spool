@@ -40,7 +40,7 @@ Think like a chaos monkey. What happens when:
 - **Expected Behavior**: What should happen
 - **Impact**: User experience / data integrity effect
 - **Fix**: How to handle properly
-- **Status**: \[ \] Not addressed
+- **Status**: [ ] Not addressed
 
 ## Concurrency Scenarios
 
@@ -55,6 +55,6 @@ Think like a chaos monkey. What happens when:
 
 ## Verdict
 
-- \[ \] Edge cases adequately handled
-- \[ \] Minor edge case improvements needed
-- \[ \] Significant gaps in error handling
+- [ ] Edge cases adequately handled
+- [ ] Minor edge case improvements needed
+- [ ] Significant gaps in error handling

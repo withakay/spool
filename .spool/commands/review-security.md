@@ -39,7 +39,7 @@ List entry points and trust boundaries.
 - **Impact**: What damage could be done
 - **Proof of Concept**: Example attack (if applicable)
 - **Mitigation**: Required fix
-- **Status**: \[ \] Not addressed
+- **Status**: [ ] Not addressed
 
 ## Recommendations
 
@@ -47,6 +47,6 @@ Proactive security improvements beyond specific findings.
 
 ## Verdict
 
-- \[ \] Approved for implementation
-- \[ \] Requires changes before implementation
-- \[ \] Needs significant redesign
+- [ ] Approved for implementation
+- [ ] Requires changes before implementation
+- [ ] Needs significant redesign
