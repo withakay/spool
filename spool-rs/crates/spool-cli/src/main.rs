@@ -3,6 +3,7 @@ mod cli_error;
 mod diagnostics;
 
 use crate::cli_error::{CliError, CliResult, fail, silent_fail, to_cli_error};
+use spool_logging::{Logger as ExecLogger, Outcome as LogOutcome};
 use spool_core::config::ConfigContext;
 use spool_core::installers::{InitOptions, InstallMode, install_default_templates};
 use spool_core::paths as core_paths;
@@ -20,7 +21,9 @@ use spool_workflow::planning as wf_planning;
 use spool_workflow::state as wf_state;
 use spool_workflow::tasks as wf_tasks;
 use spool_workflow::workflow as wf_workflow;
+use std::collections::BTreeMap;
 use std::collections::BTreeSet;
+use std::io::BufRead;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::OnceLock;
@@ -61,11 +64,13 @@ impl Runtime {
 }
 
 fn main() {
-    // Ensure tracing can be enabled for debugging without changing user output.
+    // Ensure internal logging can be enabled for debugging without changing user output.
+    let filter = env_filter();
     let _ = tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_env_filter(filter)
         .with_writer(std::io::stderr)
         .try_init();
+    let _ = tracing_log::LogTracer::init();
 
     let args: Vec<String> = std::env::args().skip(1).collect();
 
@@ -88,6 +93,27 @@ fn main() {
     }
 }
 
+fn env_filter() -> tracing_subscriber::EnvFilter {
+    if let Ok(v) = std::env::var("LOG_LEVEL") {
+        let v = v.trim();
+        if !v.is_empty() {
+            let v = v.to_ascii_lowercase();
+            let v = match v.as_str() {
+                "0" | "off" | "none" => "off".to_string(),
+                "1" => "info".to_string(),
+                _ => v,
+            };
+
+            if let Ok(filter) = tracing_subscriber::EnvFilter::try_new(v) {
+                return filter;
+            }
+        }
+    }
+
+    tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("off"))
+}
+
 fn run(args: &[String]) -> CliResult<()> {
     // Match Commander: `spool --help` shows top-level help, but `spool <cmd> --help`
     // shows subcommand help.
@@ -107,85 +133,237 @@ fn run(args: &[String]) -> CliResult<()> {
 
     let rt = Runtime::new();
 
+    let command_id = command_id_from_args(args);
+    let project_root = project_root_for_logging(&rt, args);
+    let spool_path_for_logging = get_spool_path(&project_root, rt.ctx());
+
     match args.first().map(|s| s.as_str()) {
         Some("create") => {
-            handle_create(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_create(&rt, &args[1..])
+            });
         }
         Some("new") => {
-            handle_new(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_new(&rt, &args[1..])
+            });
         }
         Some("init") => {
-            handle_init(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_init(&rt, &args[1..])
+            });
         }
         Some("update") => {
-            handle_update(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_update(&rt, &args[1..])
+            });
         }
         Some("list") => {
-            handle_list(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_list(&rt, &args[1..])
+            });
         }
         Some("plan") => {
-            handle_plan(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_plan(&rt, &args[1..])
+            });
         }
         Some("state") => {
-            handle_state(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_state(&rt, &args[1..])
+            });
         }
         Some("tasks") => {
-            handle_tasks(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_tasks(&rt, &args[1..])
+            });
         }
         Some("workflow") => {
-            handle_workflow(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_workflow(&rt, &args[1..])
+            });
         }
         Some("status") => {
-            handle_status(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_status(&rt, &args[1..])
+            });
+        }
+        Some("stats") => {
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_stats(&rt, &args[1..])
+            });
+        }
+        Some("config") => {
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_config(&rt, &args[1..])
+            });
+        }
+        Some("agent-config") => {
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_agent_config(&rt, &args[1..])
+            });
         }
         Some("templates") | Some("x-templates") => {
-            handle_templates(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_templates(&rt, &args[1..])
+            });
         }
         Some("instructions") => {
-            handle_instructions(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_instructions(&rt, &args[1..])
+            });
         }
         Some("agent") => {
-            handle_agent(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_agent(&rt, &args[1..])
+            });
         }
         Some("x-instructions") => {
-            handle_x_instructions(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_x_instructions(&rt, &args[1..])
+            });
         }
         Some("show") => {
-            handle_show(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_show(&rt, &args[1..])
+            });
         }
         Some("validate") => {
-            handle_validate(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_validate(&rt, &args[1..])
+            });
         }
         Some("ralph") => {
-            handle_ralph(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_ralph(&rt, &args[1..])
+            });
         }
         Some("loop") => {
-            handle_loop(&rt, &args[1..])?;
-            return Ok(());
+            return with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+                handle_loop(&rt, &args[1..])
+            });
         }
         _ => {}
     }
 
-    // Temporary fallback for unimplemented commands.
-    println!("{HELP}");
-    Ok(())
+    with_logging(&rt, &command_id, &project_root, &spool_path_for_logging, || {
+        // Temporary fallback for unimplemented commands.
+        println!("{HELP}");
+        Ok(())
+    })
+}
+
+fn with_logging<F>(
+    rt: &Runtime,
+    command_id: &str,
+    project_root: &Path,
+    spool_path_for_logging: &Path,
+    f: F,
+) -> CliResult<()>
+where
+    F: FnOnce() -> CliResult<()>,
+{
+    let logger = ExecLogger::new(
+        rt.ctx(),
+        project_root,
+        Some(spool_path_for_logging),
+        command_id,
+        env!("CARGO_PKG_VERSION"),
+    );
+    let started = std::time::Instant::now();
+    if let Some(l) = &logger {
+        l.write_start();
+    }
+
+    let result = f();
+    let outcome = match &result {
+        Ok(()) => LogOutcome::Success,
+        Err(_) => LogOutcome::Error,
+    };
+    if let Some(l) = logger {
+        l.write_end(outcome, started.elapsed());
+    }
+
+    result
+}
+
+fn command_id_from_args(args: &[String]) -> String {
+    let mut positional: Vec<&str> = Vec::new();
+    for a in args {
+        if a.starts_with('-') {
+            continue;
+        }
+        positional.push(a.as_str());
+    }
+
+    let Some(cmd) = positional.first().copied() else {
+        return "spool".to_string();
+    };
+
+    let cmd = if cmd == "x-templates" { "templates" } else { cmd };
+
+    let mut parts: Vec<&str> = Vec::new();
+    parts.push(cmd);
+
+    match cmd {
+        "create" | "new" | "plan" | "state" | "tasks" | "workflow" | "config" | "agent-config" => {
+            if let Some(sub) = positional.get(1).copied()
+                && !sub.starts_with('-')
+            {
+                parts.push(sub);
+            }
+        }
+        "show" | "validate" => {
+            if let Some(kind) = positional.get(1).copied()
+                && kind == "module"
+            {
+                parts.push(kind);
+            }
+        }
+        "agent" => {
+            if let Some(sub) = positional.get(1).copied()
+                && sub == "instruction"
+            {
+                parts.push(sub);
+            }
+        }
+        "templates" | "instructions" | "x-instructions" | "list" | "init" | "update" | "status"
+        | "stats" | "ralph" | "loop" => {}
+        _ => {}
+    }
+
+    let mut out = String::from("spool");
+    for p in parts {
+        out.push('.');
+        for ch in p.chars() {
+            if ch == '-' {
+                out.push('_');
+                continue;
+            }
+            out.push(ch.to_ascii_lowercase());
+        }
+    }
+
+    out
+}
+
+fn project_root_for_logging(rt: &Runtime, args: &[String]) -> PathBuf {
+    let Some(cmd) = args.first().map(|s| s.as_str()) else {
+        return PathBuf::from(".");
+    };
+
+    if cmd == "init" || cmd == "update" {
+        for a in args.iter().skip(1) {
+            if a.starts_with('-') {
+                continue;
+            }
+            return PathBuf::from(a);
+        }
+        return PathBuf::from(".");
+    }
+
+    let spool_path = rt.spool_path();
+    spool_path.parent().map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from("."))
 }
 
 const LIST_HELP: &str = "Usage: spool list [options]\n\nList items (changes by default). Use --specs or --modules to list other items.\n\nOptions:\n  --specs         List specs instead of changes\n  --changes       List changes explicitly (default)\n  --modules       List modules instead of changes\n  --sort <order>  Sort order: \"recent\" (default) or \"name\" (default: \"recent\")\n  --json          Output as JSON (for programmatic use)\n  -h, --help      display help for command";
@@ -939,6 +1117,12 @@ const NEW_HELP: &str = "Usage: spool new <type> [options]\n\n[Experimental] Crea
 
 const STATUS_HELP: &str = "Usage: spool status [options]\n\n[Experimental] Display artifact completion status for a change\n\nOptions:\n  --change <name>               Change id (directory name)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
 
+const STATS_HELP: &str = "Usage: spool stats [options]\n\nShow local execution usage stats\n\nOptions:\n  -h, --help      display help for command";
+
+const CONFIG_HELP: &str = "Usage: spool config <command> [options]\n\nView and modify global Spool configuration\n\nCommands:\n  path                      Print config file path\n  list                      Print config JSON\n  get <key>                 Read value by path\n  set <key> <value>         Set value by path\n  unset <key>               Remove value by path\n\nOptions:\n  --string                  Treat <value> as a string\n  -h, --help                display help for command";
+
+const AGENT_CONFIG_HELP: &str = "Usage: spool agent-config <command> [options]\n\nManage project configuration (merged across sources)\n\nCommands:\n  init                      Create <spool-dir>/config.json if missing\n  summary                   Print merged config summary and sources\n  get <path>                Read merged value by path\n  set <path> <value>        Set value in <spool-dir>/config.json\n\nOptions:\n  --string                  Treat <value> as a string\n  -h, --help                display help for command";
+
 const TEMPLATES_HELP: &str = "Usage: spool templates [options]\n\n[Experimental] Show resolved template paths for all artifacts in a schema\n\nOptions:\n  --schema <name>               Workflow schema name (default: spec-driven)\n  --json                         Output as JSON\n  -h, --help                     display help for command";
 
 const INSTRUCTIONS_HELP: &str = "Usage: spool instructions <artifact> [options]\n\n[Experimental] Show instructions for generating an artifact\n\nOptions:\n  --change <name>               Change id (directory name)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
@@ -1201,6 +1385,317 @@ fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 
     Ok(())
+}
+
+fn handle_stats(rt: &Runtime, args: &[String]) -> CliResult<()> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{STATS_HELP}");
+        return Ok(());
+    }
+
+    let Some(config_dir) = spool_core::config::spool_config_dir(rt.ctx()) else {
+        println!("No Spool config directory found.");
+        return Ok(());
+    };
+
+    let root = config_dir
+        .join("logs")
+        .join("execution")
+        .join("v1")
+        .join("projects");
+
+    let mut counts: BTreeMap<String, u64> = BTreeMap::new();
+    for id in known_command_ids() {
+        counts.insert(id.to_string(), 0);
+    }
+
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_jsonl_files(&root, &mut files);
+
+    for path in files {
+        let Ok(f) = std::fs::File::open(&path) else {
+            continue;
+        };
+        let reader = std::io::BufReader::new(f);
+        for line in reader.lines() {
+            let Ok(line) = line else {
+                continue;
+            };
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            #[derive(serde::Deserialize)]
+            struct Event {
+                event_type: Option<String>,
+                command_id: Option<String>,
+            }
+
+            let Ok(ev) = serde_json::from_str::<Event>(line) else {
+                continue;
+            };
+            let Some(event_type) = ev.event_type else {
+                continue;
+            };
+            if event_type != "command_end" {
+                continue;
+            }
+            let Some(command_id) = ev.command_id else {
+                continue;
+            };
+
+            let entry = counts.entry(command_id).or_insert(0);
+            *entry = entry.saturating_add(1);
+        }
+    }
+
+    println!("Spool Stats");
+    println!("────────────────────────────────────────");
+    println!("command_id: count");
+    for (id, count) in counts {
+        println!("{id}: {count}");
+    }
+
+    Ok(())
+}
+
+fn handle_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
+    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{CONFIG_HELP}");
+        return Ok(());
+    }
+
+    let sub = args.first().map(|s| s.as_str()).unwrap_or("");
+
+    let Some(path) = spool_core::config::global_config_path(rt.ctx()) else {
+        return fail("No Spool config directory found");
+    };
+
+    match sub {
+        "path" => {
+            println!("{}", path.display());
+            Ok(())
+        }
+        "list" => {
+            let v = read_json_object_or_empty(&path)?;
+            println!("{}", serde_json::to_string_pretty(&v).unwrap_or_else(|_| "{}".to_string()));
+            Ok(())
+        }
+        "get" => {
+            let key = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if key.is_empty() || key.starts_with('-') {
+                return fail("Missing required argument <key>");
+            }
+            let v = read_json_object_or_empty(&path)?;
+            let Some(value) = json_get_path(&v, key) else {
+                return fail("Key not found");
+            };
+            println!("{}", json_render_value(value));
+            Ok(())
+        }
+        "set" => {
+            let key = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if key.is_empty() || key.starts_with('-') {
+                return fail("Missing required argument <key>");
+            }
+            let raw = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if raw.is_empty() {
+                return fail("Missing required argument <value>");
+            }
+            let force_string = args.iter().any(|a| a == "--string");
+
+            let mut v = read_json_object_or_empty(&path)?;
+            let value = parse_json_value_arg(raw, force_string)?;
+            json_set_path(&mut v, key, value)?;
+
+            let bytes = serde_json::to_vec_pretty(&v).map_err(to_cli_error)?;
+            let mut bytes = bytes;
+            bytes.push(b'\n');
+            spool_core::io::write_atomic_std(&path, bytes).map_err(to_cli_error)?;
+            Ok(())
+        }
+        "unset" => {
+            let key = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if key.is_empty() || key.starts_with('-') {
+                return fail("Missing required argument <key>");
+            }
+
+            let mut v = read_json_object_or_empty(&path)?;
+            json_unset_path(&mut v, key)?;
+
+            let bytes = serde_json::to_vec_pretty(&v).map_err(to_cli_error)?;
+            let mut bytes = bytes;
+            bytes.push(b'\n');
+            spool_core::io::write_atomic_std(&path, bytes).map_err(to_cli_error)?;
+            Ok(())
+        }
+        _ => fail(format!("Unknown config subcommand '{sub}'")),
+    }
+}
+
+fn handle_agent_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
+    if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{AGENT_CONFIG_HELP}");
+        return Ok(());
+    }
+
+    let sub = args.first().map(|s| s.as_str()).unwrap_or("");
+    let spool_path = rt.spool_path();
+    let project_root = spool_path.parent().unwrap_or_else(|| Path::new("."));
+    let config_path = spool_path.join("config.json");
+
+    match sub {
+        "init" => {
+            if let Some(parent) = config_path.parent() {
+                spool_core::io::create_dir_all_std(parent).map_err(to_cli_error)?;
+            }
+            if config_path.exists() {
+                eprintln!("✔ {} already exists", config_path.display());
+                return Ok(());
+            }
+
+            let v = serde_json::json!({
+                "tools": {},
+                "agents": {},
+                "defaults": {
+                    "context_budget": 100000,
+                    "model_preference": "default"
+                }
+            });
+            let bytes = serde_json::to_vec_pretty(&v).map_err(to_cli_error)?;
+            let mut bytes = bytes;
+            bytes.push(b'\n');
+            spool_core::io::write_atomic_std(&config_path, bytes).map_err(to_cli_error)?;
+            eprintln!("✔ Initialized {}", config_path.display());
+            Ok(())
+        }
+        "summary" => {
+            let r = spool_core::config::load_cascading_project_config(project_root, spool_path, rt.ctx());
+            println!("Project config sources:");
+            if r.loaded_from.is_empty() {
+                println!("  (none)");
+            } else {
+                for p in &r.loaded_from {
+                    println!("  - {}", p.display());
+                }
+            }
+            println!();
+            println!("Merged config:");
+            println!("{}", serde_json::to_string_pretty(&r.merged).unwrap_or_else(|_| "{}".to_string()));
+            Ok(())
+        }
+        "get" => {
+            let path = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if path.is_empty() || path.starts_with('-') {
+                return fail("Missing required argument <path>");
+            }
+            let r = spool_core::config::load_cascading_project_config(project_root, spool_path, rt.ctx());
+            let Some(value) = json_get_path(&r.merged, path) else {
+                return fail("Path not found");
+            };
+            println!("{}", json_render_value(value));
+            Ok(())
+        }
+        "set" => {
+            let path = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if path.is_empty() || path.starts_with('-') {
+                return fail("Missing required argument <path>");
+            }
+            let raw = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if raw.is_empty() {
+                return fail("Missing required argument <value>");
+            }
+            let force_string = args.iter().any(|a| a == "--string");
+
+            if let Some(parent) = config_path.parent() {
+                spool_core::io::create_dir_all_std(parent).map_err(to_cli_error)?;
+            }
+
+            let mut v = read_json_object_or_empty(&config_path)?;
+            let value = parse_json_value_arg(raw, force_string)?;
+            json_set_path(&mut v, path, value)?;
+
+            let bytes = serde_json::to_vec_pretty(&v).map_err(to_cli_error)?;
+            let mut bytes = bytes;
+            bytes.push(b'\n');
+            spool_core::io::write_atomic_std(&config_path, bytes).map_err(to_cli_error)?;
+            Ok(())
+        }
+        _ => fail(format!("Unknown agent-config subcommand '{sub}'")),
+    }
+}
+
+fn collect_jsonl_files(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for e in entries {
+        let Ok(e) = e else {
+            continue;
+        };
+        let path = e.path();
+        if path.is_dir() {
+            collect_jsonl_files(&path, out);
+            continue;
+        }
+        let Some(ext) = path.extension().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        if ext == "jsonl" {
+            out.push(path);
+        }
+    }
+}
+
+fn known_command_ids() -> Vec<&'static str> {
+    vec![
+        "spool.init",
+        "spool.update",
+        "spool.list",
+        "spool.config.path",
+        "spool.config.list",
+        "spool.config.get",
+        "spool.config.set",
+        "spool.config.unset",
+        "spool.agent_config.init",
+        "spool.agent_config.summary",
+        "spool.agent_config.get",
+        "spool.agent_config.set",
+        "spool.create.module",
+        "spool.create.change",
+        "spool.new.change",
+        "spool.plan.init",
+        "spool.plan.status",
+        "spool.state.show",
+        "spool.state.decision",
+        "spool.state.blocker",
+        "spool.state.note",
+        "spool.state.focus",
+        "spool.state.question",
+        "spool.tasks.init",
+        "spool.tasks.status",
+        "spool.tasks.next",
+        "spool.tasks.start",
+        "spool.tasks.complete",
+        "spool.tasks.shelve",
+        "spool.tasks.unshelve",
+        "spool.tasks.add",
+        "spool.tasks.show",
+        "spool.workflow.init",
+        "spool.workflow.list",
+        "spool.workflow.show",
+        "spool.status",
+        "spool.stats",
+        "spool.templates",
+        "spool.instructions",
+        "spool.x_instructions",
+        "spool.agent.instruction",
+        "spool.show",
+        "spool.validate",
+        "spool.ralph",
+        "spool.loop",
+    ]
 }
 
 fn handle_templates(rt: &Runtime, args: &[String]) -> CliResult<()> {
@@ -3003,6 +3498,148 @@ fn parse_string_flag(args: &[String], key: &str) -> Option<String> {
 
 fn split_csv(raw: &str) -> Vec<String> {
     raw.split(',').map(|s| s.trim().to_string()).collect()
+}
+
+fn read_json_object_or_empty(path: &Path) -> CliResult<serde_json::Value> {
+    let Ok(contents) = std::fs::read_to_string(path) else {
+        return Ok(serde_json::Value::Object(serde_json::Map::new()));
+    };
+    let v: serde_json::Value = serde_json::from_str(&contents).map_err(|e| {
+        CliError::msg(format!(
+            "Invalid JSON in {}: {e}",
+            path.display()
+        ))
+    })?;
+    match v {
+        serde_json::Value::Object(_) => Ok(v),
+        _ => Err(CliError::msg(format!(
+            "Expected JSON object in {}",
+            path.display()
+        ))),
+    }
+}
+
+fn parse_json_value_arg(raw: &str, force_string: bool) -> CliResult<serde_json::Value> {
+    if force_string {
+        return Ok(serde_json::Value::String(raw.to_string()));
+    }
+    match serde_json::from_str::<serde_json::Value>(raw) {
+        Ok(v) => Ok(v),
+        Err(_) => Ok(serde_json::Value::String(raw.to_string())),
+    }
+}
+
+fn json_render_value(v: &serde_json::Value) -> String {
+    match v {
+        serde_json::Value::String(s) => s.clone(),
+        serde_json::Value::Number(n) => n.to_string(),
+        serde_json::Value::Bool(b) => b.to_string(),
+        serde_json::Value::Null => "null".to_string(),
+        serde_json::Value::Array(_) | serde_json::Value::Object(_) => {
+            serde_json::to_string_pretty(v).unwrap_or_else(|_| "{}".to_string())
+        }
+    }
+}
+
+fn json_split_path(path: &str) -> Vec<&str> {
+    let mut out: Vec<&str> = Vec::new();
+    for part in path.split('.') {
+        let part = part.trim();
+        if part.is_empty() {
+            continue;
+        }
+        out.push(part);
+    }
+    out
+}
+
+fn json_get_path<'a>(root: &'a serde_json::Value, path: &str) -> Option<&'a serde_json::Value> {
+    let parts = json_split_path(path);
+    let mut cur = root;
+    for p in parts {
+        let serde_json::Value::Object(map) = cur else {
+            return None;
+        };
+        let Some(next) = map.get(p) else {
+            return None;
+        };
+        cur = next;
+    }
+    Some(cur)
+}
+
+fn json_set_path(
+    root: &mut serde_json::Value,
+    path: &str,
+    value: serde_json::Value,
+) -> CliResult<()> {
+    let parts = json_split_path(path);
+    if parts.is_empty() {
+        return Err(CliError::msg("Invalid empty path"));
+    }
+
+    let mut cur = root;
+    for (i, key) in parts.iter().enumerate() {
+        let is_last = i + 1 == parts.len();
+
+        if !matches!(cur, serde_json::Value::Object(_)) {
+            *cur = serde_json::Value::Object(serde_json::Map::new());
+        }
+        let serde_json::Value::Object(map) = cur else {
+            return Err(CliError::msg("Failed to set path"));
+        };
+
+        if is_last {
+            map.insert((*key).to_string(), value);
+            return Ok(());
+        }
+
+        let needs_object = match map.get(*key) {
+            Some(serde_json::Value::Object(_)) => false,
+            Some(_) => true,
+            None => true,
+        };
+        if needs_object {
+            map.insert(
+                (*key).to_string(),
+                serde_json::Value::Object(serde_json::Map::new()),
+            );
+        }
+
+        let Some(next) = map.get_mut(*key) else {
+            return Err(CliError::msg("Failed to set path"));
+        };
+        cur = next;
+    }
+
+    Ok(())
+}
+
+fn json_unset_path(root: &mut serde_json::Value, path: &str) -> CliResult<()> {
+    let parts = json_split_path(path);
+    if parts.is_empty() {
+        return Err(CliError::msg("Invalid empty path"));
+    }
+
+    let mut cur = root;
+    for (i, p) in parts.iter().enumerate() {
+        let is_last = i + 1 == parts.len();
+        let serde_json::Value::Object(map) = cur else {
+            return Ok(());
+        };
+
+        if is_last {
+            map.remove(*p);
+            return Ok(());
+        }
+
+        let Some(next) = map.get_mut(*p) else {
+            return Ok(());
+        };
+        cur = next;
+    }
+
+    Ok(())
 }
 
 fn last_positional(args: &[String]) -> Option<String> {

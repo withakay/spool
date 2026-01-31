@@ -6,14 +6,23 @@ The `spool agent-config` command group provides agent configuration management c
 
 ## Requirements
 
+### Requirement: Agent config file location
+
+The CLI SHALL store project agent configuration in `<spoolDir>/config.json`.
+
+Notes:
+
+- `<spoolDir>` is the project Spool working directory (default: `.spool/`, but it can be renamed via `projectPath`).
+- The CLI MUST NOT hardcode `.spool/` in behavior or messaging.
+
 ### Requirement: Agent configuration initialization
 
-The CLI SHALL initialize the `.spool/config.yaml` file with default configuration for AI tools.
+The CLI SHALL initialize `<spoolDir>/config.json` with default configuration for AI tools.
 
 #### Scenario: Initialize agent configuration
 
 - **WHEN** executing `spool agent-config init`
-- **THEN** create `.spool/config.yaml` if it does not exist
+- **THEN** create `<spoolDir>/config.json` if it does not exist
 - **AND** populate the file with default configuration structure:
   - `tools`: Dictionary of tool-specific settings
   - `agents`: Dictionary of agent-specific settings
@@ -30,14 +39,14 @@ The CLI SHALL display a summary of the current agent configuration, including to
 #### Scenario: Show configuration summary
 
 - **WHEN** executing `spool agent-config summary`
-- **THEN** read `.spool/config.yaml` if it exists
+- **THEN** read `<spoolDir>/config.json` if it exists
 - **AND** display a formatted summary showing:
   - Configured tools and their default models
   - Configured agents and their preferences
   - Global default settings
   - Context budget settings
 - **AND** group settings by category (tools, agents, defaults) for readability
-- **AND** display a message indicating no configuration exists if config.yaml is missing
+- **AND** display a message indicating no configuration exists if config.json is missing
 - **AND** suggest running `spool agent-config init` to create configuration
 
 ### Requirement: Configuration value retrieval
@@ -48,7 +57,7 @@ The CLI SHALL retrieve specific configuration values by path and display them in
 
 - **WHEN** executing `spool agent-config get <path>`
 - **THEN** parse the path to identify the configuration location (e.g., `tools.opencode.default_model`)
-- **AND** read `.spool/config.yaml`
+- **AND** read `<spoolDir>/config.json`
 - **AND** traverse the configuration structure to find the value at the specified path
 - **AND** display the value in a human-readable format
 - **AND** display an error if the path does not exist
@@ -63,17 +72,17 @@ The CLI SHALL retrieve specific configuration values by path and display them in
 
 ### Requirement: Configuration value modification
 
-The CLI SHALL set specific configuration values by path, updating the config.yaml file atomically.
+The CLI SHALL set specific configuration values by path, updating `<spoolDir>/config.json` atomically.
 
 #### Scenario: Set a configuration value
 
 - **WHEN** executing `spool agent-config set <path> <value>`
 - **THEN** parse the path to identify the configuration location
 - **THEN** parse the value as the appropriate type (string, number, boolean, or nested structure)
-- **AND** read `.spool/config.yaml`
+- **AND** read `<spoolDir>/config.json`
 - **AND** update or create the configuration at the specified path with the new value
 - **AND** create intermediate dictionary keys if they do not exist
-- **AND** write the updated configuration back to `.spool/config.yaml` atomically
+- **AND** write the updated configuration back to `<spoolDir>/config.json` atomically
 - **AND** display a confirmation that the configuration has been updated
 - **AND** display an error if the value cannot be parsed
 - **AND** suggest valid value types (string, number, boolean, JSON)
@@ -127,12 +136,11 @@ The CLI SHALL generate a high-quality configuration template with sensible defau
 
 #### Scenario: Configuration template includes all sections
 
-- **WHEN** generating `.spool/config.yaml`
+- **WHEN** generating `<spoolDir>/config.json`
 - **THEN** include all three top-level sections: `tools`, `agents`, `defaults`
-- **AND** include commented examples for each supported tool under `tools`
-- **AND** include commented examples for each agent type under `agents`
+- **AND** include example entries for each supported tool under `tools` using placeholder values
+- **AND** include example entries for each agent type under `agents` using placeholder values
 - **AND** include global defaults for context budget and model preference under `defaults`
-- **AND** provide inline comments explaining each configuration option
 - **AND** set reasonable default values (e.g., context budget of 100000 tokens)
 
 #### Scenario: Tool configuration includes required keys
@@ -186,14 +194,14 @@ The CLI SHALL provide clear error messages and recovery suggestions when agent-c
 
 #### Scenario: Config file cannot be read
 
-- **WHEN** `.spool/config.yaml` cannot be read due to permissions or malformed YAML
+- **WHEN** `<spoolDir>/config.json` cannot be read due to permissions or malformed JSON
 - **THEN** display an error message explaining the failure
 - **AND** suggest checking file permissions or running `spool agent-config init` to recreate
 - **AND** exit with code 1
 
 #### Scenario: Config file cannot be written
 
-- **WHEN** `.spool/config.yaml` cannot be written due to permissions or filesystem errors
+- **WHEN** `<spoolDir>/config.json` cannot be written due to permissions or filesystem errors
 - **THEN** display an error message explaining the failure
 - **AND** suggest checking directory permissions and disk space
 - **AND** exit with code 1
@@ -207,9 +215,9 @@ The CLI SHALL provide clear error messages and recovery suggestions when agent-c
 
 #### Scenario: Configuration file has syntax errors
 
-- **WHEN** reading `.spool/config.yaml` and it contains YAML syntax errors
-- **THEN** display an error message indicating the specific syntax error
-- **AND** suggest correcting the YAML syntax or running `spool agent-config init` to recreate
+- **WHEN** reading `<spoolDir>/config.json` and it contains JSON syntax errors
+- **THEN** display an error message indicating the specific parse error
+- **AND** suggest correcting the JSON or running `spool agent-config init` to recreate
 - **AND** exit with code 1
 
 ### Requirement: Configuration integration
@@ -219,7 +227,7 @@ The CLI SHALL integrate agent configuration with other Spool commands and workfl
 #### Scenario: Use configuration in other commands
 
 - **WHEN** executing other Spool commands that interact with AI tools
-- **THEN** read `.spool/config.yaml` to retrieve tool-specific settings
+- **THEN** read `<spoolDir>/config.json` to retrieve tool-specific settings
 - **AND** use the configured default_model when generating instructions
 - **AND** respect the context_budget setting when managing context
 - **AND** apply agent preferences when available
@@ -227,7 +235,7 @@ The CLI SHALL integrate agent configuration with other Spool commands and workfl
 #### Scenario: Use configuration in workflows
 
 - **WHEN** executing `spool workflow run` with a specified tool
-- **THEN** read tool-specific configuration from `.spool/config.yaml`
+- **THEN** read tool-specific configuration from `<spoolDir>/config.json`
 - **AND** apply the configuration to the generated instructions
 - **AND** use the default_model for the specified tool if configured
 - **AND** respect context_budget settings in the workflow execution

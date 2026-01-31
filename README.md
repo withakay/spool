@@ -26,7 +26,7 @@ It’s designed for the reality of AI-assisted development where work spans mult
 - Project planning foundation: `PROJECT.md`, `ROADMAP.md`, `STATE.md` templates
 - Research phase: parallel domain investigation + synthesis (`research/*`)
 - Enhanced tasks format: waves, verification criteria, completion tracking (`tasks.md`)
-- Agent configuration: per-tool models + context budgets (`config.yaml`)
+- Agent configuration: per-tool models + context budgets (`config.json`)
 - Workflow orchestration: YAML workflows with waves + checkpoints, plus execution status tracking
 - Unified “research” and “adversarial review” workflows available as slash commands in supported tools
 - Spool agent skills installed automatically during init
@@ -90,7 +90,7 @@ After `spool init`, you’ll typically have (default layout shown):
       <workflow>.json
   commands/
     <prompt-templates>.md
-  config.yaml
+  config.json
 ```
 
 ## Core Workflows
@@ -165,7 +165,7 @@ This generates tool-specific execution instructions (OpenCode / Claude Code / Co
 
 ## Agent Configuration (`spool agent-config`)
 
-Spool can generate and manage `.spool/config.yaml` for per-tool model selection and context budgets.
+Spool can generate and manage `<spool-dir>/config.json` for per-tool model selection and context budgets.
 
 ```bash
 spool agent-config init
