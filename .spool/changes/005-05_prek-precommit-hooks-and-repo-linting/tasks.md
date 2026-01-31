@@ -71,7 +71,7 @@ ______________________________________________________________________
 - **Verify**: `prek run --all-files` and `make lint`
 - **Done When**: Both commands run the same checks and succeed on a clean tree
 - **Updated At**: 2026-01-31
-- **Status**: [ ] in-progress
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -88,7 +88,7 @@ ______________________________________________________________________
 - **Verify**: CI green
 - **Done When**: CI runs the prek checks and fails on hook violations
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -105,7 +105,7 @@ ______________________________________________________________________
 - **Verify**: `spool validate 005-05_prek-precommit-hooks-and-repo-linting --strict`
 - **Done When**: Spool strict validation succeeds and repo checks pass
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
