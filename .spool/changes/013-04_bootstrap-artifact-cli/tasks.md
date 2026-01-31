@@ -35,7 +35,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: `spool agent instruction bootstrap --tool <tool>` produces stable content for all three tools
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Add tests for bootstrap output shape and tool switching
 
@@ -49,7 +49,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: Tests fail without implementation and pass with it
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -59,7 +59,7 @@ ______________________________________________________________________
 
 - **Type**: checkpoint (requires human approval)
 - **Files**: `.spool/changes/013-04_bootstrap-artifact-cli/proposal.md`, `.spool/changes/013-04_bootstrap-artifact-cli/design.md`
-- **Dependencies**: Task 1.2
+- **Dependencies**: None
 - **Action**: Review that bootstrap content is short and keeps workflows centralized
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31

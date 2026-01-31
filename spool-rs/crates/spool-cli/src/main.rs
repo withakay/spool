@@ -1237,7 +1237,7 @@ const INSTRUCTIONS_HELP: &str = "Usage: spool instructions <artifact> [options]\
 
 const AGENT_HELP: &str = "Usage: spool agent [command] [options]\n\nCommands that generate machine-readable output for AI agents\n\nCommands:\n  instruction <artifact> [options]   Generate enriched instructions\n\nOptions:\n  -h, --help                         display help for command";
 
-const AGENT_INSTRUCTION_HELP: &str = "Usage: spool agent instruction <artifact> [options]\n\nGenerate enriched instructions\n\nOptions:\n  --change <name>               Change id (directory name)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
+const AGENT_INSTRUCTION_HELP: &str = "Usage: spool agent instruction <artifact> [options]\n\nGenerate enriched instructions\n\nArtifacts:\n  bootstrap                      Tool-specific bootstrap preamble (requires --tool)\n  apply                          Apply instructions for a change (requires --change)\n  <artifact-id>                  Schema artifact instructions (requires --change)\n\nOptions:\n  --change <name>               Change id (directory name, required for most artifacts)\n  --tool <tool>                 Tool name for bootstrap (opencode|claude|codex)\n  --schema <name>               Workflow schema name\n  --json                         Output as JSON\n  -h, --help                     display help for command";
 
 fn handle_create(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
@@ -2020,6 +2020,108 @@ fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
     Ok(())
 }
 
+fn generate_bootstrap_instruction(tool: &str) -> String {
+    let tool_notes = match tool {
+        "opencode" => r#"## Tool-Specific Notes: OpenCode
+
+OpenCode provides MCP (Model Context Protocol) tools for file operations and task delegation:
+
+- **File Operations**: Use Read, Write, Edit, Glob, Grep tools for file manipulation
+- **Shell Commands**: Use Bash tool for git, npm, docker, etc.
+- **Task Delegation**: Use Task tool to launch specialized agents for complex subtasks
+- **Parallel Invocation**: You can call multiple independent tools in a single response for optimal performance
+
+When working with Spool changes, always prefer the dedicated tools over shell commands for file operations."#,
+        "claude" => r#"## Tool-Specific Notes: Claude Code
+
+Claude Code provides a comprehensive toolkit for development workflows:
+
+- **File Operations**: Use Read, Write, Edit tools for file manipulation
+- **Search**: Use Glob (file patterns) and Grep (content search) instead of shell commands
+- **Task Delegation**: Use Task tool to launch specialized agents for complex, multi-step work
+- **Shell Commands**: Use Bash tool for git, npm, docker, and other CLI operations
+- **Tool Routing**: Prefer specialized tools (Read/Write/Edit/Grep/Glob) over generic shell commands
+
+When implementing Spool changes, use the Task tool for independent subtasks and the dedicated file tools for code modifications."#,
+        "codex" => r#"## Tool-Specific Notes: Codex
+
+Codex is a shell-first environment with command execution as the primary interface:
+
+- **Shell Commands**: All operations are performed via shell commands
+- **File Operations**: Use standard Unix tools (cat, grep, find, sed, awk)
+- **Git Operations**: Direct git commands for version control
+- **Available Commands**: Standard Unix utilities, git, npm, make, and project-specific tools
+- **Bootstrap**: This bootstrap snippet is always included in your system prompt
+
+When working with Spool changes, use shell commands and standard Unix tools for all operations."#,
+        _ => "",
+    };
+
+    format!(
+        r#"# Spool Bootstrap Instructions
+
+This is a minimal bootstrap preamble for {tool}. For complete workflow instructions, use the artifact-specific commands below.
+
+{tool_notes}
+
+## Retrieving Workflow Instructions
+
+To get detailed instructions for working with a Spool change, use these commands:
+
+### View Change Proposal
+```bash
+spool agent instruction proposal --change <change-id>
+```
+Shows the change proposal (why, what, impact).
+
+### View Specifications
+```bash
+spool agent instruction specs --change <change-id>
+```
+Shows the specification deltas for the change.
+
+### View Tasks
+```bash
+spool agent instruction tasks --change <change-id>
+```
+Shows the implementation task list.
+
+### Apply Instructions
+```bash
+spool agent instruction apply --change <change-id>
+```
+Shows comprehensive instructions for implementing the change, including:
+- Context files to read
+- Task progress tracking
+- Implementation guidance
+- Completion criteria
+
+### Review Instructions
+```bash
+spool agent instruction review --change <change-id>
+```
+Shows instructions for reviewing a completed change.
+
+### Archive Instructions
+```bash
+spool agent instruction archive --change <change-id>
+```
+Shows instructions for archiving a completed change and updating main specs.
+
+## Workflow Overview
+
+1. **Proposal Phase**: Read proposal.md to understand the change
+2. **Planning Phase**: Review specs/ deltas and tasks.md
+3. **Implementation Phase**: Use `apply` instructions to execute tasks
+4. **Review Phase**: Validate implementation against specs
+5. **Archive Phase**: Integrate changes into main specs
+
+All workflow content is centralized in the Spool CLI. Adapters should remain thin and delegate to these instruction artifacts.
+"#,
+        tool = tool
+    )
+}
+
 fn print_artifact_instructions_text(
     instructions: &core_workflow::InstructionsResponse,
     user_guidance: Option<&str>,
@@ -2240,6 +2342,37 @@ fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if artifact.is_empty() || artifact.starts_with('-') {
         return fail("Missing required argument <artifact>");
     }
+
+    if artifact == "bootstrap" {
+        let tool = parse_string_flag(args, "--tool");
+        if tool.as_deref().unwrap_or("").is_empty() {
+            return fail("Missing required option --tool for bootstrap artifact");
+        }
+        let tool = tool.expect("checked above");
+        let valid_tools = ["opencode", "claude", "codex"];
+        if !valid_tools.contains(&tool.as_str()) {
+            return fail(format!(
+                "Invalid tool '{}'. Valid tools: {}",
+                tool,
+                valid_tools.join(", ")
+            ));
+        }
+
+        let instruction = generate_bootstrap_instruction(&tool);
+        if want_json {
+            let response = core_workflow::AgentInstructionResponse {
+                artifact_id: "bootstrap".to_string(),
+                instruction,
+            };
+            let rendered = serde_json::to_string_pretty(&response).expect("json should serialize");
+            println!("{rendered}");
+            return Ok(());
+        }
+
+        print!("{instruction}");
+        return Ok(());
+    }
+
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
         return fail("Missing required option --change");
