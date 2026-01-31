@@ -46,9 +46,20 @@ git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
 
 Or ask: "This branch split from main - is that correct?"
 
-### Step 3: Present Options
+### Step 3: Detect Spool Change
 
-Present exactly these 4 options:
+Check if working on a spool change:
+
+```bash
+# Check for in-progress spool changes
+ls .spool/changes/ 2>/dev/null | head -5
+```
+
+**If spool change detected:** Include Option 5 (Archive) in the options.
+
+### Step 4: Present Options
+
+Present the options (5 if spool change detected, otherwise 4):
 
 ```
 Implementation complete. What would you like to do?
@@ -57,13 +68,16 @@ Implementation complete. What would you like to do?
 2. Push and create a Pull Request
 3. Keep the branch as-is (I'll handle it later)
 4. Discard this work
+5. Archive spool change (integrates specs, marks complete)  ← if spool change
 
 Which option?
 ```
 
+**If spool change detected:** Highlight option 5: "Recommended for spool changes: archives completed work into specs."
+
 **Don't add explanation** - keep options concise.
 
-### Step 4: Execute Choice
+### Step 5: Execute Choice
 
 #### Option 1: Merge Locally
 
@@ -84,7 +98,7 @@ git merge <feature-branch>
 git branch -d <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
 #### Option 2: Push and Create PR
 
@@ -103,7 +117,7 @@ EOF
 )"
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
 #### Option 3: Keep As-Is
 
@@ -131,11 +145,26 @@ git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-Then: Cleanup worktree (Step 5)
+Then: Cleanup worktree (Step 6)
 
-### Step 5: Cleanup Worktree
+#### Option 5: Archive Spool Change (if spool change detected)
 
-**For Options 1, 2, 4:**
+Invoke the `spool-archive` skill:
+
+```bash
+spool agent instruction archive --change <change-id>
+```
+
+Follow the printed instructions to:
+- Integrate change specs into main specs
+- Mark change as completed
+- Clean up change directory
+
+Then: Cleanup worktree (Step 6)
+
+### Step 6: Cleanup Worktree
+
+**For Options 1, 2, 4, 5:**
 
 Check if in worktree:
 ```bash
@@ -151,12 +180,13 @@ git worktree remove <worktree-path>
 
 ## Quick Reference
 
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | ✓ | - | - | ✓ |
-| 2. Create PR | - | ✓ | ✓ | - |
-| 3. Keep as-is | - | - | ✓ | - |
-| 4. Discard | - | - | - | ✓ (force) |
+| Option | Merge | Push | Archive | Keep Worktree | Cleanup Branch |
+|--------|-------|------|---------|---------------|----------------|
+| 1. Merge locally | ✓ | - | - | - | ✓ |
+| 2. Create PR | - | ✓ | - | ✓ | - |
+| 3. Keep as-is | - | - | - | ✓ | - |
+| 4. Discard | - | - | - | - | ✓ (force) |
+| 5. Archive spool | - | - | ✓ | - | ✓ |
 
 ## Common Mistakes
 
@@ -166,15 +196,19 @@ git worktree remove <worktree-path>
 
 **Open-ended questions**
 - **Problem:** "What should I do next?" → ambiguous
-- **Fix:** Present exactly 4 structured options
+- **Fix:** Present structured options
 
 **Automatic worktree cleanup**
 - **Problem:** Remove worktree when might need it (Option 2, 3)
-- **Fix:** Only cleanup for Options 1 and 4
+- **Fix:** Only cleanup for Options 1, 4, and 5
 
 **No confirmation for discard**
 - **Problem:** Accidentally delete work
 - **Fix:** Require typed "discard" confirmation
+
+**Missing archive option for spool**
+- **Problem:** User forgets to archive completed spool changes
+- **Fix:** Detect spool changes and present archive option
 
 ## Red Flags
 
@@ -186,15 +220,17 @@ git worktree remove <worktree-path>
 
 **Always:**
 - Verify tests before offering options
-- Present exactly 4 options
+- Detect spool changes and include archive option
+- Present structured options (not open-ended)
 - Get typed confirmation for Option 4
-- Clean up worktree for Options 1 & 4 only
+- Clean up worktree for Options 1, 4, 5 only
 
 ## Integration
 
 **Called by:**
-- **subagent-driven-development** (Step 7) - After all tasks complete
-- **executing-plans** (Step 5) - After all batches complete
+- **spool-subagent-driven-development** (after all tasks complete)
+- **spool-apply-change-proposal** (after all batches complete)
 
 **Pairs with:**
-- **using-git-worktrees** - Cleans up worktree created by that skill
+- **spool-using-git-worktrees** - Cleans up worktree created by that skill
+- **spool-archive** - Used by Option 5 to archive spool changes

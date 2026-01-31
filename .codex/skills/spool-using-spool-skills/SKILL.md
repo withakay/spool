@@ -1,6 +1,6 @@
 ---
-name: using-superpowers
-description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+name: using-spool-skills
+description: Use when discovering, finding, invoking, or loading skills. Ensures skills are invoked BEFORE responding. Establishes skill priority and usage patterns for OpenCode, Claude Code, and Codex.
 ---
 
 <EXTREMELY-IMPORTANT>
@@ -13,37 +13,56 @@ This is not negotiable. This is not optional. You cannot rationalize your way ou
 
 ## How to Access Skills
 
-**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to you—follow it directly. Never use the Read tool on skill files.
+### OpenCode
 
-**In other environments:** Check your platform's documentation for how skills are loaded.
+Use the native `skill` tool:
+
+```bash
+# List all available skills
+skill list
+
+# Load a specific skill
+skill load spool-brainstorming
+```
+
+Skill locations:
+- Project skills: `.opencode/skills/`
+- User skills: `~/.config/opencode/skills/`
+
+### Claude Code
+
+Use the `mcp_skill` function:
+
+```
+mcp_skill with name="spool-brainstorming"
+```
+
+Skill locations:
+- Project skills: `.claude/skills/`
+
+### Codex
+
+Read skill files directly:
+
+```bash
+cat .codex/skills/spool-brainstorming/SKILL.md
+```
+
+Skill locations:
+- Project skills: `.codex/skills/`
+- User skills: `~/.codex/skills/`
+
+### Detecting Your Harness
+
+- **OpenCode**: Has `skill` tool available, `.opencode/` directory
+- **Claude Code**: Has `mcp_skill` function, `.claude/` directory
+- **Codex**: Has `.codex/` directory, no native skill tool
 
 # Using Skills
 
 ## The Rule
 
 **Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
-
-```dot
-digraph skill_flow {
-    "User message received" [shape=doublecircle];
-    "Might any skill apply?" [shape=diamond];
-    "Invoke Skill tool" [shape=box];
-    "Announce: 'Using [skill] to [purpose]'" [shape=box];
-    "Has checklist?" [shape=diamond];
-    "Create TodoWrite todo per item" [shape=box];
-    "Follow skill exactly" [shape=box];
-    "Respond (including clarifications)" [shape=doublecircle];
-
-    "User message received" -> "Might any skill apply?";
-    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
-    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
-    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
-    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
-    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
-    "Has checklist?" -> "Follow skill exactly" [label="no"];
-    "Create TodoWrite todo per item" -> "Follow skill exactly";
-}
-```
 
 ## Red Flags
 

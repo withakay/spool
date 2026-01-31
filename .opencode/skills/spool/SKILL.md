@@ -24,6 +24,17 @@ The requested command is provided either:
 - In prompt arguments (if your harness provides them), or
 - In a <SpoolCommand> block
 
+## Command Aliases
+
+Some commands have verbose skill names for discoverability. Map short commands to full skill names:
+
+| Short Command | Full Skill Name |
+|---------------|-----------------|
+| `proposal` | `spool-write-change-proposal` |
+| `write-change-proposal` | `spool-write-change-proposal` |
+| `apply` | `spool-apply-change-proposal` |
+| `apply-change-proposal` | `spool-apply-change-proposal` |
+
 ## Steps
 
 1. **Parse** the command:
@@ -33,7 +44,8 @@ The requested command is provided either:
 
 1. **Resolve skill target**:
 
-   - Build candidate skill id: `spool-${command}`
+   - Check the Command Aliases table first for mapped skill names
+   - Otherwise build candidate skill id: `spool-${command}`
    - Determine if that skill is installed/available in this harness
      - OpenCode: check for a directory under `.opencode/skills/`
      - Claude: check for a directory under `.claude/skills/`
