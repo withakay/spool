@@ -245,9 +245,9 @@ This project currently uses pnpm as its package manager across all workflows: lo
 
 **Pre-migration Checklist:**
 
-- \[ \] Bun installed locally for testing
-- \[ \] Clean working tree (no uncommitted changes)
-- \[ \] CI passing on main branch
+- [ ] Bun installed locally for testing
+- [ ] Clean working tree (no uncommitted changes)
+- [ ] CI passing on main branch
 
 **Migration Steps:**
 
