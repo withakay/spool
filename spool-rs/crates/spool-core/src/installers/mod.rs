@@ -161,7 +161,11 @@ fn write_one(
     Ok(())
 }
 
-fn install_adapter_files(project_root: &Path, _mode: InstallMode, opts: &InitOptions) -> Result<()> {
+fn install_adapter_files(
+    project_root: &Path,
+    _mode: InstallMode,
+    opts: &InitOptions,
+) -> Result<()> {
     let version = env!("CARGO_PKG_VERSION");
     let cwd = std::env::current_dir().unwrap_or_else(|_| project_root.to_path_buf());
     let source_mode = crate::distribution::detect_source_mode(&cwd, version);

@@ -2032,7 +2032,8 @@ fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
 fn generate_bootstrap_instruction(tool: &str) -> String {
     let tool_notes = match tool {
-        "opencode" => r#"## Tool-Specific Notes: OpenCode
+        "opencode" => {
+            r#"## Tool-Specific Notes: OpenCode
 
 OpenCode provides MCP (Model Context Protocol) tools for file operations and task delegation:
 
@@ -2041,8 +2042,10 @@ OpenCode provides MCP (Model Context Protocol) tools for file operations and tas
 - **Task Delegation**: Use Task tool to launch specialized agents for complex subtasks
 - **Parallel Invocation**: You can call multiple independent tools in a single response for optimal performance
 
-When working with Spool changes, always prefer the dedicated tools over shell commands for file operations."#,
-        "claude" => r#"## Tool-Specific Notes: Claude Code
+When working with Spool changes, always prefer the dedicated tools over shell commands for file operations."#
+        }
+        "claude" => {
+            r#"## Tool-Specific Notes: Claude Code
 
 Claude Code provides a comprehensive toolkit for development workflows:
 
@@ -2052,8 +2055,10 @@ Claude Code provides a comprehensive toolkit for development workflows:
 - **Shell Commands**: Use Bash tool for git, npm, docker, and other CLI operations
 - **Tool Routing**: Prefer specialized tools (Read/Write/Edit/Grep/Glob) over generic shell commands
 
-When implementing Spool changes, use the Task tool for independent subtasks and the dedicated file tools for code modifications."#,
-        "codex" => r#"## Tool-Specific Notes: Codex
+When implementing Spool changes, use the Task tool for independent subtasks and the dedicated file tools for code modifications."#
+        }
+        "codex" => {
+            r#"## Tool-Specific Notes: Codex
 
 Codex is a shell-first environment with command execution as the primary interface:
 
@@ -2063,7 +2068,8 @@ Codex is a shell-first environment with command execution as the primary interfa
 - **Available Commands**: Standard Unix utilities, git, npm, make, and project-specific tools
 - **Bootstrap**: This bootstrap snippet is always included in your system prompt
 
-When working with Spool changes, use shell commands and standard Unix tools for all operations."#,
+When working with Spool changes, use shell commands and standard Unix tools for all operations."#
+        }
         _ => "",
     };
 
@@ -3004,26 +3010,86 @@ struct CommandHelpEntry {
 
 /// All command help entries for `spool help --all`
 const ALL_HELP: &[CommandHelpEntry] = &[
-    CommandHelpEntry { path: "spool", help: HELP },
-    CommandHelpEntry { path: "spool init", help: INIT_HELP },
-    CommandHelpEntry { path: "spool update", help: UPDATE_HELP },
-    CommandHelpEntry { path: "spool tasks", help: TASKS_HELP },
-    CommandHelpEntry { path: "spool plan", help: PLAN_HELP },
-    CommandHelpEntry { path: "spool state", help: STATE_HELP },
-    CommandHelpEntry { path: "spool workflow", help: WORKFLOW_HELP },
-    CommandHelpEntry { path: "spool list", help: LIST_HELP },
-    CommandHelpEntry { path: "spool archive", help: ARCHIVE_HELP },
-    CommandHelpEntry { path: "spool config", help: CONFIG_HELP },
-    CommandHelpEntry { path: "spool create", help: CREATE_HELP },
-    CommandHelpEntry { path: "spool validate", help: VALIDATE_HELP },
-    CommandHelpEntry { path: "spool show", help: SHOW_HELP },
-    CommandHelpEntry { path: "spool status", help: STATUS_HELP },
-    CommandHelpEntry { path: "spool agent", help: AGENT_HELP },
-    CommandHelpEntry { path: "spool agent instruction", help: AGENT_INSTRUCTION_HELP },
-    CommandHelpEntry { path: "spool ralph", help: RALPH_HELP },
-    CommandHelpEntry { path: "spool agent-config", help: AGENT_CONFIG_HELP },
-    CommandHelpEntry { path: "spool x-templates", help: TEMPLATES_HELP },
-    CommandHelpEntry { path: "spool stats", help: STATS_HELP },
+    CommandHelpEntry {
+        path: "spool",
+        help: HELP,
+    },
+    CommandHelpEntry {
+        path: "spool init",
+        help: INIT_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool update",
+        help: UPDATE_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool tasks",
+        help: TASKS_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool plan",
+        help: PLAN_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool state",
+        help: STATE_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool workflow",
+        help: WORKFLOW_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool list",
+        help: LIST_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool archive",
+        help: ARCHIVE_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool config",
+        help: CONFIG_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool create",
+        help: CREATE_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool validate",
+        help: VALIDATE_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool show",
+        help: SHOW_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool status",
+        help: STATUS_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool agent",
+        help: AGENT_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool agent instruction",
+        help: AGENT_INSTRUCTION_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool ralph",
+        help: RALPH_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool agent-config",
+        help: AGENT_CONFIG_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool x-templates",
+        help: TEMPLATES_HELP,
+    },
+    CommandHelpEntry {
+        path: "spool stats",
+        help: STATS_HELP,
+    },
 ];
 
 const HELP_ALL_HELP: &str = "Usage: spool help [command] [options]\n\nDisplay help information\n\nOptions:\n  --all           Show help for all commands\n  --json          Output as JSON (with --all)\n  -h, --help      display help for command";
@@ -3062,25 +3128,38 @@ fn handle_help_all(args: &[String]) -> CliResult<()> {
             "version": "1.0",
             "commands": commands,
         });
-        println!("{}", serde_json::to_string_pretty(&output).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&output).unwrap_or_default()
+        );
     } else {
         // Human-readable output
-        println!("================================================================================");
+        println!(
+            "================================================================================"
+        );
         println!("SPOOL CLI REFERENCE");
-        println!("================================================================================\n");
+        println!(
+            "================================================================================\n"
+        );
 
         for (i, entry) in ALL_HELP.iter().enumerate() {
             if i > 0 {
-                println!("\n--------------------------------------------------------------------------------\n");
+                println!(
+                    "\n--------------------------------------------------------------------------------\n"
+                );
             }
             println!("{}", entry.path);
             println!("{}", "-".repeat(entry.path.len()));
             println!("{}", entry.help);
         }
 
-        println!("\n================================================================================");
+        println!(
+            "\n================================================================================"
+        );
         println!("Run 'spool <command> -h' for detailed command help.");
-        println!("================================================================================");
+        println!(
+            "================================================================================"
+        );
     }
 
     Ok(())
