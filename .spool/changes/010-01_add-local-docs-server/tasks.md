@@ -39,21 +39,22 @@ spool tasks show 010-01_add-local-docs-server
 
 - **Depends On**: Wave 1
 
-### Task 2.1: Add `spool serve` command and config
-- **Files**: `spool-rs/crates/spool-cli/`, `spool-rs/crates/spool-core/`, `.spool/changes/010-01_add-local-docs-server/specs/cli-serve/spec.md`
+### Task 2.1: Add `spool serve start` command and config
+- **Files**: `spool-rs/crates/spool-cli/src/commands/serve/`, `spool-rs/crates/spool-core/src/docs_server/`, `.spool/changes/010-01_add-local-docs-server/specs/cli-serve/spec.md`
 - **Dependencies**: Task 1.1
 - **Action**:
-  - Implement `spool serve` using project config keys `serve.bind`, `serve.port`, `serve.token`.
+  - Implement `spool serve start` using project config keys `serve.bind`, `serve.port`, `serve.token`.
+  - Keep implementation split across focused modules (avoid growing a single CLI source file; target <1000 SLOC per file).
   - Enforce dependency check for `caddy`.
   - Implement port probing/incrementing.
   - Create `.spool/.state/docs-server/` state files.
 - **Verify**: `make test`
-- **Done When**: `spool serve` starts a server and prints a working URL
+- **Done When**: `spool serve start` starts a server and prints a working URL
 - **Updated At**: 2026-01-31
 - **Status**: [ ] pending
 
 ### Task 2.2: Serve UI + manifest + allowlisted paths
-- **Files**: `spool-rs/crates/spool-cli/`, `spool-rs/crates/spool-templates/` (if templates are used), `.spool/changes/010-01_add-local-docs-server/design.md`
+- **Files**: `spool-rs/crates/spool-cli/src/commands/serve/`, `spool-rs/crates/spool-core/src/docs_server/`, `spool-rs/crates/spool-templates/` (if templates are used), `.spool/changes/010-01_add-local-docs-server/design.md`
 - **Dependencies**: Task 2.1
 - **Action**:
   - Generate a static SPA and a `manifest.json` listing eligible Markdown files.
@@ -65,7 +66,7 @@ spool tasks show 010-01_add-local-docs-server
 - **Status**: [ ] pending
 
 ### Task 2.3: Add `spool serve stop` (and optional `status`)
-- **Files**: `spool-rs/crates/spool-cli/`, `.spool/changes/010-01_add-local-docs-server/specs/cli-serve/spec.md`
+- **Files**: `spool-rs/crates/spool-cli/src/commands/serve/`, `spool-rs/crates/spool-core/src/docs_server/`, `.spool/changes/010-01_add-local-docs-server/specs/cli-serve/spec.md`
 - **Dependencies**: Task 2.1
 - **Action**:
   - Stop server using recorded pid/state.

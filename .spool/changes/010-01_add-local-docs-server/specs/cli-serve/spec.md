@@ -5,18 +5,18 @@
 The CLI SHALL provide a local web server for browsing Spool artifacts and project documentation.
 
 #### Scenario: Start server with defaults
-- **WHEN** the user runs `spool serve` with no flags and no project overrides
+- **WHEN** the user runs `spool serve start` with no flags and no project overrides
 - **THEN** the server listens on `127.0.0.1:9009`
 - **AND** the command prints a URL to open in a browser
 
 #### Scenario: Configurable bind and port
 - **GIVEN** `.spool/config.json` sets `serve.bind` and/or `serve.port`
-- **WHEN** the user runs `spool serve`
+- **WHEN** the user runs `spool serve start`
 - **THEN** the server uses the configured values
 
 #### Scenario: Port fallback when in use
 - **GIVEN** the configured/default port is already bound
-- **WHEN** the user runs `spool serve`
+- **WHEN** the user runs `spool serve start`
 - **THEN** the CLI selects the next available port by incrementing (e.g. 9009, 9010, 9011...)
 - **AND** prints the final chosen URL
 
@@ -25,7 +25,7 @@ The CLI SHALL provide a local web server for browsing Spool artifacts and projec
 The CLI MUST check required external dependencies before starting the server.
 
 #### Scenario: Caddy not installed
-- **WHEN** the user runs `spool serve` and `caddy` is not available on PATH
+- **WHEN** the user runs `spool serve start` and `caddy` is not available on PATH
 - **THEN** the CLI prints an actionable install hint
 - **AND** exits with code 1
 
@@ -40,7 +40,12 @@ The server SHALL only expose a curated set of project paths needed for Spool bro
 
 ### Requirement: Server lifecycle management
 
-The CLI SHALL provide a way to stop a running server for the current project.
+The CLI SHALL provide a way to start and stop a running server for the current project.
+
+#### Scenario: Start server explicitly
+- **WHEN** the user runs `spool serve start`
+- **THEN** the server process is started (or reused if already running)
+- **AND** the CLI prints the running URL
 
 #### Scenario: Stop server
 - **GIVEN** the server is running for the current project

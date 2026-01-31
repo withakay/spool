@@ -1,6 +1,6 @@
 ## Context
 
-We want a per-project web UI that makes it easy to browse Spool artifacts and project docs. The server should be runnable from Spool (`spool serve`) and should not require committing any generated site artifacts.
+We want a per-project web UI that makes it easy to browse Spool artifacts and project docs. The server should be runnable from Spool (`spool serve start`) and should not require committing any generated site artifacts.
 
 The user preference is to lean on Caddy as the external server process.
 
@@ -20,9 +20,29 @@ The user preference is to lean on Caddy as the external server process.
 
 ## Proposed Architecture
 
+## Code organization
+
+`spool-cli` has grown large enough that adding a server feature directly into the top-level CLI file would be hard to maintain. This change should keep files comfortably under ~1000 SLOC by splitting the `serve` implementation into focused modules.
+
+Proposed placement:
+
+- `spool-rs/crates/spool-cli/src/commands/serve/`
+  - `mod.rs` (subcommand wiring)
+  - `start.rs` (start logic + output URL)
+  - `stop.rs` (stop logic)
+  - `status.rs` (optional)
+- `spool-rs/crates/spool-core/src/docs_server/`
+  - `config.rs` (load/validate `serve.*`)
+  - `state.rs` (read/write `.spool/.state/docs-server/state.json`)
+  - `ports.rs` (port probing)
+  - `caddy.rs` (Caddyfile generation + process spawn args)
+  - `manifest.rs` (file discovery + manifest generation)
+
+The CLI layer should remain a thin wrapper around `spool-core` behavior.
+
 ### Process model
 
-- `spool serve` generates a project-specific Caddy configuration and starts `caddy run` in the background.
+- `spool serve start` generates a project-specific Caddy configuration and starts `caddy run` in the background.
 - Spool stores server state under `.spool/.state/docs-server/`:
   - `Caddyfile`
   - `pid` (or a JSON state file including pid/port/bind/token)
@@ -76,4 +96,4 @@ If the configured port is busy, attempt ports by incrementing until a free port 
 ## Open Questions
 
 - Should we store state as a single JSON file instead of ad-hoc files?
-- Should stop/status be `spool serve stop|status` or a separate `spool server` command group?
+- Should `spool serve` (no subcommand) be an alias for `spool serve start`?
