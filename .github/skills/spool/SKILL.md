@@ -18,7 +18,7 @@ This skill MUST:
 
 The requested command is provided either:
 - As plain text following the word "spool" in the user request, or
-- In the prompt arguments ($ARGUMENTS), or
+- In prompt arguments (if your harness provides them), or
 - In a <SpoolCommand> block
 
 ## Steps
@@ -30,7 +30,7 @@ The requested command is provided either:
 2. **Resolve skill target**:
    - Build candidate skill id: `spool-${command}`
    - Determine if that skill is installed/available in this harness
-     - OpenCode: check for a directory under `.opencode/skill/`
+     - OpenCode: check for a directory under `.opencode/skills/`
      - Claude: check for a directory under `.claude/skills/`
      - GitHub Copilot: check for a directory under `.github/skills/`
      - Codex: skills are global; if unsure, assume not installed and use CLI fallback
@@ -43,4 +43,3 @@ The requested command is provided either:
 4. **Error handling**:
    - If the invoked skill fails: prefix with `[spool-* skill error]` and preserve the original error
    - If the CLI fails: prefix with `[spool CLI error]` and preserve the original error
-
