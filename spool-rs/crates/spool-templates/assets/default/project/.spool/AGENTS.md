@@ -87,11 +87,11 @@ After deployment, create separate PR to:
 
 **Context Checklist:**
 
-- \[ \] Read relevant specs in `specs/[capability]/spec.md`
-- \[ \] Check pending changes in `changes/` for conflicts
-  - \[ \] Read `.spool/project.md` for conventions
-- \[ \] Run `spool list` to see active changes
-- \[ \] Run `spool list --specs` to see existing capabilities
+- [ ] Read relevant specs in `specs/[capability]/spec.md`
+- [ ] Check pending changes in `changes/` for conflicts
+  - [ ] Read `.spool/project.md` for conventions
+- [ ] Run `spool list` to see active changes
+- [ ] Run `spool list --specs` to see existing capabilities
 
 **Before Creating Specs:**
 

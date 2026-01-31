@@ -12,7 +12,7 @@ Last Updated: __CURRENT_DATE__
 
 ## Open Questions
 
-- \[ \] \[Question needing resolution\]
+- [ ] \[Question needing resolution\]
 
 ## Blockers
 
