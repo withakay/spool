@@ -5,6 +5,7 @@
 The project SHALL provide an npm-based installation method that results in a working native `spool` binary, but this method MUST remain optional.
 
 #### Scenario: Users can install via npm
+
 - **WHEN** a user runs the documented npm install command on a supported platform
 - **THEN** `spool --version` runs successfully
 
@@ -13,6 +14,7 @@ The project SHALL provide an npm-based installation method that results in a wor
 Published npm package versions MUST align with the corresponding Spool release version.
 
 #### Scenario: Version mismatch is prevented
+
 - **WHEN** publishing npm packages for a release
 - **THEN** CI fails if the npm package version does not match the release version
 
@@ -21,5 +23,6 @@ Published npm package versions MUST align with the corresponding Spool release v
 The npm distribution SHALL publish platform-specific packages that correspond to the supported OS/arch release targets.
 
 #### Scenario: Platform selection is deterministic
+
 - **WHEN** a user installs on a supported platform
 - **THEN** npm resolves the correct platform-specific package for that OS/arch

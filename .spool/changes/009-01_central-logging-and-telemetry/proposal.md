@@ -13,10 +13,12 @@ Spool lacks a centralized, session-oriented execution log that makes debugging f
 ## Capabilities
 
 ### New Capabilities
+
 - `execution-logs`: Structured, centralized, session-oriented local logging for Spool command execution.
 - `spool-stats`: Local-only usage metrics and auditing derived from execution logs.
 
 ### Modified Capabilities
+
 <!-- None -->
 
 ## Impact

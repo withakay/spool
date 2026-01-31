@@ -5,6 +5,7 @@
 ## Overview
 
 This proposal defines an agent architecture for Spool that:
+
 - Works across **OpenCode**, **Codex CLI**, **Claude Code**, and other AI tools
 - Uses **file-based configuration** for models, context sizes, and prompts
 - Supports **any AI model** (Claude, GPT, Gemini, Llama, etc.)
@@ -13,18 +14,22 @@ This proposal defines an agent architecture for Spool that:
 ## Design Principles
 
 ### 1. Tool-Agnostic
+
 All agent definitions are markdown files that any AI tool can load and execute.
 
 ### 2. Model-Flexible
+
 Configure which model to use per agent type. Not all models have the same capabilities or context windows.
 
 ### 3. Context-Aware
+
 Specify context budgets per agent. A 32k model needs different chunking than a 200k model.
 
 ### 4. File-Based State
+
 All coordination happens through files, not tool-specific APIs.
 
----
+______________________________________________________________________
 
 ## Configuration System
 
@@ -150,7 +155,7 @@ export SPOOL_CONTEXT_BUDGET=32000
 export SPOOL_TOOL="opencode"
 ```
 
----
+______________________________________________________________________
 
 ## Agent Definitions
 
@@ -185,7 +190,7 @@ spool/
 
 **`spool/agents/research/stack-researcher.md`**
 
-```markdown
+````markdown
 ---
 # Agent Configuration (YAML frontmatter)
 name: stack-researcher
@@ -274,14 +279,16 @@ Rationale: [Why this is the best fit]
 
 ## References
 - [Links to documentation, benchmarks, etc.]
-```
+````
 
 ## Important Notes
+
 - Focus on practical, production-ready options
 - Consider the project's stated constraints
 - Be specific about trade-offs, not vague
 - Include version numbers where relevant
-```
+
+````
 
 ### Agent with Model Override
 
@@ -384,14 +391,16 @@ Reviewer: security-adversary
 
 ### Areas Not Reviewed
 - [Any areas skipped due to context limits or scope]
-```
+````
 
 ## Important Notes
+
 - Be thorough but practical—focus on real risks
 - Don't flag theoretical issues without exploitation path
 - Suggest specific mitigations, not vague advice
 - If you can't find issues, say so—don't invent them
-```
+
+````
 
 ---
 
@@ -421,7 +430,7 @@ context_strategy:
     max_file_size: 50000
     max_files: 50
     summarize_threshold: 30000
-```
+````
 
 ### Dynamic Context Loading
 
@@ -443,10 +452,10 @@ Loading Priority:
 When content exceeds budget:
 
 1. **Summarize** (default): Generate summary of large files
-2. **Truncate**: Keep first N tokens with "[truncated]" marker
-3. **Error**: Fail and request manual intervention
+1. **Truncate**: Keep first N tokens with "\[truncated\]" marker
+1. **Error**: Fail and request manual intervention
 
----
+______________________________________________________________________
 
 ## Execution Patterns
 
@@ -523,7 +532,7 @@ steps:
       - synthesizer            # Depends on wave 1 outputs
 ```
 
----
+______________________________________________________________________
 
 ## Workflow Definitions
 
@@ -600,7 +609,7 @@ gate:
   on_fail: "block"
 ```
 
----
+______________________________________________________________________
 
 ## Tool Integration
 
@@ -621,6 +630,7 @@ cp -r spool/workflows .opencode/workflows
 ```
 
 OpenCode config (`.opencode/config.yaml`):
+
 ```yaml
 commands:
   directories:
@@ -658,6 +668,7 @@ codex "$(cat spool/agents/research/stack-researcher.md)"
 ```
 
 CLAUDE.md integration:
+
 ```markdown
 ## Custom Commands
 
@@ -668,7 +679,7 @@ Execute research agent. Types: stack, features, architecture, pitfalls, all
 Run adversarial review on change proposal.
 ```
 
----
+______________________________________________________________________
 
 ## CLI Commands
 
@@ -696,7 +707,7 @@ spool context estimate research      # Estimate context usage
 spool context check stack-researcher # Verify fits in budget
 ```
 
----
+______________________________________________________________________
 
 ## Configuration Examples
 
@@ -770,7 +781,7 @@ agents:
     model_preference: "balanced"
 ```
 
----
+______________________________________________________________________
 
 ## Summary
 
@@ -783,7 +794,7 @@ agents:
 | **Workflow orchestration** | Coordinate multiple agents |
 | **Progressive enhancement** | Parallel when supported, sequential always works |
 
----
+______________________________________________________________________
 
 ## References
 

@@ -9,6 +9,7 @@ Users need a quick, at-a-glance overview of their Spool project status without r
 ### Added `spool dashboard` Command
 
 The new command provides an interactive dashboard displaying:
+
 - Summary metrics (total specs, requirements, changes, task progress)
 - Active changes with visual progress bars
 - Completed changes
@@ -21,17 +22,20 @@ The new command provides an interactive dashboard displaying:
 ## Implementation Details
 
 ### File Structure
+
 - Created `/src/core/view.ts` implementing the `ViewCommand` class (now surfaced as `spool dashboard`)
 - Registered command in `/src/cli/index.ts`
 - Reuses existing utilities from `task-progress.ts` and `MarkdownParser`
 
 ### Visual Design
+
 - Uses Unicode box drawing characters for borders
 - Color coding: cyan for specs, yellow for active, green for completed
 - Progress bars using filled (█) and empty (░) blocks
 - Clean alignment with proper padding
 
 ### Technical Approach
+
 - Async data fetching from changes and specs directories
 - Parallel processing of specs and changes
 - Error handling for missing or invalid data

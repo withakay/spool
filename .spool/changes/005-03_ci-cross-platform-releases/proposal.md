@@ -15,6 +15,7 @@ Spool currently has CI to build/test, but it does not publish user-installable b
 ## Capabilities
 
 ### New Capabilities
+
 - `release-artifacts`: Build and publish verified, cross-platform `spool` binaries as GitHub Release assets.
 - `curl-installer`: Provide a macOS/Linux install script that downloads the right release artifact and installs `spool`.
 

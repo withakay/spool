@@ -1,8 +1,9 @@
 ## Why
 
 Currently, users must validate changes and specs individually by specifying each ID. This creates friction when:
+
 - Teams want to validate all changes/specs before a release
-- Developers need to ensure consistency across multiple related changes  
+- Developers need to ensure consistency across multiple related changes
 - Users run validation commands without arguments and receive errors instead of helpful guidance
 - The subcommand structure requires users to know in advance whether they're validating a change or spec
 

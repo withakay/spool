@@ -7,17 +7,20 @@ The `spool change` noun-based commands were deprecated in favor of verb-first co
 ### Code Updates
 
 **Source files** - Update error messages and hints:
+
 - `src/commands/validate.ts:179` - Replace hint with verb-first command
-- `src/commands/validate.ts:266` - Replace debug hint with verb-first command  
+- `src/commands/validate.ts:266` - Replace debug hint with verb-first command
 - `src/commands/show.ts:102` - Replace hint with verb-first command
 - `src/commands/show.ts:120` - Replace hint with verb-first command
 
 **Template files**:
+
 - `src/core/templates/agents-template.ts:88` - Update command reference in generated agent instructions
 
 ### Test Updates
 
 Update test assertions to check for verb-first command references instead of deprecated ones:
+
 - `test/commands/show.test.ts:47` - Expect verb-first hint
 - `test/commands/change.interactive-show.test.ts:38` - Expect verb-first hint
 - `test/commands/validate.enriched-output.test.ts:43` - Expect verb-first hint
@@ -26,12 +29,15 @@ Update test assertions to check for verb-first command references instead of dep
 ### Documentation Updates
 
 **Core documentation**:
+
 - `.spool/AGENTS.md:84` - Update enumeration command reference
 
 **Validation constants**:
+
 - `src/core/validation/constants.ts:61` - Update error message hint
 
 **Archived changes**:
+
 - `.spool/changes/archive/2025-08-19-add-change-commands/` specs - These reference the deprecated commands in historical context, should be left as-is
 - `.spool/changes/archive/2025-08-19-add-interactive-show-command/` specs - Same
 - `.spool/changes/archive/2025-08-19-bulk-validation-interactive-selection/` specs - Same
@@ -39,6 +45,7 @@ Update test assertions to check for verb-first command references instead of dep
 - `.spool/changes/archive/2025-10-14-enhance-validation-error-messages/` specs - Same
 
 **Other documentation**:
+
 - `.spool/specs/cli-change/spec.md` - Update all `spool change` references
 - `.spool/specs/cli-show/spec.md` - Update all `spool change` references
 - `.spool/specs/cli-validate/spec.md` - Update all `spool change` references
@@ -53,7 +60,7 @@ Keep deprecation warnings in `src/cli/index.ts:173,200` as these are part of the
 ### Modified Capabilities
 
 - `cli-change`: Update spec to use verb-first command examples
-- `cli-show`: Update spec to use verb-first command examples  
+- `cli-show`: Update spec to use verb-first command examples
 - `cli-validate`: Update spec to use verb-first command examples
 - `projector-conventions`: Update to document verb-first CLI structure
 - `agent-workflow-docs`: Update command references in agent instructions
@@ -61,18 +68,21 @@ Keep deprecation warnings in `src/cli/index.ts:173,200` as these are part of the
 ## Impact
 
 **Affected code**:
+
 - `src/commands/validate.ts` - Update error message hints
 - `src/commands/show.ts` - Update error message hints
 - `src/core/validation/constants.ts` - Update validation error hints
 - `src/core/templates/agents-template.ts` - Update template for generated instructions
 
 **Affected tests**:
+
 - `test/commands/show.test.ts`
 - `test/commands/change.interactive-show.test.ts`
 - `test/commands/validate.enriched-output.test.ts`
 - `test/commands/change.interactive-validate.test.ts`
 
 **Affected documentation**:
+
 - `.spool/AGENTS.md`
 - `.spool/specs/cli-change/spec.md`
 - `.spool/specs/cli-show/spec.md`

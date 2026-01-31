@@ -1,8 +1,11 @@
 # cli-show Specification
 
 ## Purpose
+
 TBD - created by archiving change add-interactive-show-command. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Top-level show command
 
 The CLI SHALL provide a top-level `show` command for displaying changes and specs with intelligent selection.
@@ -39,9 +42,11 @@ The CLI SHALL provide a top-level `show` command for displaying changes and spec
 #### Scenario: Explicit type override
 
 - **WHEN** executing `spool show --type change <item>`
+
 - **THEN** treat `<item>` as a change ID and show it (skipping auto-detection)
 
 - **WHEN** executing `spool show --type spec <item>`
+
 - **THEN** treat `<item>` as a spec ID and show it (skipping auto-detection)
 
 ### Requirement: Output format options
@@ -82,4 +87,3 @@ The show command SHALL NOT show interactive prompts in non-interactive environme
 - **THEN** if `<item-name>` uniquely matches a change or a spec, show that item
 - **AND** if it matches both, print an ambiguity error and suggest `--type change|spec` or using `spool show --type change <item>` / `spool show --type spec <item>`
 - **AND** if it matches neither, print not-found with nearest-match suggestions
-

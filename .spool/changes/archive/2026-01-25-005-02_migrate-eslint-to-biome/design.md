@@ -7,12 +7,14 @@ This change migrates linting and formatting responsibilities from ESLint to Biom
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Replace ESLint with Biome for linting and formatting.
 - Preserve the `@inquirer/*` restricted-import guardrail with an actionable message.
 - Keep the developer/CI interface stable (`bun run lint` still exists and fails on violations).
 - Remove ESLint configuration and dependencies cleanly.
 
 **Non-Goals:**
+
 - Changing TypeScript type-checking (`tsc --noEmit`) behavior.
 - Changing test runner behavior.
 - Broad code-style rewrites beyond what Biome’s formatter/linter requires.
@@ -20,18 +22,22 @@ This change migrates linting and formatting responsibilities from ESLint to Biom
 ## Decisions
 
 - **Use Biome’s built-in rule for restricted imports.**
+
   - Choice: Configure `linter.rules.style.noRestrictedImports` in `biome.json`.
   - Rationale: This maps directly to ESLint’s `no-restricted-imports` (including message support and pattern groups) and avoids keeping ESLint for a single rule.
 
 - **Restrict `@inquirer/*` everywhere except `src/core/init.ts`.**
+
   - Choice: Enable the restriction globally (for `src/**`) and add a Biome override that disables the rule for `src/core/init.ts`.
   - Rationale: Mirrors the existing ESLint exception, while keeping the safety net in place for the rest of the project.
 
 - **Use `biome check` as the primary lint entrypoint.**
+
   - Choice: Implement `bun run lint` as `biome check` scoped to the source tree.
   - Rationale: `check` is Biome’s integrated command that covers lint + formatting diagnostics, which aligns with the expectation that `lint` fails on style violations.
 
 - **Add explicit formatting commands.**
+
   - Choice: Add `bun run format` (write) and a check variant used by CI.
   - Rationale: Makes formatting behavior explicit and easy to run locally, and supports a non-mutating CI check.
 
@@ -44,11 +50,11 @@ This change migrates linting and formatting responsibilities from ESLint to Biom
 ## Migration Plan
 
 1. Add `@biomejs/biome` and create `biome.json` with baseline settings.
-2. Replace `lint` script to run Biome; add `format` and `format:check` scripts.
-3. Configure `style/noRestrictedImports` to restrict `@inquirer/*` (with a helpful message) and add an override for `src/core/init.ts`.
-4. Remove ESLint configuration (`eslint.config.js`) and uninstall ESLint dependencies.
-5. Update docs/CI references if they mention ESLint directly (CI should keep calling `bun run lint`).
-6. Validate locally and in CI: `bun run lint`, `bun run format:check`, `bunx tsc --noEmit`.
+1. Replace `lint` script to run Biome; add `format` and `format:check` scripts.
+1. Configure `style/noRestrictedImports` to restrict `@inquirer/*` (with a helpful message) and add an override for `src/core/init.ts`.
+1. Remove ESLint configuration (`eslint.config.js`) and uninstall ESLint dependencies.
+1. Update docs/CI references if they mention ESLint directly (CI should keep calling `bun run lint`).
+1. Validate locally and in CI: `bun run lint`, `bun run format:check`, `bunx tsc --noEmit`.
 
 Rollback strategy: revert `package.json` scripts and restore ESLint dependencies/config.
 

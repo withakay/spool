@@ -11,6 +11,7 @@ Define how Rust Spool is packaged and distributed without breaking existing npm-
 The transition plan MUST keep the user-facing `spool` command stable.
 
 #### Scenario: npm-installed `spool` continues to work
+
 - GIVEN a user who previously installed `@withakay/spool`
 - WHEN they upgrade to a version that uses Rust binaries
 - THEN `spool --help` and `spool --version` behave identically
@@ -20,6 +21,7 @@ The transition plan MUST keep the user-facing `spool` command stable.
 The plan MUST define build artifacts per platform and how they are verified.
 
 #### Scenario: Release checklist is explicit
+
 - GIVEN the packaging documentation
 - WHEN a release engineer follows the checklist
 - THEN it includes commands to build artifacts

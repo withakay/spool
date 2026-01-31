@@ -12,9 +12,11 @@ The Rust port requires strict behavioral parity with the existing TypeScript CLI
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-port-research`: Research artifacts and parity strategy for the Rust port.
 
 ### Modified Capabilities
+
 <!-- None. New documentation-only capability. -->
 
 ## Impact

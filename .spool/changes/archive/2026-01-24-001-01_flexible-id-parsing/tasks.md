@@ -1,15 +1,17 @@
 # Tasks for: 001-01_flexible-id-parsing
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 - **Template**: Enhanced task format with waves, verification, and status tracking
 
----
+______________________________________________________________________
 
 ## Wave 1: ID Parser Implementation
 
 ### Task 1.1: Create ID parser utility module
+
 - **Files**: `src/utils/id-parser.ts`
 - **Dependencies**: None
 - **Action**:
@@ -20,9 +22,10 @@
   - Use regex patterns to handle all input variations
 - **Verify**: `pnpm test src/utils/id-parser.test.ts`
 - **Done When**: Parser functions exported and handle all documented input formats
-- [x] Task 1.1 complete
+- \[x\] Task 1.1 complete
 
 ### Task 1.2: Write comprehensive parser tests
+
 - **Files**: `src/utils/id-parser.test.ts`
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -33,13 +36,14 @@
   - Edge cases: empty string, null, excessive padding
 - **Verify**: `pnpm test src/utils/id-parser.test.ts --coverage`
 - **Done When**: All tests pass, coverage >= 90%
-- [x] Task 1.2 complete
+- \[x\] Task 1.2 complete
 
----
+______________________________________________________________________
 
 ## Wave 2: CLI Integration
 
 ### Task 2.1: Integrate parser into CLI commands
+
 - **Files**: `src/commands/*.ts` (module and change commands)
 - **Dependencies**: Task 1.1, Task 1.2
 - **Action**:
@@ -52,9 +56,10 @@
   - `spool new change --module`
 - **Verify**: `pnpm test && spool status --change 1-1_flexible-id-parsing`
 - **Done When**: All commands accept flexible ID formats
-- [x] Task 2.1 complete
+- \[x\] Task 2.1 complete
 
 ### Task 2.2: Add last-worked-on module tracking
+
 - **Files**: `src/state/last-module.ts`, `src/commands/change.ts`
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -64,13 +69,14 @@
   - Use project-local storage (`.spool/.state` or similar)
 - **Verify**: `pnpm test src/state/last-module.test.ts`
 - **Done When**: Last module ID persisted and retrievable
-- [x] Task 2.2 complete
+- \[x\] Task 2.2 complete
 
----
+______________________________________________________________________
 
 ## Wave 3: Skill Enhancement
 
 ### Task 3.1: Update spool-proposal skill with interactive module selection
+
 - **Files**: `.opencode/skill/spool-proposal/SKILL.md`
 - **Dependencies**: Task 2.2
 - **Action**:
@@ -80,13 +86,14 @@
   - Include example prompts and expected responses
 - **Verify**: Manual review of skill file
 - **Done When**: Skill documents interactive module selection flow
-- [x] Task 3.1 complete
+- \[x\] Task 3.1 complete
 
----
+______________________________________________________________________
 
 ## Wave 4: Documentation
 
 ### Task 4.1: Update agent-workflow.md with flexible ID formats
+
 - **Files**: `docs/agent-workflow.md`
 - **Dependencies**: Task 2.1
 - **Action**:
@@ -96,13 +103,14 @@
   - Document interactive module selection in Proposal section
 - **Verify**: Manual review of docs
 - **Done When**: Documentation covers all new features
-- [x] Task 4.1 complete
+- \[x\] Task 4.1 complete
 
----
+______________________________________________________________________
 
 ## Wave 5: Validation
 
 ### Task 5.1: Run full test suite and lint
+
 - **Files**: All
 - **Dependencies**: Task 1.2, Task 2.1, Task 2.2
 - **Action**:
@@ -112,9 +120,10 @@
   - `pnpm build` - builds successfully
 - **Verify**: `pnpm test && pnpm lint && pnpm build`
 - **Done When**: All checks pass
-- [x] Task 5.1 complete
+- \[x\] Task 5.1 complete
 
 ### Task 5.2: End-to-end verification
+
 - **Files**: None (manual testing)
 - **Dependencies**: Task 5.1
 - **Action**:
@@ -124,16 +133,18 @@
   - Verify documentation renders correctly
 - **Verify**: Manual testing
 - **Done When**: All scenarios work as documented
-- [x] Task 5.2 complete
+- \[x\] Task 5.2 complete
 
----
+______________________________________________________________________
 
 ## Task Status Legend
+
 - `[ ] pending` - Not started yet
 - `[ ] in-progress` - Currently being worked on
 - `[x] complete` - Finished and verified
 
 ## Wave Guidelines
+
 - Waves group related tasks that can be executed in parallel within the wave
 - Task dependencies must be complete before starting dependent tasks
 - Wave 5 is validation - run after all implementation complete

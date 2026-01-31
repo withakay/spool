@@ -16,6 +16,7 @@ With per-change schema metadata in place (see `add-per-change-schema-metadata`),
 ## Capabilities
 
 ### Modified Capabilities
+
 - `cli-artifact-workflow`: Agent skills support dynamic schema selection
 
 ## Impact

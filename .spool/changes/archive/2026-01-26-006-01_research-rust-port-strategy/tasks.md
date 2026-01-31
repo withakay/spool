@@ -1,14 +1,16 @@
 # Tasks for: 006-01_research-rust-port-strategy
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 
----
+______________________________________________________________________
 
 ## Wave 1: Parity Matrix
 
 ### Task 1.1: Produce a CLI parity matrix
+
 - **Files**: `.spool/research/SUMMARY.md`
 - **Dependencies**: None
 - **Action**:
@@ -16,22 +18,24 @@
   - Include `--json` shapes and known exit codes
 - **Verify**: Review matrix completeness against `spool --help`
 - **Done When**: matrix covers all commands listed by TypeScript CLI
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 2: Research Investigations
 
 ### Task 2.1: Document Rust CLI UX approach
+
 - **Files**: `.spool/research/investigations/rust-cli-ux.md`
 - **Dependencies**: Task 1.1
 - **Action**:
   - Decide on crates/approach for TTY, prompts, spinners, NO_COLOR, JSON/text output
 - **Verify**: cross-check with existing specs under `.spool/specs/`
 - **Done When**: decisions recorded with alternatives and constraints
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 2.2: Document parity testing strategy
+
 - **Files**: `.spool/research/investigations/parity-testing.md`
 - **Dependencies**: Task 2.1
 - **Action**:
@@ -39,38 +43,41 @@
   - Define filesystem tree comparison for installers
 - **Verify**: includes deterministic guidelines
 - **Done When**: harness requirements clear enough to implement
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 2.3: Document crate/workspace architecture
+
 - **Files**: `.spool/research/investigations/rust-crate-architecture.md`
 - **Dependencies**: Task 2.2
 - **Action**:
   - Define workspace crate boundaries, side-effect isolation, and layering
 - **Verify**: aligns to the Cargo blueprint described in the port prompt
 - **Done When**: crate split and responsibilities are explicit
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 2.4: Document packaging and transition plan
+
 - **Files**: `.spool/research/investigations/packaging-distribution.md`
 - **Dependencies**: Task 2.3
 - **Action**:
   - Describe how Rust `spool` replaces or coexists with npm `@withakay/spool`
 - **Verify**: includes release/compat strategy
 - **Done When**: plan is actionable for later change
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 3: Validate Artifacts
 
 ### Task 3.1: Validate change artifacts
+
 - **Files**: N/A
 - **Dependencies**: All above
 - **Action**:
   - Run strict validation and fix any issues
 - **Verify**: `spool validate 006-01_research-rust-port-strategy --strict`
 - **Done When**: validation passes
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ## Verify
 

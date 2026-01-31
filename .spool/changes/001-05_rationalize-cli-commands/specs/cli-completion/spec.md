@@ -5,18 +5,22 @@
 The CLI SHALL expose completion operations under the `spool completions` group.
 
 #### Scenario: Generate completions
+
 - **WHEN** user executes `spool completions generate zsh`
 - **THEN** output a complete Zsh completion script to stdout
 
 #### Scenario: Install completions
+
 - **WHEN** user executes `spool completions install zsh`
 - **THEN** the completion script is installed for that shell
 
 #### Scenario: Uninstall completions
+
 - **WHEN** user executes `spool completions uninstall zsh`
 - **THEN** the completion script is uninstalled for that shell
 
 #### Scenario: Deprecated completion shim remains callable
+
 - **WHEN** user executes `spool completion <subcommand>`
 - **THEN** the command executes successfully
 - **AND** prints a deprecation warning pointing to `spool completions <subcommand>`

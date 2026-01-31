@@ -24,9 +24,11 @@ We want a small, intentional stable CLI surface that is the only supported UX sh
 ## Capabilities
 
 ### New Capabilities
+
 - `cli-surface`: codify the stable CLI help surface and shim policy
 
 ### Modified Capabilities
+
 - `cli-artifact-workflow`: expose artifact workflow commands under the `x-*` experimental naming convention; define compatibility/alias expectations for the old names.
 - `cli-research`: align the research CLI entrypoint with the experimental naming convention (`x-research`) instead of a bespoke `spool-research` command.
 - `cli-completion`: ensure completions are generated for the preferred visible command surface.

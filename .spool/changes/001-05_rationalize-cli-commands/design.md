@@ -13,6 +13,7 @@ We want a small, stable help surface with clear deprecation and visibility rules
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Make `spool --help` small and stable
 - Keep the existing core UX (`init/update/list/show/validate/archive/split/...`) as the primary UX
 - Keep experimental commands callable but hidden by default; only `x-templates` and `x-schemas` remain visible
@@ -20,6 +21,7 @@ We want a small, stable help surface with clear deprecation and visibility rules
 - Align completion generation with the visible CLI surface
 
 **Non-Goals:**
+
 - Redesigning Spool behavior (this change is command-surface only)
 - Auto-generating completions directly from Commander
 - Defining the long-term policy for promoting experimental commands to stable (only provide a consistent naming path)
@@ -94,12 +96,12 @@ The target UX is to make every command read like “do the verb to the noun”.
 ## Migration Plan
 
 1. Define the stable help surface and encode it in the change spec.
-2. Hide deprecated shims and internal commands from help and completions.
-3. Flip `status` and `ralph` to stable (and make `x-status`/`x-ralph` deprecated hidden aliases).
-4. Make `spool update` refresh installed skills.
-5. Update completion registry to match the preferred visible surface.
-6. Update docs/tests that reference legacy entrypoints.
-7. After a deprecation period, remove deprecated wrappers.
+1. Hide deprecated shims and internal commands from help and completions.
+1. Flip `status` and `ralph` to stable (and make `x-status`/`x-ralph` deprecated hidden aliases).
+1. Make `spool update` refresh installed skills.
+1. Update completion registry to match the preferred visible surface.
+1. Update docs/tests that reference legacy entrypoints.
+1. After a deprecation period, remove deprecated wrappers.
 
 Rollback: keep the old command registrations and remove the new verb-first equivalents (no data migration).
 

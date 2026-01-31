@@ -21,8 +21,8 @@ The following command mappings are used for replacements:
 The implementation is divided into three phases:
 
 1. **Phase 1: Update Source Code** - Update error messages and hints in TypeScript files
-2. **Phase 2: Update Tests** - Update test assertions to expect verb-first commands
-3. **Phase 3: Update Documentation** - Update spec files and core documentation
+1. **Phase 2: Update Tests** - Update test assertions to expect verb-first commands
+1. **Phase 3: Update Documentation** - Update spec files and core documentation
 
 ### Phase 1: Source Code Updates
 
@@ -37,17 +37,21 @@ All error messages that suggest using a `spool change` command should be updated
 #### Files to Update
 
 1. **`src/commands/validate.ts`**
+
    - Line 179: Hint command reference
    - Line 266: Debug hint command reference
 
-2. **`src/commands/show.ts`**
+1. **`src/commands/show.ts`**
+
    - Line 102: Hint command reference
    - Line 120: Hint command reference
 
-3. **`src/core/validation/constants.ts`**
+1. **`src/core/validation/constants.ts`**
+
    - Line 61: Validation error hint
 
-4. **`src/core/templates/agents-template.ts`**
+1. **`src/core/templates/agents-template.ts`**
+
    - Line 88: Command reference in generated agent instructions
 
 ### Phase 2: Test Updates
@@ -57,15 +61,19 @@ Test assertions need to be updated to expect the new verb-first command referenc
 #### Files to Update
 
 1. **`test/commands/show.test.ts`**
+
    - Line 47: Update expected hint text
 
-2. **`test/commands/change.interactive-show.test.ts`**
+1. **`test/commands/change.interactive-show.test.ts`**
+
    - Line 38: Update expected hint text
 
-3. **`test/commands/validate.enriched-output.test.ts`**
+1. **`test/commands/validate.enriched-output.test.ts`**
+
    - Line 43: Update expected hint text
 
-4. **`test/commands/change.interactive-validate.test.ts`**
+1. **`test/commands/change.interactive-validate.test.ts`**
+
    - Line 41: Update expected hint text
 
 ### Phase 3: Documentation Updates
@@ -75,18 +83,22 @@ Test assertions need to be updated to expect the new verb-first command referenc
 Update spec files to use verb-first command examples:
 
 1. **`.spool/specs/cli-change/spec.md`**
+
    - Replace all `spool change` references with verb-first equivalents
    - Update command examples
 
-2. **`.spool/specs/cli-show/spec.md`**
+1. **`.spool/specs/cli-show/spec.md`**
+
    - Replace all `spool change` references with verb-first equivalents
    - Update command examples
 
-3. **`.spool/specs/cli-validate/spec.md`**
+1. **`.spool/specs/cli-validate/spec.md`**
+
    - Replace all `spool change` references with verb-first equivalents
    - Update command examples
 
-4. **`.spool/specs/projector-conventions/spec.md`**
+1. **`.spool/specs/projector-conventions/spec.md`**
+
    - Update command pattern description to use verb-first structure
 
 #### Core Documentation
@@ -109,27 +121,32 @@ These represent the historical implementation of the deprecated commands and sho
 ### What NOT to Change
 
 1. **Deprecation warnings in `src/cli/index.ts`** - Lines 173, 200
+
    - These warnings are part of the implementation that shows the deprecation message
    - They reference the deprecated commands intentionally
    - Should remain until the deprecated commands are fully removed in a future change
 
-2. **Archived change specs** - See above
+1. **Archived change specs** - See above
+
    - Historical context should be preserved
 
 ### Testing Strategy
 
 1. Run unit tests for affected commands:
+
    ```bash
    make test
    ```
 
-2. Specifically run tests for:
+1. Specifically run tests for:
+
    - `test/commands/show.test.ts`
    - `test/commands/change.interactive-show.test.ts`
    - `test/commands/validate.enriched-output.test.ts`
    - `test/commands/change.interactive-validate.test.ts`
 
-3. Manual verification:
+1. Manual verification:
+
    - Run `spool validate` on a change to see updated error messages
    - Run `spool show` on a non-existent change to see updated hints
    - Check that deprecation warnings still appear when using deprecated commands
@@ -143,8 +160,9 @@ These represent the historical implementation of the deprecated commands and sho
 ### Future Work
 
 A separate future change will:
+
 1. Remove the deprecated `spool change` commands entirely
-2. Remove the deprecation warnings
-3. Clean up any remaining references
+1. Remove the deprecation warnings
+1. Clean up any remaining references
 
 This change is a stepping stone to that eventual removal.

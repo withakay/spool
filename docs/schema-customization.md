@@ -2,18 +2,18 @@
 
 This document describes how users can customize Spool schemas and templates, the current manual process, and the gap that needs to be addressed.
 
----
+______________________________________________________________________
 
 ## Overview
 
 Spool uses a 2-level schema resolution system following the XDG Base Directory Specification:
 
 1. **User override**: `${XDG_DATA_HOME}/spool/schemas/<name>/`
-2. **Package built-in**: `<npm-package>/schemas/<name>/`
+1. **Package built-in**: `<npm-package>/schemas/<name>/`
 
 When a schema is requested (e.g., `spec-driven`), the resolver checks the user directory first. If found, that entire schema directory is used. Otherwise, it falls back to the package's built-in schema.
 
----
+______________________________________________________________________
 
 ## Current Manual Process
 
@@ -72,7 +72,7 @@ Edit templates in `templates/` to customize the content guidance.
 
 Currently there's no command to verify which schema is being used. Users must trust that the file exists in the right location.
 
----
+______________________________________________________________________
 
 ## Gap Analysis
 
@@ -90,12 +90,12 @@ The current process has several friction points:
 ### User Stories Not Currently Supported
 
 1. *"I want to add a `research` artifact before `proposal`"* — requires manual copy and edit
-2. *"I want to customize just the proposal template"* — must copy entire schema
-3. *"I want to see what the default schema looks like"* — must find package path
-4. *"I want to revert to defaults"* — must delete files and hope paths are correct
-5. *"I upgraded spool, did the templates change?"* — no way to diff
+1. *"I want to customize just the proposal template"* — must copy entire schema
+1. *"I want to see what the default schema looks like"* — must find package path
+1. *"I want to revert to defaults"* — must delete files and hope paths are correct
+1. *"I upgraded spool, did the templates change?"* — no way to diff
 
----
+______________________________________________________________________
 
 ## Proposed Solution: Schema Configurator
 
@@ -155,12 +155,12 @@ spool init
 **Option A** provides the most flexibility and follows Unix conventions (subcommands for discrete operations). Key commands in priority order:
 
 1. `spool schema list` — see what's available
-2. `spool schema which <name>` — debug resolution
-3. `spool schema copy <name>` — scaffold customization
-4. `spool schema diff <name>` — compare with built-in
-5. `spool schema reset <name>` — revert to defaults
+1. `spool schema which <name>` — debug resolution
+1. `spool schema copy <name>` — scaffold customization
+1. `spool schema diff <name>` — compare with built-in
+1. `spool schema reset <name>` — revert to defaults
 
----
+______________________________________________________________________
 
 ## Implementation Considerations
 
@@ -195,7 +195,7 @@ Future:  schema.yaml from user OR built-in
 
 This adds complexity but enables the "I just want to change one template" use case.
 
----
+______________________________________________________________________
 
 ## Related Documents
 

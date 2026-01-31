@@ -7,12 +7,14 @@ We need a lightweight metadata file to persist the schema choice per change.
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Store schema choice once at change creation
 - Auto-detect schema in experimental workflow commands
 - Maintain backward compatibility (no metadata = default)
 - Validate metadata with Zod schema
 
 **Non-Goals:**
+
 - Migrate existing changes (they use default)
 - Extend to legacy commands
 - Store additional metadata beyond schema (keep minimal for now)
@@ -49,6 +51,7 @@ export type ChangeMetadata = z.infer<typeof ChangeMetadataSchema>;
 ```
 
 **Rationale:**
+
 - `schema` is required and validated against available schemas at parse time
 - `created` is optional, ISO date format for consistency
 - Minimal fields - can extend later without breaking existing files
@@ -59,12 +62,14 @@ export type ChangeMetadata = z.infer<typeof ChangeMetadataSchema>;
 **Location:** `spool/changes/<name>/.spool.yaml`
 
 **Format:**
+
 ```yaml
 schema: tdd
 created: 2025-01-05
 ```
 
 **Alternatives considered:**
+
 - `change.yaml` - less hidden, but clutters directory
 - Frontmatter in `proposal.md` - couples to proposal existence
 - `spool.json` - YAML matches existing schema files
@@ -113,8 +118,8 @@ export function readChangeMetadata(
 When determining which schema to use:
 
 1. **Explicit `--schema` flag** (highest priority - user override)
-2. **`.spool.yaml` metadata** (persisted choice)
-3. **Default `spec-driven`** (fallback)
+1. **`.spool.yaml` metadata** (persisted choice)
+1. **Default `spec-driven`** (fallback)
 
 ```typescript
 function resolveSchemaForChange(
@@ -139,6 +144,7 @@ function resolveSchemaForChange(
 ## Migration Plan
 
 No migration needed:
+
 - Existing changes without `.spool.yaml` continue to work (use default)
 - New changes created with `spool new change --schema X` get metadata file
 

@@ -5,11 +5,13 @@ The TS implementation supports multiple harnesses and writes loop state and hist
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Implement `ralph`/`loop` commands and core runner.
 - Match prompt assembly, completion promise detection, and state layout.
 - Provide harness abstraction and stub harnesses for tests.
 
 **Non-Goals:**
+
 - Actually call networked model APIs in tests.
 
 ## Decisions

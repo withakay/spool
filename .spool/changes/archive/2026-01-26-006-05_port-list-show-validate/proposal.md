@@ -13,18 +13,23 @@
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-view-and-validate`: Rust implementations of list/show/validate with identical CLI behavior.
 
 ### Modified Capabilities
+
 <!-- None. New Rust implementation. -->
 
 ## Impact
 
 **Affected areas:**
+
 - `spool-rs/crates/spool-cli/`, `spool-rs/crates/spool-core/`
 
 **Behavioral impact:**
+
 - None until Rust becomes default
 
 **Risks:**
+
 - JSON shape drift; mitigated by snapshot-based parity tests.

@@ -9,11 +9,13 @@ This is Slice 2 of the artifact tracker POC. The goal is to provide utilities fo
 ## Goals / Non-Goals
 
 ### Goals
+
 - **Add** `createChange()` function to create change directories
 - **Add** `validateChangeName()` function for kebab-case validation
 - **Enable** automation (Claude commands, scripts) to create changes
 
 ### Non-Goals
+
 - Refactor existing CLI commands (they work fine)
 - Create abstraction layers or manager classes
 - Change how `ListCommand` or `ChangeCommand` work
@@ -36,12 +38,14 @@ export async function createChange(
 ```
 
 **Why**:
+
 - Simple, no abstraction overhead
 - Easy to test
 - Easy to import where needed
 - Matches existing utility patterns in `src/utils/`
 
 **Alternatives considered**:
+
 - ChangeManager class: Rejected - over-engineered for 2 functions
 - Add to existing command: Rejected - mixes CLI with reusable logic
 
@@ -53,6 +57,7 @@ Valid: `add-auth`, `refactor-db`, `add-feature-2`, `refactor`
 Invalid: `Add-Auth`, `add auth`, `add_auth`, `-add-auth`, `add-auth-`, `add--auth`
 
 **Why**:
+
 - Filesystem-safe (no special characters)
 - URL-safe (for future web UI)
 - Consistent with existing change naming in repo
@@ -60,10 +65,12 @@ Invalid: `Add-Auth`, `add auth`, `add_auth`, `-add-auth`, `add-auth-`, `add--aut
 ## File Changes
 
 ### New Files
+
 - `src/utils/change-utils.ts` - Utility functions
 - `src/utils/change-utils.test.ts` - Unit tests
 
 ### Modified Files
+
 - None
 
 ## Risks / Trade-offs

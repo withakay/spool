@@ -1,4 +1,5 @@
 ## MODIFIED Requirements
+
 ### Requirement: AI Tool Configuration
 
 The command SHALL configure AI coding assistants with Spool instructions based on user selection.
@@ -28,6 +29,7 @@ The command SHALL properly configure selected AI tools with Spool-specific instr
 
 - **WHEN** CLAUDE.md does not exist
 - **THEN** create new file with Spool content wrapped in markers:
+
 ```markdown
 <!-- SPOOL:START -->
 # Spool Instructions
@@ -87,5 +89,5 @@ The command SHALL provide clear, actionable next steps upon successful initializ
 - **WHEN** initialization completes successfully
 - **THEN** display a success banner followed by actionable prompts tailored to the selected tools
 - **AND** summarize which assistant files were created versus refreshed (e.g., `CLAUDE.md (created)`, `.cursor/commands/spool-apply.md (refreshed)`)
-- **AND** include copy-pasteable onboarding prompts for each configured assistant, replacing placeholder text ([YOUR FEATURE HERE]) with real guidance to customize
+- **AND** include copy-pasteable onboarding prompts for each configured assistant, replacing placeholder text (\[YOUR FEATURE HERE\]) with real guidance to customize
 - **AND** reference AGENTS.md-compatible assistants when no tool-specific file exists (e.g., when only AGENTS.md standard is selected)

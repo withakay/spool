@@ -8,6 +8,7 @@ whatever directories happen to exist and the order returned by `fs.readdir`,
 causing flaky success/failure across environments.
 
 Symptoms observed:
+
 - Tests sometimes select a partial or unrelated change folder.
 - Failures like missing `proposal.md` when a stray change directory is picked.
 - Environment/sandbox differences alter `readdir` ordering and worker behavior.
@@ -25,7 +26,8 @@ Symptoms observed:
 
 ## Approach
 
-1) Test-local fixture root
+1. Test-local fixture root
+
 - Each suite that touches filesystem discovery creates a temporary directory:
   - `spool/changes/sample-change/proposal.md`
   - `spool/changes/sample-change/specs/sample/spec.md`
@@ -33,12 +35,14 @@ Symptoms observed:
 - Use a constant `changeName = 'sample-change'`; remove reliance on
   `readdir` order.
 
-2) Optional thin DI for commands (minimal, if needed)
+2. Optional thin DI for commands (minimal, if needed)
+
 - Allow `ChangeCommand` (and similar) to accept an optional `root` path
   (default `process.cwd()`), used for path resolution.
 - Tests pass the temp root explicitly; production code remains unchanged.
 
-3) Harden discovery helpers (safe enhancement)
+3. Harden discovery helpers (safe enhancement)
+
 - Update `getActiveChangeIds()`/`getActiveChanges()` to include only
   directories containing `proposal.md` (and optionally at least one
   `specs/*/spec.md`).
@@ -75,4 +79,3 @@ Symptoms observed:
   discovery (`list`, `show`, `validate`, `diff`).
 - Phase 3 (optional): Introduce the constructor `root` param and discovery
   hardening, if Phase 1 alone isn’t sufficient.
-

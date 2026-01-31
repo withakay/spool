@@ -16,9 +16,11 @@ Currently, the schema (workflow type) must be passed via `--schema` flag on ever
 ## Capabilities
 
 ### New Capabilities
+
 - `change-metadata`: Reading/writing per-change metadata files
 
 ### Modified Capabilities
+
 - `cli-artifact-workflow`: Commands auto-detect schema from change metadata
 
 ## Impact

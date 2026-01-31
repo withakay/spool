@@ -1,12 +1,14 @@
 ## Context
 
 This is Slice 3 of the artifact-graph POC. We have:
+
 - `ArtifactGraph` class with graph operations (Slice 1)
 - `detectCompleted()` for filesystem-based state detection (Slice 1)
 - `resolveSchema()` for XDG schema resolution (Slice 1)
 - `createChange()` and `validateChangeName()` utilities (Slice 2)
 
 After `restructure-schema-directories` is implemented, schemas will be self-contained directories:
+
 ```
 schemas/<name>/
 ├── schema.yaml
@@ -19,11 +21,13 @@ This proposal adds template loading and instruction enrichment on top of that st
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Load templates from schema directories
 - Enrich templates with change-specific context (dependency status)
 - Format change status for CLI output
 
 **Non-Goals:**
+
 - Template authoring UI
 - Dynamic template compilation/execution
 - Caching (keep it stateless like the rest)
@@ -132,10 +136,12 @@ src/core/artifact-graph/
 ## Risks / Trade-offs
 
 **Dependency on restructure-schema-directories:**
+
 - This proposal requires the schema restructure to be done first
 - Mitigation: Clear dependency documented, implement in order
 
 **No template engine:**
+
 - Pro: Zero dependencies, simple code
 - Con: Limited expressiveness
 - Mitigation: Current use case only needs static templates + header injection

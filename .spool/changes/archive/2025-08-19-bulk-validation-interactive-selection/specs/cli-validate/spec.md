@@ -42,10 +42,13 @@ The validate command SHALL support flags for bulk validation (--all) and filtere
 #### Scenario: Scope of bulk validation
 
 - **WHEN** validating with `--all` or `--changes`
+
 - **THEN** include all change proposals under `spool/changes/`
+
 - **AND** exclude the `spool/changes/archive/` directory
 
 - **WHEN** validating with `--specs`
+
 - **THEN** include all specs that have a `spec.md` under `spool/specs/<id>/spec.md`
 
 #### Scenario: Validate all changes
@@ -131,9 +134,11 @@ The validate command SHALL handle ambiguous names and explicit type overrides to
 #### Scenario: Explicit type override
 
 - **WHEN** executing `spool validate --type change <item>`
+
 - **THEN** treat `<item>` as a change ID and validate it (skipping auto-detection)
 
 - **WHEN** executing `spool validate --type spec <item>`
+
 - **THEN** treat `<item>` as a spec ID and validate it (skipping auto-detection)
 
 ### Requirement: Interactivity controls

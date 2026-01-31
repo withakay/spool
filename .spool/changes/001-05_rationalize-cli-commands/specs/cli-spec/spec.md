@@ -5,14 +5,17 @@
 The CLI SHALL treat `spool spec ...` as a deprecated noun-based entrypoint.
 
 #### Scenario: Deprecated spec command remains callable
+
 - **WHEN** users execute `spool spec <subcommand>`
 - **THEN** the command executes successfully with its existing behavior
 - **AND** prints a deprecation warning pointing to verb-first alternatives (e.g., `spool show`, `spool list --specs`, `spool validate --specs`)
 
 #### Scenario: Deprecated spec command is not shown in help
+
 - **WHEN** users execute `spool --help`
 - **THEN** `spec` is not listed as a top-level command
 
 #### Scenario: Deprecated spec command is not suggested in completion
+
 - **WHEN** users use shell completion
 - **THEN** `spec` is not suggested as a top-level command

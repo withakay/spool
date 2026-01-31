@@ -5,6 +5,7 @@ This directory contains integration tests that should be run manually or by LLMs
 ## Purpose
 
 These are extended integration tests that simulate real-world usage of Spool tools. They are not designed to run in automated CI pipelines but rather for:
+
 - Manual QA workflows
 - LLM-driven testing before releases
 - Regression testing of complex workflows
@@ -14,19 +15,23 @@ These are extended integration tests that simulate real-world usage of Spool too
 ```
 qa/
 ├── README.md                    # This file
-└── ralph/                      # Ralph loop tests
+├── archive/                     # Archive command tests
+│   └── test-archive.sh          # Integration tests for spool archive
+└── ralph/                       # Ralph loop tests
     └── test-ralph-loop.sh       # Full integration test for Spool Ralph
 ```
 
 ## Running Tests
 
 Each test script should:
+
 - Be executable (`chmod +x test-*.sh`)
 - Document dependencies (spool version, etc.)
 - Clean up temporary directories after completion
 - Exit with meaningful codes (0=success, non-zero=failure)
 
 Example:
+
 ```bash
 cd qa/ralph
 ./test-ralph-loop.sh

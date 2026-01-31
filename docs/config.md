@@ -73,9 +73,9 @@ Supported keys (Rust CLI today):
 Spool directory name resolution for `projectPath` (highest precedence first):
 
 1. `<repo-root>/.spool.json` `projectPath`
-2. `<repo-root>/spool.json` `projectPath`
-3. `<config-dir>/config.json` `projectPath`
-4. default: `.spool`
+1. `<repo-root>/spool.json` `projectPath`
+1. `<config-dir>/config.json` `projectPath`
+1. default: `.spool`
 
 Example:
 
@@ -104,9 +104,9 @@ Purpose:
 Cascading config (merged in order, later overrides earlier):
 
 1. `<repo-root>/spool.json`
-2. `<repo-root>/.spool.json`
-3. `<spool-dir>/config.json`
-4. If `PROJECT_DIR` is set: `$PROJECT_DIR/config.json`
+1. `<repo-root>/.spool.json`
+1. `<spool-dir>/config.json`
+1. If `PROJECT_DIR` is set: `$PROJECT_DIR/config.json`
 
 Merge semantics:
 

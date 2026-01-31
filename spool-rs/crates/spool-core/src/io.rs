@@ -1,7 +1,7 @@
 use std::io::ErrorKind;
 use std::path::Path;
 
-use miette::{miette, Result};
+use miette::{Result, miette};
 
 pub fn read_to_string(path: &Path) -> Result<String> {
     std::fs::read_to_string(path)

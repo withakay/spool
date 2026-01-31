@@ -12,9 +12,11 @@ Spool’s TypeScript CLI already supports an “enhanced” `tasks.md` workflow 
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-task-backends`: Rust-side backend abstraction for task tracking, including markdown (default) and optional Taskwarrior.
 
 ### Modified Capabilities
+
 - (none)
 
 ## Impact

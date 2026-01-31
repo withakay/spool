@@ -5,6 +5,7 @@ Spool execution can fail in ways that are hard to debug from a single CLI output
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Central, per-user logging location with structured (machine-readable) events.
 - Group logs by project without storing raw absolute paths.
 - Group logs by session to correlate a sequence of commands.
@@ -12,6 +13,7 @@ Spool execution can fail in ways that are hard to debug from a single CLI output
 - Best-effort logging: logging failures must not break command execution.
 
 **Non-Goals:**
+
 - Network telemetry/reporting.
 - Capturing full CLI arguments or environment by default.
 - Windows-specific log directory conventions (can be added later).
@@ -99,6 +101,7 @@ Known ids (from `spool-rs/crates/spool-cli/src/main.rs`):
 - `spool.loop`
 
 Notes:
+
 - `spool templates` and `spool x-templates` are aliases today; both map to `spool.templates`.
 - `spool loop` is a deprecated alias for `spool ralph`; it still has its own `command_id` so we can measure deprecation usage.
 
@@ -107,10 +110,12 @@ Notes:
 Execution logs use JSONL: one JSON object per line.
 
 Each command emits two events:
+
 - `command_start` at the beginning of execution.
 - `command_end` at the end of execution.
 
 Common fields:
+
 - `event_version`: integer schema version (start with `1`).
 - `event_id`: unique identifier (UUIDv4).
 - `timestamp`: RFC 3339 UTC timestamp of when the event was recorded.
@@ -122,10 +127,12 @@ Common fields:
 - `pid`: process id.
 
 End-event fields:
+
 - `outcome`: `success` | `error`.
 - `duration_ms`: integer milliseconds from command start to end.
 
 Non-goals for v1:
+
 - Logging full argv, raw absolute paths, or environment variables.
 
 Example (end event):
@@ -147,6 +154,7 @@ Layout:
 - `<config_dir>/spool/logs/execution/v1/projects/<project_id>/sessions/<session_id>.jsonl`
 
 File naming rules:
+
 - `<project_id>`: lowercase hex string.
 - `<session_id>`: opaque, url-safe string.
 - Files are append-only; a partial final line is permitted and should be ignored by readers.
@@ -171,10 +179,10 @@ File naming rules:
 ## Migration Plan
 
 1. Add `spool-logging` crate with event schema and file writing.
-2. Integrate logging into `spool-rs` entrypoints and ensure failures are best-effort.
-3. Add session/project id logic and state storage under `.spool/`.
-4. Add `spool stats` and document usage.
-5. Add basic retention/cleanup behavior and tests.
+1. Integrate logging into `spool-rs` entrypoints and ensure failures are best-effort.
+1. Add session/project id logic and state storage under `.spool/`.
+1. Add `spool stats` and document usage.
+1. Add basic retention/cleanup behavior and tests.
 
 ## Open Questions
 

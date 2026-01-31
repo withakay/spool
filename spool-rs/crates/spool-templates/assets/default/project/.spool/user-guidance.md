@@ -1,4 +1,5 @@
 <!-- SPOOL:START -->
+
 # User Guidance
 
 This file is for optional, user-authored guidance that Spool will inject into `spool agent instruction <artifact>` outputs.
@@ -7,6 +8,7 @@ Use this file for project-specific preferences (style, constraints, defaults). A
 
 - Spool may update this header block over time.
 - Add your guidance below the `<!-- SPOOL:END -->` marker.
+
 <!-- SPOOL:END -->
 
 ## Your Guidance

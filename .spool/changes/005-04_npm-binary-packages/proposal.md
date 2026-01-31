@@ -13,6 +13,7 @@ Some users prefer to install tools via npm (especially in JavaScript-heavy repos
 ## Capabilities
 
 ### New Capabilities
+
 - `npm-binary-distribution`: Optional npm-based installation that provides the native `spool` binary for supported OS/arch targets.
 
 ### Modified Capabilities

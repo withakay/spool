@@ -12,18 +12,23 @@ The Ralph loop (`spool ralph` / `spool loop`) is a flagship workflow for autonom
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-ralph`: Rust implementation of Ralph loop with parity and deterministic tests.
 
 ### Modified Capabilities
+
 <!-- None. New Rust implementation. -->
 
 ## Impact
 
 **Affected areas:**
+
 - `spool-rs/crates/spool-harness/`, `spool-rs/crates/spool-cli/`, `spool-rs/crates/spool-workflow/`
 
 **Behavioral impact:**
+
 - None until Rust becomes default
 
 **Risks:**
+
 - PTY/interactive divergence; mitigated by PTY-driven tests and controlled stubs.

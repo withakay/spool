@@ -21,5 +21,3 @@ Developers struggle to resolve validation failures because current errors lack a
   - `src/core/validation/validator.ts`
   - `src/core/validation/constants.ts`
   - `src/core/parsers/*` (wrapping thrown errors with richer context)
-
-

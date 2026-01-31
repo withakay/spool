@@ -5,6 +5,7 @@
 Spool SHALL record structured execution events to a per-user central log directory.
 
 #### Scenario: Logs are written for a successful command
+
 - **WHEN** a user runs a supported Spool CLI entrypoint
 - **THEN** Spool appends structured JSONL execution events to the central log directory
 - **AND** events are stored under a versioned path (e.g. `<config_dir>/spool/logs/execution/v1/`)
@@ -16,6 +17,7 @@ Spool SHALL record structured execution events to a per-user central log directo
 Spool MUST NOT fail a command solely because execution logging failed.
 
 #### Scenario: Log directory is not writable
+
 - **WHEN** Spool cannot create or write to the log directory
 - **THEN** the command continues to run
 - **AND** Spool exits with the same outcome it would have produced without logging
@@ -25,6 +27,7 @@ Spool MUST NOT fail a command solely because execution logging failed.
 Spool MUST NOT record the full absolute working directory path in execution logs by default.
 
 #### Scenario: Project id is privacy-preserving
+
 - **WHEN** Spool records an execution event
 - **THEN** it stores a derived `project_id` for grouping
 - **AND** `project_id` is computed from the project path using a per-user secret salt
@@ -35,6 +38,7 @@ Spool MUST NOT record the full absolute working directory path in execution logs
 Spool SHALL provide a `session_id` that remains stable across multiple commands within the same project session.
 
 #### Scenario: Session id is reused for subsequent commands
+
 - **WHEN** a user runs multiple Spool commands within the same project and session
 - **THEN** Spool records the same `session_id` for each event
 - **AND** a new session id is created when a new session begins

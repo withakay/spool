@@ -5,6 +5,7 @@ Spool needs a standard location for user-level configuration that works across p
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Provide a single, well-defined location for global config
 - Follow XDG Base Directory Specification (widely adopted by CLI tools)
 - Support cross-platform usage (Unix, macOS, Windows)
@@ -12,6 +13,7 @@ Spool needs a standard location for user-level configuration that works across p
 - Enable future expansion (cache, state, workflows)
 
 **Non-Goals:**
+
 - Project-local config override (not in scope)
 - Config file migration tooling
 - Config validation CLI commands
@@ -29,11 +31,13 @@ Windows:    %APPDATA%/spool/
 ```
 
 **Rationale:**
+
 - XDG is the de facto standard for CLI tools (used by gh, bat, ripgrep, etc.)
 - Environment variable override allows user customization
 - Windows uses its native convention (%APPDATA%) for better integration
 
 **Alternatives considered:**
+
 - `~/.spool/` - Simple but clutters home directory
 - `~/Library/Application Support/` on macOS - Overkill for a CLI tool
 
@@ -42,12 +46,14 @@ Windows:    %APPDATA%/spool/
 **Decision:** JSON (`config.json`)
 
 **Rationale:**
+
 - Native Node.js support (no dependencies)
 - Human-readable and editable
 - Type-safe with TypeScript
 - Matches project.md's "minimal dependencies" principle
 
 **Alternatives considered:**
+
 - YAML - Requires dependency, more error-prone to edit
 - TOML - Less common in Node.js ecosystem
 - Environment variables only - Too limited for structured settings
@@ -63,6 +69,7 @@ interface GlobalConfig {
 ```
 
 **Rationale:**
+
 - `featureFlags` enables controlled rollout of new features
 - Optional fields with defaults avoid breaking changes
 - Flat structure is easy to understand and extend
@@ -78,6 +85,7 @@ export function getGlobalConfig(): GlobalConfig {
 ```
 
 **Rationale:**
+
 - CLI commands are short-lived; caching adds complexity without benefit
 - Reading a small JSON file is ~1ms; negligible overhead
 - Always returns fresh data; no cache invalidation concerns
@@ -88,6 +96,7 @@ export function getGlobalConfig(): GlobalConfig {
 **Decision:** Create directory only when saving, not when reading.
 
 **Rationale:**
+
 - Don't create empty directories on read operations
 - Users who never save config won't have unnecessary directories
 - Aligns with principle of least surprise

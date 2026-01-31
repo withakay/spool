@@ -7,6 +7,7 @@ This module will coexist with the current Spool system as a parallel capability,
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Pure dependency graph logic with no side effects
 - Stateless state detection (rescan filesystem each query)
 - Support glob patterns for multi-file artifacts (e.g., `specs/*.md`)
@@ -15,6 +16,7 @@ This module will coexist with the current Spool system as a parallel capability,
 - Determine "ready" artifacts based on dependency completion
 
 **Non-Goals:**
+
 - CLI commands (Slice 4)
 - Multi-change management (Slice 2)
 - Template resolution and enrichment (Slice 3)
@@ -24,37 +26,46 @@ This module will coexist with the current Spool system as a parallel capability,
 ## Decisions
 
 ### Decision: Filesystem as Database
+
 Use file existence for state detection rather than a separate state file.
 
 **Rationale:**
+
 - Stateless - no state corruption possible
 - Git-friendly - state derived from committed files
 - Simple - no sync issues between state file and actual files
 
 **Alternatives considered:**
+
 - JSON/SQLite state file: More complex, sync issues, not git-friendly
 - Git metadata: Too coupled to git, complex implementation
 
 ### Decision: Kahn's Algorithm for Topological Sort
+
 Use Kahn's algorithm for computing build order.
 
 **Rationale:**
+
 - Well-understood, O(V+E) complexity
 - Naturally detects cycles during execution
 - Produces a stable, deterministic order
 
 ### Decision: Glob Pattern Support
+
 Support glob patterns like `specs/*.md` in artifact `generates` field.
 
 **Rationale:**
+
 - Allows multiple files to satisfy a single artifact requirement
 - Common pattern for spec directories with multiple files
 - Uses standard glob syntax
 
 ### Decision: Immutable Completed Set
+
 Represent completion state as an immutable Set of completed artifact IDs.
 
 **Rationale:**
+
 - Functional style, easier to reason about
 - State derived fresh each query, no mutation needed
 - Clear separation between graph structure and runtime state
@@ -63,27 +74,33 @@ Represent completion state as an immutable Set of completed artifact IDs.
 **Note:** `inProgress` and `failed` states are deferred to future slices. They would require external state tracking (e.g., a status file) since file existence alone cannot distinguish these states.
 
 ### Decision: Zod for Schema Validation
+
 Use Zod for validating YAML schema structure and deriving TypeScript types.
 
 **Rationale:**
+
 - Already a project dependency (v4.0.17) used in `src/core/schemas/`
 - Type inference via `z.infer<>` - single source of truth for types
 - Runtime validation with detailed error messages
 - Consistent with existing project patterns (`base.schema.ts`, `config-schema.ts`)
 
 **Alternatives considered:**
+
 - Manual validation: More code, error-prone, no type inference
 - JSON Schema: Would require additional dependency, less TypeScript integration
 - io-ts: Not already in project, steeper learning curve
 
 ### Decision: Two-Level Schema Resolution
+
 Schemas resolve from global user data directory, falling back to package built-ins.
 
 **Resolution order:**
+
 1. `${XDG_DATA_HOME:-~/.local/share}/spool/schemas/<name>.yaml` - Global user override
-2. `<package>/schemas/<name>.yaml` - Built-in defaults
+1. `<package>/schemas/<name>.yaml` - Built-in defaults
 
 **Rationale:**
+
 - Follows XDG Base Directory Specification (schemas are data, not config)
 - Mirrors existing `getGlobalConfigDir()` pattern in `src/core/global-paths.ts`
 - Built-ins baked into package, never auto-copied
@@ -91,29 +108,35 @@ Schemas resolve from global user data directory, falling back to package built-i
 - Simple - no project-level overrides (can add later if needed)
 
 **XDG compliance:**
+
 - Uses `XDG_DATA_HOME` env var when set (all platforms)
 - Unix/macOS fallback: `~/.local/share/spool/`
 - Windows fallback: `%LOCALAPPDATA%/spool/`
 
 **Alternatives considered:**
+
 - Project-level overrides: Added complexity, not needed initially
 - Auto-copy to user space: Creates drift, harder to update defaults
 - Config directory (`XDG_CONFIG_HOME`): Schemas are workflow definitions (data), not user preferences (config)
 
 ### Decision: Template Field Parsed But Not Resolved
+
 The `template` field is required in schema YAML for completeness, but template resolution is deferred to Slice 3.
 
 **Rationale:**
+
 - Slice 1 focuses on "What's Ready?" - dependency and completion queries only
 - Template paths are validated syntactically (non-empty string) but not resolved
 - Keeps Slice 1 focused and independently testable
 
 ### Decision: Cycle Error Format
+
 Cycle errors list all artifact IDs in the cycle for easy debugging.
 
 **Format:** `"Cyclic dependency detected: A → B → C → A"`
 
 **Rationale:**
+
 - Shows the full cycle path, not just that a cycle exists
 - Actionable - developer can see exactly which artifacts to fix
 - Consistent with Kahn's algorithm which naturally identifies cycle participants
@@ -181,6 +204,7 @@ src/core/artifact-graph/
 ```
 
 **Schema Resolution Paths:**
+
 - Global user override: `${XDG_DATA_HOME:-~/.local/share}/spool/schemas/<name>.yaml`
 - Package built-in: `src/core/artifact-graph/schemas/<name>.yaml` (bundled with package)
 

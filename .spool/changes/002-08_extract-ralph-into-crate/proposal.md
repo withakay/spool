@@ -13,9 +13,11 @@ Ralph is a distinct subsystem (loop runner + state + prompt construction) that c
 ## Capabilities
 
 ### New Capabilities
+
 - `ralph-crate`: Ralph logic is packaged as an independent crate with a stable internal API.
 
 ### Modified Capabilities
+
 <!-- None (behavior-preserving refactor) -->
 
 ## Impact

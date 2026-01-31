@@ -5,11 +5,13 @@ Parity tests will be the main gate for the Rust port. The harness must be determ
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Provide reusable helpers to run TS and Rust CLIs.
 - Provide snapshot-friendly parity assertions.
 - Provide PTY helpers for interactive flows.
 
 **Non-Goals:**
+
 - Implement command ports beyond a minimal smoke set for harness validation.
 
 ## Decisions

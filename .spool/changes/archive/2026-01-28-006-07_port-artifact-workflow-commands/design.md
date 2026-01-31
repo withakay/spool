@@ -5,11 +5,13 @@ These commands create and manipulate the `.spool/` structure and emit human-faci
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Implement workflow commands and match TS behavior.
 - Ensure filesystem writes match TS (names, numbering, templates).
 - Add parity tests for both output and writes.
 
 **Non-Goals:**
+
 - Implement `plan/tasks/workflow/state` (handled in the next change).
 
 ## Decisions

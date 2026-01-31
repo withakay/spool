@@ -7,6 +7,7 @@ Spool conventions SHALL define how system capabilities are documented, how chang
 ## Core Principles
 
 The system SHALL follow these principles:
+
 - Specs reflect what IS currently built and deployed
 - Changes contain proposals for what SHOULD be changed
 - AI drives the documentation process
@@ -16,6 +17,7 @@ The system SHALL follow these principles:
 
 WHEN an Spool project is initialized
 THEN it SHALL have this structure:
+
 ```
 spool/
 ├── project.md              # Project-specific context
@@ -45,6 +47,7 @@ THEN store the complete future state of affected specs
 AND use clean markdown without diff syntax
 
 The `changes/[name]/specs/` directory SHALL contain:
+
 - Complete spec files as they will exist after the change
 - Clean markdown without `+` or `-` prefixes
 - All formatting and structure of the final intended state
@@ -69,17 +72,18 @@ This explicit format compensates for not having inline diffs and ensures reviewe
 The change process SHALL follow these states:
 
 1. **Propose**: AI creates change with future state specs and explicit proposal
-2. **Review**: Humans review proposal and future state
-3. **Approve**: Change is approved for implementation
-4. **Implement**: Follow tasks.md checklist (can span multiple PRs)
-5. **Deploy**: Changes are deployed to production
-6. **Update**: Specs in `specs/` are updated to match deployed reality
-7. **Archive**: Change is moved to `archive/YYYY-MM-DD-[name]/`
+1. **Review**: Humans review proposal and future state
+1. **Approve**: Change is approved for implementation
+1. **Implement**: Follow tasks.md checklist (can span multiple PRs)
+1. **Deploy**: Changes are deployed to production
+1. **Update**: Specs in `specs/` are updated to match deployed reality
+1. **Archive**: Change is moved to `archive/YYYY-MM-DD-[name]/`
 
 ## Viewing Changes
 
 WHEN reviewing proposed changes
 THEN reviewers can compare using:
+
 - GitHub PR diff view when changes are committed
 - Command line: `diff -u specs/[capability]/spec.md changes/[name]/specs/[capability]/spec.md`
 - Any visual diff tool comparing current vs future state
@@ -89,6 +93,7 @@ The system relies on tools to generate diffs rather than storing them.
 ## Capability Naming
 
 Capabilities SHALL use:
+
 - Verb-noun patterns (e.g., `user-auth`, `payment-capture`)
 - Hyphenated lowercase names
 - Singular focus (one responsibility per capability)
@@ -97,6 +102,7 @@ Capabilities SHALL use:
 ## When Changes Require Proposals
 
 A proposal SHALL be created for:
+
 - New features or capabilities
 - Breaking changes to existing behavior
 - Architecture or pattern changes
@@ -104,6 +110,7 @@ A proposal SHALL be created for:
 - Security updates affecting access patterns
 
 A proposal is NOT required for:
+
 - Bug fixes restoring intended behavior
 - Typos or formatting fixes
 - Non-breaking dependency updates
@@ -113,6 +120,7 @@ A proposal is NOT required for:
 ## Why This Approach
 
 Clean future state storage provides:
+
 - **Readability**: No diff syntax pollution
 - **AI-compatibility**: Standard markdown that AI tools understand
 - **Simplicity**: No special parsing or processing needed

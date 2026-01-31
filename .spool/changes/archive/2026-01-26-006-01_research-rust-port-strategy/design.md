@@ -5,10 +5,12 @@ This change is documentation and strategy only. The Rust implementation must mat
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Produce research artifacts required by the Rust port workflow.
 - Establish a concrete parity testing strategy and command matrix.
 
 **Non-Goals:**
+
 - Implement any Rust code.
 
 ## Decisions

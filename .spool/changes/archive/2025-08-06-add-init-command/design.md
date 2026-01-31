@@ -19,7 +19,8 @@ File System Utils (src/utils/file-system.ts)
 ### 1. Template Management
 
 **Decision**: Store templates as TypeScript modules rather than separate files
-**Rationale**: 
+**Rationale**:
+
 - Ensures templates are bundled with the compiled code
 - Allows for dynamic content insertion
 - Type-safe template handling
@@ -29,6 +30,7 @@ File System Utils (src/utils/file-system.ts)
 
 **Decision**: Support both interactive (default) and non-interactive modes
 **Rationale**:
+
 - Interactive mode for developer experience
 - Non-interactive for CI/CD and automation
 - Flags: `--yes` to accept defaults, `--no-input` for full automation
@@ -37,6 +39,7 @@ File System Utils (src/utils/file-system.ts)
 
 **Decision**: Create all directories upfront, then populate files
 **Rationale**:
+
 - Fail fast if permissions issues
 - Clear transaction boundary
 - Easier to clean up on failure
@@ -45,6 +48,7 @@ File System Utils (src/utils/file-system.ts)
 
 **Decision**: Implement rollback on failure
 **Rationale**:
+
 - Prevent partial installations
 - Clear error states
 - Better user experience
@@ -91,13 +95,14 @@ spool init [path]           # Initialize in specified path (default: current dir
 ## Security Considerations
 
 1. **Path Traversal**: Sanitize all user-provided paths
-2. **File Permissions**: Check write permissions before starting
-3. **Existing Files**: Never overwrite without explicit --force flag
-4. **Template Injection**: Sanitize user inputs in templates
+1. **File Permissions**: Check write permissions before starting
+1. **Existing Files**: Never overwrite without explicit --force flag
+1. **Template Injection**: Sanitize user inputs in templates
 
 ## Future Extensibility
 
 The design supports future enhancements:
+
 - Custom template sources
 - Project type presets (API, web app, library)
 - Migration from other documentation systems

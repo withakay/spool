@@ -12,9 +12,11 @@
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-cli-init-parity`: `spoolrs init` matches TypeScript `spool init` behavior for tool selection, non-interactive flags, and extend/fresh init flows.
 
 ### Modified Capabilities
+
 - `rust-parity-harness`: add parity tests and fixtures specifically covering `init` behavior.
 
 ## Impact

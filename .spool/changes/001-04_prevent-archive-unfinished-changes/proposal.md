@@ -13,10 +13,12 @@ The spool archive command currently allows archiving changes without validating 
 ## Capabilities
 
 ### New Capabilities
+
 - `archive-completion-validation`: Validation step that checks if all required artifacts and implementation are complete before allowing archive
 - `archive-incomplete-guidance`: User-friendly prompts and suggestions for actions when attempting to archive incomplete changes
 
 ### Modified Capabilities
+
 - `change-archiving`: Modified to include validation step and prevent archiving of incomplete changes
 
 ## Impact

@@ -1,6 +1,7 @@
 ## Why
 
 Users frequently need to view changes and specs but must know in advance whether they're looking at a change or spec. The current subcommand structure (`change show`, `spec show`) creates friction when:
+
 - Users want to quickly view an item without remembering its type
 - Exploring the codebase requires switching between different show commands
 - Show commands without arguments return errors instead of helpful guidance

@@ -7,25 +7,28 @@ The current Spool agent instructions need updates to follow best practices for A
 ## What Changes
 
 ### Core Structure Improvements
+
 - **Front-load the 3-stage workflow** as the primary mental model:
   1. Creating a change proposal (proposal.md, spec deltas, design.md, tasks.md)
-  2. Implementing a change proposal:
+  1. Implementing a change proposal:
      - First read proposal.md to understand the change
      - Read design.md if it exists for technical context
      - Read tasks.md for the implementation checklist
      - Complete tasks one by one
      - Mark each task complete immediately after finishing
-  3. Archiving the change proposal (using archive command after deployment)
+  1. Archiving the change proposal (using archive command after deployment)
 - **Reduce instruction length by 50%** while maintaining all critical information
 - **Restructure with clear hierarchy**: Core Workflow → Quick Start → Commands → Details → Edge Cases
 
 ### Decision Clarity Enhancements
+
 - **Add clear decision trees** for common scenarios (bug vs feature, proposal needed vs not)
 - **Remove ambiguous conditions** that confuse agent decision-making
 - **Add "Before Any Task" checklist** for context gathering
 - **Add "Before Creating Specs" rule** - Always check existing specs first to avoid duplicates
 
 ### CLI Documentation Updates
+
 - **Complete command documentation** with all current functionality:
   - `spool init [path]` - Initialize Spool in a project
   - `spool list` - List all active changes (default)
@@ -49,12 +52,13 @@ The current Spool agent instructions need updates to follow best practices for A
   - `spool validate [change] --strict` for comprehensive validation
 
 ### Spec File Structure Documentation
+
 - **Complete spec file examples** showing proper structure:
   ```markdown
   ## ADDED Requirements
   ### Requirement: Clear requirement statement
   The system SHALL provide the functionality...
-  
+
   #### Scenario: Descriptive scenario name
   - **WHEN** condition occurs
   - **THEN** expected outcome
@@ -70,6 +74,7 @@ The current Spool agent instructions need updates to follow best practices for A
   - Use operation prefixes: ADDED, MODIFIED, REMOVED, RENAMED
 
 ### Troubleshooting Section
+
 - **Common errors and solutions**:
   - "Change must have at least one delta" → Check specs/ directory exists with .md files
   - "Requirement must have at least one scenario" → Check scenario uses `#### Scenario:` format
@@ -83,13 +88,14 @@ The current Spool agent instructions need updates to follow best practices for A
   - Use JSON output for debugging: `--json | jq '.deltas'`
 
 ### Agent-Specific Improvements
+
 - **Implementation workflow** - Clear step-by-step process:
   1. Read proposal.md to understand what's being built
-  2. Read design.md (if exists) for technical decisions
-  3. Read tasks.md for the implementation checklist
-  4. Implement tasks one by one in order
-  5. Mark each task complete immediately: `- [x] Task completed`
-  6. Never skip ahead or batch task completion
+  1. Read design.md (if exists) for technical decisions
+  1. Read tasks.md for the implementation checklist
+  1. Implement tasks one by one in order
+  1. Mark each task complete immediately: `- [x] Task completed`
+  1. Never skip ahead or batch task completion
 - **Spec discovery workflow** - Always check existing specs before creating new ones:
   - Use `spool list --specs` to see all current specs
   - Check if capability already exists before creating
@@ -100,15 +106,16 @@ The current Spool agent instructions need updates to follow best practices for A
 - **Verification workflows** - How to confirm changes are correct
 
 ### Best Practices Section
+
 - **Be concise** - One-line answers when appropriate
 - **Be specific** - Use exact file paths and line numbers (file.ts:42)
-- **Start simple** - Default to <100 lines, single-file implementations
+- **Start simple** - Default to \<100 lines, single-file implementations
 - **Justify complexity** - Require data/metrics for any optimization
 
 ## Impact
 
 - Affected specs: None (this is a tooling/documentation change)
-- Affected code: 
+- Affected code:
   - `src/core/templates/claude-template.ts` - Update CLAUDE.md template
 - Affected documentation:
   - `spool/README.md` - Main Spool instructions

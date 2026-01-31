@@ -16,10 +16,12 @@ cargo clippy --workspace -- -D warnings
 Spool is distributed as a Rust binary.
 
 Distribution approach:
+
 - Publish platform-specific Rust release archives via GitHub Releases (with SHA-256 checksums)
 - Support local developer installs via `make rust-install`
 
 Initial release target matrix:
+
 - `x86_64-apple-darwin`
 - `aarch64-apple-darwin`
 - `x86_64-unknown-linux-gnu`
@@ -27,10 +29,12 @@ Initial release target matrix:
 - `x86_64-pc-windows-msvc`
 
 Artifact naming:
+
 - `spool-vX.Y.Z-<target>.tar.gz` (Windows: `.zip`)
 - `spool-vX.Y.Z-<target>.sha256`
 
 Build commands (per platform job):
+
 ```bash
 cd spool-rs
 cargo build -p spool-cli --release
@@ -45,6 +49,7 @@ powershell -Command "Get-FileHash spool-v${env:VERSION}-${env:TARGET}.zip -Algor
 ```
 
 Optional developer install:
+
 ```bash
 make rust-install
 spool --version
@@ -53,6 +58,7 @@ spool --version
 ## Coverage
 
 Targets:
+
 - Long-term: >= 85% workspace line coverage once parity tests are in place.
 - Long-term: >= 85% workspace line coverage once core functionality is in place.
 - Near-term: >= 80% line coverage for `spool-core` create/status logic.
@@ -60,6 +66,7 @@ Targets:
 - Additional: >= 85% line coverage for `spool-core` foundation modules.
 
 Current (from `cargo llvm-cov --workspace`):
+
 - `spool-core/src/create/mod.rs`: 62.33% lines
 - `spool-core/src/ralph/prompt.rs`: 61.60% lines
 - `spool-core/src/ralph/runner.rs`: 50.85% lines
@@ -79,6 +86,7 @@ cargo llvm-cov --workspace
 ## Release Verification Checklist
 
 Binary (per platform):
+
 ```bash
 ./spool --version
 ./spool --help
@@ -86,6 +94,7 @@ Binary (per platform):
 ```
 
 Checksum:
+
 ```bash
 shasum -a 256 -c spool-vX.Y.Z-<target>.sha256
 ```

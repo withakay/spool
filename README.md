@@ -197,10 +197,10 @@ spool archive <change-id> -y
 
 ## Test Plan
 
-- [ ] Run `spool init` and verify `.spool/planning/` + `.spool/research/` templates exist
-- [ ] Run `spool workflow init` and verify `.spool/workflows/*.yaml` are created
-- [ ] Verify research and review slash commands are available in at least one supported tool
-- [ ] Run `make build` to verify the Rust CLI builds
+- \[ \] Run `spool init` and verify `.spool/planning/` + `.spool/research/` templates exist
+- \[ \] Run `spool workflow init` and verify `.spool/workflows/*.yaml` are created
+- \[ \] Verify research and review slash commands are available in at least one supported tool
+- \[ \] Run `make build` to verify the Rust CLI builds
 
 ## Contributing
 

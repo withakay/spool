@@ -20,6 +20,7 @@ The archive command will programmatically apply these deltas using normalized he
 **Affected specs**: spool-conventions, cli-archive, cli-diff
 
 **Benefits**:
+
 - GitHub diffs show only actual changes (25 lines instead of 150+)
 - Reviewers immediately see what's being added, modified, or removed
 - Conflicts are more apparent when two changes modify the same requirement
@@ -49,7 +50,7 @@ Users SHALL authenticate via OAuth providers including Google and GitHub.
 ### Requirement: Session Management
 Sessions SHALL expire after 30 minutes of inactivity.
 
-#### Scenario: Inactive session timeout  
+#### Scenario: Inactive session timeout
 - **WHEN** no activity for 30 minutes ← (was 60 minutes)
 - **THEN** invalidate session token
 - **AND** require re-authentication
@@ -70,8 +71,9 @@ Git naturally detects conflicts when two changes modify the same requirement hea
 To keep the archive flow lean and predictable, the following decisions apply:
 
 - New spec creation: When a target spec does not exist, auto-generate a minimal skeleton and insert ADDED requirements only. Skeleton format:
+
   - `# [Spec Name] Specification`
-  - `## Purpose` with placeholder: "TBD — created by archiving change [change-name]. Update Purpose after archive."
+  - `## Purpose` with placeholder: "TBD — created by archiving change \[change-name\]. Update Purpose after archive."
   - `## Requirements`
   - If a non-existent spec includes MODIFIED/REMOVED/RENAMED, abort with guidance to create via ADDED-only first.
 
@@ -86,6 +88,7 @@ To keep the archive flow lean and predictable, the following decisions apply:
 - Output and UX: For each spec, display operation counts using standard symbols `+ ~ - →`. Optionally include a short aggregated totals line at the end. Keep messages concise and actionable.
 
 - Error messaging: Standardize messages as `[spec] [operation] failed for header "### Requirement: X" — reason`. On abort, explicitly state: `Aborted. No files were changed.`
+
 - Subsections: Any subsections under a requirement (e.g., `#### Scenario: ...`) are preserved verbatim during parsing and application.
 
 - Backward compatibility: Reject full future-state spec copies for existing specs with guidance to convert to deltas. Allow brand-new specs to be created via ADDED-only deltas using the skeleton above.

@@ -42,7 +42,7 @@ Change proposals SHALL store only the additions, modifications, and removals to 
 - **AND** each requirement SHALL include its complete content
 - **AND** use the standard structured format for requirements and scenarios
 
-#### Scenario: Creating change proposals with modifications  
+#### Scenario: Creating change proposals with modifications
 
 - **WHEN** creating a change proposal that modifies existing requirements
 - **THEN** include the modified requirements under `## MODIFIED Requirements`
@@ -58,8 +58,8 @@ Change proposals SHALL store only the additions, modifications, and removals to 
 - **AND** include reason for removal
 - **AND** document any migration path if applicable
 
-
 The `changes/[name]/specs/` directory SHALL contain:
+
 - Delta files showing only what changes
 - Sections for ADDED, MODIFIED, REMOVED, and RENAMED requirements
 - Normalized header matching for requirement identification
@@ -84,9 +84,9 @@ The archive process SHALL programmatically apply delta changes to current specif
 - **WHEN** archiving a completed change
 - **THEN** the archive command SHALL:
   1. Parse RENAMED sections first and apply renames
-  2. Parse REMOVED sections and remove by normalized header match
-  3. Parse MODIFIED sections and replace by normalized header match (using new names if renamed)
-  4. Parse ADDED sections and append new requirements
+  1. Parse REMOVED sections and remove by normalized header match
+  1. Parse MODIFIED sections and replace by normalized header match (using new names if renamed)
+  1. Parse ADDED sections and append new requirements
 - **AND** validate that all MODIFIED/REMOVED headers exist in current spec
 - **AND** validate that ADDED headers don't already exist
 - **AND** generate the updated spec in the main specs/ directory
@@ -97,5 +97,3 @@ The archive process SHALL programmatically apply delta changes to current specif
 - **THEN** the archive command SHALL report specific conflicts
 - **AND** require manual resolution before proceeding
 - **AND** provide clear guidance on resolving conflicts
-
- 

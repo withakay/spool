@@ -17,14 +17,16 @@ AND parse each change's `tasks.md` file to count task completion
 
 WHEN parsing a `tasks.md` file
 THEN count tasks matching these patterns:
+
 - Completed: Lines containing `- [x]`
 - Incomplete: Lines containing `- [ ]`
-AND calculate total tasks as the sum of completed and incomplete
+  AND calculate total tasks as the sum of completed and incomplete
 
 ### Output Format
 
 WHEN displaying the list
 THEN show a table with columns:
+
 - Change name (directory name)
 - Task progress (e.g., "3/5 tasks" or "✓ Complete")
 - Status indicator:
@@ -32,6 +34,7 @@ THEN show a table with columns:
   - Progress fraction for partial completion
 
 Example output:
+
 ```
 Changes:
   add-auth-feature     3/5 tasks
@@ -61,6 +64,7 @@ Changes SHALL be displayed in alphabetical order by change name for consistency.
 ## Why
 
 Developers need a quick way to:
+
 - See what changes are in progress
 - Identify which changes are ready to archive
 - Understand the overall project evolution status

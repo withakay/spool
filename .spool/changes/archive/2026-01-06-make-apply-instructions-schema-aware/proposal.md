@@ -80,7 +80,7 @@ Apply becomes available when ALL schema artifacts exist. Implementation is whate
 **Pros:** Simple, no schema changes
 **Cons:** Doesn't guide what "apply" means for different workflows
 
----
+______________________________________________________________________
 
 ## Decision: Add `apply` block to schema.yaml
 
@@ -119,6 +119,7 @@ apply:
 ```
 
 **Key properties:**
+
 - `requires`: Array of artifact IDs that must exist before apply is available
 - `tracks`: Path to file with checkboxes (relative to change dir), or `null` if no tracking
 - `instruction`: Custom guidance for the apply phase
@@ -128,6 +129,7 @@ apply:
 ## Capabilities
 
 ### Modified Capabilities
+
 - `cli-artifact-workflow`: Apply instructions become schema-aware
 
 ## Impact

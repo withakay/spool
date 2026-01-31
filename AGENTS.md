@@ -1,14 +1,17 @@
 <!-- SPOOL:START -->
+
 # Spool Instructions
 
 These instructions are for AI assistants working in this project.
 
 Always open `@/.spool/AGENTS.md` when the request:
+
 - Mentions planning or proposals (words like proposal, spec, change, plan)
 - Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
 - Sounds ambiguous and you need the authoritative spec before coding
 
 Use `@/.spool/AGENTS.md` to learn:
+
 - How to create and apply change proposals
 - Spec format and conventions
 - Project structure and guidelines
@@ -27,6 +30,7 @@ Keep this managed block so 'spool update' can refresh the instructions.
 ## Prompt Templates
 
 Spool project/home templates are owned by the Rust embedded assets:
+
 - `spool-rs/crates/spool-templates/assets/default/project/`
 - `spool-rs/crates/spool-templates/assets/default/home/`
 
@@ -72,6 +76,7 @@ The Makefile defaults should reflect the supported Rust workflow. Legacy Bun tar
 ## OpenCode Path Convention
 
 **IMPORTANT**: OpenCode uses **singular** directory names for its configuration paths:
+
 - `.opencode/skill/` (NOT `.opencode/skills/`)
 - `.opencode/command/` (NOT `.opencode/commands/`)
 - `.opencode/plugin/` (NOT `.opencode/plugins/`)

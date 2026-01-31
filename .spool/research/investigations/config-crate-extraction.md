@@ -83,9 +83,9 @@ If we adopt cascading configs, make the behavior explicit and testable.
 ### Proposed project-level sources (low → high precedence)
 
 1. `<repo-root>/spool.json`
-2. `<repo-root>/.spool.json`
-3. `<spoolDir>/config.json`
-4. If `PROJECT_DIR` is set: `$PROJECT_DIR/config.json`
+1. `<repo-root>/.spool.json`
+1. `<spoolDir>/config.json`
+1. If `PROJECT_DIR` is set: `$PROJECT_DIR/config.json`
 
 Separately, user-level global config can still exist as the default baseline (e.g. per-user defaults), but it should be treated as a distinct source category.
 
@@ -108,8 +108,8 @@ This avoids silent misconfiguration while still being resilient.
 ## Migration/Refactor Plan (Low-Risk)
 
 1. Refactor current config code into a clearly testable shape (even if still in `spool-core`).
-2. Implement cascading sources + merge rules + provenance.
-3. If more than one crate needs config, extract into `spool-config` with a stable internal API.
+1. Implement cascading sources + merge rules + provenance.
+1. If more than one crate needs config, extract into `spool-config` with a stable internal API.
 
 ## Decision
 

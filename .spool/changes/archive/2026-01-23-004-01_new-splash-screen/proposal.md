@@ -27,9 +27,11 @@ The current Spool splash screen ASCII art needs a visual refresh to improve the 
 ## Capabilities
 
 ### New Capabilities
+
 - `splash-screen-art`: Defines the new ASCII art design and its rendering logic within the CLI.
 
 ### Modified Capabilities
+
 <!-- No existing functional capabilities are changing requirements, just the visual asset/output. -->
 
 ## Impact

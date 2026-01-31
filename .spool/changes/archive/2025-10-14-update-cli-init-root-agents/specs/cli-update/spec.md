@@ -1,8 +1,11 @@
 ## MODIFIED Requirements
+
 ### Requirement: Tool-Agnostic Updates
+
 The update command SHALL refresh Spool-managed files in a predictable manner while respecting each team's chosen tooling.
 
 #### Scenario: Updating files
+
 - **WHEN** updating files
 - **THEN** completely replace `spool/AGENTS.md` with the latest template
 - **AND** create or refresh the root-level `AGENTS.md` stub using the managed marker block, even if the file was previously absent

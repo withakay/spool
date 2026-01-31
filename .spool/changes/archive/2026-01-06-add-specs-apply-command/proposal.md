@@ -11,6 +11,7 @@ Spec application is currently bundled with archive - users must run `spool archi
 - Agent-driven approach allows intelligent merging (partial updates, adding scenarios)
 
 **Workflow becomes:**
+
 ```
 /opsx:new → /opsx:continue → /opsx:apply → archive
                                   │
@@ -20,9 +21,11 @@ Spec application is currently bundled with archive - users must run `spool archi
 ## Capabilities
 
 ### New Capabilities
+
 - `specs-sync-skill`: Skill template for `/opsx:sync` command that reconciles main specs with delta specs
 
 ### Modified Capabilities
+
 - None (agent-driven, no CLI command needed)
 
 ## Impact

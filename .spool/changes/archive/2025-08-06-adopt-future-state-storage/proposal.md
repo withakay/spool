@@ -11,14 +11,11 @@ The current approach of storing spec changes as diff files (`.spec.md.diff`) cre
 - Migrate existing `add-init-command` change to new format
 - Add new `spool-conventions` capability to document these conventions
 
-
-
 ## Impact
 
 - Affected specs: New `spool-conventions` capability
-- Affected code: 
+- Affected code:
   - spool/README.md (lines 85-108)
   - docs/PRD.md (lines 376-382, 778-783)
   - docs/spool-walkthrough.md (lines 58-62, 112-126)
   - spool/changes/add-init-command/ (migration needed)
-

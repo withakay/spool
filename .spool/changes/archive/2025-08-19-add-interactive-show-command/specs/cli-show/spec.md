@@ -38,9 +38,11 @@ The CLI SHALL provide a top-level `show` command for displaying changes and spec
 #### Scenario: Explicit type override
 
 - **WHEN** executing `spool show --type change <item>`
+
 - **THEN** treat `<item>` as a change ID and show it (skipping auto-detection)
 
 - **WHEN** executing `spool show --type spec <item>`
+
 - **THEN** treat `<item>` as a spec ID and show it (skipping auto-detection)
 
 ### Requirement: Output format options
@@ -75,7 +77,7 @@ The show command SHALL support various output formats consistent with existing c
 - **THEN** display only the deltas in JSON format
 - **AND** maintain compatibility with existing change show options
 
-#### Scenario: Spec-specific options  
+#### Scenario: Spec-specific options
 
 - **WHEN** showing a spec with `spool show <spec-id> --requirements`
 - **THEN** display only requirements in JSON format

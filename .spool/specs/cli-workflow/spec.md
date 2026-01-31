@@ -219,9 +219,9 @@ The CLI SHALL generate high-quality workflow definitions that provide clear guid
 YAML-based workflow orchestration enables teams to define complex, repeatable workflows that work across AI coding assistants. These commands provide:
 
 1. **Workflow definitions**: Declarative YAML format for defining multi-step workflows
-2. **Tool integration**: Generate tool-specific instructions from a single workflow definition
-3. **State tracking**: Persist execution state across sessions for resumption
-4. **Wave-based execution**: Group tasks into waves with dependencies and checkpoints
-5. **Team consistency**: Share workflow definitions through version control
+1. **Tool integration**: Generate tool-specific instructions from a single workflow definition
+1. **State tracking**: Persist execution state across sessions for resumption
+1. **Wave-based execution**: Group tasks into waves with dependencies and checkpoints
+1. **Team consistency**: Share workflow definitions through version control
 
 Without these tools, teams must manually coordinate complex workflows across sessions and tools, leading to inconsistent execution, lost state, and difficulty collaborating.

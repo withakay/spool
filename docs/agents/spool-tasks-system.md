@@ -25,7 +25,7 @@ There is no persistent database for tasks.
 Spool supports two tracking formats:
 
 1. Enhanced tasks.md (structured markdown blocks)
-2. Checkbox tasks.md (minimal `- [ ]` / `- [x]` list)
+1. Checkbox tasks.md (minimal `- [ ]` / `- [x]` list)
 
 The format is auto-detected by regex heuristics.
 
@@ -142,15 +142,18 @@ The readiness algorithm depends on format.
 Readiness is computed from:
 
 1. Wave gating
-  - With explicit wave metadata: a wave is unlocked when all waves it depends on are fully done.
-  - Without explicit wave metadata: back-compat gating picks the first incomplete wave and blocks later waves.
+
+- With explicit wave metadata: a wave is unlocked when all waves it depends on are fully done.
+- Without explicit wave metadata: back-compat gating picks the first incomplete wave and blocks later waves.
 
 2. Task dependencies
-  - A task is ready only if all its dependencies are complete.
-  - Cross-wave dependencies are disallowed and should be fixed instead of worked around.
+
+- A task is ready only if all its dependencies are complete.
+- Cross-wave dependencies are disallowed and should be fixed instead of worked around.
 
 3. Checkpoints
-  - Checkpoint tasks typically have `wave: None` and are blocked until all waves are complete.
+
+- Checkpoint tasks typically have `wave: None` and are blocked until all waves are complete.
 
 The CLI uses this to implement:
 

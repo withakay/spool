@@ -1,15 +1,17 @@
 # Tasks for: 002-06_add-agent-preamble-system
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 - **Template**: Enhanced task format with waves, verification, and status tracking
 
----
+______________________________________________________________________
 
 ## Wave 1: Core Preamble Generation
 
 ### Task 1.1: Add buildPromptPreamble function
+
 - **Files**: `src/core/ralph/context.ts`
 - **Dependencies**: None
 - **Action**:
@@ -30,9 +32,10 @@
   - Return formatted string with proper spacing and separators
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Function exists and returns formatted preamble string
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.2: Update buildRalphPrompt signature
+
 - **Files**: `src/core/ralph/context.ts`
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -45,21 +48,22 @@
   - Update function to call `buildPromptPreamble()` when iteration is provided
   - Restructure prompt assembly:
     1. If iteration provided, start with preamble
-    2. Add context section from preamble (already embedded)
-    3. Add change context if changeId provided
-    4. Add module context if moduleId provided
-    5. Add user prompt at the end
+    1. Add context section from preamble (already embedded)
+    1. Add change context if changeId provided
+    1. Add module context if moduleId provided
+    1. Add user prompt at the end
   - Use `\n\n---\n\n` separator between major sections
   - Remove old context prepending (now handled in preamble)
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Function signature updated, preamble integrated into prompt structure
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 2: Runner Integration
 
 ### Task 2.1: Update runner to pass iteration state
+
 - **Files**: `src/core/ralph/runner.ts`
 - **Dependencies**: Task 1.2
 - **Action**:
@@ -73,13 +77,14 @@
   - Update variable name from `fullPrompt` to `prompt` (no longer combining here)
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Runner passes all iteration state to buildRalphPrompt, context no longer prepended in runner
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 3: Testing
 
 ### Task 3.1: Add unit tests for buildPromptPreamble
+
 - **Files**: `test/core/ralph/context.test.ts` (create if doesn't exist)
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -93,9 +98,10 @@
   - Verify iteration display formats correctly
 - **Verify**: `bun test test/core/ralph/context.test.ts`
 - **Done When**: Tests pass, all scenarios covered
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 3.2: Add integration test for full prompt structure
+
 - **Files**: `test/core/ralph/context.test.ts`
 - **Dependencies**: Task 1.2
 - **Action**:
@@ -108,9 +114,10 @@
   - Test backward compatibility (no iteration parameters)
 - **Verify**: `bun test test/core/ralph/context.test.ts`
 - **Done When**: Tests pass, prompt structure verified
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 3.3: Manual testing with ralph loop
+
 - **Files**: N/A (testing)
 - **Dependencies**: Task 2.1
 - **Action**:
@@ -125,13 +132,14 @@
   - Verify preamble appears in agent context (check OpenCode logs or output)
 - **Verify**: Manual observation
 - **Done When**: Ralph loop runs successfully with preamble, agent behavior improved
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Wave 4: Type Safety (Optional Enhancement)
 
 ### Task 4.1: Add type for iteration state
+
 - **Files**: `src/core/ralph/types.ts`
 - **Dependencies**: None
 - **Action**:
@@ -149,23 +157,27 @@
   - Update runner to construct and pass `RalphIterationState`
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Type added, functions updated to use it
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Task Status Legend
+
 - `[ ] pending` - Not started yet
 - `[ ] in-progress` - Currently being worked on
 - `[x] complete` - Finished and verified
 
 ## Wave Guidelines
+
 - Waves group related tasks that can be executed in parallel
 - Task dependencies must be complete before starting dependent tasks
 - "after Wave X complete" indicates wave-level dependencies
 - Wave 4 is optional and can be skipped if type safety is not a priority
 
 ## Task Structure
+
 Each task should include:
+
 - **ID**: Unique identifier (wave.task)
 - **Files**: Which files this task affects
 - **Dependencies**: Other tasks that must complete first (or "None")

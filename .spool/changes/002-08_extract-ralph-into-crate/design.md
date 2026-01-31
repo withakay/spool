@@ -5,11 +5,13 @@ Ralph currently ships as a module inside `spool-core` (`spool-core/src/ralph/*`)
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Extract Ralph into a dedicated crate (workspace member).
 - Preserve CLI behavior and on-disk state layout.
 - Keep clear dependency direction (avoid cyclic crate dependencies).
 
 **Non-Goals:**
+
 - Feature work on Ralph itself (this change is refactor-only).
 - Changing the Ralph state file format or path.
 
@@ -18,6 +20,7 @@ Ralph currently ships as a module inside `spool-core` (`spool-core/src/ralph/*`)
 ### Decision: New crate `spool-ralph`
 
 Create `spool-rs/crates/spool-ralph/` (crate name `spool-ralph`, Rust path `spool_ralph`) containing:
+
 - `runner` (the main loop)
 - `state` (context + state read/write)
 - `prompt` (prompt composition)
@@ -42,9 +45,9 @@ This avoids cyclic dependencies and keeps core independent.
 ## Migration Plan
 
 1. Create `spool-ralph` crate and move the Ralph source files.
-2. Update imports and public surface (`RalphOptions`, `run_ralph`, state helpers).
-3. Update `spool-cli` to use the new crate.
-4. Move Ralph tests into `spool-ralph` and ensure `make test` passes.
+1. Update imports and public surface (`RalphOptions`, `run_ralph`, state helpers).
+1. Update `spool-cli` to use the new crate.
+1. Move Ralph tests into `spool-ralph` and ensure `make test` passes.
 
 ## Open Questions
 

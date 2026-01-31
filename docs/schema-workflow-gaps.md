@@ -2,7 +2,7 @@
 
 This document analyzes the complete user journey for working with schemas in Spool, identifies gaps, and proposes a phased solution.
 
----
+______________________________________________________________________
 
 ## Current State
 
@@ -24,7 +24,7 @@ This document analyzes the complete user journey for working with schemas in Spo
 | Schema management CLI | None — manual path discovery required |
 | Project default schema | None — hardcoded to `spec-driven` |
 
----
+______________________________________________________________________
 
 ## User Journey Analysis
 
@@ -33,6 +33,7 @@ This document analyzes the complete user journey for working with schemas in Spo
 **Goal:** User wants to use TDD workflow for a new feature.
 
 **Today's experience:**
+
 ```bash
 spool create change add-auth
 # Creates directory, no schema info stored
@@ -50,17 +51,19 @@ spool status --change add-auth
 ```
 
 **Problems:**
+
 - Schema is a runtime argument, not persisted
 - Easy to forget `--schema` and get wrong results
 - No record of intended schema for future reference
 
----
+______________________________________________________________________
 
 ### Scenario 2: Customizing a Schema
 
 **Goal:** User wants to add a "research" artifact before "proposal".
 
 **Today's experience:**
+
 ```bash
 # Step 1: Figure out where to put overrides
 # Must know XDG conventions:
@@ -88,29 +91,32 @@ cp -r <package-path>/schemas/spec-driven/* \
 ```
 
 **Problems:**
+
 - Must know XDG path conventions
 - Finding npm package path varies by install method
 - No tooling to scaffold or verify
 - No diff capability when upgrading spool
 
----
+______________________________________________________________________
 
 ### Scenario 3: Team Sharing Custom Workflow
 
 **Goal:** Team wants everyone to use the same custom schema.
 
 **Today's options:**
+
 1. Everyone manually sets up XDG override — error-prone, drift risk
-2. Document setup in README — still manual, easy to miss
-3. Publish separate npm package — overkill for most teams
-4. Check schema into repo — **not supported** (no project-local resolution)
+1. Document setup in README — still manual, easy to miss
+1. Publish separate npm package — overkill for most teams
+1. Check schema into repo — **not supported** (no project-local resolution)
 
 **Problems:**
+
 - No project-local schema resolution
 - Can't version control custom schemas with the codebase
 - No single source of truth for team workflow
 
----
+______________________________________________________________________
 
 ## Gap Summary
 
@@ -122,7 +128,7 @@ cp -r <package-path>/schemas/spec-driven/* \
 | No project default schema | Must specify every time | Always pass `--schema` |
 | No init-time schema selection | Missed setup opportunity | Manual config |
 
----
+______________________________________________________________________
 
 ## Proposed Architecture
 
@@ -153,6 +159,7 @@ defaultSchema: spec-driven
 ```
 
 Sets the project-wide default schema. Used when:
+
 - Creating new changes without `--schema`
 - Running commands on changes without `change.yaml`
 
@@ -186,7 +193,7 @@ Project-local takes priority, enabling version-controlled custom schemas.
 4. "spec-driven"                        # Hardcoded fallback
 ```
 
----
+______________________________________________________________________
 
 ## Ideal User Experience
 
@@ -265,7 +272,7 @@ spool init
 #   defaultSchema: spec-driven
 ```
 
----
+______________________________________________________________________
 
 ## Implementation Phases
 
@@ -275,6 +282,7 @@ spool init
 **Solves:** "Forgot --schema", lost context, wrong results
 
 **Scope:**
+
 - Create `change.yaml` when running `spool create change`
 - Store `schema`, `created` timestamp
 - Modify workflow commands to read schema from `change.yaml`
@@ -282,17 +290,19 @@ spool init
 - Backwards compatible: missing `change.yaml` → use default
 
 **change.yaml format:**
+
 ```yaml
 schema: tdd
 created: 2025-01-15T10:30:00Z
 ```
 
 **Migration:**
+
 - Existing changes without `change.yaml` continue to work
 - Default to `spec-driven` (current behavior)
 - Optional: `spool migrate` to add `change.yaml` to existing changes
 
----
+______________________________________________________________________
 
 ### Phase 2: Project-Local Schemas
 
@@ -300,19 +310,21 @@ created: 2025-01-15T10:30:00Z
 **Solves:** Team sharing, version control, no XDG knowledge needed
 
 **Scope:**
+
 - Add `./spool/schemas/` to resolution order (first priority)
 - `spool schema copy <name> [new-name]` creates in project by default
 - `--global` flag for user-level XDG directory
 - Teams can commit `spool/schemas/` to repo
 
 **Resolution order:**
+
 ```
 1. ./spool/schemas/<name>/           # Project-local (NEW)
 2. ~/.local/share/spool/schemas/<name>/  # User global
 3. <npm-package>/schemas/<name>/        # Built-in
 ```
 
----
+______________________________________________________________________
 
 ### Phase 3: Schema Management CLI
 
@@ -320,6 +332,7 @@ created: 2025-01-15T10:30:00Z
 **Solves:** Path discovery, scaffolding, debugging
 
 **Commands:**
+
 ```bash
 spool schema list              # Show available schemas with sources
 spool schema which <name>      # Show resolution path
@@ -329,7 +342,7 @@ spool schema reset <name>      # Remove override
 spool schema validate <name>   # Validate schema.yaml structure
 ```
 
----
+______________________________________________________________________
 
 ### Phase 4: Project Config + Init Enhancement
 
@@ -337,17 +350,19 @@ spool schema validate <name>   # Validate schema.yaml structure
 **Solves:** Project-wide defaults, streamlined setup
 
 **Scope:**
+
 - Add `spool/config.yaml` with `defaultSchema` field
 - `spool init` prompts for schema selection
 - Store selection in `config.yaml`
 - Commands use as fallback when no `change.yaml` exists
 
 **config.yaml format:**
+
 ```yaml
 defaultSchema: spec-driven
 ```
 
----
+______________________________________________________________________
 
 ## Backwards Compatibility
 
@@ -360,7 +375,7 @@ defaultSchema: spec-driven
 
 All existing functionality continues to work. New features are additive.
 
----
+______________________________________________________________________
 
 ## Related Documents
 

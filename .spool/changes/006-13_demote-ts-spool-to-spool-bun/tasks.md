@@ -1,17 +1,19 @@
 # Tasks for: 006-13_demote-ts-spool-to-spool-bun
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 - **Template**: Enhanced task format with waves, verification, and status tracking
 
----
+______________________________________________________________________
 
 ## Wave 1
 
 - **Depends On**: None
 
 ### Task 1.1: Create `spool-bun/` and relocate TypeScript source
+
 - **Files**: `src/**`, `spool-bun/**`
 - **Dependencies**: None
 - **Action**:
@@ -21,9 +23,10 @@
 - **Verify**: `bun test` (or the repo's existing TS test command)
 - **Done When**: The TypeScript codebase builds/tests from its new location without relying on a root `src/`.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.2: Update TS/Bun build config to point at `spool-bun/`
+
 - **Files**: `package.json`, `spool-bun/**` (tsconfig/bunfig/scripts as applicable)
 - **Dependencies**: None
 - **Action**:
@@ -32,15 +35,16 @@
 - **Verify**: `make build` and `make test`
 - **Done When**: The default developer commands still work after the move (or are updated to new defaults per Wave 3).
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 2
 
 - **Depends On**: Wave 1
 
 ### Task 2.1: Mark TypeScript/Bun implementation as deprecated in docs and agent guidance
+
 - **Files**: `AGENTS.md`, `.spool/AGENTS.md`, `spool-bun/**` (new docs/instructions as needed)
 - **Dependencies**: None
 - **Action**:
@@ -50,9 +54,10 @@
 - **Verify**: Manual review
 - **Done When**: A new contributor reading `AGENTS.md` will default to `spool-rs` and understands the legacy status of `spool-bun`.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 2.2: Update template AGENTS content installed by init/update
+
 - **Files**: `src/core/templates/AGENTS.md`, `spool-rs/crates/spool-templates/assets/default/project/AGENTS.md`, `spool-rs/crates/spool-templates/assets/default/project/.spool/AGENTS.md`
 - **Dependencies**: None
 - **Action**:
@@ -61,15 +66,16 @@
 - **Verify**: `spool init` (in a scratch repo) and inspect installed instructions
 - **Done When**: Fresh installs contain correct guidance and do not reference the old root TypeScript layout.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 3
 
 - **Depends On**: Wave 2
 
 ### Task 3.1: Update Makefile to prefer Rust workflows by default
+
 - **Files**: `Makefile`
 - **Dependencies**: None
 - **Action**:
@@ -78,15 +84,16 @@
 - **Verify**: `make build && make test`
 - **Done When**: `make` workflows reflect `spool-rs` as the default supported path.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 4
 
 - **Depends On**: Wave 3
 
 ### Task 4.1: Ensure `spool-rs` installs/executes as `spool`
+
 - **Files**: `spool-rs/**` (CLI packaging/install paths), installer scripts/templates as applicable
 - **Dependencies**: None
 - **Action**:
@@ -95,9 +102,10 @@
 - **Verify**: `cd spool-rs && cargo test --workspace` (plus any packaging smoke test)
 - **Done When**: Installing the supported distribution yields a `spool` command backed by Rust.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 4.2: Stop the legacy TypeScript implementation from claiming `spool` by default
+
 - **Files**: `spool-bun/**` (package metadata, scripts, docs)
 - **Dependencies**: None
 - **Action**:
@@ -106,9 +114,10 @@
 - **Verify**: Legacy build command (as defined post-move)
 - **Done When**: The legacy implementation cannot silently take over the `spool` command.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 4.3: Uninstall legacy TypeScript `spool` from the global cache
+
 - **Files**: `spool-bun/**` (if legacy still manages cache), plus the supported installer/upgrade logic (likely under `spool-rs/**`)
 - **Dependencies**: None
 - **Action**:
@@ -118,15 +127,16 @@
 - **Verify**: Manual repro on a machine with cached legacy `spool`
 - **Done When**: After upgrade, `spool` resolves to the Rust implementation even when legacy caches previously existed.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 5
 
 - **Depends On**: Wave 4
 
 ### Task 5.1: Update/replace parity validations that assumed TypeScript is canonical
+
 - **Files**: `.spool/specs/rust-installers/spec.md` (archived spec), tests under `spool-rs/**`, parity harnesses if present
 - **Dependencies**: None
 - **Action**:
@@ -135,15 +145,16 @@
 - **Verify**: `make test` and `cd spool-rs && cargo test --workspace`
 - **Done When**: CI/tests validate installer outputs without requiring the TypeScript implementation as the reference.
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 6 (Checkpoint)
 
 - **Depends On**: Wave 5
 
 ### Task 6.1: Review support policy and deprecation messaging
+
 - **Type**: checkpoint (requires human approval before proceeding)
 - **Files**: `AGENTS.md`, `.spool/AGENTS.md`, `spool-rs/README.md`, `spool-bun/**`
 - **Dependencies**: None
@@ -152,11 +163,12 @@
   - Confirm the Makefile defaults match the intended supported workflow.
 - **Done When**: Maintainers approve the deprecation policy and default install behavior.
 - **Updated At**: 2026-01-29
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Task Status Legend
+
 - `[ ] pending` - Not started yet
 - `[ ] in-progress` - Currently being worked on
 - `[x] complete` - Finished and verified

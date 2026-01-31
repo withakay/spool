@@ -13,9 +13,11 @@ Strict parity is only practical if we can continuously compare the Rust CLI agai
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-parity-harness`: Rust parity test harness for comparing TS vs Rust `spool`.
 
 ### Modified Capabilities
+
 <!-- None. New test infrastructure. -->
 
 ## Impact

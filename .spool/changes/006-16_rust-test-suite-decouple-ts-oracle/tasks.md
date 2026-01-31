@@ -1,16 +1,18 @@
 # Tasks for: 006-16_rust-test-suite-decouple-ts-oracle
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 
----
+______________________________________________________________________
 
 ## Wave 1
 
 - **Depends On**: None
 
 ### Task 1.1: Add feature flag and gate parity tests
+
 - **Files**: spool-rs/crates/spool-cli/Cargo.toml, spool-rs/crates/spool-cli/tests
 - **Dependencies**: None
 - **Action**:
@@ -20,9 +22,10 @@
 - **Verify**: cargo test -p spool-cli
 - **Done When**: spool-cli tests pass without node/bun
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.2: Move duplicated tree comparison helpers into spool-test-support
+
 - **Files**: spool-rs/crates/spool-test-support/src
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -32,15 +35,16 @@
 - **Verify**: cargo test -p spool-cli
 - **Done When**: test code duplication is reduced and behavior is unchanged
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 2
 
 - **Depends On**: Wave 1
 
 ### Task 2.1: Remove outdated parity-test documentation (if present)
+
 - **Files**: spool-rs/README.md
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -48,4 +52,4 @@
 - **Verify**: cargo test --workspace
 - **Done When**: docs no longer mention parity tests and default tests remain node/bun-free
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete

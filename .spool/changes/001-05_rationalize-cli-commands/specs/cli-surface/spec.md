@@ -5,6 +5,7 @@
 The CLI SHALL expose a small stable top-level command surface that is the only supported UX shown in `spool --help`.
 
 #### Scenario: Top-level help shows only stable commands and visible experimentals
+
 - **WHEN** users execute `spool --help`
 - **THEN** it lists the stable commands:
   - `init`, `update`
@@ -16,6 +17,7 @@ The CLI SHALL expose a small stable top-level command surface that is the only s
   - `x-templates`, `x-schemas`
 
 #### Scenario: Top-level help hides deprecated and internal commands
+
 - **WHEN** users execute `spool --help`
 - **THEN** it does not list deprecated shims or internal commands, including:
   - legacy noun-group shims: `change`, `spec`, `module`, `completion`, `skills`, `view`
@@ -27,6 +29,7 @@ The CLI SHALL expose a small stable top-level command surface that is the only s
 The CLI SHALL NOT expose skills management as part of the supported CLI UX.
 
 #### Scenario: Skills are not visible in help or completion
+
 - **WHEN** users execute `spool --help` or use shell completion
 - **THEN** skills operations are not suggested or documented
 - **AND** users are guided to `spool init` and `spool update` for installing/updating the project instruction set
@@ -36,6 +39,7 @@ The CLI SHALL NOT expose skills management as part of the supported CLI UX.
 The CLI SHALL keep legacy noun-group entrypoints as deprecated compatibility shims.
 
 #### Scenario: Deprecated shims remain callable
+
 - **WHEN** users execute any deprecated shim:
   - `spool change <subcommand>`
   - `spool spec <subcommand>`
@@ -47,6 +51,7 @@ The CLI SHALL keep legacy noun-group entrypoints as deprecated compatibility shi
 - **AND** prints a deprecation warning pointing to the equivalent verb-first command(s)
 
 #### Scenario: Deprecated shims are omitted from completion
+
 - **WHEN** users use shell completion
 - **THEN** deprecated shims are not suggested as top-level commands
 
@@ -55,6 +60,7 @@ The CLI SHALL keep legacy noun-group entrypoints as deprecated compatibility shi
 The CLI SHALL keep legacy verb entrypoints as deprecated compatibility shims.
 
 #### Scenario: Deprecated verbs remain callable
+
 - **WHEN** users execute any deprecated verb shim:
   - `spool get|set|unset|reset|edit|path ...`
   - `spool generate|install|uninstall ...`
@@ -68,6 +74,7 @@ The CLI SHALL keep legacy verb entrypoints as deprecated compatibility shims.
 The CLI SHALL keep the legacy `view` entrypoint as a deprecated alias for `dashboard`.
 
 #### Scenario: View alias delegates to dashboard
+
 - **WHEN** users execute `spool view`
 - **THEN** it behaves like `spool dashboard`
 - **AND** prints a deprecation warning pointing to `spool dashboard`

@@ -5,11 +5,13 @@ These commands operate on workflow YAML/state and are sensitive to ordering and 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Implement plan/tasks/workflow/state commands.
 - Match TS output and on-disk schema.
 - Provide deterministic ordering for snapshots.
 
 **Non-Goals:**
+
 - Introduce a new workflow format.
 
 ## Decisions

@@ -7,12 +7,14 @@ Padding has value for alphabetical sorting, but correctness and removing hard li
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Allow any (practical) non-negative integer change number (e.g. 100, 1234) in `spool-rs` without parse/validation failures.
 - Preserve existing IDs and behavior for change numbers 0-99.
 - Keep canonicalization predictable: minimum 2-digit padding, no truncation.
 - Add Rust tests to cover 3+ digit change numbers.
 
 **Non-Goals:**
+
 - Renaming existing on-disk change directories to a new fixed width.
 - Guaranteeing lexicographic sort order matches numeric order once change numbers exceed 99.
 - Expanding module IDs beyond 3 digits (999) in this change.
@@ -27,10 +29,12 @@ The Rust parser currently enforces `changeNum <= 99`. We will remove that check.
 ### Decision: Keep minimum padding, allow overflow
 
 Canonical change number formatting will remain:
+
 - `pad to at least 2 digits`, but
 - do not truncate numbers that exceed 2 digits.
 
 Examples:
+
 - `1-2_name` -> `001-02_name`
 - `1-100_name` -> `001-100_name`
 
@@ -42,7 +46,7 @@ This change adds a `spool-rs`-scoped spec for the overflow behavior. Project-wid
 
 ## Risks / Trade-offs
 
-- [Lexicographic ordering] `001-100_*` may not sort after `001-99_*` in all listings.
+- \[Lexicographic ordering\] `001-100_*` may not sort after `001-99_*` in all listings.
   -> Mitigation: treat ordering as best-effort; tooling should not rely on directory sorting for correctness.
-- [Drift between TS and Rust] Updating `spool-rs` only means behavior diverges.
+- \[Drift between TS and Rust\] Updating `spool-rs` only means behavior diverges.
   -> Mitigation: keep this change explicitly scoped to `spool-rs` and follow up with TS parity when ready.

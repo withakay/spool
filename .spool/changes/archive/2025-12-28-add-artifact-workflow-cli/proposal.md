@@ -1,6 +1,7 @@
 ## Why
 
 The ArtifactGraph (Slice 1) and InstructionLoader (Slice 3) provide programmatic APIs for artifact-based workflow management. Users currently have no CLI interface to:
+
 - See artifact completion status for a change
 - Discover what artifacts are ready to create
 - Get enriched instructions for creating artifacts
@@ -17,6 +18,7 @@ This proposal adds CLI commands that expose the artifact workflow functionality 
 - **NEW**: `spool new change <name>` creates a new change directory
 
 All commands are top-level for fluid UX. They integrate with existing core modules:
+
 - Uses `loadChangeContext()`, `formatChangeStatus()`, `generateInstructions()` from instruction-loader
 - Uses `ArtifactGraph`, `detectCompleted()` from artifact-graph
 - Uses `createChange()`, `validateChangeName()` from change-utils

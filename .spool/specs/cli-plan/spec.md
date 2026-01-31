@@ -135,9 +135,9 @@ The CLI SHALL generate high-quality templates that follow Spool conventions and 
 Project-level planning is essential for long-running AI-assisted development. These commands provide:
 
 1. **Session continuity**: STATE.md persists context across coding sessions
-2. **Stakeholder alignment**: PROJECT.md captures vision, constraints, and success criteria
-3. **Milestone tracking**: ROADMAP.md provides phased execution plan
-4. **Decision history**: Record decisions to avoid revisiting settled issues
-5. **Blocker visibility**: Track and communicate obstacles to progress
+1. **Stakeholder alignment**: PROJECT.md captures vision, constraints, and success criteria
+1. **Milestone tracking**: ROADMAP.md provides phased execution plan
+1. **Decision history**: Record decisions to avoid revisiting settled issues
+1. **Blocker visibility**: Track and communicate obstacles to progress
 
 Without these tools, teams must manually maintain project planning artifacts, leading to lost context, unclear priorities, and difficulty onboarding new AI assistants or team members.

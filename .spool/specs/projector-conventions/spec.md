@@ -3,7 +3,9 @@
 ## Purpose
 
 Spool conventions SHALL define how system capabilities are documented, how changes are proposed and tracked, and how specifications evolve over time. This meta-specification serves as the source of truth for Spool's own conventions.
+
 ## Requirements
+
 ### Requirement: Structured conventions for specs and changes
 
 Spool conventions SHALL mandate a structured spec format with clear requirement and scenario sections so tooling can parse consistently.
@@ -14,11 +16,14 @@ Spool conventions SHALL mandate a structured spec format with clear requirement 
 - **THEN** authors SHALL use `### Requirement: ...` followed by at least one `#### Scenario: ...` section
 
 ### Requirement: Project Structure
+
 An Spool project SHALL maintain a consistent directory structure for specifications and changes.
 
 #### Scenario: Initializing project structure
+
 - **WHEN** an Spool project is initialized
 - **THEN** it SHALL have this structure:
+
 ```
 spool/
 ├── project.md              # Project-specific context
@@ -108,7 +113,7 @@ Change proposals SHALL store only the additions, modifications, and removals to 
 - **AND** each requirement SHALL include its complete content
 - **AND** use the standard structured format for requirements and scenarios
 
-#### Scenario: Creating change proposals with modifications  
+#### Scenario: Creating change proposals with modifications
 
 - **WHEN** creating a change proposal that modifies existing requirements
 - **THEN** include the modified requirements under `## MODIFIED Requirements`
@@ -125,6 +130,7 @@ Change proposals SHALL store only the additions, modifications, and removals to 
 - **AND** document any migration path if applicable
 
 The `changes/[name]/specs/` directory SHALL contain:
+
 - Delta files showing only what changes
 - Sections for ADDED, MODIFIED, REMOVED, and RENAMED requirements
 - Normalized header matching for requirement identification
@@ -149,9 +155,9 @@ The archive process SHALL programmatically apply delta changes to current specif
 - **WHEN** archiving a completed change
 - **THEN** the archive command SHALL:
   1. Parse RENAMED sections first and apply renames
-  2. Parse REMOVED sections and remove by normalized header match
-  3. Parse MODIFIED sections and replace by normalized header match (using new names if renamed)
-  4. Parse ADDED sections and append new requirements
+  1. Parse REMOVED sections and remove by normalized header match
+  1. Parse MODIFIED sections and replace by normalized header match (using new names if renamed)
+  1. Parse ADDED sections and append new requirements
 - **AND** validate that all MODIFIED/REMOVED headers exist in current spec
 - **AND** validate that ADDED headers don't already exist
 - **AND** generate the updated spec in the main specs/ directory
@@ -205,19 +211,23 @@ Behavioral specifications SHALL adopt the structured format with `### Requiremen
 - **AND** use `#### Scenario:` for scenarios with bold WHEN/THEN/AND keywords
 
 ### Requirement: Verb–Noun CLI Command Structure
+
 Spool CLI design SHALL use verbs as top-level commands with nouns provided as arguments or flags for scoping.
 
 #### Scenario: Verb-first command discovery
+
 - **WHEN** a user runs a command like `spool list`
 - **THEN** the verb communicates the action clearly
 - **AND** nouns refine scope via flags or arguments (e.g., `--changes`, `--specs`)
 
 #### Scenario: Backward compatibility for noun commands
+
 - **WHEN** users run noun-prefixed commands such as `spool spec ...` or `spool change ...`
 - **THEN** the CLI SHALL continue to support them for at least one release
 - **AND** display a deprecation warning that points to verb-first alternatives
 
 #### Scenario: Disambiguation guidance
+
 - **WHEN** item names are ambiguous between changes and specs
 - **THEN** `spool show` and `spool validate` SHALL accept `--type spec|change`
 - **AND** the help text SHALL document this clearly
@@ -225,6 +235,7 @@ Spool CLI design SHALL use verbs as top-level commands with nouns provided as ar
 ## Core Principles
 
 The system SHALL follow these principles:
+
 - Specs reflect what IS currently built and deployed
 - Changes contain proposals for what SHOULD be changed
 - AI drives the documentation process
@@ -240,6 +251,7 @@ An Spool project SHALL maintain a consistent directory structure for specificati
 
 - **WHEN** an Spool project is initialized
 - **THEN** it SHALL have this structure:
+
 ```
 spool/
 ├── project.md              # Project-specific context
@@ -333,7 +345,7 @@ Change proposals SHALL store only the additions, modifications, and removals to 
 - **AND** each requirement SHALL include its complete content
 - **AND** use the standard structured format for requirements and scenarios
 
-#### Scenario: Creating change proposals with modifications  
+#### Scenario: Creating change proposals with modifications
 
 - **WHEN** creating a change proposal that modifies existing requirements
 - **THEN** include the modified requirements under `## MODIFIED Requirements`
@@ -350,6 +362,7 @@ Change proposals SHALL store only the additions, modifications, and removals to 
 - **AND** document any migration path if applicable
 
 The `changes/[name]/specs/` directory SHALL contain:
+
 - Delta files showing only what changes
 - Sections for ADDED, MODIFIED, REMOVED, and RENAMED requirements
 - Normalized header matching for requirement identification
@@ -374,9 +387,9 @@ The archive process SHALL programmatically apply delta changes to current specif
 - **WHEN** archiving a completed change
 - **THEN** the archive command SHALL:
   1. Parse RENAMED sections first and apply renames
-  2. Parse REMOVED sections and remove by normalized header match
-  3. Parse MODIFIED sections and replace by normalized header match (using new names if renamed)
-  4. Parse ADDED sections and append new requirements
+  1. Parse REMOVED sections and remove by normalized header match
+  1. Parse MODIFIED sections and replace by normalized header match (using new names if renamed)
+  1. Parse ADDED sections and append new requirements
 - **AND** validate that all MODIFIED/REMOVED headers exist in current spec
 - **AND** validate that ADDED headers don't already exist
 - **AND** generate the updated spec in the main specs/ directory
@@ -412,12 +425,12 @@ This explicit format compensates for not having inline diffs and ensures reviewe
 The change process SHALL follow these states:
 
 1. **Propose**: AI creates change with future state specs and explicit proposal
-2. **Review**: Humans review proposal and future state
-3. **Approve**: Change is approved for implementation
-4. **Implement**: Follow tasks.md checklist (can span multiple PRs)
-5. **Deploy**: Changes are deployed to production
-6. **Update**: Specs in `specs/` are updated to match deployed reality
-7. **Archive**: Change is moved to `archive/YYYY-MM-DD-[name]/`
+1. **Review**: Humans review proposal and future state
+1. **Approve**: Change is approved for implementation
+1. **Implement**: Follow tasks.md checklist (can span multiple PRs)
+1. **Deploy**: Changes are deployed to production
+1. **Update**: Specs in `specs/` are updated to match deployed reality
+1. **Archive**: Change is moved to `archive/YYYY-MM-DD-[name]/`
 
 ## Viewing Changes
 
@@ -438,6 +451,7 @@ The system relies on tools to generate diffs rather than storing them.
 ## Capability Naming
 
 Capabilities SHALL use:
+
 - Verb-noun patterns (e.g., `user-auth`, `payment-capture`)
 - Hyphenated lowercase names
 - Singular focus (one responsibility per capability)
@@ -446,6 +460,7 @@ Capabilities SHALL use:
 ## When Changes Require Proposals
 
 A proposal SHALL be created for:
+
 - New features or capabilities
 - Breaking changes to existing behavior
 - Architecture or pattern changes
@@ -453,6 +468,7 @@ A proposal SHALL be created for:
 - Security updates affecting access patterns
 
 A proposal is NOT required for:
+
 - Bug fixes restoring intended behavior
 - Typos or formatting fixes
 - Non-breaking dependency updates
@@ -462,6 +478,7 @@ A proposal is NOT required for:
 ## Why This Approach
 
 Clean future state storage provides:
+
 - **Readability**: No diff syntax pollution
 - **AI-compatibility**: Standard markdown that AI tools understand
 - **Simplicity**: No special parsing or processing needed
@@ -469,6 +486,7 @@ Clean future state storage provides:
 - **Clear intent**: Explicit proposals document reasoning
 
 The structured format adds:
+
 - **Visual Consistency**: Requirement and Scenario prefixes make sections instantly recognizable
 - **Parseability**: Consistent structure enables tooling and automation
 - **Gradual Adoption**: Existing specs can migrate incrementally

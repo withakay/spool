@@ -11,6 +11,7 @@ Port `spool init` and `spool update` installers to Rust, preserving byte-for-byt
 The Rust implementation MUST only replace managed blocks and MUST preserve user-owned content outside markers.
 
 #### Scenario: Update preserves user edits
+
 - GIVEN a file containing a managed marker block and user edits outside the block
 - WHEN `spool update` is run
 - THEN only the managed block content is replaced
@@ -21,6 +22,7 @@ The Rust implementation MUST only replace managed blocks and MUST preserve user-
 When run in non-interactive mode, Rust MUST produce the same files and bytes as TypeScript.
 
 #### Scenario: `init` output tree matches
+
 - GIVEN a clean repository
 - WHEN `spool init` is run with non-interactive flags
 - THEN Rust produces the same file tree as TypeScript
@@ -31,6 +33,7 @@ When run in non-interactive mode, Rust MUST produce the same files and bytes as 
 Installer outputs MUST use the correct path conventions.
 
 #### Scenario: OpenCode singular directories
+
 - GIVEN OpenCode installation selected
 - WHEN `spool init` installs skills/commands/plugins
 - THEN it writes under `.opencode/skill/`, `.opencode/command/`, and `.opencode/plugin/`

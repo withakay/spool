@@ -5,11 +5,13 @@ Installers must preserve user-owned content and only replace managed blocks. Ope
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Implement installers and marker-managed editing in Rust.
 - Ensure outputs match TypeScript exactly in non-interactive mode.
 - Ensure interactive selections behave equivalently (PTY tests as needed).
 
 **Non-Goals:**
+
 - Redesign templates or file layouts.
 
 ## Decisions

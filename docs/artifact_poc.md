@@ -1,6 +1,6 @@
 # POC-Spool-Core Analysis
 
----
+______________________________________________________________________
 
 ## Design Decisions & Terminology
 
@@ -57,11 +57,13 @@ Schemas follow the XDG Base Directory Specification with a 2-level resolution:
 ```
 
 **Platform-specific paths:**
+
 - Unix/macOS: `~/.local/share/spool/schemas/`
 - Windows: `%LOCALAPPDATA%/spool/schemas/`
 - All platforms: `$XDG_DATA_HOME/spool/schemas/` (when set)
 
 **Why XDG?**
+
 - Schemas are workflow definitions (data), not user preferences (config)
 - Built-ins baked into package, never auto-copied
 - Users customize by creating files in global data dir
@@ -77,28 +79,31 @@ Templates are co-located with schemas in a `templates/` subdirectory:
 ```
 
 **Rules:**
+
 - User overrides take precedence over package built-ins
 - A CLI command shows resolved paths (no guessing)
 - No inheritance between schemas (copy if you need to diverge)
 - Templates are always co-located with their schema
 
 **Why this matters:**
+
 - Avoids "where does this come from?" debugging
 - No implicit magic that works until it doesn't
 - Schema + templates form a cohesive unit
 
----
+______________________________________________________________________
 
 ## Executive Summary
 
 This is an **artifact tracker with dependency awareness** that guides iterative development through a structured artifact pipeline. The core innovation is using the **filesystem as a database** - artifact completion is detected by file existence, making the system stateless and version-control friendly.
 
 The system answers:
+
 - "What artifacts exist for this change?"
 - "What could I create next?" (not "what must I create")
 - "What's blocking X?" (informational, not prescriptive)
 
----
+______________________________________________________________________
 
 ## Core Components
 
@@ -139,6 +144,7 @@ type SchemaYaml = z.infer<typeof SchemaYamlSchema>;
 ```
 
 **Key Methods:**
+
 - `resolveSchema(name)` - Load schema with XDG fallback
 - `ArtifactGraph.fromSchema(schema)` - Build graph from schema
 - `detectState(graph, changeDir)` - Scan filesystem for completion
@@ -146,7 +152,7 @@ type SchemaYaml = z.infer<typeof SchemaYamlSchema>;
 - `getBuildOrder(graph)` - Topological sort of all artifacts
 - `getBlocked(graph, completed)` - Artifacts with unmet dependencies
 
----
+______________________________________________________________________
 
 ### 2. Change Utilities (Slice 2)
 
@@ -164,12 +170,13 @@ spool/changes/<name>/   → Change instances with artifacts (project-level)
 ```
 
 **Key Functions** (`src/utils/change-utils.ts`):
+
 - `createChange(projectRoot, name, description?)` - Create new change directory + README
 - `validateChangeName(name)` - Validate kebab-case naming, returns `{ valid, error? }`
 
 **Note:** Existing CLI commands (`ListCommand`, `ChangeCommand`) already handle listing, path resolution, and existence checks. No need to extract that logic - it works fine as-is.
 
----
+______________________________________________________________________
 
 ### 3. InstructionLoader (Slice 3)
 
@@ -199,11 +206,12 @@ ChangeState {
 ```
 
 **Key Functions:**
+
 - `getTemplatePath(artifactId, schemaName?)` - Resolve with 2-level fallback
 - `getEnrichedInstructions(artifactId, projectRoot, changeName?)` - Main entry point
 - `getChangeStatus(projectRoot, changeName?)` - Formatted status report
 
----
+______________________________________________________________________
 
 ### 4. CLI (Slice 4)
 
@@ -222,12 +230,13 @@ User interface layer. **All commands are deterministic** - require explicit `--c
 **Note:** Commands that operate on a change require `--change`. Missing parameter → error with list of available changes. Agent infers the change from conversation and passes it explicitly.
 
 **Existing CLI commands** (not part of this slice):
+
 - `spool change list` / `spool change show <id>` / `spool change validate <id>`
 - `spool list --changes` / `spool list --specs`
 - `spool dashboard`
 - `spool init` / `spool archive <change>`
 
----
+______________________________________________________________________
 
 ### 5. Claude Commands
 
@@ -243,16 +252,17 @@ Integration layer for Claude Code. **Operational commands only** - artifact crea
 | `/init` | Initialize structure |
 
 **Artifact creation:** Users say "create the proposal" or "write the tests" in natural language. The agent:
+
 1. Infers change from conversation (confirms if uncertain)
-2. Infers artifact from request
-3. Calls CLI with explicit `--change` parameter
-4. Creates artifact following instructions
+1. Infers artifact from request
+1. Calls CLI with explicit `--change` parameter
+1. Creates artifact following instructions
 
 This works for ANY artifact in ANY schema - no new slash commands needed when schemas change.
 
 **Note:** Legacy commands (`/spool-proposal`, `/spool-apply`, `/spool-archive`) exist in the main project for backward compatibility but are separate from this architecture.
 
----
+______________________________________________________________________
 
 ## Component Dependency Graph
 
@@ -297,7 +307,7 @@ This works for ANY artifact in ANY schema - no new slash commands needed when sc
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## Key Design Patterns
 
@@ -324,6 +334,7 @@ spool status                          # error: "No change specified"
 **Agent layer:** Infers from conversation, confirms if uncertain, passes explicit `--change`.
 
 This separation means:
+
 - CLI is pure, testable, no state to corrupt
 - Agent handles all "smartness"
 - No config.yaml tracking of "active change"
@@ -365,7 +376,7 @@ if (artifact.generates.includes("*")) {
 
 Every command re-scans the filesystem. No cached state to corrupt.
 
----
+______________________________________________________________________
 
 ## Artifact Pipeline (Default Schema)
 
@@ -396,19 +407,20 @@ The default `spec-driven` schema:
 
 Other schemas (TDD, prototype-first) would have different graphs.
 
----
+______________________________________________________________________
 
 ## Implementation Order
 
 Structured as **vertical slices** - each slice is independently testable.
 
----
+______________________________________________________________________
 
 ### Slice 1: "What's Ready?" (Core Query) ✅ COMPLETE
 
 **Delivers:** Types + Graph + State Detection + Schema Resolution
 
 **Implementation:** `src/core/artifact-graph/`
+
 - `types.ts` - Zod schemas and derived TypeScript types
 - `schema.ts` - YAML parsing with Zod validation
 - `graph.ts` - ArtifactGraph class with topological sort
@@ -417,22 +429,25 @@ Structured as **vertical slices** - each slice is independently testable.
 - `builtin-schemas.ts` - Package-bundled default schemas
 
 **Key decisions made:**
+
 - Zod for schema validation (consistent with project)
 - XDG for global schema overrides
 - `Set<string>` for completion state (immutable, functional)
 - `inProgress` and `failed` states deferred (require external tracking)
 
----
+______________________________________________________________________
 
 ### Slice 2: "Change Creation Utilities"
 
 **Delivers:** Utility functions for programmatic change creation
 
 **Scope:**
+
 - `createChange(projectRoot, name, description?)` → creates directory + README
 - `validateChangeName(name)` → kebab-case pattern enforcement
 
 **Not in scope (already exists in CLI commands):**
+
 - `listChanges()` → exists in `ListCommand` and `ChangeCommand.getActiveChanges()`
 - `getChangePath()` → simple `path.join()` inline
 - `changeExists()` → simple `fs.access()` inline
@@ -440,24 +455,26 @@ Structured as **vertical slices** - each slice is independently testable.
 
 **Why simplified:** Extracting existing CLI logic into a class would require similar refactoring of `SpecCommand` for consistency. The existing code works fine (~15 lines each). Only truly new functionality is `createChange()` + name validation.
 
----
+______________________________________________________________________
 
 ### Slice 3: "Get Instructions" (Enrichment)
 
 **Delivers:** Template resolution + context injection
 
 **Testable behaviors:**
+
 - Template fallback: schema-specific → shared → built-in → error
 - Context injection: completed deps show ✓, missing show ✗
 - Output path shown correctly based on change directory
 
----
+______________________________________________________________________
 
 ### Slice 4: "CLI + Integration"
 
 **Delivers:** New artifact graph commands (builds on existing CLI)
 
 **New commands:**
+
 - `status --change <id>` - Show artifact completion state
 - `next --change <id>` - Show ready-to-create artifacts
 - `instructions <artifact> --change <id>` - Get enriched template
@@ -465,17 +482,19 @@ Structured as **vertical slices** - each slice is independently testable.
 - `new <name>` - Create change (wrapper for `createChange()`)
 
 **Already exists (not in scope):**
+
 - `spool change list/show/validate` - change management
 - `spool list --changes/--specs` - listing
 - `spool dashboard`
 - `spool init` - initialization
 
 **Testable behaviors:**
+
 - Each new command produces expected output
 - Commands compose correctly (status → next → instructions flow)
 - Error handling for missing changes, invalid artifacts, etc.
 
----
+______________________________________________________________________
 
 ## Directory Structure
 
@@ -527,7 +546,7 @@ spool/
     └── *.md
 ```
 
----
+______________________________________________________________________
 
 ## Schema YAML Format
 
@@ -568,7 +587,7 @@ artifacts:
       - design
 ```
 
----
+______________________________________________________________________
 
 ## Summary
 
@@ -581,6 +600,7 @@ artifacts:
 | Integration | Claude Commands | AI assistant glue | Slice 4 |
 
 **What already exists (not in this proposal):**
+
 - `getActiveChangeIds()` in `src/utils/item-discovery.ts` - list changes
 - `ChangeCommand.list/show/validate()` in `src/commands/change.ts`
 - `ListCommand.execute()` in `src/core/list.ts`
@@ -589,6 +609,7 @@ artifacts:
 - `src/core/archive.ts` - archiving
 
 **Key Principles:**
+
 - **Filesystem IS the database** - stateless, version-control friendly
 - **Dependencies are enablers** - show what's possible, don't force order
 - **Deterministic CLI, inferring agent** - CLI requires explicit `--change`, agent infers from context

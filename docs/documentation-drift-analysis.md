@@ -3,7 +3,7 @@
 **Date**: 2026-01-18
 **Purpose**: Identify and document areas where Spool documentation has drifted from the original OpenSpec spec
 
----
+______________________________________________________________________
 
 ## Executive Summary
 
@@ -11,11 +11,12 @@ Spool is a fork of OpenSpec that has added significant features for project-cent
 
 **Key Finding**: The primary drift is not in documentation, but in **feature additions** and **directory structure changes** that extend beyond the original OpenSpec scope.
 
----
+______________________________________________________________________
 
 ## 1. Directory Structure Changes
 
 ### Original OpenSpec
+
 ```
 spool/
 ├── AGENTS.md
@@ -31,6 +32,7 @@ spool/
 ```
 
 ### Current Spool
+
 ```
 .spool/                          # ← Hidden directory (changed from spool/)
 ├── AGENTS.md                         # Root-level instructions (was in spool/)
@@ -81,7 +83,7 @@ spool/
 
 **Critical Issue**: The `cli-init/spec.md` spec explicitly creates a `spool/` directory, but the README says the default is `.spool/`. This is a **documentation vs implementation inconsistency**.
 
----
+______________________________________________________________________
 
 ## 2. Spec Format Drift
 
@@ -105,6 +107,7 @@ Descriptive text explaining the requirement.
 ```
 
 **Key Conventions**:
+
 - `### Requirement:` headers with SHALL statements
 - `#### Scenario:` headers with structured WHEN/THEN/AND format
 - Bold keywords: `**WHEN**`, `**THEN**`, `**AND**`
@@ -115,6 +118,7 @@ Descriptive text explaining the requirement.
 **Same as original OpenSpec** - ✅ No drift detected.
 
 The `spool-conventions/spec.md` explicitly defines and maintains the original format:
+
 - `### Requirement:` + descriptive text
 - `#### Scenario:` + bold WHEN/THEN/AND
 - Non-breaking gradual migration support
@@ -122,7 +126,7 @@ The `spool-conventions/spec.md` explicitly defines and maintains the original fo
 
 **Documentation Accuracy**: ✅ Spec format documentation is consistent.
 
----
+______________________________________________________________________
 
 ## 3. Change Proposal Format Drift
 
@@ -160,6 +164,7 @@ Description of impact on existing functionality.
 ```
 
 **Key Enhancements**:
+
 - Explicit `## Capabilities` section
 - Separate `New` and `Modified` capabilities
 - Structured `## Impact` section
@@ -167,7 +172,7 @@ Description of impact on existing functionality.
 
 **Documentation Accuracy**: ✅ Templates match documentation.
 
----
+______________________________________________________________________
 
 ## 4. Features Added Beyond OpenSpec
 
@@ -179,7 +184,7 @@ Description of impact on existing functionality.
 
 **Status**: ✅ Documented in README and `project-planning-research-proposal.md`
 
----
+______________________________________________________________________
 
 ### 4.2 Research Phase (NEW)
 
@@ -189,13 +194,14 @@ Description of impact on existing functionality.
 
 **Status**: ✅ Documented in README and `project-planning-research-proposal.md`
 
----
+______________________________________________________________________
 
 ### 4.3 Enhanced Tasks Format (ENHANCED)
 
 **File**: `changes/<id>/tasks.md`
 
 **Changes from original**:
+
 - Waves (grouping and parallelizable chunks)
 - Explicit `Verify` commands
 - `Done When` acceptance criteria
@@ -206,7 +212,7 @@ Description of impact on existing functionality.
 
 **Gap**: The enhanced tasks format is documented but the template hasn't been updated.
 
----
+______________________________________________________________________
 
 ### 4.4 Adversarial Review (NEW)
 
@@ -216,7 +222,7 @@ Description of impact on existing functionality.
 
 **Status**: ✅ Documented in `project-planning-research-proposal.md`
 
----
+______________________________________________________________________
 
 ### 4.5 Workflow Orchestration (NEW)
 
@@ -225,6 +231,7 @@ Description of impact on existing functionality.
 **Purpose**: YAML-defined workflows with waves, tasks, and checkpoints.
 
 **Commands**:
+
 - `spool workflow init`
 - `spool workflow list`
 - `spool workflow show <workflow>`
@@ -233,7 +240,7 @@ Description of impact on existing functionality.
 
 **Status**: ✅ Documented in README
 
----
+______________________________________________________________________
 
 ### 4.6 Agent Configuration (NEW)
 
@@ -242,6 +249,7 @@ Description of impact on existing functionality.
 **Purpose**: Per-tool model selection and context budgets.
 
 **Commands**:
+
 - `spool agent-config init`
 - `spool agent-config summary`
 - `spool agent-config get <path>`
@@ -251,22 +259,23 @@ Description of impact on existing functionality.
 
 **Gap**: Feature is documented but not fully specified.
 
----
+______________________________________________________________________
 
 ### 4.7 Schema Customization (ENHANCED)
 
 **Feature**: 2-level schema resolution (XDG user override → package built-in).
 
 **Resolution Order**:
+
 1. `./spool/schemas/<name>/` (NEW: Project-local)
-2. `~/.local/share/spool/schemas/<name>/` (User global)
-3. `<npm-package>/schemas/<name>/` (Built-in)
+1. `~/.local/share/spool/schemas/<name>/` (User global)
+1. `<npm-package>/schemas/<name>/` (Built-in)
 
 **Status**: ✅ Documented in `schema-customization.md` and `schema-workflow-gaps.md`
 
 **Gap**: Schema management CLI (`spool schema list/copy/diff/reset`) is **proposed but not implemented**.
 
----
+______________________________________________________________________
 
 ### 4.8 Change Metadata (PROPOSED)
 
@@ -284,7 +293,7 @@ description: Add user authentication system
 
 **Gap**: Feature is proposed but not specified or implemented.
 
----
+______________________________________________________________________
 
 ## 5. CLI Command Extensions
 
@@ -311,7 +320,7 @@ description: Add user authentication system
 | `spool change` | `show`, `list`, `validate` subcommands | ✅ Implemented |
 | `spool archive` | Change arguments, dry-run | ✅ Implemented |
 
----
+______________________________________________________________________
 
 ## 6. Documentation Quality Issues
 
@@ -320,6 +329,7 @@ description: Add user authentication system
 **Issue**: Mixed use of `spool/` and `.spool/` across documentation.
 
 **Examples**:
+
 - `cli-init/spec.md:28-34` creates `spool/` directory
 - `cli-validate/spec.md:13` references `spool/changes/`
 - `README.md` consistently uses `.spool/`
@@ -327,13 +337,14 @@ description: Add user authentication system
 
 **Recommendation**: Audit all documentation and standardize on `.spool/` for the working directory. Update `cli-init/spec.md` to reflect the actual implementation.
 
----
+______________________________________________________________________
 
 ### 6.2 Missing Implementation Specs
 
 **Issue**: Features are documented in README or proposals but lack corresponding spec files.
 
 **Examples**:
+
 - `agent-config` commands: No spec in `.spool/specs/`
 - `plan` commands: No spec in `.spool/specs/`
 - `research` commands: No spec in `.spool/specs/`
@@ -344,13 +355,14 @@ description: Add user authentication system
 
 **Recommendation**: Create spec files for each command group following the established `cli-*` spec pattern.
 
----
+______________________________________________________________________
 
 ### 6.3 Template Drift
 
 **Issue**: The `tasks.md` template doesn't reflect the enhanced format documented in proposals.
 
 **Current Template** (`schemas/spec-driven/templates/tasks.md`):
+
 ```markdown
 ## Tasks
 - [ ] Task 1
@@ -358,6 +370,7 @@ description: Add user authentication system
 ```
 
 **Documented Format** (`project-planning-research-proposal.md`):
+
 ```markdown
 ## Wave 1
 
@@ -372,7 +385,7 @@ description: Add user authentication system
 
 **Recommendation**: Update the `tasks.md` template to match the documented enhanced format.
 
----
+______________________________________________________________________
 
 ### 6.4 Deprecated Documentation
 
@@ -384,7 +397,7 @@ description: Add user authentication system
 
 **Recommendation**: Add migration notes or deprecation headers to archived documents.
 
----
+______________________________________________________________________
 
 ## 7. Spec Compliance Analysis
 
@@ -402,7 +415,7 @@ description: Add user authentication system
 
 **Overall**: ✅ Spec format is consistent and follows original OpenSpec conventions.
 
----
+______________________________________________________________________
 
 ### 7.2 Change Proposal Compliance
 
@@ -414,57 +427,65 @@ description: Add user authentication system
 
 **Overall**: ✅ Change proposals follow the enhanced Spool format.
 
----
+______________________________________________________________________
 
 ## 8. Recommendations
 
 ### 8.1 High Priority
 
 1. **Fix directory name inconsistency**:
+
    - Update `cli-init/spec.md` to use `.spool/`
    - Update `cli-validate/spec.md` to use `.spool/`
    - Add a migration note in README explaining the change from `spool/` to `.spool/`
 
-2. **Create missing spec files**:
+1. **Create missing spec files**:
+
    - `cli-plan/spec.md` for `spool plan` commands
    - `cli-research/spec.md` for `spool research` commands
    - `cli-tasks/spec.md` for `spool tasks` commands
    - `cli-workflow/spec.md` for `spool workflow` commands
    - `cli-agent-config/spec.md` for `spool agent-config` commands
 
-3. **Update tasks.md template**:
+1. **Update tasks.md template**:
+
    - Reflect the enhanced format with waves, verify commands, and status tracking
 
----
+______________________________________________________________________
 
 ### 8.2 Medium Priority
 
 4. **Implement proposed features**:
+
    - `change.yaml` metadata (as proposed in `schema-workflow-gaps.md`)
    - Schema management CLI (`spool schema list/copy/diff/reset`)
    - Project-local schema resolution
 
-5. **Document migration path**:
+1. **Document migration path**:
+
    - Add migration guide for users with `spool/` directories
    - Document how to upgrade from older Spool versions
 
----
+______________________________________________________________________
 
 ### 8.3 Low Priority
 
 6. **Clean up archived documentation**:
+
    - Add deprecation headers to archived changes
    - Update outdated path references in archive
 
-7. **Improve documentation cross-references**:
+1. **Improve documentation cross-references**:
+
    - Add links between related documentation files
    - Create a comprehensive index of all Spool features
 
----
+______________________________________________________________________
 
 ## 9. Conclusion
 
 **Summary**:
+
 - ✅ **Core spec format** is fully compliant with original OpenSpec
 - ✅ **Change proposal format** follows documented conventions
 - ⚠️ **Directory structure** has inconsistencies between documentation and specs
@@ -472,17 +493,19 @@ description: Add user authentication system
 - ⚠️ **Template drift**: Tasks template doesn't match documented enhancements
 
 **Assessment**: Spool has successfully maintained the original OpenSpec core conventions while significantly extending the feature set. The primary documentation drift issues are:
+
 1. Inconsistent directory naming (spool/ vs .spool/)
-2. Missing spec files for documented features
-3. Outdated templates that don't reflect enhanced formats
+1. Missing spec files for documented features
+1. Outdated templates that don't reflect enhanced formats
 
 **Next Steps**: Address high-priority recommendations to align documentation, specs, and implementation.
 
----
+______________________________________________________________________
 
 ## Appendix A: File Inventory
 
 ### Documentation Files
+
 - `README.md` - Main project documentation
 - `AGENTS.md` - AI assistant instructions (root level)
 - `.spool/AGENTS.md` - AI assistant instructions (spool level)
@@ -492,6 +515,7 @@ description: Add user authentication system
 - `CHANGELOG.md` - Version history
 
 ### Template Files
+
 - `schemas/spec-driven/templates/proposal.md`
 - `schemas/spec-driven/templates/spec.md`
 - `schemas/spec-driven/templates/design.md`
@@ -499,6 +523,7 @@ description: Add user authentication system
 - `schemas/tdd/templates/*.md`
 
 ### Spec Files
+
 - `.spool/specs/cli-change/spec.md`
 - `.spool/specs/cli-init/spec.md`
 - `.spool/specs/cli-list/spec.md`
@@ -508,9 +533,10 @@ description: Add user authentication system
 - `.spool/specs/spool-conventions/spec.md`
 
 ### Archived Changes
+
 - `.spool/changes/archive/` - Historical change proposals
 
----
+______________________________________________________________________
 
 **Document Version**: 1.0
 **Last Updated**: 2026-01-18

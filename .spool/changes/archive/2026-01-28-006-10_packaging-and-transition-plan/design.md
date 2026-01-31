@@ -1,6 +1,7 @@
 ## Context
 
 The TypeScript package is distributed via npm. Rust distribution options include:
+
 - standalone binaries per platform
 - installers (brew/scoop/apt)
 - an npm wrapper package that downloads a pinned binary
@@ -10,11 +11,13 @@ Any strategy must preserve the `spool` CLI surface and allow existing users to u
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Choose a primary distribution mechanism for Rust.
 - Define how npm installs map to Rust binaries.
 - Define CI artifacts, versioning, and integrity verification.
 
 **Non-Goals:**
+
 - Perform the actual release in this change.
 
 ## Decisions

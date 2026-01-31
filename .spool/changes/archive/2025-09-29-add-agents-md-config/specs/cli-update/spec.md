@@ -1,5 +1,7 @@
 ## MODIFIED Requirements
+
 ### Requirement: Update Behavior
+
 The update command SHALL update Spool instruction files to the latest templates in a team-friendly manner.
 
 #### Scenario: Running update command
@@ -17,6 +19,7 @@ The update command SHALL update Spool instruction files to the latest templates 
   - Display success message listing updated files
 
 ### Requirement: Tool-Agnostic Updates
+
 The update command SHALL handle file updates in a predictable and safe manner while respecting team tool choices.
 
 #### Scenario: Updating files
@@ -30,6 +33,7 @@ The update command SHALL handle file updates in a predictable and safe manner wh
 - **AND** respect team members' AI tool choices by not creating additional tool files beyond the root `AGENTS.md`
 
 ### Requirement: Core Files Always Updated
+
 The update command SHALL always update the core Spool files and display an ASCII-safe success message.
 
 #### Scenario: Successful update

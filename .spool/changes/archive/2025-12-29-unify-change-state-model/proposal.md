@@ -96,6 +96,6 @@ Update `validateChangeExists()` to check if the directory exists, not if `propos
 ## Success Criteria
 
 1. `spool new change foo && spool view` shows `foo` in "Draft" section
-2. `spool new change foo && spool status --change foo` works
-3. Changes with all tasks done still show as "Completed"
-4. All existing tests pass
+1. `spool new change foo && spool status --change foo` works
+1. Changes with all tasks done still show as "Completed"
+1. All existing tests pass

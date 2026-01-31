@@ -32,12 +32,14 @@ Creates a new change with a structured proposal document.
 **When to use:** Starting new work - features, fixes, refactoring, documentation.
 
 **What it does:**
+
 1. Checks for existing similar changes
-2. Selects or creates a module
-3. Creates the change directory with `spool create change "<name>" --module <id>`
-4. Generates proposal.md using `spool agent instruction proposal --change "<id>"`
+1. Selects or creates a module
+1. Creates the change directory with `spool create change "<name>" --module <id>`
+1. Generates proposal.md using `spool agent instruction proposal --change "<id>"`
 
 **Proposal structure:**
+
 - **Why** - What problem does this solve? Who benefits?
 - **What Changes** - High-level description of modifications
 - **Capabilities** - List of features (each becomes a spec)
@@ -50,12 +52,14 @@ Conducts structured investigation before implementation.
 **When to use:** Exploring options, evaluating technologies, investigating approaches.
 
 **What it does:**
+
 1. Creates research directory at `.spool/research/`
-2. Generates SUMMARY.md with research goals
-3. Creates investigation files in `investigations/` subdirectory
-4. Documents findings, trade-offs, and recommendations
+1. Generates SUMMARY.md with research goals
+1. Creates investigation files in `investigations/` subdirectory
+1. Documents findings, trade-offs, and recommendations
 
 **Research areas:**
+
 - Stack analysis
 - Feature landscape
 - Architecture patterns
@@ -68,13 +72,15 @@ Implements the tasks defined in a change.
 **When to use:** Ready to write code after proposal/specs are complete.
 
 **What it does:**
+
 1. Verifies all required artifacts are complete
-2. Reads context: proposal, specs, design, tasks
-3. Works through tasks systematically
-4. Marks each task complete (`- [ ]` → `- [x]`) as finished
-5. Runs validation after completion
+1. Reads context: proposal, specs, design, tasks
+1. Works through tasks systematically
+1. Marks each task complete (`- [ ]` → `- [x]`) as finished
+1. Runs validation after completion
 
 **Implementation flow:**
+
 ```
 For each task in tasks.md:
   1. Mark task in_progress
@@ -91,12 +97,14 @@ Validates changes, specs, or implementations.
 **When to use:** Quality checks before merging, validating artifacts.
 
 **What it does:**
+
 1. Runs `spool validate` on the target
-2. Categorizes issues: critical, important, minor
-3. Provides actionable feedback
-4. Documents assessment
+1. Categorizes issues: critical, important, minor
+1. Provides actionable feedback
+1. Documents assessment
 
 **Validation targets:**
+
 - `--changes` - Validate change artifacts
 - `--specs` - Validate spec requirements
 
@@ -107,11 +115,12 @@ Completes and archives a finished change.
 **When to use:** All tasks complete, implementation validated.
 
 **What it does:**
+
 1. Verifies change is ready (all tasks complete)
-2. Confirms with user before proceeding
-3. Runs `spool archive <name>`
-4. Moves change to `.spool/changes/archive/`
-5. Updates main specifications if applicable
+1. Confirms with user before proceeding
+1. Runs `spool archive <name>`
+1. Moves change to `.spool/changes/archive/`
+1. Updates main specifications if applicable
 
 ## Supporting Actions
 
@@ -120,6 +129,7 @@ Completes and archives a finished change.
 Creates git commits aligned to Spool changes.
 
 **Features:**
+
 - Conventional commit format with change ID
 - Auto-mode for immediate commits
 - One commit per change preferred
@@ -134,7 +144,7 @@ Here's a complete workflow from start to finish:
 2. /spool-proposal
    → Creates 001-03_user-authentication change
    → Generates proposal.md with Why/What/Capabilities/Impact
-   
+
 3. Agent creates specs for each capability:
    → specs/login-endpoint/spec.md
    → specs/token-validation/spec.md
@@ -146,14 +156,14 @@ Here's a complete workflow from start to finish:
    → Reads all context files
    → Implements tasks one by one
    → Marks each complete in tasks.md
-   
+
 6. /spool-review
    → Validates implementation
    → Checks for issues
-   
+
 7. /spool-commit
    → Creates conventional commit
-   
+
 8. /spool-archive
    → Moves to archive
    → Updates main specs
@@ -189,8 +199,8 @@ These flexible formats work with all CLI commands that accept module or change I
 When running `/spool-proposal` without specifying a module, you'll be prompted with three options:
 
 1. **Use last worked-on module** - If you recently worked on a module, this option appears first
-2. **Create a new module** - Prompts for a module name and creates it
-3. **Ungrouped (module 000)** - For small, standalone changes
+1. **Create a new module** - Prompts for a module name and creates it
+1. **Ungrouped (module 000)** - For small, standalone changes
 
 The system tracks your last-used module in `.spool/.state/session.json`.
 
@@ -234,8 +244,8 @@ The system tracks your last-used module in `.spool/.state/session.json`.
 ## Best Practices
 
 1. **Start with a proposal** - Even small changes benefit from documenting "why"
-2. **One capability = one spec** - Keep specs focused and testable
-3. **Mark tasks complete immediately** - Don't batch completions
-4. **Validate before archiving** - Catch issues early
-5. **Use modules for related work** - Keeps changes organized
-6. **Commit with change context** - Links commits to their originating change
+1. **One capability = one spec** - Keep specs focused and testable
+1. **Mark tasks complete immediately** - Don't batch completions
+1. **Validate before archiving** - Catch issues early
+1. **Use modules for related work** - Keeps changes organized
+1. **Commit with change context** - Links commits to their originating change

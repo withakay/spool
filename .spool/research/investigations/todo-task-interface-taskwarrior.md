@@ -190,12 +190,15 @@ Design choice:
 You need a stable way to find “the tasks for this Spool change”. Options:
 
 1. **Project-based** (zero config):
+
    - `project:spool.<module>.<change>`
 
-2. **Tag-based** (zero config, can get messy):
+1. **Tag-based** (zero config, can get messy):
+
    - tag `+spool` plus tag `+change_006-08_port-plan-tasks-workflow-state`
 
-3. **UDA-based** (best structure, requires config):
+1. **UDA-based** (best structure, requires config):
+
    - `uda.spool_change.type string`
    - `uda.spool_repo.type string`
    - filter `spool_change:<id> spool_repo:<name>`
@@ -277,12 +280,12 @@ Once a backend exists, new CLI affordances become possible without changing the 
 ## Recommended Architecture (Incremental)
 
 1. **Parity first**: implement enhanced task parsing in Rust to match TS.
-2. **Backend abstraction**: introduce `TaskBackend` (TS) and `TaskBackend` trait (Rust) with Markdown backend.
-3. **Taskwarrior prototype**:
+1. **Backend abstraction**: introduce `TaskBackend` (TS) and `TaskBackend` trait (Rust) with Markdown backend.
+1. **Taskwarrior prototype**:
    - scope via `project:` convention
    - UUID-based refs
    - annotations as payload (no UDAs required)
-4. **Optional UDA upgrade path**:
+1. **Optional UDA upgrade path**:
    - add a `spool init --taskwarrior` helper that prints (does not auto-apply) the `task config uda.*` commands.
 
 ## Open Questions

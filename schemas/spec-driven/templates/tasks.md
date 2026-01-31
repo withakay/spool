@@ -1,6 +1,7 @@
 # Tasks for: <!-- CHANGE_ID -->
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential (or parallel if tool supports)
 - **Template**: Enhanced task format with waves, verification, and status tracking
@@ -16,23 +17,25 @@ spool tasks unshelve <!-- CHANGE_ID --> 1.1
 spool tasks show <!-- CHANGE_ID -->
 ```
 
----
+______________________________________________________________________
 
 ## Wave 1
 
 - **Depends On**: None
 
 ### Task 1.1: <!-- Task Name -->
+
 - **Files**: <!-- file paths, e.g., src/db/schema/user.ts -->
 - **Dependencies**: None
 - **Action**:
   <!-- Describe what should be implemented -->
-- **Verify**: <!-- command to verify, e.g., cargo test --workspace -->
+- **Verify**: \<!-- command to verify, e.g., cargo test --workspace -->
 - **Done When**: <!-- acceptance criteria, e.g., tests pass -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
 ### Task 1.2: <!-- Task Name -->
+
 - **Files**: <!-- file paths -->
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -40,15 +43,16 @@ spool tasks show <!-- CHANGE_ID -->
 - **Verify**: <!-- verification command -->
 - **Done When**: <!-- acceptance criteria -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Wave 2
 
 - **Depends On**: Wave 1
 
 ### Task 2.1: <!-- Task Name -->
+
 - **Files**: <!-- file paths -->
 - **Dependencies**: Task 1.1, Task 1.2
 - **Action**:
@@ -56,15 +60,16 @@ spool tasks show <!-- CHANGE_ID -->
 - **Verify**: <!-- verification command -->
 - **Done When**: <!-- acceptance criteria -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Wave 3 (Checkpoint)
 
 - **Depends On**: Wave 2
 
 ### Task 3.1: <!-- Review or decision point -->
+
 - **Type**: checkpoint (requires human approval before proceeding)
 - **Files**: <!-- relevant files for review -->
 - **Dependencies**: Task 2.1
@@ -72,17 +77,19 @@ spool tasks show <!-- CHANGE_ID -->
   <!-- Describe what should be reviewed or approved -->
 - **Done When**: <!-- when human confirms -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Task Status Legend
+
 - `[ ] pending` - Not started yet
 - `[ ] in-progress` - Currently being worked on
 - `[x] complete` - Finished and verified
 - `[-] shelved` - Intentionally not-to-be-done (reversible)
 
 ## Wave Guidelines
+
 - Waves group related tasks that can be executed in parallel
 - Task dependencies must be complete before starting dependent tasks
 - Wave dependencies are declared via `- **Depends On**: ...`
@@ -90,7 +97,9 @@ spool tasks show <!-- CHANGE_ID -->
 - Checkpoint waves require human approval before proceeding
 
 ## Task Structure
+
 Each task should include:
+
 - **ID**: Unique identifier (wave.task)
 - **Files**: Which files this task affects
 - **Dependencies**: Other tasks that must complete first (or "None")

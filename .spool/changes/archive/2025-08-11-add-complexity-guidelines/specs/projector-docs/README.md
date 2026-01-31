@@ -5,6 +5,7 @@ This document provides instructions for AI coding assistants on how to use Spool
 ## Core Principle
 
 Spool is an AI-native system for change-driven development where:
+
 - **Specs** (`specs/`) reflect what IS currently built and deployed
 - **Changes** (`changes/`) contain proposals for what SHOULD be changed
 - **AI drives the process** - You generate proposals, humans review and approve
@@ -13,12 +14,14 @@ Spool is an AI-native system for change-driven development where:
 ## Start Simple
 
 **Default to minimal implementations:**
-- New features should be <100 lines of code initially
+
+- New features should be \<100 lines of code initially
 - Use the simplest solution that works
 - Avoid premature optimization (no caching, parallelization, or complex patterns without proven need)
 - Choose boring technology over cutting-edge solutions
 
 **Complexity triggers** - Only add complexity when you have:
+
 - **Performance data** showing current solution is too slow
 - **Scale requirements** with specific numbers (>1000 users, >100MB data)
 - **Multiple use cases** requiring the same abstraction
@@ -52,11 +55,13 @@ spool/
 ### Capability Organization
 
 **Use capabilities, not features** - Each directory under `specs/` represents a single, focused responsibility:
+
 - **Verb-noun naming**: `user-auth`, `payment-capture`, `order-checkout`
-- **10-minute rule**: Each capability should be understandable in <10 minutes
+- **10-minute rule**: Each capability should be understandable in \<10 minutes
 - **Single purpose**: If it needs "AND" to describe it, split it
 
 Examples:
+
 ```
 ✅ GOOD: user-auth, user-sessions, payment-capture, payment-refunds
 ❌ BAD: users, payments, core, misc
@@ -67,13 +72,15 @@ Examples:
 ### 1. Always Start by Reading
 
 Before any task:
+
 1. **Read relevant specs** in `specs/[capability]/spec.md` to understand current state
-2. **Check pending changes** in `changes/` directory for potential conflicts
-3. **Read project.md** for project-specific conventions
+1. **Check pending changes** in `changes/` directory for potential conflicts
+1. **Read project.md** for project-specific conventions
 
 ### 2. When to Create Change Proposals
 
 **ALWAYS create a change proposal for:**
+
 - New features or functionality
 - Breaking changes (API changes, schema updates)
 - Architecture changes or new patterns
@@ -82,6 +89,7 @@ Before any task:
 - Any change requiring multiple steps or affecting multiple systems
 
 **SKIP proposals for:**
+
 - Bug fixes that restore intended behavior
 - Typos, formatting, or comment updates
 - Dependency updates (unless breaking)
@@ -90,6 +98,7 @@ Before any task:
 - Documentation fixes
 
 **Complexity assessment:**
+
 - If your solution requires >100 lines of new code, justify the complexity
 - If adding dependencies, frameworks, or architectural patterns, document why simpler alternatives won't work
 - Default to single-file implementations until proven insufficient
@@ -106,7 +115,7 @@ spool/changes/[descriptive-name]/
 ## Why
 [1-2 sentences on the problem/opportunity]
 
-## What Changes  
+## What Changes
 [Bullet list of changes, including breaking changes]
 
 ## Impact
@@ -133,22 +142,24 @@ specs/
 ### 4. The Change Lifecycle
 
 1. **Propose** → Create change directory with all documentation
-2. **Review** → User reviews and approves the proposal
-3. **Implement** → Follow the approved tasks.md (can be multiple PRs)
-4. **Deploy** → User confirms deployment
-5. **Update Specs** → Sync specs/ with new reality (IF the change affects system capabilities)
-6. **Archive** → Move to `changes/archive/YYYY-MM-DD-[name]/`
+1. **Review** → User reviews and approves the proposal
+1. **Implement** → Follow the approved tasks.md (can be multiple PRs)
+1. **Deploy** → User confirms deployment
+1. **Update Specs** → Sync specs/ with new reality (IF the change affects system capabilities)
+1. **Archive** → Move to `changes/archive/YYYY-MM-DD-[name]/`
 
 ### 5. Implementing Changes
 
 When implementing an approved change:
+
 1. Follow the tasks.md checklist exactly
-2. **Mark completed tasks** in tasks.md as you finish them (e.g., `- [x] 1.1 Task completed`)
-3. Ensure code matches the proposed behavior
-4. Update any affected tests
-5. **Keep change in `changes/` directory** - do NOT archive in implementation PR
+1. **Mark completed tasks** in tasks.md as you finish them (e.g., `- [x] 1.1 Task completed`)
+1. Ensure code matches the proposed behavior
+1. Update any affected tests
+1. **Keep change in `changes/` directory** - do NOT archive in implementation PR
 
 **Multiple Implementation PRs:**
+
 - Changes can be implemented across multiple PRs
 - Each PR should update tasks.md to mark what was completed
 - Different developers can work on different task groups
@@ -157,27 +168,31 @@ When implementing an approved change:
 ### 6. Updating Specs and Archiving After Deployment
 
 **Create a separate PR after deployment** that:
+
 1. Moves change to `changes/archive/YYYY-MM-DD-[name]/`
-2. Updates relevant files in `specs/` to reflect new reality (if needed)
-3. If design.md exists, incorporates proven patterns into `specs/[capability]/design.md`
+1. Updates relevant files in `specs/` to reflect new reality (if needed)
+1. If design.md exists, incorporates proven patterns into `specs/[capability]/design.md`
 
 This ensures changes are only archived when truly complete and deployed.
 
 ### 7. Types of Changes That Don't Require Specs
 
 Some changes only affect development infrastructure and don't need specs:
+
 - Initial project setup (package.json, tsconfig.json, etc.)
 - Development tooling changes (linters, formatters, build tools)
 - CI/CD configuration
 - Development dependencies
 
 For these changes:
+
 1. Implement → Deploy → Mark tasks complete → Archive
-2. Skip the "Update Specs" step entirely
+1. Skip the "Update Specs" step entirely
 
 ### What Deserves a Spec?
 
 Ask yourself:
+
 - Is this a system capability that users or other systems interact with?
 - Does it have ongoing behavior that needs documentation?
 - Would a new developer need to understand this to work with the system?
@@ -187,6 +202,7 @@ If NO to all → No spec needed (likely just tooling/infrastructure)
 ## Understanding Specs vs Code
 
 ### Specs Document WHAT and WHY
+
 ```markdown
 # Authentication Spec
 
@@ -199,6 +215,7 @@ WHY: Prevent user enumeration attacks.
 ```
 
 ### Code Documents HOW
+
 ```javascript
 // Implementation details
 const user = await db.users.findOne({ email });
@@ -210,6 +227,7 @@ const valid = await bcrypt.compare(password, user.hashedPassword);
 ## Common Scenarios
 
 ### New Feature Request
+
 ```
 User: "Add password reset functionality"
 
@@ -221,6 +239,7 @@ You should:
 ```
 
 ### Bug Fix
+
 ```
 User: "Getting null pointer error when bio is empty"
 
@@ -231,6 +250,7 @@ You should:
 ```
 
 ### Infrastructure Setup
+
 ```
 User: "Initialize TypeScript project"
 
@@ -245,12 +265,12 @@ You should:
 ## Summary Workflow
 
 1. **Receive request** → Determine if it needs a change proposal
-2. **Read current state** → Check specs and pending changes
-3. **Create proposal** → Generate complete change documentation
-4. **Get approval** → User reviews the proposal
-5. **Implement** → Follow approved tasks, mark completed items in tasks.md
-6. **Deploy** → User deploys the implementation
-7. **Archive PR** → Create separate PR to:
+1. **Read current state** → Check specs and pending changes
+1. **Create proposal** → Generate complete change documentation
+1. **Get approval** → User reviews the proposal
+1. **Implement** → Follow approved tasks, mark completed items in tasks.md
+1. **Deploy** → User deploys the implementation
+1. **Archive PR** → Create separate PR to:
    - Move change to archive
    - Update specs if needed
    - Mark change as complete
@@ -258,6 +278,7 @@ You should:
 ## PR Workflow Examples
 
 ### Single Developer, Simple Change
+
 ```
 PR #1: Implementation
 - Implement all tasks
@@ -270,12 +291,13 @@ PR #2: Archive (after deployment)
 ```
 
 ### Multiple Developers, Complex Change
+
 ```
 PR #1: Alice implements auth components
 - Complete tasks 1.1, 1.2, 1.3
 - Update tasks.md marking these complete
 
-PR #2: Bob implements UI components  
+PR #2: Bob implements UI components
 - Complete tasks 2.1, 2.2
 - Update tasks.md marking these complete
 
@@ -291,6 +313,7 @@ PR #4: Archive
 ```
 
 ### Key Rules
+
 - **Never archive in implementation PRs** - changes aren't done until deployed
 - **Always update tasks.md** - shows accurate progress
 - **One archive PR per change** - clear completion boundary
@@ -299,36 +322,44 @@ PR #4: Archive
 ## Capability Organization Best Practices
 
 ### Naming Capabilities
+
 - Use **verb-noun** patterns: `user-auth`, `payment-capture`, `order-checkout`
 - Be specific: `payment-capture` not just `payments`
 - Keep flat: Avoid nesting capabilities within capabilities
 - Singular focus: If you need "AND" to describe it, split it
 
 ### When to Split Capabilities
+
 Split when you have:
+
 - Multiple unrelated API endpoints
 - Different user personas or actors
 - Separate deployment considerations
 - Independent evolution paths
 
 #### Capability Boundary Guidelines
+
 - Would you import these separately? → Separate capabilities
 - Different deployment cadence? → Separate capabilities
 - Different teams own them? → Separate capabilities
 - Shared data models are OK, shared business logic means combine
 
 Examples:
+
 - user-auth (login/logout) vs user-sessions (token management) → SEPARATE
 - payment-capture vs payment-refunds → SEPARATE (different workflows)
 - user-profile vs user-settings → COMBINE (same data model, same owner)
 
 ### Cross-Cutting Concerns
+
 For system-wide policies (rate limiting, error handling, security), document them in:
+
 - `project.md` for project-wide conventions
 - Within relevant capability specs where they apply
 - Or create a dedicated capability if complex enough (e.g., `api-rate-limiting/`)
 
 ### Examples of Well-Organized Capabilities
+
 ```
 specs/
 ├── user-auth/              # Login, logout, password reset
@@ -346,34 +377,40 @@ For detailed guidance, see the [Capability Organization Guide](../docs/capabilit
 ### Decision Ambiguity: Bug vs Behavior Change
 
 When specs are missing or ambiguous:
+
 - If NO spec exists → Treat current code behavior as implicit spec, require proposal
 - If spec is VAGUE → Require proposal to clarify spec alongside fix
 - If code and spec DISAGREE → Spec is truth, code is buggy (fix without proposal)
 - If unsure → Default to creating a proposal (safer option)
 
 Example:
+
 ```
 User: "The API returns 404 for missing users but should return 400"
 AI: Is this a bug (spec says 400) or behavior change (spec says 404)?
 ```
 
 ### When You Don't Know the Scope
+
 It's OK to explore first! Tell the user you need to investigate, then create an informed proposal.
 
 ### Exploration Phase (When Needed)
 
 BEFORE creating proposal, you may need exploration when:
+
 - User request is vague or high-level
 - Multiple implementation approaches exist
 - Scope is unclear without seeing code
 
 Exploration checklist:
+
 1. Tell user you need to explore first
-2. Use Grep/Read to understand current state
-3. Create initial proposal based on findings
-4. Refine with user feedback
+1. Use Grep/Read to understand current state
+1. Create initial proposal based on findings
+1. Refine with user feedback
 
 Example:
+
 ```
 User: "Add caching to improve performance"
 AI: "Let me explore the codebase to understand the current architecture and identify caching opportunities."
@@ -382,29 +419,35 @@ AI: "Based on my analysis, I've identified three areas where caching would help.
 ```
 
 ### When No Specs Exist
+
 Treat current code as implicit spec. Your proposal should document current state AND proposed changes.
 
 ### When in Doubt
+
 Default to creating a proposal. It's easier to skip an unnecessary proposal than fix an undocumented change.
 
 ### AI Workflow Adaptations
 
 Task tracking with Spool:
+
 - Track exploration tasks separately from implementation
 - Document proposal creation steps as you go
 - Keep implementation tasks separate until proposal approved
 
 Parallel operations encouraged:
+
 - Read multiple specs simultaneously
 - Check multiple pending changes at once
 - Batch related searches for efficiency
 
 Progress communication:
+
 - "Exploring codebase to understand scope..."
 - "Creating proposal based on findings..."
 - "Implementing approved changes..."
 
 ### For AI Assistants
+
 - **Bias toward simplicity** - Propose the minimal solution that works
 - Use your exploration tools liberally before proposing
 - Batch operations for efficiency
@@ -415,47 +458,59 @@ Progress communication:
 ## Edge Case Handling
 
 ### Multi-Capability Changes
+
 Create ONE proposal that:
+
 - Lists all affected capabilities
 - Shows changes per capability
 - Has unified task list
 - Gets approved as a whole
 
 ### Outdated Specs
+
 If specs clearly outdated:
+
 1. Create proposal to update specs to match reality
-2. Implement new feature in separate proposal
-3. OR combine both in one proposal with clear sections
+1. Implement new feature in separate proposal
+1. OR combine both in one proposal with clear sections
 
 ### Emergency Hotfixes
+
 For critical production issues:
+
 1. Announce: "This is an emergency fix"
-2. Implement fix immediately
-3. Create retroactive proposal
-4. Update specs after deployment
-5. Tag with [EMERGENCY] in archive
+1. Implement fix immediately
+1. Create retroactive proposal
+1. Update specs after deployment
+1. Tag with \[EMERGENCY\] in archive
 
 ### Pure Refactoring
+
 No proposal needed for:
+
 - Code formatting/style
 - Internal refactoring (same API)
 - Performance optimization (same behavior)
 - Adding types to untyped code
 
 Proposal REQUIRED for:
+
 - API changes (even if compatible)
 - Database schema changes
 - Architecture changes
 - New dependencies
 
 ### Observability Additions
+
 No proposal needed for:
+
 - Adding log statements
 - New metrics/traces
 - Debugging additions
 - Error tracking
 
 Proposal REQUIRED if:
+
 - Changes log format/structure
 - Adds new monitoring service
 - Changes what's logged (privacy)

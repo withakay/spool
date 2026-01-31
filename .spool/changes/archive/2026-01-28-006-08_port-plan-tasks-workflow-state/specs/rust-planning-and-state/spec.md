@@ -11,6 +11,7 @@ Port `plan`, `tasks`, `workflow`, and `state` commands to Rust with on-disk sche
 Rust MUST read and write workflow/state files compatible with the TS implementation.
 
 #### Scenario: Roundtrip workflow YAML
+
 - GIVEN a workflow YAML file produced by TypeScript
 - WHEN Rust parses and re-serializes it
 - THEN the semantic content is preserved
@@ -20,6 +21,7 @@ Rust MUST read and write workflow/state files compatible with the TS implementat
 Rust MUST match TypeScript stdout/stderr/exit codes for planning and state commands.
 
 #### Scenario: `tasks` output parity
+
 - GIVEN a change with tasks
 - WHEN the user runs `spool tasks --change <id>`
 - THEN Rust output matches TypeScript

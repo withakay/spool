@@ -1,8 +1,11 @@
 # cli-completion Specification
 
 ## Purpose
+
 Provide shell completion scripts for the Spool CLI, enabling tab-completion for commands, flags, and dynamic values (change IDs, spec IDs) across multiple shells. Supports Zsh, Bash, Fish, and PowerShell.
+
 ## Requirements
+
 ### Requirement: Native Shell Behavior Integration
 
 The completion system SHALL respect and integrate with each supported shell's native completion patterns and user interaction model.
@@ -340,7 +343,7 @@ The completion command SHALL provide clear error messages for common failure sce
 
 - **WHEN** `spool completion install` cannot detect current shell
 - **THEN** display error: "Could not auto-detect shell. Please specify shell explicitly."
-- **AND** display usage hint: "Usage: spool completion <operation> [shell]"
+- **AND** display usage hint: "Usage: spool completion <operation> \[shell\]"
 - **AND** exit with code 1
 
 ### Requirement: Output Format

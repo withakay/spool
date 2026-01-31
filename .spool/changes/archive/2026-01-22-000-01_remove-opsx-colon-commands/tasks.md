@@ -1,15 +1,17 @@
 # Tasks for: 000-01_remove-opsx-colon-commands
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 - **Verify**: `node bin/spool.js validate --all` and `make build`
 
----
+______________________________________________________________________
 
 ## Wave 1
 
 ### Task 1.1: Replace `/opsx:*` references with `/spool-*`
+
 - **Files**: `src/**`, `docs/**`, `CHANGELOG.md`, `.github/workflows/polish-release-notes.yml`
 - **Dependencies**: None
 - **Action**:
@@ -17,9 +19,10 @@
   - Ensure generators/templates output `.claude/commands/spool-*.md` wrappers.
 - **Verify**: `rg "/opsx:" src docs dist CHANGELOG.md .github/workflows`
 - **Done When**: No `/opsx:*` references remain outside historical archives.
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.2: Validate and build
+
 - **Files**: `.spool/changes/000-01_remove-opsx-colon-commands/**`
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -27,4 +30,4 @@
   - Ensure `spool validate --all` passes.
 - **Verify**: `node bin/spool.js validate --all`
 - **Done When**: All validations pass.
-- **Status**: [x] complete
+- **Status**: \[x\] complete

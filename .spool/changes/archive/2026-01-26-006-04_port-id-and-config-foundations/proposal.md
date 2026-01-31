@@ -14,9 +14,11 @@ Consistent ID parsing, spool directory discovery, config/env handling, and outpu
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-foundations`: ID/config/env foundations for the Rust port.
 
 ### Modified Capabilities
+
 <!-- None. New Rust implementation layer. -->
 
 ## Impact

@@ -17,10 +17,12 @@ This enables users to configure “how the LLM should behave” without forking 
 ## Capabilities
 
 ### New Capabilities
+
 - `user-guidance-file`: Add a stable, user-editable guidance file (created by init, preserved by update).
 - `instruction-guidance-injection`: Include the guidance content in `spool agent instruction <artifact>` outputs so it is applied consistently across harnesses.
 
 ### Modified Capabilities
+
 - `<existing-name>`: <what requirement is changing>
 
 ## Impact

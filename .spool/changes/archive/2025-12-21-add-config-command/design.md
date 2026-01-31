@@ -5,12 +5,14 @@ The `global-config` spec defines how Spool reads/writes `config.json`, but users
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Provide a discoverable CLI for config management
 - Support scripting with machine-readable output
 - Validate config changes with zod schema
 - Handle nested keys gracefully
 
 **Non-Goals:**
+
 - Project-local config (reserved for future via `--scope` flag)
 - Complex queries (JSONPath, filtering)
 - Config file format migration
@@ -22,11 +24,13 @@ The `global-config` spec defines how Spool reads/writes `config.json`, but users
 **Decision:** Keys use camelCase matching the JSON structure, with dot notation for nesting.
 
 **Rationale:**
+
 - Matches the actual JSON keys (no translation layer)
 - Dot notation is intuitive and widely used (lodash, jq, kubectl)
 - Avoids complexity of supporting multiple casing styles
 
 **Examples:**
+
 ```bash
 spool config get featureFlags              # Returns object
 spool config get featureFlags.experimental # Returns nested value
@@ -38,6 +42,7 @@ spool config set featureFlags.newFlag true
 **Decision:** Parse values automatically; provide `--string` flag to force string storage.
 
 **Rationale:**
+
 - Most intuitive for common cases (`true`, `false`, `123`)
 - Explicit override for edge cases (storing literal string "true")
 - Follows npm/yarn config patterns
@@ -55,6 +60,7 @@ spool config set featureFlags.newFlag true
 **Decision:** `get` prints raw value only. `list` prints YAML-like format by default, JSON with `--json`.
 
 **Rationale:**
+
 - Raw output enables piping: `VAR=$(spool config get key)`
 - YAML-like is human-readable for inspection
 - JSON for automation/scripting
@@ -64,6 +70,7 @@ spool config set featureFlags.newFlag true
 **Decision:** Use zod for validation but preserve unknown fields per `global-config` spec.
 
 **Rationale:**
+
 - Type safety for known fields
 - Forward compatibility (old CLI doesn't break new config)
 - Follows existing `global-config` spec requirement
@@ -73,6 +80,7 @@ spool config set featureFlags.newFlag true
 **Decision:** Reserve `--scope global|project` but only implement `global` initially.
 
 **Rationale:**
+
 - Avoids breaking change if project-local config is added later
 - Clear error message if someone tries `--scope project`
 

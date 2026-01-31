@@ -5,11 +5,13 @@ These foundations are reused by all later command ports and parity tests. They m
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Implement shared parsing/config/env utilities.
 - Match TS behavior for global flags and output controls.
 - Provide unit tests + parity tests for foundations.
 
 **Non-Goals:**
+
 - Port high-level commands beyond what tests require.
 
 ## Decisions

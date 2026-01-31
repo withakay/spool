@@ -85,70 +85,88 @@ The system SHALL output enriched instructions for creating an artifact, includin
 - **AND** does not require any artifacts to already exist
 
 ### Requirement: Templates Command
+
 The system SHALL show resolved template paths for all artifacts in a schema.
 
 #### Scenario: List template paths with default schema
+
 - **WHEN** user runs `spool x-templates`
 - **THEN** the system displays each artifact with its resolved template path using the default schema
 
 #### Scenario: List template paths with custom schema
+
 - **WHEN** user runs `spool x-templates --schema tdd`
 - **THEN** the system displays template paths for the specified schema
 
 #### Scenario: Templates JSON output
+
 - **WHEN** user runs `spool x-templates --json`
 - **THEN** the system outputs JSON mapping artifact IDs to template paths
 
 #### Scenario: Template resolution source
+
 - **WHEN** displaying template paths
 - **THEN** the system indicates whether each template is from user override or package built-in
 
 ### Requirement: New Change Command
+
 The system SHALL create new change directories with validation.
 
 #### Scenario: Create valid change
+
 - **WHEN** user runs `spool create change add-feature`
 - **THEN** the system creates `.spool/changes/add-feature/` directory
 
 #### Scenario: Invalid change name
+
 - **WHEN** user runs `spool create change "Add Feature"` with invalid name
 - **THEN** the system displays validation error with guidance
 
 #### Scenario: Duplicate change name
+
 - **WHEN** user runs `spool create change existing-change` for an existing change
 - **THEN** the system displays an error indicating the change already exists
 
 #### Scenario: Create with description
+
 - **WHEN** user runs `spool create change add-feature --description "Add new feature"`
 - **THEN** the system creates the change directory with description in README.md
 
 ### Requirement: Schema Selection
+
 The system SHALL support custom schema selection for workflow commands.
 
 #### Scenario: Default schema
+
 - **WHEN** user runs workflow commands without `--schema`
 - **THEN** the system uses the "spec-driven" schema
 
 #### Scenario: Custom schema
+
 - **WHEN** user runs `spool status --change <id> --schema tdd`
 - **THEN** the system uses the specified schema for artifact graph
 
 #### Scenario: Unknown schema
+
 - **WHEN** user specifies an unknown schema
 - **THEN** the system displays an error listing available schemas
 
 ### Requirement: Experimental Isolation
+
 The system SHALL implement artifact workflow commands in isolation for easy removal.
 
 #### Scenario: Single file implementation
+
 - **WHEN** artifact workflow feature is implemented
 - **THEN** all commands are in `src/commands/artifact-workflow.ts`
 
 #### Scenario: Help text marking
+
 -- **WHEN** user runs `--help` on any `x-*` artifact workflow command
 -- **THEN** help text indicates the command is experimental
 
 #### Scenario: Command naming indicates experimental
+
 -- **WHEN** experimental artifact workflow commands are exposed
 -- **THEN** they are named using the `x-` prefix (e.g., `spool x-instructions`)
 
@@ -159,6 +177,7 @@ The system SHALL generate schema-aware apply instructions via `spool x-instructi
 #### Scenario: Generate apply instructions
 
 -- **WHEN** user runs `spool x-instructions apply --change <id>`
+
 - **AND** all required artifacts (per schema's `apply.requires`) exist
 - **THEN** the system outputs:
   - Context files from all existing artifacts
@@ -168,6 +187,7 @@ The system SHALL generate schema-aware apply instructions via `spool x-instructi
 #### Scenario: Apply blocked by missing artifacts
 
 -- **WHEN** user runs `spool x-instructions apply --change <id>`
+
 - **AND** required artifacts are missing
 - **THEN** the system indicates apply is blocked
 - **AND** lists which artifacts must be created first
@@ -175,6 +195,7 @@ The system SHALL generate schema-aware apply instructions via `spool x-instructi
 #### Scenario: Apply instructions JSON output
 
 -- **WHEN** user runs `spool x-instructions apply --change <id> --json`
+
 - **THEN** the system outputs JSON with:
   - `contextFiles`: array of paths to existing artifacts
   - `instruction`: the apply instruction text

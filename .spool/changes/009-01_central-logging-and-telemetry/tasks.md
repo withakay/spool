@@ -1,16 +1,19 @@
 # Tasks for: 009-01_central-logging-and-telemetry
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential (or parallel if tool supports)
 - **Created**: 2026-01-31
 
----
+______________________________________________________________________
 
 ## Wave 1
+
 - **Depends On**: None
 
 ### Task 1.1: Define event schema, ids, and on-disk layout
+
 - **Files**: `spool-rs/`, `.spool/specs/`, docs
 - **Dependencies**: None
 - **Action**:
@@ -21,9 +24,10 @@
 - **Verify**: N/A
 - **Done When**: Schema and layout are documented in specs/design and are implementable
 - **Updated At**: 2026-01-31
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.2: Implement `spool-logging` crate and integrate into `spool-rs`
+
 - **Files**: `spool-rs/crates/`, `spool-rs/`
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -33,9 +37,10 @@
 - **Verify**: `make test`
 - **Done When**: Running Spool produces central logs and all tests pass
 - **Updated At**: 2026-01-31
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.3: Add session persistence and project id hashing
+
 - **Files**: `spool-rs/`, `.spool/` state handling
 - **Dependencies**: Task 1.2
 - **Action**:
@@ -44,9 +49,10 @@
 - **Verify**: `make test`
 - **Done When**: Events include stable `session_id` and privacy-preserving `project_id`
 - **Updated At**: 2026-01-31
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.4: Implement `spool stats`
+
 - **Files**: `spool-rs/`
 - **Dependencies**: Task 1.3
 - **Action**:
@@ -55,9 +61,10 @@
 - **Verify**: `make test`
 - **Done When**: `spool stats` works locally and is covered by tests
 - **Updated At**: 2026-01-31
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.5: Document logging, privacy, and opt-out
+
 - **Files**: docs
 - **Dependencies**: Task 1.4
 - **Action**:
@@ -66,16 +73,17 @@
 - **Verify**: N/A
 - **Done When**: Docs are clear and reflect actual behavior
 - **Updated At**: 2026-01-31
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Checkpoints
 
 ### Checkpoint: Review Implementation
+
 - **Type**: checkpoint (requires human approval)
 - **Dependencies**: All Wave 1 tasks
 - **Action**: Review the implementation before proceeding
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: \[ \] pending

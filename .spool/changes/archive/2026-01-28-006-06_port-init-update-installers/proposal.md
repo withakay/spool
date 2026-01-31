@@ -12,18 +12,23 @@
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-installers`: Rust implementation of init/update installers with byte-for-byte parity.
 
 ### Modified Capabilities
+
 <!-- None. New Rust implementation. -->
 
 ## Impact
 
 **Affected areas:**
+
 - `spool-rs/crates/spool-fs/`, `spool-rs/crates/spool-templates/`, `spool-rs/crates/spool-cli/`
 
 **Behavioral impact:**
+
 - None until Rust becomes default
 
 **Risks:**
+
 - Drift in templates or marker logic; mitigated by tree-diff tests and snapshot parity.

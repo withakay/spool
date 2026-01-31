@@ -2,14 +2,14 @@
   <style>
     .bg { fill: #000000; }
     .fg { fill: #ff8000; }
-    text { 
+    text {
       font-weight: 400;
       dominant-baseline: text-before-edge;
     }
   </style>
-  
+
   <rect class="bg" width="672" height="149"/>
-  
+
   <g class="fg">
     <!-- Row 1 -->
     <text x="0" y="0" textLength="8.4">█</text>
@@ -75,7 +75,7 @@
     <text x="646.8" y="0" textLength="8.4">█</text>
     <text x="655.2" y="0" textLength="8.4">█</text>
     <text x="663.6" y="0" textLength="8.4">▀</text>
-    
+
     <!-- Row 2 -->
     <text x="16.8" y="16.1" textLength="8.4">█</text>
     <text x="25.2" y="16.1" textLength="8.4">█</text>
@@ -124,7 +124,7 @@
     <text x="613.2" y="16.1" textLength="8.4">█</text>
     <text x="655.2" y="16.1" textLength="8.4">█</text>
     <text x="663.6" y="16.1" textLength="8.4">█</text>
-    
+
     <!-- Row 3 -->
     <text x="25.2" y="32.2" textLength="8.4">░</text>
     <text x="33.6" y="32.2" textLength="8.4">░</text>
@@ -171,7 +171,7 @@
     <text x="613.2" y="32.2" textLength="8.4">█</text>
     <text x="655.2" y="32.2" textLength="8.4">█</text>
     <text x="663.6" y="32.2" textLength="8.4">█</text>
-    
+
     <!-- Row 4 -->
     <text x="25.2" y="48.3" textLength="8.4">█</text>
     <text x="33.6" y="48.3" textLength="8.4">█</text>
@@ -215,7 +215,7 @@
     <text x="613.2" y="48.3" textLength="8.4">█</text>
     <text x="655.2" y="48.3" textLength="8.4">█</text>
     <text x="663.6" y="48.3" textLength="8.4">█</text>
-    
+
     <!-- Row 5 -->
     <text x="25.2" y="64.4" textLength="8.4">░</text>
     <text x="33.6" y="64.4" textLength="8.4">░</text>
@@ -276,7 +276,7 @@
     <text x="613.2" y="64.4" textLength="8.4">█</text>
     <text x="655.2" y="64.4" textLength="8.4">█</text>
     <text x="663.6" y="64.4" textLength="8.4">█</text>
-    
+
     <!-- Row 6 -->
     <text x="25.2" y="80.5" textLength="8.4">█</text>
     <text x="33.6" y="80.5" textLength="8.4">█</text>
@@ -317,7 +317,7 @@
     <text x="613.2" y="80.5" textLength="8.4">█</text>
     <text x="655.2" y="80.5" textLength="8.4">█</text>
     <text x="663.6" y="80.5" textLength="8.4">█</text>
-    
+
     <!-- Row 7 -->
     <text x="25.2" y="96.6" textLength="8.4">░</text>
     <text x="33.6" y="96.6" textLength="8.4">░</text>
@@ -358,7 +358,7 @@
     <text x="613.2" y="96.6" textLength="8.4">█</text>
     <text x="655.2" y="96.6" textLength="8.4">█</text>
     <text x="663.6" y="96.6" textLength="8.4">█</text>
-    
+
     <!-- Row 8 -->
     <text x="16.8" y="112.7" textLength="8.4">█</text>
     <text x="25.2" y="112.7" textLength="8.4">█</text>
@@ -405,7 +405,7 @@
     <text x="621.6" y="112.7" textLength="8.4">█</text>
     <text x="655.2" y="112.7" textLength="8.4">█</text>
     <text x="663.6" y="112.7" textLength="8.4">█</text>
-    
+
     <!-- Row 9 -->
     <text x="0" y="128.8" textLength="8.4">█</text>
     <text x="8.4" y="128.8" textLength="8.4">█</text>

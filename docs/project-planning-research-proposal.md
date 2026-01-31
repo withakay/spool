@@ -14,9 +14,9 @@ This proposal extends Spool with structured project planning, research capabilit
 ### Tool-Agnostic Architecture
 
 1. **File-Based State**: All context lives in markdown files, not tool-specific memory
-2. **Custom Commands**: Workflows defined as markdown files any tool can load
-3. **No Vendor Lock-in**: Works with any AI model (Claude, GPT, Gemini, etc.)
-4. **Progressive Enhancement**: Tools with advanced features (subagents) can use them; others work sequentially
+1. **Custom Commands**: Workflows defined as markdown files any tool can load
+1. **No Vendor Lock-in**: Works with any AI model (Claude, GPT, Gemini, etc.)
+1. **Progressive Enhancement**: Tools with advanced features (subagents) can use them; others work sequentially
 
 ### Why File-Based?
 
@@ -26,19 +26,19 @@ This proposal extends Spool with structured project planning, research capabilit
 | **File-based (chosen)** | Universal, persistent, debuggable | Slightly more verbose |
 | Memory/context only | Simple | Lost between sessions |
 
----
+______________________________________________________________________
 
 ## Problem Statement
 
 Current Spool workflow gaps:
 
 1. **No Research Phase**: Proposals jump directly to specs without domain investigation
-2. **No Project-Level Roadmapping**: Changes are isolated; no multi-phase planning
-3. **No State Persistence**: Session context lost between restarts
-4. **Limited Task Structure**: Checklists lack verification criteria
-5. **No Systematic Review**: Plans aren't stress-tested
+1. **No Project-Level Roadmapping**: Changes are isolated; no multi-phase planning
+1. **No State Persistence**: Session context lost between restarts
+1. **Limited Task Structure**: Checklists lack verification criteria
+1. **No Systematic Review**: Plans aren't stress-tested
 
----
+______________________________________________________________________
 
 ## Proposed Extensions
 
@@ -85,6 +85,7 @@ Standard Spool proposal workflow
 Research prompts are stored as markdown files that any AI tool can load:
 
 **`spool/commands/research-stack.md`**
+
 ```markdown
 # Research: Stack Analysis
 
@@ -120,6 +121,7 @@ Write findings to `spool/research/investigations/stack-analysis.md`:
 #### Research Output Template
 
 **`spool/research/SUMMARY.md`**
+
 ```markdown
 # Research Summary: [Topic]
 
@@ -149,7 +151,7 @@ Write findings to `spool/research/investigations/stack-analysis.md`:
 - Requires investigation before: [...]
 ```
 
----
+______________________________________________________________________
 
 ### 2. Roadmap & Milestone Tracking
 
@@ -267,13 +269,14 @@ When resuming work on this project:
 4. Continue from "Current Focus" above
 ```
 
----
+______________________________________________________________________
 
 ### 3. Enhanced Task Structure
 
 Replace simple checklists with structured, verifiable tasks.
 
 #### Current Format (tasks.md)
+
 ```markdown
 ## 1. Implementation
 - [ ] 1.1 Create database schema
@@ -348,7 +351,7 @@ Replace simple checklists with structured, verifiable tasks.
 | `decision` | Present options, wait for user choice |
 | `research` | Investigate and report, don't implement |
 
----
+______________________________________________________________________
 
 ### 4. Execution Model
 
@@ -381,6 +384,7 @@ Sequential execution with context preservation via files:
 #### Execution Command (Custom Command)
 
 **`spool/commands/execute.md`**
+
 ```markdown
 # Execute Spool Tasks
 
@@ -406,7 +410,7 @@ Execute tasks from a change proposal sequentially, verifying each before proceed
 - Report summary of completed work
 ```
 
----
+______________________________________________________________________
 
 ### 5. Adversarial Review (Red Team)
 
@@ -417,6 +421,7 @@ Add systematic challenge phase to stress-test proposals.
 Store as custom commands that any tool can execute:
 
 **`spool/commands/review-security.md`**
+
 ```markdown
 # Security Review
 
@@ -442,6 +447,7 @@ Append findings to `spool/changes/[change-id]/REVIEW.md`
 ```
 
 **`spool/commands/review-scale.md`**
+
 ```markdown
 # Scale Review
 
@@ -498,7 +504,7 @@ Append findings to `spool/changes/[change-id]/REVIEW.md`
 - Approved for implementation: [ ] Yes / [ ] No
 ```
 
----
+______________________________________________________________________
 
 ### 6. Custom Commands
 
@@ -542,7 +548,7 @@ cp -r spool/commands .opencode/commands/spool
 /spool/review-security add-user-auth
 ```
 
----
+______________________________________________________________________
 
 ## CLI Commands
 
@@ -569,32 +575,36 @@ spool state note "[text]"           # Add session note
 spool validate [change-id] --strict # Validate including tasks format
 ```
 
----
+______________________________________________________________________
 
 ## Implementation Phases
 
 ### Phase 1: Foundation
+
 - Add `planning/` directory structure to `spool init`
 - Create PROJECT.md, STATE.md, ROADMAP.md templates
 - Add `spool state` commands
 - Document tool-agnostic workflow
 
 ### Phase 2: Research
+
 - Create research command templates
 - Add `spool/commands/` structure
 - Document integration with OpenCode, Codex, Claude Code
 
 ### Phase 3: Enhanced Tasks
+
 - Extend tasks.md parser for structured format
 - Add wave detection and dependency validation
 - Create execution command template
 
 ### Phase 4: Adversarial Review
+
 - Create review command templates
 - Add REVIEW.md generation
 - Document review workflow
 
----
+______________________________________________________________________
 
 ## Tool Compatibility Matrix
 
@@ -606,7 +616,7 @@ spool validate [change-id] --strict # Validate including tasks format
 | Parallel execution | ❌ Sequential | ❌ Sequential | ✅ Subagents |
 | Checkpoint pauses | ✅ | ✅ | ✅ |
 
----
+______________________________________________________________________
 
 ## Comparison: Before and After
 
@@ -620,7 +630,7 @@ spool validate [change-id] --strict # Validate including tasks format
 | Review | Manual | Systematic adversarial |
 | Tool support | Any | Any (optimized for OpenCode) |
 
----
+______________________________________________________________________
 
 ## References
 

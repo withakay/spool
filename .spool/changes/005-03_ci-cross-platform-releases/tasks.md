@@ -1,16 +1,19 @@
 # Tasks for: 005-03_ci-cross-platform-releases
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential (or parallel if tool supports)
 - **Created**: 2026-01-31
 
----
+______________________________________________________________________
 
 ## Wave 1
+
 - **Depends On**: None
 
 ### Task 1.1: Define release target matrix and artifact names
+
 - **Files**: `.github/workflows/`, `spool-rs/Cargo.toml`, `spool-rs/`
 - **Dependencies**: None
 - **Action**:
@@ -19,9 +22,10 @@
 - **Verify**: `make test`
 - **Done When**: Target matrix and versioning rules are documented and agreed
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
 ### Task 1.2: Add GitHub Actions release workflow
+
 - **Files**: `.github/workflows/`
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -31,9 +35,10 @@
 - **Verify**: GitHub Actions run on a test tag (or `workflow_dispatch`) succeeds
 - **Done When**: Release workflow creates a draft or published release with all expected assets
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
 ### Task 1.3: Add macOS/Linux installer script
+
 - **Files**: `scripts/`, docs, release workflow
 - **Dependencies**: Task 1.2
 - **Action**:
@@ -42,16 +47,17 @@
 - **Verify**: Install script succeeds on macOS and Linux runners in CI
 - **Done When**: Users can install with a copy/paste command and `spool --version` works
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Checkpoints
 
 ### Checkpoint: Review Implementation
+
 - **Type**: checkpoint (requires human approval)
 - **Dependencies**: All Wave 1 tasks
 - **Action**: Review the implementation before proceeding
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: \[ \] pending

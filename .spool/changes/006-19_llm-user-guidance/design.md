@@ -7,6 +7,7 @@ We also want the guidance to be user-owned and safe: created automatically, but 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Provide a single, project-local place for users to write additional LLM guidance.
 - Ensure `spool init` creates the file if missing.
 - Ensure `spool update` does not overwrite user edits.
@@ -14,6 +15,7 @@ We also want the guidance to be user-owned and safe: created automatically, but 
 - Keep the feature harness-agnostic (Claude/Codex/OpenCode/Copilot) by operating at the CLI layer.
 
 **Non-Goals:**
+
 - Building a full “policy language” or structured config DSL for guidance.
 - Per-user (home directory) guidance layering in this first iteration.
 - Harness-specific argument interpolation semantics (e.g. `$ARGUMENTS`, `${input:...}`); this feature is about instruction generation, not prompt engines.

@@ -9,9 +9,10 @@ Additionally, different team members may use different AI tools, so we cannot re
 ## Solution
 
 Modify the update command to:
+
 1. Only update AI tool configuration files that already exist
-2. Never create new AI tool configuration files
-3. Always update the core Spool files (README.md, etc.)
+1. Never create new AI tool configuration files
+1. Always update the core Spool files (README.md, etc.)
 
 ## Implementation
 

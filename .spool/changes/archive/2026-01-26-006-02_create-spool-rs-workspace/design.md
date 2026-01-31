@@ -5,10 +5,12 @@ We are porting an existing CLI from TypeScript/Bun to Rust. We need a workspace 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Establish `spool-rs/` workspace and crates.
 - Ensure fmt/clippy/test/coverage are wired.
 
 **Non-Goals:**
+
 - Port any `spool` commands beyond minimal scaffolding.
 
 ## Decisions

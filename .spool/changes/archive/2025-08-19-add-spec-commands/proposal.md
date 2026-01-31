@@ -14,6 +14,6 @@ Currently, Spool specs can only be viewed as markdown files. This makes programm
 ## Impact
 
 - **Affected specs**: None (new capability)
-- **Affected code**: 
+- **Affected code**:
   - src/cli/index.ts (register new command)
   - package.json (add zod dependency)

@@ -14,14 +14,17 @@ Most widely used CLIs (git, docker, kubectl) start with an action (verb) followe
 ### Mappings (From → To)
 
 - **List**
+
   - From: `spool change list`
   - To: `spool list --changes` (default), or `spool list --specs`
 
 - **Show**
+
   - From: `spool spec show <spec-id>` / `spool change show <change-id>`
   - To: `spool show <item-id>` with auto-detect, use `--type spec|change` if ambiguous
 
 - **Validate**
+
   - From: `spool spec validate <spec-id>` / `spool change validate <change-id>`
   - To: `spool validate <item-id> --type spec|change`, or bulk: `spool validate --specs` / `--changes` / `--all`
 
@@ -43,12 +46,14 @@ Most widely used CLIs (git, docker, kubectl) start with an action (verb) followe
 ## Explicit Changes
 
 **CLI Design**
+
 - From: Mixed model with nouns (`spec`, `change`) and some top-level verbs; `spool list` currently deprecated
 - To: Verbs as primary: `spool list|show|validate|diff|archive`; nouns scoped via flags or item ids; noun commands deprecated
 - Reason: Align with common CLIs; improve UX; simpler mental model
 - Impact: Non-breaking with deprecation period; users migrate incrementally
 
 **Listing Behavior**
+
 - From: `spool change list` (primary), `spool list` (deprecated)
 - To: `spool list` as primary, defaulting to `--changes`; add `--specs` to list specs
 - Reason: Consistent verb–noun style; better discoverability
@@ -63,5 +68,3 @@ Most widely used CLIs (git, docker, kubectl) start with an action (verb) followe
 ## Open Questions
 
 - Should `show` also accept `--changes`/`--specs` for discovery without an id? (Out of scope here; current auto-detect and `--type` remain.)
-
-

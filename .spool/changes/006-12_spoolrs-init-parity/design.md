@@ -17,11 +17,13 @@ The TypeScript CLI’s `init` behavior is the de-facto reference implementation:
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Make `spoolrs init` match the TypeScript CLI interaction model and flag semantics for tool selection.
 - Keep behavior deterministic for CI/non-interactive usage using `--tools`.
 - Add parity harness coverage for both interactive and non-interactive init flows.
 
 **Non-Goals:**
+
 - Introduce new tool installation behaviors not present in the TypeScript CLI.
 - Add Taskwarrior or other new tool support as part of this change.
 - Build a new configuration format; this is strictly parity work.
@@ -29,14 +31,17 @@ The TypeScript CLI’s `init` behavior is the de-facto reference implementation:
 ## Decisions
 
 - **Decision: Interactive by default when tools are omitted (TTY only)**
+
   - Rationale: Mirrors the TypeScript CLI’s default path and avoids surprise “install all tools” behavior.
   - Alternative: keep non-interactive default and add an `--interactive` flag (rejected; increases divergence).
 
 - **Decision: `--tools` is the single non-interactive control surface**
+
   - Rationale: Matches TypeScript CLI semantics and keeps CI usage explicit.
   - Alternative: add separate flags per tool (rejected; not present in TS version).
 
 - **Decision: PTY-driven tests are required for interactive parity**
+
   - Rationale: Prevents regressions and anchors UX parity to a runnable harness.
 
 ## Implementation Notes

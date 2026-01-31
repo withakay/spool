@@ -3,12 +3,15 @@
 ## Architecture Decisions
 
 ### Validation Levels
-Three-tier validation system:
-1. **ERROR**: Structural issues that prevent parsing (must fix)
-2. **WARNING**: Quality issues that should be addressed (recommended fix)
-3. **INFO**: Suggestions for improvement (optional)
 
-**Rationale:** 
+Three-tier validation system:
+
+1. **ERROR**: Structural issues that prevent parsing (must fix)
+1. **WARNING**: Quality issues that should be addressed (recommended fix)
+1. **INFO**: Suggestions for improvement (optional)
+
+**Rationale:**
+
 - Gradual enforcement allows teams to adopt validation incrementally
 - CI/CD can fail on errors but allow warnings initially
 - Info level provides guidance without blocking
@@ -16,6 +19,7 @@ Three-tier validation system:
 ### Validation Rules Hierarchy
 
 #### Spec Validation Rules
+
 ```
 ERROR level:
 - Missing ## Overview or ## Requirements sections
@@ -33,6 +37,7 @@ INFO level:
 ```
 
 #### Change Validation Rules
+
 ```
 ERROR level:
 - Missing ## Why or ## What Changes sections
@@ -50,27 +55,32 @@ INFO level:
 ```
 
 ### Strict Mode
+
 - **Default**: Show all levels, fail on ERROR only
 - **--strict flag**: Fail on both ERROR and WARNING
 - **Use case**: Gradual quality improvement in CI/CD pipelines
 
 ### Archive Command Safety
+
 **Problem:** Invalid specs could be archived, polluting the archive.
 
-**Solution:** 
+**Solution:**
+
 1. Pre-archive validation (default behavior)
-2. --no-validate flag with safeguards:
+1. --no-validate flag with safeguards:
    - Interactive confirmation prompt
    - Prominent warning message
    - Console logging with timestamp
    - Not recommended for CI/CD usage
 
 **Rationale:**
+
 - Protect archive integrity by default
 - Allow emergency overrides with accountability
 - Clear audit trail for validation bypasses
 
 ### Validation Report Format
+
 ```json
 {
   "valid": boolean,
@@ -92,13 +102,15 @@ INFO level:
 ```
 
 **Benefits:**
+
 - Machine-readable for tooling integration
 - Human-friendly messages
 - Line/column info for IDE integration
 - Summary for quick assessment
 
 ### Implementation Strategy
+
 1. **Zod schemas with refinements**: Built-in validation in type definitions
-2. **Custom validators**: Additional business logic validation
-3. **Composable rules**: Mix and match for different contexts
-4. **Extensible framework**: Easy to add new rules without refactoring
+1. **Custom validators**: Additional business logic validation
+1. **Composable rules**: Mix and match for different contexts
+1. **Extensible framework**: Easy to add new rules without refactoring

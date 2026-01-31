@@ -1,8 +1,10 @@
 ## Context
+
 The project is mid-transition from a legacy TypeScript/Bun implementation to a supported Rust implementation in `spool-rs/`.
 This change completes the transition by removing the JavaScript/TypeScript codebase and the Node/Bun toolchain.
 
 ## Goals / Non-Goals
+
 - Goals:
   - No JavaScript/TypeScript source code required to build, test, lint, or release Spool.
   - `make build`, `make test`, and `make lint` run Rust-only commands.
@@ -13,6 +15,7 @@ This change completes the transition by removing the JavaScript/TypeScript codeb
   - Preserve the TypeScript parity harness/oracle approach.
 
 ## Decisions
+
 - Decision: Remove `spool-bun/` and all Node/Bun build/test/release plumbing.
   - Why: Rust is the supported implementation; maintaining duplicate implementations and toolchains is high-cost.
 - Decision: Treat Rust tests as the primary validation surface.
@@ -21,13 +24,16 @@ This change completes the transition by removing the JavaScript/TypeScript codeb
   - Why: Rust-only distribution cannot rely on npm lifecycle hooks.
 
 ## Risks / Trade-offs
+
 - Breaking change for users relying on npm/bun install flows.
 - Loss of TypeScript test coverage; mitigated by ensuring Rust has adequate test coverage and CI gates.
 
 ## Migration Plan
+
 1. Update docs and CI first to avoid “half-migrated” state.
-2. Remove Node/Bun and TypeScript code.
-3. Ensure `make build/test/lint` pass in a Rust-only environment.
+1. Remove Node/Bun and TypeScript code.
+1. Ensure `make build/test/lint` pass in a Rust-only environment.
 
 ## Rollback
+
 Revert this change (restore `spool-bun/` and Node/Bun config) if critical functionality is missing in Rust.

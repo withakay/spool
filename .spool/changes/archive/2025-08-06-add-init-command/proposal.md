@@ -17,12 +17,13 @@ Projects need a simple way to adopt Spool conventions. Currently, users must man
 - Display actionable next steps after successful initialization
 
 ### Breaking Changes
+
 - None - this is a new feature
 
 ## Impact
 
 - Affected specs: None (new feature)
-- Affected code: 
+- Affected code:
   - src/cli/index.ts (add init command)
   - src/core/init.ts (new - initialization logic)
   - src/core/templates/ (new - template files)

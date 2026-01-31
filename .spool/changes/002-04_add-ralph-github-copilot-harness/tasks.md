@@ -14,12 +14,14 @@
 ## Wave 2: Harness Implementation
 
 1. Implement `github-copilot` harness
+
    - Files: `src/core/ralph/harnesses/github-copilot.ts`
    - Action: invoke `gh copilot` entrypoints; pass prompt; capture output; document non-interactive constraints
    - Verify: unit tests for command selection and fallback behavior
    - Status: ⬜
 
-2. Register harness in `spool ralph`
+1. Register harness in `spool ralph`
+
    - Files: `src/core/ralph/harnesses/index.ts`, `src/commands/ralph.ts`
    - Verify: `node bin/spool.js ralph --help` shows `github-copilot`
    - Status: ⬜

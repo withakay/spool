@@ -14,25 +14,30 @@ The ralph loop currently passes minimal context to agents, resulting in suboptim
 ## Capabilities
 
 ### New Capabilities
+
 - `preamble-generation`: Generate structured iteration context with task instructions, autonomy rules, and completion signals
 - `context-integration`: Merge user-added context (from `--add-context`) into the preamble as a distinct section
 
 ### Modified Capabilities
+
 <!-- No existing capabilities have changing requirements -->
 
 ## Impact
 
 **Affected Code:**
+
 - `src/core/ralph/context.ts` - Add `buildPromptPreamble()` function and modify `buildRalphPrompt()` to include preamble
 - `src/core/ralph/runner.ts` - Pass iteration state to prompt builder
 - `src/core/ralph/types.ts` - Potentially add types for preamble configuration
 
 **Benefits:**
+
 - Improved agent behavior with clear autonomy expectations
 - Better task management through explicit todo list instructions
 - Reduced loop failures from agents asking questions or providing false completions
 - Consistent agent experience across all iterations
 
 **Risks:**
+
 - Longer prompts may consume more tokens
 - Need to ensure preamble doesn't conflict with existing agent instructions

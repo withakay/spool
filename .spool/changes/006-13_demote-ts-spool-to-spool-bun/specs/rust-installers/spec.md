@@ -7,6 +7,7 @@ Installers MUST ensure the default `spool` command resolves to the Rust implemen
 If the legacy TypeScript/Bun implementation is installed for legacy purposes, it MUST use a distinct command/name and MUST be labeled deprecated.
 
 #### Scenario: Default CLI resolves to Rust
+
 - **WHEN** a user installs Spool using the documented installer path
 - **THEN** running `spool --version` indicates the Rust implementation
 - **AND** the installation does not place a TypeScript/Bun `spool` ahead of Rust on PATH
@@ -16,6 +17,7 @@ If the legacy TypeScript/Bun implementation is installed for legacy purposes, it
 Installers MUST remove or disable any cached legacy TypeScript `spool` that would shadow the Rust `spool` command.
 
 #### Scenario: Cached legacy CLI does not shadow Rust
+
 - **GIVEN** a machine with a cached legacy TypeScript `spool` in the global cache
 - **WHEN** the Rust `spool` installation or upgrade is performed
 - **THEN** `spool` resolves to the Rust implementation
@@ -24,9 +26,11 @@ Installers MUST remove or disable any cached legacy TypeScript `spool` that woul
 ## REMOVED Requirements
 
 ### Requirement: Non-interactive installers match TypeScript byte-for-byte
+
 This requirement is removed; installer verification MUST NOT require executing the TypeScript/Bun implementation.
 
 #### Scenario: Rust installers do not depend on TypeScript
+
 - **WHEN** a developer runs `spool init` in non-interactive mode
 - **THEN** installer outputs MUST be validated using Rust-owned templates and/or Rust golden tests
 - **AND** the validation process SHALL NOT execute TypeScript/Bun code

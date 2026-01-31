@@ -1,6 +1,7 @@
 ## Context
 
 The experimental workflow (OPSX) provides a complete lifecycle for creating changes:
+
 - `/opsx:new` - Scaffold a new change with schema
 - `/opsx:continue` - Create next artifact
 - `/opsx:ff` - Fast-forward all artifacts
@@ -8,19 +9,22 @@ The experimental workflow (OPSX) provides a complete lifecycle for creating chan
 - `/opsx:sync` - Sync delta specs to main
 
 The missing piece is archiving. The existing `spool archive` command works but:
+
 1. Applies specs programmatically (not agent-driven)
-2. Doesn't use the artifact graph for completion checking
-3. Doesn't integrate with the OPSX workflow philosophy
+1. Doesn't use the artifact graph for completion checking
+1. Doesn't integrate with the OPSX workflow philosophy
 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Add `/opsx:archive` skill to complete the OPSX workflow lifecycle
 - Use artifact graph for schema-aware completion checking
 - Integrate with `/opsx:sync` for agent-driven spec syncing
 - Preserve `.spool.yaml` schema metadata in archive
 
 **Non-Goals:**
+
 - Replacing the existing `spool archive` CLI command
 - Changing how specs are applied in the CLI command
 - Modifying the artifact graph or schema system
@@ -34,6 +38,7 @@ The `/opsx:archive` will be a slash command/skill only, not a new CLI command.
 **Rationale**: The existing `spool archive` CLI command already handles the core archive functionality (moving to archive folder, date prefixing). The OPSX version just needs different pre-archive checks and optional sync prompting, which are agent behaviors better suited to a skill.
 
 **Alternatives considered**:
+
 - Adding flags to `spool archive` (e.g., `--experimental`) - Rejected: adds complexity to CLI, harder to maintain two code paths
 - New CLI command `spool archive-experimental` - Rejected: unnecessary duplication, agent skills are the OPSX pattern
 
@@ -44,10 +49,11 @@ The skill will check for unsynced delta specs and prompt the user before archivi
 **Rationale**: The OPSX philosophy is agent-driven intelligent merging via `/opsx:sync`. Rather than programmatically applying specs like the regular archive command, we prompt the user to sync first if needed. This maintains workflow flexibility (user can decline and just archive).
 
 **Flow**:
+
 1. Check if `specs/` directory exists in the change
-2. If yes, ask: "This change has delta specs. Would you like to sync them to main specs before archiving?"
-3. If user says yes, execute `/opsx:sync` logic
-4. Proceed with archive regardless of answer
+1. If yes, ask: "This change has delta specs. Would you like to sync them to main specs before archiving?"
+1. If user says yes, execute `/opsx:sync` logic
+1. Proceed with archive regardless of answer
 
 ### Decision 3: Use artifact graph for completion checking
 
@@ -56,6 +62,7 @@ The skill will use `spool status --change "<name>" --json` to check artifact com
 **Rationale**: The experimental workflow is schema-aware. Different schemas have different required artifacts. The artifact graph knows which artifacts are complete/incomplete for the current schema.
 
 **Behavior**:
+
 - Show warning if any artifacts are not `done`
 - Don't block archive (user may have valid reasons to archive early)
 - List incomplete artifacts so user can make informed decision

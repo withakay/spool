@@ -1,0 +1,13 @@
+# Git Worktrees
+
+## Purpose
+Add an optional Git worktree-based workspace layout so Spool can isolate changes into separate working directories while keeping a small, deterministic "control" checkout for agent entry.
+
+## Scope
+- cli-init
+- cli-artifact-workflow
+- cli-config
+- global-config
+
+## Changes
+- [ ] 012-01_add-git-worktree-support

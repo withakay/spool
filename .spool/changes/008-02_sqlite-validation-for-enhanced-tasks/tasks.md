@@ -1,16 +1,19 @@
 # Tasks for: 008-02_sqlite-validation-for-enhanced-tasks
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 - **Template**: Enhanced task format with waves, verification, and status tracking
 
----
+______________________________________________________________________
 
 ## Wave 1
+
 - **Depends On**: None
 
 ### Task 1.1: Update enhanced tasks templates for wave deps + shelving + updated-at
+
 - **Files**: spool-rs/crates/spool-workflow/src/tasks.rs, schemas/spec-driven/templates/tasks.md
 - **Dependencies**: None
 - **Action**:
@@ -21,9 +24,10 @@
   - Update guidance text to explain: wave deps are cross-wave; task deps are within-wave only
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: Rust template (and TS template, if still used) matches the new semantics
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
 ### Task 1.2: Extend Rust tasks.md parser/writer for wave deps + shelved + updated-at
+
 - **Files**: spool-rs/crates/spool-workflow/src/tasks.rs
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -34,14 +38,16 @@
   - Update readiness evaluation to use wave deps + within-wave deps
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: Rust parser round-trips updated format and readiness logic matches specs
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Wave 2
+
 - **Depends On**: Wave 1
 
 ### Task 2.1: Implement repo integrity validator (Rust, in-memory SQLite)
+
 - **Files**: spool-rs/crates/spool-workflow/src/lib.rs
 - **Dependencies**: None
 - **Action**:
@@ -53,9 +59,10 @@
   - Produce errors that include both conflicting directory paths and actionable remediation
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: `spool validate --changes` reports duplicate/invalid change directories correctly
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
 ### Task 2.2: Implement relational validation for waves/tasks/dependencies (Rust)
+
 - **Files**: spool-rs/crates/spool-workflow/src/tasks.rs
 - **Dependencies**: Task 2.1
 - **Action**:
@@ -67,14 +74,16 @@
   - Return diagnostics with source locations from the markdown parser
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: Invalid tasks.md structures are rejected with actionable, line-addressable errors
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Wave 3
+
 - **Depends On**: Wave 2
 
 ### Task 3.1: Add Rust CLI support for shelving/unshelving
+
 - **Files**: spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: None
 - **Action**:
@@ -84,9 +93,10 @@
   - Ensure commands refuse to operate when validation errors exist
 - **Verify**: cargo test -p spool-cli
 - **Done When**: Commands update tasks.md deterministically and validation blocks unsafe operations
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
 ### Task 3.2: Ensure Rust `spool validate` surfaces repo integrity + tasks validation
+
 - **Files**: spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: Task 2.2
 - **Action**:
@@ -95,14 +105,16 @@
   - Ensure JSON output includes the new issues with stable fields
 - **Verify**: cargo test -p spool-cli
 - **Done When**: `spool validate` reports new validations in both text and JSON modes
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Wave 4
+
 - **Depends On**: Wave 3
 
 ### Task 4.1: Remove/avoid TypeScript-first assumptions
+
 - **Files**: .spool/changes/008-02_sqlite-validation-for-enhanced-tasks/design.md
 - **Dependencies**: None
 - **Action**:
@@ -110,14 +122,16 @@
   - Ensure any TypeScript parity work is explicitly deferred
 - **Verify**: spool validate "008-02_sqlite-validation-for-enhanced-tasks" --strict
 - **Done When**: Proposal artifacts reflect Rust-first implementation strategy
-- **Status**: [ ] pending
+- **Status**: \[ \] pending
 
----
+______________________________________________________________________
 
 ## Wave 5 (Checkpoint)
+
 - **Depends On**: Wave 4
 
 ### Task 5.1: Review format + diagnostics quality
+
 - **Type**: checkpoint (requires human approval before proceeding)
 - **Files**: schemas/spec-driven/templates/tasks.md
 - **Dependencies**: None
@@ -126,4 +140,4 @@
   - Validate that error messages are actionable and point to exact locations
   - Confirm the wave/task dependency scoping matches the intended mental model
 - **Done When**: Human reviewer approves format and validator UX
-- **Status**: [ ] pending
+- **Status**: \[ \] pending

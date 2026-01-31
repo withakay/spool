@@ -17,10 +17,10 @@ The existing command dispatch remains, but individual handlers stop owning print
 
 ## Implementation Strategy
 
-1) Introduce `cli_error.rs` (or similar) with `CliError` + conversions.
-2) Introduce `diagnostics.rs` helper for printing `TaskDiagnostic` / validation issues consistently.
-3) Refactor the highest-duplication command paths first (tasks + validate), then proceed to other subcommands.
-4) Keep behavior stable by retaining existing messages where possible, only making output more consistent.
+1. Introduce `cli_error.rs` (or similar) with `CliError` + conversions.
+1. Introduce `diagnostics.rs` helper for printing `TaskDiagnostic` / validation issues consistently.
+1. Refactor the highest-duplication command paths first (tasks + validate), then proceed to other subcommands.
+1. Keep behavior stable by retaining existing messages where possible, only making output more consistent.
 
 ## What NOT to Change
 

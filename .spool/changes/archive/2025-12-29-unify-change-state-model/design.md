@@ -5,7 +5,7 @@
 This change fixes two bugs with minimal disruption to the existing system:
 
 1. **View bug**: Empty changes incorrectly shown as "Completed"
-2. **Artifact workflow bug**: Commands fail on scaffolded changes
+1. **Artifact workflow bug**: Commands fail on scaffolded changes
 
 ## Key Design Decision: Two Systems, Two Purposes
 
@@ -46,6 +46,7 @@ if (progress.total === 0) {
 ### View Output Change
 
 **Before:**
+
 ```
 Completed Changes
 ─────────────────
@@ -54,6 +55,7 @@ Completed Changes
 ```
 
 **After:**
+
 ```
 Draft Changes
 ─────────────────
@@ -132,9 +134,9 @@ Progress: 0/4 artifacts complete
 ## What Stays the Same
 
 1. **`getActiveChangeIds()`** - Still requires `proposal.md` (used by validate, show)
-2. **`getArchivedChangeIds()`** - Unchanged
-3. **Active/Completed semantics** - Still based on task checkboxes
-4. **Validation** - Still requires `proposal.md` to have something to validate
+1. **`getArchivedChangeIds()`** - Unchanged
+1. **Active/Completed semantics** - Still based on task checkboxes
+1. **Validation** - Still requires `proposal.md` to have something to validate
 
 ## File Changes
 
@@ -147,5 +149,5 @@ Progress: 0/4 artifacts complete
 ## Testing Strategy
 
 1. **Unit test**: `validateChangeExists()` with scaffolded change
-2. **View test**: Verify three categories render correctly
-3. **Manual test**: Full workflow from `new change` → `status` → `view`
+1. **View test**: Verify three categories render correctly
+1. **Manual test**: Full workflow from `new change` → `status` → `view`

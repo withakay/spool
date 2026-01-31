@@ -11,9 +11,11 @@ We need a Rust workspace with clear crate boundaries and baseline tooling so sub
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-workspace`: Cargo workspace and crate scaffolding for the Rust port.
 
 ### Modified Capabilities
+
 <!-- None. New workspace. -->
 
 ## Impact

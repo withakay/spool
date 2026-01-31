@@ -1,5 +1,7 @@
 ## MODIFIED Requirements
+
 ### Requirement: AI Tool Configuration
+
 The command SHALL configure AI coding assistants with Spool instructions based on user selection.
 
 #### Scenario: Prompting for AI tool selection
@@ -11,6 +13,7 @@ The command SHALL configure AI coding assistants with Spool instructions based o
   - AGENTS.md (works with Codex, Amp, Copilot, …)
 
 ### Requirement: AI Tool Configuration Details
+
 The command SHALL properly configure selected AI tools with Spool-specific instructions using a marker system.
 
 #### Scenario: Configuring Claude Code
@@ -27,6 +30,7 @@ The command SHALL properly configure selected AI tools with Spool-specific instr
 
 - **WHEN** CLAUDE.md does not exist
 - **THEN** create new file with Spool content wrapped in markers:
+
 ```markdown
 <!-- SPOOL:START -->
 # Spool Project
@@ -66,6 +70,7 @@ See @spool/AGENTS.md for detailed conventions and guidelines.
 - **AND** preserve all content outside the markers intact
 
 WHY use markers:
+
 - Users may have existing CLAUDE.md or AGENTS.md instructions they want to keep
 - Spool can update its instructions in future versions
 - Clear boundary between Spool-managed and user-managed content

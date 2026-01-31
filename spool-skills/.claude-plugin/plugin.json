@@ -1,0 +1,13 @@
+{
+  "name": "spool-skills",
+  "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques (forked from Superpowers by Jesse Vincent)",
+  "version": "4.1.1",
+  "author": {
+    "name": "withakay",
+    "email": ""
+  },
+  "homepage": "https://github.com/withakay/spool-skills",
+  "repository": "https://github.com/withakay/spool-skills",
+  "license": "MIT",
+  "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows", "fork", "superpowers"]
+}

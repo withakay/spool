@@ -11,6 +11,7 @@ Port `spool ralph` / `spool loop` to Rust with identical loop semantics, state l
 Rust MUST detect completion promises using the same rules as TypeScript.
 
 #### Scenario: Detect `<promise>COMPLETE</promise>`
+
 - GIVEN harness output containing `<promise>COMPLETE</promise>`
 - WHEN the loop processes the output
 - THEN Rust stops after meeting `--min-iterations` semantics
@@ -20,6 +21,7 @@ Rust MUST detect completion promises using the same rules as TypeScript.
 Rust MUST write loop state and history in the same location and structure as TypeScript.
 
 #### Scenario: State files exist
+
 - GIVEN a completed loop run
 - WHEN the user inspects `.spool/.state/ralph/<change-id>/`
 - THEN the expected state and history files exist
@@ -29,6 +31,7 @@ Rust MUST write loop state and history in the same location and structure as Typ
 Rust tests MUST run with stub harnesses.
 
 #### Scenario: Parity tests run offline
+
 - GIVEN no network access
 - WHEN `cargo test --workspace` runs
 - THEN ralph tests pass using stub harnesses

@@ -19,6 +19,7 @@ spool init --force --tools all
 ```
 
 Then inspect installed files (examples):
+
 - `.opencode/skill/*/SKILL.md`
 - `.claude/skills/*/SKILL.md`
 - `.github/skills/*/SKILL.md`

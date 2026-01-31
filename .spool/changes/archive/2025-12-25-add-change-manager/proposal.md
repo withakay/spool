@@ -1,15 +1,17 @@
 ## Why
 
 There's no programmatic way to create a new change directory. Users must manually:
+
 1. Create `spool/changes/<name>/` directory
-2. Create a `proposal.md` file
-3. Hope they got the naming right
+1. Create a `proposal.md` file
+1. Hope they got the naming right
 
 This is error-prone and blocks automation (e.g., Claude commands, scripts).
 
 **This proposal adds:**
+
 1. `createChange(projectRoot, name)` - Create change directories programmatically
-2. `validateChangeName(name)` - Enforce kebab-case naming conventions
+1. `validateChangeName(name)` - Enforce kebab-case naming conventions
 
 ## What Changes
 

@@ -5,6 +5,7 @@
 The CLI SHALL provide `spool agent instruction [artifact]` command that generates enriched, context-aware instructions for artifact creation.
 
 #### Scenario: Generate instructions for proposal artifact
+
 - **WHEN** agent runs `spool agent instruction proposal --change "001-01_my-change"`
 - **THEN** system outputs XML-formatted instructions containing:
   - Task description for the artifact
@@ -14,6 +15,7 @@ The CLI SHALL provide `spool agent instruction [artifact]` command that generate
   - What artifacts this unlocks
 
 #### Scenario: Generate instructions with dependency context
+
 - **WHEN** agent runs `spool agent instruction specs --change "001-01_my-change"`
 - **AND** proposal.md exists in the change directory
 - **THEN** system outputs instructions including:
@@ -21,6 +23,7 @@ The CLI SHALL provide `spool agent instruction [artifact]` command that generate
   - Context section telling agent to read dependency files
 
 #### Scenario: Generate instructions with missing dependency
+
 - **WHEN** agent runs `spool agent instruction design --change "001-01_my-change"`
 - **AND** proposal.md does NOT exist
 - **THEN** system outputs instructions with dependency status "missing"
@@ -31,6 +34,7 @@ The CLI SHALL provide `spool agent instruction [artifact]` command that generate
 The command SHALL support `--json` flag for structured output.
 
 #### Scenario: JSON output format
+
 - **WHEN** agent runs `spool agent instruction specs --change "001-01_my-change" --json`
 - **THEN** system outputs valid JSON containing all instruction fields
 - **AND** output can be parsed by standard JSON parsers
@@ -40,6 +44,7 @@ The command SHALL support `--json` flag for structured output.
 The command SHALL support `--schema` option to specify alternate workflow schemas.
 
 #### Scenario: Custom schema override
+
 - **WHEN** agent runs `spool agent instruction proposal --change "001-01_my-change" --schema minimal`
 - **THEN** system loads template from the `minimal` schema
 - **AND** generates instructions according to that schema's artifact graph
@@ -49,6 +54,7 @@ The command SHALL support `--schema` option to specify alternate workflow schema
 The command SHALL provide clear error messages when requesting invalid artifact types.
 
 #### Scenario: Invalid artifact name
+
 - **WHEN** agent runs `spool agent instruction invalid-artifact --change "001-01_my-change"`
 - **THEN** system displays error message listing valid artifact names for the schema
 - **AND** exits with non-zero status code

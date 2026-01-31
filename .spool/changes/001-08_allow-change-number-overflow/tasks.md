@@ -1,17 +1,19 @@
 # Tasks for: 001-08_allow-change-number-overflow
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 - **Template**: Enhanced task format with waves, verification, and status tracking
 
----
+______________________________________________________________________
 
 ## Wave 1
 
 - **Depends On**: None
 
 ### Task 1.1: Update specs to remove the 99 cap
+
 - **Files**: .spool/changes/001-08_allow-change-number-overflow/specs/spool-rs-change-id-overflow/spec.md
 - **Dependencies**: None
 - **Action**:
@@ -20,9 +22,10 @@
 - **Verify**: spool validate "001-08_allow-change-number-overflow" --strict
 - **Done When**: Specs validate and reflect unbounded change numbers
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.2: Audit spool-rs callers for 2-digit assumptions
+
 - **Files**: spool-rs/crates/spool-core/src/id/change_id.rs, spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -31,15 +34,16 @@
 - **Verify**: cargo test
 - **Done When**: No spool-rs code assumes change numbers are capped at 2 digits
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 2
 
 - **Depends On**: Wave 1
 
 ### Task 2.1: Remove the hard cap in the Rust parser
+
 - **Files**: spool-rs/crates/spool-core/src/id/change_id.rs
 - **Dependencies**: Task 1.2
 - **Action**:
@@ -49,9 +53,10 @@
 - **Verify**: cargo test
 - **Done When**: Rust parser accepts 3+ digit change numbers and all tests pass
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 2.2: Verify end-to-end behavior in the Rust CLI
+
 - **Files**: spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: Task 2.1
 - **Action**:
@@ -60,15 +65,16 @@
 - **Verify**: cargo test
 - **Done When**: Rust CLI commands work with 3+ digit change numbers
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 3 (Checkpoint)
 
 - **Depends On**: Wave 2
 
 ### Task 3.1: Confirm sorting expectations and doc wording
+
 - **Type**: checkpoint (requires human approval before proceeding)
 - **Files**: .spool/changes/001-08_allow-change-number-overflow/proposal.md, .spool/changes/001-08_allow-change-number-overflow/design.md
 - **Dependencies**: Task 2.2
@@ -77,4 +83,4 @@
   - Confirm wording explicitly states ordering is best-effort past 99
 - **Done When**: Human reviewer approves wording and semantics
 - **Updated At**: 2026-01-29
-- **Status**: [ ] pending
+- **Status**: \[ \] pending

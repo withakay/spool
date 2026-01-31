@@ -1,6 +1,6 @@
 ## Why
 
-The documentation is split between aspirational design documents (`docs/experimental-workflow.md`, `docs/experimental-release-plan.md`) and the actual implemented workflow (the spool-* skills). This creates confusion about what Spool can actually do today vs. what was planned. Users need a single authoritative document describing the real workflow, and good ideas that haven't been implemented should be preserved separately for future consideration.
+The documentation is split between aspirational design documents (`docs/experimental-workflow.md`, `docs/experimental-release-plan.md`) and the actual implemented workflow (the spool-\* skills). This creates confusion about what Spool can actually do today vs. what was planned. Users need a single authoritative document describing the real workflow, and good ideas that haven't been implemented should be preserved separately for future consideration.
 
 ## What Changes
 
@@ -13,7 +13,7 @@ The documentation is split between aspirational design documents (`docs/experime
 
 ### New Capabilities
 
-- `agent-workflow-docs`: Create comprehensive documentation of the actual Spool workflow as implemented in the spool-* skills (proposal, research, apply, review, archive). This documents the real "actions on a change" model that agents use.
+- `agent-workflow-docs`: Create comprehensive documentation of the actual Spool workflow as implemented in the spool-\* skills (proposal, research, apply, review, archive). This documents the real "actions on a change" model that agents use.
 - `future-ideas-docs`: Create a document capturing unimplemented but valuable ideas from the experimental docs (custom schemas, additional CLI commands, the full OPSX fluid workflow model) for future consideration.
 
 ### Modified Capabilities

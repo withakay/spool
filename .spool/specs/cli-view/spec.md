@@ -5,7 +5,9 @@
 The `spool dashboard` command provides a comprehensive dashboard view of the Spool project state, displaying specifications, changes, and progress metrics in a unified, visually appealing format to help developers quickly understand project status.
 
 `spool view` remains callable as a hidden deprecated alias.
+
 ## Requirements
+
 ### Requirement: Dashboard Display
 
 The system SHALL provide a `dashboard` command that displays a dashboard overview of specs and changes.
@@ -39,9 +41,11 @@ The dashboard SHALL display a summary section with key project metrics, includin
 - **THEN** summary shows zero counts for all metrics
 
 ### Requirement: Active Changes Display
+
 The dashboard SHALL show active changes with visual progress indicators.
 
 #### Scenario: Active changes ordered by completion percentage
+
 - **WHEN** multiple active changes are displayed with progress information
 - **THEN** list them sorted by completion percentage ascending so 0% items appear first
 - **AND** treat missing progress values as 0% for ordering

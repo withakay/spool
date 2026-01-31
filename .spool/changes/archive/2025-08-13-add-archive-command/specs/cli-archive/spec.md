@@ -1,19 +1,23 @@
 # CLI Archive Command Specification
 
 ## Purpose
+
 The archive command moves completed changes from the active changes directory to the archive folder with date-based naming, following Spool conventions.
 
 ## Command Syntax
+
 ```bash
 spool archive [change-name] [--yes|-y]
 ```
 
 Options:
+
 - `--yes`, `-y`: Skip confirmation prompts (for automation)
 
 ## Behavior
 
 ### Change Selection
+
 WHEN no change-name is provided
 THEN display interactive list of available changes (excluding archive/)
 AND allow user to select one
@@ -23,6 +27,7 @@ THEN use that change directly
 AND validate it exists
 
 ### Task Completion Check
+
 The command SHALL scan the change's tasks.md file for incomplete tasks (marked with `- [ ]`)
 
 WHEN incomplete tasks are found
@@ -34,12 +39,14 @@ WHEN all tasks are complete OR no tasks.md exists
 THEN proceed with archiving without prompting
 
 ### Archive Process
+
 The archive operation SHALL:
+
 1. Create archive/ directory if it doesn't exist
-2. Generate target name as `YYYY-MM-DD-[change-name]` using current date
-3. Check if target directory already exists
-4. Update main specs from the change's future state specs (see Spec Update Process below)
-5. Move the entire change directory to the archive location
+1. Generate target name as `YYYY-MM-DD-[change-name]` using current date
+1. Check if target directory already exists
+1. Update main specs from the change's future state specs (see Spec Update Process below)
+1. Move the entire change directory to the archive location
 
 WHEN target archive already exists
 THEN fail with error message
@@ -49,14 +56,16 @@ WHEN move succeeds
 THEN display success message with archived name and list of updated specs
 
 ### Spec Update Process
+
 Before moving the change to archive, the command SHALL update main specs to reflect the deployed reality:
 
 WHEN the change contains specs in `changes/[name]/specs/`
 THEN:
+
 1. Analyze which specs will be affected by comparing with existing specs
-2. Display a summary of spec updates to the user (see Confirmation Behavior below)
-3. Prompt for confirmation unless `--yes` flag is provided
-4. If confirmed, for each capability spec in the change directory:
+1. Display a summary of spec updates to the user (see Confirmation Behavior below)
+1. Prompt for confirmation unless `--yes` flag is provided
+1. If confirmed, for each capability spec in the change directory:
    - Copy the spec from `changes/[name]/specs/[capability]/spec.md` to `spool/specs/[capability]/spec.md`
    - Create the target directory structure if it doesn't exist
    - Overwrite existing spec files (specs represent current reality, change specs are the new reality)
@@ -67,7 +76,9 @@ THEN skip the spec update step
 AND proceed with archiving
 
 ### Confirmation Behavior
+
 The spec update confirmation SHALL:
+
 - Display a clear summary showing:
   - Which specs will be created (new capabilities)
   - Which specs will be updated (existing capabilities)
@@ -75,13 +86,13 @@ The spec update confirmation SHALL:
 - Format the confirmation prompt as:
   ```
   The following specs will be updated:
-  
+
   NEW specs to be created:
     - cli-archive (from changes/add-archive-command/specs/cli-archive/spec.md)
-  
+
   EXISTING specs to be updated:
     - cli-init (from changes/update-init-command/specs/cli-init/spec.md)
-  
+
   Update 2 specs and archive 'add-archive-command'? [y/N]:
   ```
 - Default to "No" for safety (require explicit "y" or "yes")
@@ -95,6 +106,7 @@ AND exit with non-zero status code
 ## Error Handling
 
 SHALL handle the following error conditions:
+
 - Missing spool/changes/ directory
 - Change not found
 - Archive target already exists

@@ -11,12 +11,14 @@ The requested change demotes the TypeScript/Bun implementation by moving it into
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Make `spool-rs` the supported implementation and the default `spool` command.
 - Move the TypeScript implementation out of the root layout into `spool-bun/` and update all path references accordingly.
 - Update docs/agent instructions to reflect the new support policy and layout.
 - Ensure installation and caching behavior does not allow the legacy TypeScript `spool` to shadow the Rust `spool`.
 
 **Non-Goals:**
+
 - Removing the TypeScript codebase entirely.
 - Completing feature parity work between TypeScript and Rust beyond what is required to make `spool-rs` the supported default.
 - Reworking the Rust workspace structure under `spool-rs/`.
@@ -33,6 +35,7 @@ Adopt an explicit split:
 Rationale: Keeps the legacy code accessible while making the supported implementation unambiguous.
 
 Alternatives considered:
+
 - Delete the TypeScript code: too disruptive; removes a working fallback.
 - Keep TypeScript at root and add Rust elsewhere: preserves current ambiguity and path conflicts.
 
@@ -43,6 +46,7 @@ Treat `spool` as the Rust CLI. The legacy TypeScript CLI (if still runnable) use
 Rationale: Aligns with the support direction, avoids shadowing conflicts, and reduces user confusion.
 
 Alternatives considered:
+
 - Keep both claiming `spool` via PATH precedence: leads to hard-to-debug behavior differences.
 
 ### Decision: Makefile and developer workflows default to Rust
@@ -59,19 +63,19 @@ Rationale: A deprecated implementation should not be able to silently take prece
 
 ## Risks / Trade-offs
 
-- [Path breakage] Moving `src/` will break imports/scripts → Mitigation: update all path references and CI scripts in the same change; add a minimal smoke build/test for both implementations.
-- [Tooling confusion] Users may still discover TS docs via search → Mitigation: add explicit deprecation banners and cross-links to `spool-rs`.
-- [Cache ambiguity] "Global cache" location differs by environment → Mitigation: document exact cache paths supported for cleanup and make cleanup idempotent.
-- [Parity expectations] Existing specs/tests may assume TS is canonical → Mitigation: update specs to treat Rust outputs as canonical and remove TS byte-for-byte parity requirements.
+- \[Path breakage\] Moving `src/` will break imports/scripts → Mitigation: update all path references and CI scripts in the same change; add a minimal smoke build/test for both implementations.
+- \[Tooling confusion\] Users may still discover TS docs via search → Mitigation: add explicit deprecation banners and cross-links to `spool-rs`.
+- \[Cache ambiguity\] "Global cache" location differs by environment → Mitigation: document exact cache paths supported for cleanup and make cleanup idempotent.
+- \[Parity expectations\] Existing specs/tests may assume TS is canonical → Mitigation: update specs to treat Rust outputs as canonical and remove TS byte-for-byte parity requirements.
 
 ## Migration Plan
 
 1. Create `spool-bun/` and move the TypeScript codebase from root `src/` (and any coupled config) under it.
-2. Update build/test configs and scripts to point to `spool-bun/` (and keep Rust configs under `spool-rs/`).
-3. Update documentation and agent instructions to state `spool-rs` is supported and the TS version is deprecated.
-4. Update `Makefile` to favor Rust by default and expose explicit legacy targets.
-5. Update install logic so `spool-rs` is installed as `spool`, and implement cleanup of legacy cached TypeScript `spool` so it cannot shadow Rust.
-6. Add/adjust tests that validate `spool --help/--version` identify the Rust implementation and that installer output is validated without depending on TS byte-for-byte parity.
+1. Update build/test configs and scripts to point to `spool-bun/` (and keep Rust configs under `spool-rs/`).
+1. Update documentation and agent instructions to state `spool-rs` is supported and the TS version is deprecated.
+1. Update `Makefile` to favor Rust by default and expose explicit legacy targets.
+1. Update install logic so `spool-rs` is installed as `spool`, and implement cleanup of legacy cached TypeScript `spool` so it cannot shadow Rust.
+1. Add/adjust tests that validate `spool --help/--version` identify the Rust implementation and that installer output is validated without depending on TS byte-for-byte parity.
 
 Rollback strategy: revert the layout move and Makefile/installer changes; keep `spool-bun/` as a non-default folder until the migration is re-attempted.
 

@@ -1,12 +1,17 @@
 # cli-validate Specification
 
 ## Purpose
+
 TBD - created by archiving change improve-validate-error-messages. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Validation SHALL provide actionable remediation steps
+
 Validation output SHALL include specific guidance to fix each error, including expected structure, example headers, and suggested commands to verify fixes.
 
 #### Scenario: No deltas found in change
+
 - **WHEN** validating a change with zero parsed deltas
 - **THEN** show error "No deltas found" with guidance:
   - Explain that change specs must include `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements`, or `## RENAMED Requirements`
@@ -15,6 +20,7 @@ Validation output SHALL include specific guidance to fix each error, including e
   - Suggest running `spool show {id} --json --deltas-only` for debugging
 
 #### Scenario: Missing required sections
+
 - **WHEN** a required section is missing
 - **THEN** include expected header names and a minimal skeleton:
   - For Spec: `## Purpose`, `## Requirements`
@@ -23,6 +29,7 @@ Validation output SHALL include specific guidance to fix each error, including e
   - Mention the quick-reference section in `.spool/AGENTS.md` as the authoritative template
 
 #### Scenario: Missing requirement descriptive text
+
 - **WHEN** a requirement header lacks descriptive text before scenarios
 - **THEN** emit an error explaining that `### Requirement:` lines must be followed by narrative text before any `#### Scenario:` headers
   - Show compliant example: "### Requirement: Foo" followed by "The system SHALL ..."
@@ -30,11 +37,14 @@ Validation output SHALL include specific guidance to fix each error, including e
   - Reference the pre-validation checklist in `.spool/AGENTS.md`
 
 ### Requirement: Validator SHALL detect likely misformatted scenarios and warn with a fix
+
 The validator SHALL recognize bulleted lines that look like scenarios (e.g., lines beginning with WHEN/THEN/AND) and emit a targeted warning with a conversion example to `#### Scenario:`.
 
 #### Scenario: Bulleted WHEN/THEN under a Requirement
+
 - **WHEN** bullets that start with WHEN/THEN/AND are found under a requirement without any `#### Scenario:` headers
 - **THEN** emit warning: "Scenarios must use '#### Scenario:' headers", and show a conversion template:
+
 ```
 #### Scenario: Short name
 - **WHEN** ...
@@ -43,11 +53,14 @@ The validator SHALL recognize bulleted lines that look like scenarios (e.g., lin
 ```
 
 ### Requirement: All issues SHALL include file paths and structured locations
+
 Error, warning, and info messages SHALL include:
+
 - Source file path (`spool/changes/{id}/proposal.md`, `.../specs/{cap}/spec.md`)
 - Structured path (e.g., `deltas[0].requirements[0].scenarios`)
 
 #### Scenario: Zod validation error
+
 - **WHEN** a schema validation fails
 - **THEN** the message SHALL include `file`, `path`, and a remediation hint if applicable
 - **AND** use `.spool/` for all file path references
@@ -55,6 +68,7 @@ Error, warning, and info messages SHALL include:
 ### Requirement: Invalid results SHALL include a Next steps footer in human-readable output
 
 The CLI SHALL append a Next steps footer when the item is invalid and not using `--json`, including:
+
 - Summary line with counts
 - Top-3 guidance bullets (contextual to the most frequent or blocking errors)
 - A suggestion to re-run with `--json` and/or the debug command
@@ -104,10 +118,13 @@ The validate command SHALL support flags for bulk validation (--all) and filtere
 #### Scenario: Scope of bulk validation
 
 - **WHEN** validating with `--all` or `--changes`
+
 - **THEN** include all change proposals under `.spool/changes/`
+
 - **AND** exclude the `.spool/changes/archive/` directory
 
 - **WHEN** validating with `--specs`
+
 - **THEN** include all specs that have a `spec.md` under `.spool/specs/<id>/spec.md`
 
 #### Scenario: Validate all changes
@@ -191,11 +208,12 @@ The validate command SHALL handle ambiguous names and explicit type overrides to
 - **AND** SHALL print non-interactive hints or chosen outputs as appropriate
 
 ### Requirement: Parser SHALL handle cross-platform line endings
+
 The markdown parser SHALL correctly identify sections regardless of line ending format (LF, CRLF, CR).
 
 #### Scenario: Required sections parsed with CRLF line endings
+
 - **GIVEN** a change proposal markdown saved with CRLF line endings
 - **AND** the document contains `## Why` and `## What Changes`
 - **WHEN** running `spool validate <change-id>`
 - **THEN** validation SHALL recognize the sections and NOT raise parsing errors
-

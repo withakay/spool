@@ -3,6 +3,7 @@
 ### Requirement: Invalid results SHALL include a Next steps footer in human-readable output
 
 The CLI SHALL append a Next steps footer when the item is invalid and not using `--json`, including:
+
 - Summary line with counts
 - Top-3 guidance bullets (contextual to the most frequent or blocking errors)
 - A suggestion to re-run with `--json` and/or the debug command

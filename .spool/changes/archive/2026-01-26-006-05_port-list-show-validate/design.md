@@ -5,11 +5,13 @@ These commands define the baseline UX and JSON contracts for users and for the p
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Implement list/show/validate in Rust.
 - Match TS output text and `--json` shapes.
 - Add parity tests across multiple fixture repos.
 
 **Non-Goals:**
+
 - Implement installers (`init/update`) or interactive commands.
 
 ## Decisions

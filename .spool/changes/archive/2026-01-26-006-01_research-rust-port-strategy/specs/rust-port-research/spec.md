@@ -11,6 +11,7 @@ Define the required research outputs and parity strategy that guide the Rust por
 The repository MUST include the required research outputs for the Rust port and keep them consistent with the current TypeScript CLI behavior.
 
 #### Scenario: Required research files are present
+
 - **WHEN** a developer inspects `.spool/research/`
 - **THEN** the following files exist:
   - `.spool/research/SUMMARY.md`
@@ -24,6 +25,7 @@ The repository MUST include the required research outputs for the Rust port and 
 The parity strategy MUST treat the existing TypeScript `spool` CLI as the behavior oracle and define test mechanisms for stdout, stderr, exit code, JSON shapes, and filesystem side effects.
 
 #### Scenario: Parity testing plan covers non-mutating and mutating commands
+
 - **WHEN** reading `.spool/research/investigations/parity-testing.md`
 - **THEN** it specifies how to compare:
   - non-mutating commands (help/version/list/show/validate)

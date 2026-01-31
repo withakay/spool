@@ -146,9 +146,9 @@ The CLI SHALL generate high-quality templates that provide clear guidance for st
 Domain research is critical for informed change proposals, especially when entering unfamiliar technical areas. These commands provide:
 
 1. **Structured investigation**: Organized approach to exploring technology choices, features, architecture, and pitfalls
-2. **Knowledge capture**: Research artifacts persist across sessions and can be referenced by team members
-3. **Better proposals**: Well-researched proposals have more accurate estimates and fewer unexpected issues
-4. **Risk mitigation**: Proactive identification of pitfalls and mitigations reduces implementation risk
-5. **Informed decisions**: Stack analysis and feature landscape support better technical decisions
+1. **Knowledge capture**: Research artifacts persist across sessions and can be referenced by team members
+1. **Better proposals**: Well-researched proposals have more accurate estimates and fewer unexpected issues
+1. **Risk mitigation**: Proactive identification of pitfalls and mitigations reduces implementation risk
+1. **Informed decisions**: Stack analysis and feature landscape support better technical decisions
 
 Without these tools, teams must conduct ad-hoc research that is often incomplete, lost between sessions, or not integrated into the proposal process.

@@ -5,11 +5,13 @@ Spool is primarily a Rust CLI and should remain installable without Node.js. How
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Offer an optional npm install path that results in a working native `spool` binary on supported platforms.
 - Avoid making Node.js/npm a runtime requirement for Spool itself.
 - Keep npm packaging aligned with the GitHub Release artifacts and versions.
 
 **Non-Goals:**
+
 - Replace GitHub Releases / curl installer as the primary distribution method.
 - Support every target immediately (start with the same subset as release artifacts).
 
@@ -20,6 +22,7 @@ Spool is primarily a Rust CLI and should remain installable without Node.js. How
 Use a meta package (name TBD) that depends on per-platform packages (e.g. `*-darwin-arm64`, `*-linux-x64`) which each contain the `spool` binary for that platform.
 
 Alternatives considered:
+
 - Single package that downloads from GitHub in `postinstall`: simpler publishing, but adds network fetch logic and increases installer complexity.
 
 ### Decision: Version coupling

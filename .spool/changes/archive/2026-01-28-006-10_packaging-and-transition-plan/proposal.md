@@ -11,18 +11,23 @@ Users currently install Spool via npm as `@withakay/spool`. Replacing that distr
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-packaging-transition`: documented packaging and release plan for Rust Spool.
 
 ### Modified Capabilities
+
 <!-- None. Documentation and release plan only. -->
 
 ## Impact
 
 **Affected areas:**
+
 - Documentation and CI config (future)
 
 **Behavioral impact:**
+
 - None immediately
 
 **Risks:**
+
 - Breaking installs or completions; mitigated by staged rollout and compatibility wrappers.

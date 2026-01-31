@@ -1,16 +1,18 @@
 # Tasks for: 006-14_rust-cli-plumbing-reuse
 
 ## Execution Notes
+
 - **Tool**: Any (OpenCode, Codex, Claude Code)
 - **Mode**: Sequential
 
----
+______________________________________________________________________
 
 ## Wave 1
 
 - **Depends On**: None
 
 ### Task 1.1: Identify duplication hotspots and define shared helpers
+
 - **Files**: spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: None
 - **Action**:
@@ -19,9 +21,10 @@
 - **Verify**: cargo test -p spool-cli
 - **Done When**: Helper API is agreed and documented in-code
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 1.2: Implement shared error + diagnostics helpers
+
 - **Files**: spool-rs/crates/spool-cli/src
 - **Dependencies**: Task 1.1
 - **Action**:
@@ -30,15 +33,16 @@
 - **Verify**: cargo test -p spool-cli
 - **Done When**: Helpers are used in at least one subcommand
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 2
 
 - **Depends On**: Wave 1
 
 ### Task 2.1: Refactor tasks subcommands to use shared plumbing
+
 - **Files**: spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: Task 1.2
 - **Action**:
@@ -47,9 +51,10 @@
 - **Verify**: cargo test -p spool-cli
 - **Done When**: tasks init/status/next/start/complete/shelve/unshelve behave the same with less repetition
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
 ### Task 2.2: Refactor validate subcommand to use shared plumbing
+
 - **Files**: spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: Task 1.2
 - **Action**:
@@ -58,15 +63,16 @@
 - **Verify**: cargo test -p spool-cli
 - **Done When**: validate command uses shared helpers and reduces duplication
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete
 
----
+______________________________________________________________________
 
 ## Wave 3
 
 - **Depends On**: Wave 2
 
 ### Task 3.1: Run a clippy-driven cleanup pass on touched code
+
 - **Files**: spool-rs/crates/spool-cli/src/main.rs
 - **Dependencies**: Task 2.1
 - **Action**:
@@ -74,4 +80,4 @@
 - **Verify**: cargo clippy -p spool-cli --all-targets --all-features
 - **Done When**: clippy warnings reduced for modified areas
 - **Updated At**: 2026-01-29
-- **Status**: [x] complete
+- **Status**: \[x\] complete

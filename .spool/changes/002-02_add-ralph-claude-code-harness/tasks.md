@@ -14,12 +14,14 @@
 ## Wave 2: Harness Implementation
 
 1. Implement `claude-code` harness
+
    - Files: `src/core/ralph/harnesses/claude-code.ts`
    - Action: spawn Claude Code CLI, pass prompt, capture output, support model/allow-all mappings
    - Verify: unit tests for argument mapping
    - Status: ⬜
 
-2. Register harness in `spool ralph`
+1. Register harness in `spool ralph`
+
    - Files: `src/core/ralph/harnesses/index.ts`, `src/commands/ralph.ts`
    - Verify: `node bin/spool.js ralph --help` shows `claude-code`
    - Status: ⬜

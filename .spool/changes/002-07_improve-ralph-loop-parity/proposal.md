@@ -14,14 +14,17 @@ Spool's `ralph` loop is functional but missing several "operator ergonomics" and
 ## Capabilities
 
 ### New Capabilities
+
 <!-- None. This change extends the existing ralph loop behavior. -->
 
 ### Modified Capabilities
+
 - `cli-ralph`: extend loop prompting, context handling, error resilience, history/telemetry, and CLI options
 
 ## Impact
 
 **Affected code:**
+
 - `src/commands/ralph.ts`
 - `src/core/ralph/runner.ts`
 - `src/core/ralph/context.ts`
@@ -30,10 +33,12 @@ Spool's `ralph` loop is functional but missing several "operator ergonomics" and
 - `src/core/ralph/harnesses/opencode.ts`
 
 **Behavioral impact:**
+
 - The loop becomes more robust by continuing on harness failures by default (with an opt-in fail-fast mode)
 - Prompt content becomes more structured and consistent per iteration
 - Status/history output becomes more informative for debugging and progress tracking
 
 **Risks:**
+
 - Larger prompts increase token usage per iteration
 - Continuing on error may hide problems if operators expect fail-fast behavior (mitigated by explicit flags and improved reporting)

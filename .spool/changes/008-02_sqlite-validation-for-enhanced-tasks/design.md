@@ -58,7 +58,7 @@ We will maintain two graphs:
 - **Wave dependency graph**: edges `wave -> depends_on_wave` (cross-wave gating)
 - **Task dependency graph**: edges `task -> depends_on_task` (within-wave only)
 
-This enforces 'tasks should not be aware of other waves\' tasks' while still allowing rich wave ordering.
+This enforces 'tasks should not be aware of other waves' tasks' while still allowing rich wave ordering.
 
 ### Decision: Canonical change identity is numeric-only
 
@@ -168,7 +168,7 @@ SELECT * FROM walk WHERE task_id = dep_task_id;
 
 We keep the current enhanced format (waves + task blocks) and add three changes:
 
-1) **Wave dependency line**
+1. **Wave dependency line**
 
 Under each `## Wave N` header, add a single structured line:
 
@@ -179,7 +179,7 @@ Under each `## Wave N` header, add a single structured line:
 
 This is intentionally easy to parse and diff.
 
-2) **New status value: shelved**
+2. **New status value: shelved**
 
 Status line remains:
 
@@ -192,7 +192,7 @@ Status line remains:
 
 The bracket marker is cosmetic except for `[x] complete`; the validator keys off the label, but also validates the marker set.
 
-3) **Updated At field**
+3. **Updated At field**
 
 Each task includes a required timestamp field:
 

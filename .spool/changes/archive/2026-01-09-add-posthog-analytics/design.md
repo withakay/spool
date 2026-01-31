@@ -5,12 +5,14 @@ Spool needs usage analytics to understand adoption and inform product decisions.
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Track daily/weekly/monthly active usage
 - Understand command usage patterns
 - Keep implementation minimal and privacy-respecting
 - Enable opt-out with minimal friction
 
 **Non-Goals:**
+
 - Detailed error tracking or diagnostics
 - User identification or profiling
 - Complex event hierarchies
@@ -30,12 +32,14 @@ DO_NOT_TRACK=1          # Industry standard, also respected
 Auto-disabled when `CI=true` is detected.
 
 **Rationale:**
+
 - Opt-in typically yields ~3% participation—not enough for meaningful data
 - Understanding usage patterns requires statistically significant sample sizes
 - Environment variable opt-out is simple and immediate
 - Respecting `DO_NOT_TRACK` follows industry convention
 
 **Alternatives considered:**
+
 - Opt-in only - Insufficient data for product decisions
 - Config file setting - More complex, env var sufficient for MVP
 - Full `spool telemetry` command - Can add later if users request
@@ -55,12 +59,14 @@ Auto-disabled when `CI=true` is detected.
 ```
 
 **Rationale:**
+
 - Answers the core questions: how much usage, which commands are popular
 - PostHog derives DAU/WAU/MAU from anonymous user counts over time
 - No arguments, paths, or content—clean privacy story
 - Easy to explain in disclosure notice
 
 **Not tracked:**
+
 - Command arguments
 - File paths or contents
 - Error messages or stack traces
@@ -81,12 +87,14 @@ Auto-disabled when `CI=true` is detected.
 ```
 
 **Rationale:**
+
 - Random UUID has no relation to the person—can't be reversed
 - Stored in config so same user = same ID across sessions (needed for DAU/WAU/MAU)
 - Lazy generation means no ID created if user opts out before first command
 - User can delete config to reset identity
 
 **Alternatives considered:**
+
 - Machine-derived hash (hostname, MAC) - Feels invasive, fingerprint-like
 - Per-session UUID - Breaks user counting metrics entirely
 
@@ -105,12 +113,14 @@ await posthog.shutdown();
 ```
 
 **Rationale:**
+
 - CLI processes are short-lived; batching would lose events
 - `flushAt: 1` ensures each event sends immediately
 - `shutdown()` guarantees flush before process exit
 - Adds ~100-300ms to exit—negligible for typical CLI workflows
 
 **Error handling:**
+
 - Network failures silently ignored (telemetry shouldn't break CLI)
 - `shutdown()` wrapped in try/catch
 
@@ -130,11 +140,13 @@ program
 ```
 
 **Rationale:**
+
 - Centralized—one place for all telemetry logic
 - Automatic—new commands get tracked without code changes
 - Clean separation—command handlers don't know about telemetry
 
 **Subcommand handling:**
+
 - Track full command path for nested commands (e.g., `change:apply`)
 
 ### First-Run Notice
@@ -146,12 +158,14 @@ Note: Spool collects anonymous usage stats. Opt out: SPOOL_TELEMETRY=0
 ```
 
 **Rationale:**
+
 - First command (not just `init`) ensures notice is always seen
 - Non-blocking—no prompt, just informational
 - One-liner is visible but not intrusive
 - Storing "seen" in config prevents repeated display
 
 **Config after first run:**
+
 ```json
 {
   "telemetry": {

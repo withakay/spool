@@ -11,6 +11,7 @@ The `spool init` command SHALL create a complete Spool directory structure in an
 WHEN executing initialization steps
 THEN validate environment silently in background (no output unless error)
 AND display progress with ora spinners:
+
 - Show spinner: "⠋ Creating Spool structure..."
 - Then success: "✔ Spool structure created"
 - Show spinner: "⠋ Configuring AI tools..."
@@ -20,6 +21,7 @@ AND display progress with ora spinners:
 
 WHEN `spool init` is executed
 THEN create the following directory structure:
+
 ```
 spool/
 ├── project.md
@@ -32,6 +34,7 @@ spool/
 ### File Generation
 
 The command SHALL generate:
+
 - `README.md` containing complete Spool instructions for AI assistants
 - `project.md` with project context template
 
@@ -39,6 +42,7 @@ The command SHALL generate:
 
 WHEN run interactively
 THEN prompt user to select AI tools to configure:
+
 - Claude Code (updates/creates CLAUDE.md with Spool markers)
 - Cursor (future)
 - Aider (future)
@@ -50,6 +54,7 @@ THEN create or update `CLAUDE.md` in the project root directory (not inside spoo
 
 WHEN CLAUDE.md does not exist
 THEN create new file with Spool content wrapped in markers:
+
 ```markdown
 <!-- SPOOL:START -->
 # Spool Project
@@ -68,12 +73,14 @@ AND insert Spool content at the beginning of the file using markers
 AND ensure markers don't duplicate if they already exist
 
 The marker system SHALL:
+
 - Use `<!-- SPOOL:START -->` to mark the beginning of managed content
 - Use `<!-- SPOOL:END -->` to mark the end of managed content
 - Allow Spool to update its content without affecting user customizations
 - Preserve all content outside the markers intact
 
 WHY use markers:
+
 - Users may have existing CLAUDE.md instructions they want to keep
 - Spool can update its instructions in future versions
 - Clear boundary between Spool-managed and user-managed content
@@ -83,13 +90,15 @@ WHY use markers:
 WHEN run
 THEN prompt user with: "Which AI tool do you use?"
 AND show single-select menu with available tools:
+
 - Claude Code
-AND show disabled options as "coming soon" (not selectable):
+  AND show disabled options as "coming soon" (not selectable):
 - Cursor (coming soon)
-- Aider (coming soon)  
+- Aider (coming soon)
 - Continue (coming soon)
 
 User navigation:
+
 - Use arrow keys to move between options
 - Press Enter to select the highlighted option
 
@@ -107,6 +116,7 @@ AND only display error if permissions are insufficient
 
 WHEN initialization completes successfully
 THEN display actionable prompts for AI-driven workflow:
+
 ```
 ✔ Spool initialized successfully!
 
@@ -128,9 +138,10 @@ Next steps - Copy these prompts to Claude:
 ```
 
 The prompts SHALL:
+
 - Be copy-pasteable for immediate use with AI tools
 - Guide users through the AI-driven workflow
-- Replace placeholder text ([YOUR FEATURE HERE]) with actual features
+- Replace placeholder text (\[YOUR FEATURE HERE\]) with actual features
 
 ### Exit Codes
 
@@ -142,6 +153,7 @@ The prompts SHALL:
 ## Why
 
 Manual creation of Spool structure is error-prone and creates adoption friction. A standardized init command ensures:
+
 - Consistent structure across all projects
 - Proper AI instruction files are always included
 - Quick onboarding for new projects

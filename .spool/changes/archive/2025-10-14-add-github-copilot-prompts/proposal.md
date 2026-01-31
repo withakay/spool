@@ -1,9 +1,11 @@
 ## Why
+
 - GitHub Copilot supports custom slash commands through markdown files in `.github/prompts/<name>.prompt.md`. Each file includes YAML frontmatter with a `description` label and uses `$ARGUMENTS` to capture user input. This format allows teams to expose curated workflows directly in Copilot's chat interface.
 - Teams already rely on Spool to manage slash-command configurations for Claude Code, Cursor, OpenCode, Codex, Kilo Code, and Windsurf. Excluding GitHub Copilot forces developers to manually maintain Spool prompts in `.github/prompts/`, which leads to drift and undermines Spool's "single source of truth" promise.
 - GitHub Copilot discovers prompts from the repository's `.github/prompts/` directory, making it straightforward to version control and share across the team. Adding automated generation and refresh through `spool init` and `spool update` eliminates manual synchronization and keeps Spool instructions consistent across all AI assistants.
 
 ## What Changes
+
 - Add GitHub Copilot to the `spool init` tool picker with "already configured" detection similar to other editors, wiring an implementation that writes managed Markdown prompt files to `.github/prompts/` with Spool marker blocks.
 - Generate three GitHub Copilot prompt files—`spool-proposal.prompt.md`, `spool-apply.prompt.md`, and `spool-archive.prompt.md`—whose content mirrors shared slash-command templates while conforming to Copilot's frontmatter and `$ARGUMENTS` placeholder convention.
 - Document GitHub Copilot's repository-based discovery and that Spool writes prompts to `.github/prompts/` with managed blocks.
@@ -11,12 +13,14 @@
 - Document GitHub Copilot support alongside other slash-command integrations and add test coverage that exercises init/update behavior for `.github/prompts/` files.
 
 ## Impact
+
 - Specs: `cli-init`, `cli-update`
 - Code: `src/core/configurators/slash/github-copilot.ts` (new), `src/core/configurators/slash/registry.ts`, `src/core/templates/slash-command-templates.ts`, CLI tool summaries, docs
 - Tests: integration coverage for GitHub Copilot prompt scaffolding and refresh logic
 - Docs: README and CHANGELOG entries announcing GitHub Copilot slash-command support
 
 ## Current Spec Reference
+
 - `specs/cli-init/spec.md`
   - Requirements cover init UX, directory scaffolding, AI tool configuration, and existing slash-command support for Claude Code, Cursor, OpenCode, Codex, Kilo Code, and Windsurf.
   - Our `## MODIFIED` delta in `changes/.../specs/cli-init/spec.md` will copy the full "Slash Command Configuration" requirement (header, description, and all scenarios) before appending the new GitHub Copilot scenario so archiving retains every prior scenario.

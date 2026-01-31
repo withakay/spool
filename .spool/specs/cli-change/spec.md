@@ -1,8 +1,11 @@
 # cli-change Specification
 
 ## Purpose
+
 TBD - created by archiving change add-change-commands. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Change Command
 
 The system SHALL provide deprecated `change` command with subcommands for displaying, listing, and validating change proposals, while suggesting verb-first alternatives.
@@ -82,4 +85,3 @@ The change validate command SHALL support interactive selection when no change n
 - **THEN** do not prompt interactively
 - **AND** print a helpful hint listing available commands/flags
 - **AND** set `process.exitCode = 1`
-

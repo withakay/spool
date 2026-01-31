@@ -5,6 +5,7 @@
 The system SHALL provide a QA testing area with scripts for manual or LLM-driven extended integration testing.
 
 #### Scenario: Create qa/ directory structure
+
 - **WHEN** running the initial setup for the QA testing area
 - **THEN** the system creates a `qa/` directory at the repository root
 - **AND** creates subdirectories for organizing test scripts by capability
@@ -14,6 +15,7 @@ The system SHALL provide a QA testing area with scripts for manual or LLM-driven
 The system SHALL provide an integration test script that simulates real-world usage of Spool Ralph.
 
 #### Scenario: Test script creates demo environment
+
 - **WHEN** executing `qa/test-ralph-loop.sh`
 - **THEN** the script creates a temporary demo directory with a random name
 - **AND** initializes a spool project in that directory
@@ -23,6 +25,7 @@ The system SHALL provide an integration test script that simulates real-world us
 - **AND** cleans up the temporary directory
 
 #### Scenario: Test script verifies hello world output
+
 - **GIVEN** a change proposal that creates a bash script outputting "hello world"
 - **WHEN** the test script runs spool ralph with that change
 - **THEN** the test verifies that a shell script is created

@@ -1,7 +1,9 @@
 ## Why
+
 Add support for Cline (VS Code extension) in Spool to enable developers to use Cline's AI-powered coding capabilities for spec-driven development workflows.
 
 ## What Changes
+
 - Add Cline slash command configurator for proposal, apply, and archive operations
 - Add Cline root CLINE.md configurator for project-level instructions
 - Add Cline template exports
@@ -10,6 +12,7 @@ Add support for Cline (VS Code extension) in Spool to enable developers to use C
 - **BREAKING**: None - this is additive functionality
 
 ## Impact
+
 - Affected specs: cli-init (new tool option)
 - Affected code: src/core/configurators/slash/cline.ts, src/core/configurators/cline.ts, registry files
-- New files: .clinerules/spool-*.md, CLINE.md
+- New files: .clinerules/spool-\*.md, CLINE.md

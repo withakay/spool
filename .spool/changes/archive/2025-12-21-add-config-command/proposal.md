@@ -17,6 +17,7 @@ spool config edit                          # Open config in $EDITOR
 ```
 
 **Key design decisions:**
+
 - **Key naming**: Use camelCase to match JSON structure (e.g., `featureFlags.someFlag`)
 - **Nested keys**: Support dot notation for nested access
 - **Type coercion**: Auto-detect types by default; `--string` flag forces string storage
@@ -25,6 +26,7 @@ spool config edit                          # Open config in $EDITOR
 - **Future-proofing**: Reserve `--scope global|project` flag for potential project-local config
 
 **Example usage:**
+
 ```bash
 $ spool config path
 /Users/me/.config/spool/config.json

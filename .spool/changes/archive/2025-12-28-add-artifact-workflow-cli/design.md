@@ -7,6 +7,7 @@ Slice 4 of the artifact workflow POC. The core functionality (ArtifactGraph, Ins
 ## Goals / Non-Goals
 
 - **Goals:**
+
   - Expose artifact workflow status and instructions via CLI
   - Provide fluid UX with top-level verb commands
   - Support both human-readable and JSON output
@@ -14,6 +15,7 @@ Slice 4 of the artifact workflow POC. The core functionality (ArtifactGraph, Ins
   - Keep implementation isolated for easy removal
 
 - **Non-Goals:**
+
   - Interactive artifact creation wizards (future work)
   - Schema management commands (deferred)
   - Auto-detection of active change (CLI is deterministic, agents infer)
@@ -33,6 +35,7 @@ spool new change <name>
 ```
 
 **Rationale:**
+
 - Most fluid UX - fewest keystrokes
 - Commands are unique enough to avoid conflicts
 - Simple mental model for users
@@ -48,8 +51,9 @@ src/commands/artifact-workflow.ts
 ```
 
 **To remove the feature:**
+
 1. Delete `src/commands/artifact-workflow.ts`
-2. Remove ~5 lines from `src/cli/index.ts`
+1. Remove ~5 lines from `src/cli/index.ts`
 
 No other files touched, no risk to stable functionality.
 
@@ -63,6 +67,7 @@ spool status                      # error: missing --change
 ```
 
 **Rationale:**
+
 - CLI is pure, testable, no hidden state
 - Agents infer change from conversation and pass explicitly
 - No config file tracking "active change"
@@ -77,6 +82,7 @@ spool new change add-feature
 ```
 
 **Rationale:**
+
 - `spool new <name>` is ambiguous (new what?)
 - `spool new change <name>` is clear and extensible
 - Can add `spool new spec <name>` later if needed

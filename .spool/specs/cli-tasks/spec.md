@@ -195,9 +195,9 @@ The CLI SHALL generate high-quality tasks templates that provide clear guidance 
 Enhanced task management is essential for long-running AI-assisted development where work spans multiple sessions and requires explicit verification. These commands provide:
 
 1. **Wave-based execution**: Group tasks into parallelizable chunks and enforce dependencies
-2. **Explicit verification**: Define verification commands to validate task completion
-3. **Status tracking**: Maintain progress across sessions and enable resumption
-4. **Done-when clarity**: Clear acceptance criteria prevent ambiguity
-5. **Checkpoint support**: Pause for human review before proceeding
+1. **Explicit verification**: Define verification commands to validate task completion
+1. **Status tracking**: Maintain progress across sessions and enable resumption
+1. **Done-when clarity**: Clear acceptance criteria prevent ambiguity
+1. **Checkpoint support**: Pause for human review before proceeding
 
 Without these tools, teams must use simple checklists that lack verification, dependencies, and status persistence, leading to incomplete work, missed requirements, and difficulty resuming after interruptions.

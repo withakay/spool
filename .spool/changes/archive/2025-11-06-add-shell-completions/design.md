@@ -15,11 +15,13 @@ This design establishes a plugin-based architecture for shell completions that p
 ### Bash Completion Behavior
 
 **Interaction Pattern:**
+
 - **Single TAB:** Completes if only one match exists, otherwise does nothing
 - **Double TAB (TAB TAB):** Displays all possible completions as a list
 - **Type more characters + TAB:** Narrows matches and completes or shows refined list
 
 **Spool Integration:**
+
 ```bash
 # After installing: spool completion install bash
 spool val<TAB>           # Completes to "spool validate"
@@ -32,12 +34,14 @@ spool show add-<TAB><TAB>  # Shows all changes starting with "add-"
 ### Zsh Completion Behavior (with Oh My Zsh)
 
 **Interaction Pattern:**
+
 - **Single TAB:** Shows interactive menu with all matches immediately
 - **TAB / Arrow Keys:** Navigate through completion options
 - **Enter:** Selects highlighted option
 - **Ctrl+C / Esc:** Cancels completion menu
 
 **Spool Integration:**
+
 ```zsh
 # After installing: spool completion install zsh
 spool val<TAB>    # Shows menu with "validate" and "view" highlighted
@@ -49,6 +53,7 @@ spool show <TAB>  # Shows menu with all change IDs and spec IDs, categorized
 ### Fish Completion Behavior
 
 **Interaction Pattern:**
+
 - **As-you-type:** Gray suggestions appear automatically in real-time
 - **Right Arrow / Ctrl+F:** Accepts the suggestion
 - **TAB:** Shows menu with all matches if multiple exist
@@ -56,6 +61,7 @@ spool show <TAB>  # Shows menu with all change IDs and spec IDs, categorized
 - **Enter:** Accepts current selection
 
 **Spool Integration:**
+
 ```fish
 # After installing: spool completion install fish
 spool val       # Gray suggestion shows "validate" immediately
@@ -68,12 +74,14 @@ spool <TAB>     # Shows all commands with descriptions in paged menu
 ### PowerShell Completion Behavior
 
 **Interaction Pattern:**
+
 - **TAB:** Cycles forward through completions one at a time (inline replacement)
 - **Shift+TAB:** Cycles backward through completions
 - **Ctrl+Space:** Shows IntelliSense-style menu (PSReadLine v2.2+)
 - **Arrow Keys:** Navigate menu if shown
 
 **Spool Integration:**
+
 ```powershell
 # After installing: spool completion install powershell
 spool val<TAB>       # Cycles: validate → view → validate
@@ -109,12 +117,14 @@ interface CompletionGenerator {
 ```
 
 **Benefits:**
+
 - New shells can be added without modifying existing generators
 - Shell-specific logic is isolated and testable
 - Type safety ensures all generators implement required methods
 - Easy to maintain and understand (single responsibility per generator)
 
 **Implementation Classes:**
+
 - `ZshCompletionGenerator` - Uses Zsh's `_arguments` and `_describe` functions
 - `BashCompletionGenerator` - Uses `_init_completion` and `compgen` built-ins
 - `FishCompletionGenerator` - Uses `complete -c` declarative syntax
@@ -149,6 +159,7 @@ const COMMAND_REGISTRY: CommandDefinition[] = [
 ```
 
 **Benefits:**
+
 - All generators consume the same command definitions
 - Adding a new command automatically propagates to all shells
 - Flag changes only need to be made in one place
@@ -156,6 +167,7 @@ const COMMAND_REGISTRY: CommandDefinition[] = [
 - Easier to test (mock the registry)
 
 **TypeScript Sugar:**
+
 - Use `const` assertions for readonly registry
 - Leverage discriminated unions for command types
 - Use `satisfies` operator to ensure registry matches interface
@@ -191,12 +203,14 @@ class CompletionProvider {
 ```
 
 **Benefits:**
+
 - Caching reduces file system overhead during rapid tab completion
 - Encapsulates project detection logic
 - Easy to test with mocked file system
 - Shared across all shell generators
 
 **Design Decisions:**
+
 - 2-second cache TTL balances freshness with performance
 - Cache per-process (not persistent) to avoid stale data across sessions
 - Graceful degradation when outside Spool projects
@@ -214,12 +228,14 @@ interface CompletionInstaller {
 ```
 
 **Shell-Specific Installers:**
+
 - `ZshInstaller` - Handles both Oh My Zsh (custom completions) and standard Zsh (fpath)
 - `BashInstaller` - Detects completion directories and sources from `.bashrc`
 - `FishInstaller` - Writes to `~/.config/fish/completions/` (auto-loaded)
 - `PowerShellInstaller` - Appends to PowerShell profile
 
 **Benefits:**
+
 - Installation logic doesn't pollute generator code
 - Can test installation without generating completion scripts
 - Easier to handle edge cases (missing directories, permissions, already installed)
@@ -250,6 +266,7 @@ function detectShell(): SupportedShell {
 ```
 
 **Benefits:**
+
 - Compile-time type checking prevents invalid shell names
 - Easy to add new shells (add to union type)
 - Type narrowing works in switch statements
@@ -271,6 +288,7 @@ function createGenerator(shell: SupportedShell, provider: CompletionProvider): C
 ```
 
 **Benefits:**
+
 - Single point of instantiation
 - Type safety ensures exhaustive switch (TypeScript error if shell type missing)
 - Easy to inject dependencies (registry, provider)
@@ -278,6 +296,7 @@ function createGenerator(shell: SupportedShell, provider: CompletionProvider): C
 ## Command Structure
 
 **This Proposal (Zsh-only):**
+
 ```
 spool completion
 ├── zsh               # Generate Zsh completion script
@@ -286,6 +305,7 @@ spool completion
 ```
 
 **Future (after follow-up proposals):**
+
 ```
 spool completion
 ├── bash              # Generate Bash completion script (future)
@@ -299,6 +319,7 @@ spool completion
 ## File Organization
 
 **This Proposal (Zsh-only):**
+
 ```
 src/
 ├── commands/
@@ -318,6 +339,7 @@ src/
 ```
 
 **Future additions (bash, fish, powershell):**
+
 - `generators/bash-generator.ts`, `fish-generator.ts`, `powershell-generator.ts`
 - `installers/bash-installer.ts`, `fish-installer.ts`, `powershell-installer.ts`
 - Update `shell-detection.ts` to support additional shell types
@@ -325,12 +347,14 @@ src/
 ## Oh My Zsh Priority
 
 Zsh implementation prioritizes Oh My Zsh because:
+
 1. **Popularity** - Oh My Zsh is the most popular Zsh configuration framework
-2. **Convention** - Has standard completion directory (`~/.oh-my-zsh/custom/completions/`)
-3. **Detection** - Easy to detect via `$ZSH` environment variable
-4. **Fallback** - Standard Zsh support provides compatibility when Oh My Zsh isn't installed
+1. **Convention** - Has standard completion directory (`~/.oh-my-zsh/custom/completions/`)
+1. **Detection** - Easy to detect via `$ZSH` environment variable
+1. **Fallback** - Standard Zsh support provides compatibility when Oh My Zsh isn't installed
 
 **Installation Strategy:**
+
 ```typescript
 if (isOhMyZshInstalled()) {
   // Install to ~/.oh-my-zsh/custom/completions/_spool
@@ -346,12 +370,14 @@ if (isOhMyZshInstalled()) {
 Dynamic completions cache results for 2 seconds to balance freshness with performance:
 
 **Why 2 seconds?**
-- Typical tab completion sessions last < 2 seconds
+
+- Typical tab completion sessions last \< 2 seconds
 - Prevents repeated file system scans during rapid tabbing
 - Short enough to feel "live" when changes/specs are added
 - Automatic per-process expiration (no stale data across sessions)
 
 **Implementation:**
+
 ```typescript
 private changeCache: { ids: string[]; timestamp: number } | null = null;
 private readonly CACHE_TTL_MS = 2000;
@@ -367,28 +393,31 @@ if (this.changeCache && Date.now() - this.changeCache.timestamp < this.CACHE_TTL
 Completions should degrade gracefully rather than break workflows:
 
 1. **Unsupported shell** - Clear error with list of supported shells
-2. **Not in Spool project** - Skip dynamic completions, only offer static commands
-3. **Permission errors** - Suggest alternative installation methods
-4. **Missing config directories** - Auto-create with user notification
-5. **Already installed** - Offer to reinstall/update
-6. **Not installed (during uninstall)** - Exit gracefully with informational message
+1. **Not in Spool project** - Skip dynamic completions, only offer static commands
+1. **Permission errors** - Suggest alternative installation methods
+1. **Missing config directories** - Auto-create with user notification
+1. **Already installed** - Offer to reinstall/update
+1. **Not installed (during uninstall)** - Exit gracefully with informational message
 
 ## Testing Strategy
 
 Each component is independently testable:
 
 1. **Unit Tests**
+
    - Shell detection with mocked `$SHELL` environment variable
    - Generator output verification (regex pattern matching)
    - Completion provider caching behavior
    - Command registry structure validation
 
-2. **Integration Tests**
+1. **Integration Tests**
+
    - Installation to temporary test directories
    - Configuration file modifications
    - End-to-end command flow (generate → install → verify)
 
-3. **Manual Testing**
+1. **Manual Testing**
+
    - Real shell environments (Oh My Zsh, Bash, Fish, PowerShell)
    - Tab completion behavior in Spool projects
    - Dynamic change/spec ID suggestions
@@ -397,6 +426,7 @@ Each component is independently testable:
 ## TypeScript Sugar Patterns
 
 ### 1. Const Assertions for Immutable Data
+
 ```typescript
 const COMMAND_REGISTRY = [
   { name: 'init', ... },
@@ -405,6 +435,7 @@ const COMMAND_REGISTRY = [
 ```
 
 ### 2. Discriminated Unions for Command Types
+
 ```typescript
 type Command =
   | { type: 'simple'; name: string }
@@ -412,11 +443,13 @@ type Command =
 ```
 
 ### 3. Template Literal Types for Strings
+
 ```typescript
 type ShellConfigFile = `~/.${SupportedShell}rc` | `~/.${SupportedShell}_profile`;
 ```
 
 ### 4. Satisfies Operator for Type Validation
+
 ```typescript
 const config = {
   shell: 'zsh',
@@ -425,11 +458,13 @@ const config = {
 ```
 
 ### 5. Optional Chaining and Nullish Coalescing
+
 ```typescript
 const path = process.env.ZSH ?? `${os.homedir()}/.oh-my-zsh`;
 ```
 
 ### 6. Async/Await with Promise.all for Parallel Operations
+
 ```typescript
 const [changes, specs] = await Promise.all([
   provider.getChangeIds(),
@@ -442,19 +477,19 @@ const [changes, specs] = await Promise.all([
 ### Adding a New Shell
 
 1. Define shell in `SupportedShell` union type
-2. Create generator class implementing `CompletionGenerator`
-3. Create installer class implementing `CompletionInstaller`
-4. Add cases to factory functions
-5. Add command registration in CLI
-6. Write tests
+1. Create generator class implementing `CompletionGenerator`
+1. Create installer class implementing `CompletionInstaller`
+1. Add cases to factory functions
+1. Add command registration in CLI
+1. Write tests
 
 **TypeScript will enforce** that all switch statements are updated (exhaustiveness checking).
 
 ### Adding a New Command
 
 1. Add to `COMMAND_REGISTRY` with appropriate metadata
-2. All generators automatically include it
-3. Update tests to verify new command appears
+1. All generators automatically include it
+1. Update tests to verify new command appears
 
 ### Changing Completion Behavior
 
@@ -469,6 +504,7 @@ Dynamic completion logic is centralized in `CompletionProvider`, making behavior
 **Alternative:** Template engine with shell-specific templates
 
 **Rationale:**
+
 - Shell completion syntax is fundamentally different (not just text substitution)
 - Type safety is better with classes than templates
 - Logic complexity (caching, dynamic completions) doesn't fit template paradigm
@@ -481,6 +517,7 @@ Dynamic completion logic is centralized in `CompletionProvider`, making behavior
 **Alternatives:** No cache (slow), longer cache (stale), persistent cache (complex)
 
 **Rationale:**
+
 - Balances performance with freshness
 - Matches typical user interaction patterns
 - Simple implementation (no invalidation complexity)
@@ -491,6 +528,7 @@ Dynamic completion logic is centralized in `CompletionProvider`, making behavior
 **Chosen:** Check `$ZSH` env var first, then `~/.oh-my-zsh/` directory
 
 **Rationale:**
+
 - `$ZSH` is set by Oh My Zsh initialization (reliable)
 - Directory check is fallback for non-interactive scenarios
 - Standard Zsh serves as ultimate fallback
@@ -502,6 +540,7 @@ Dynamic completion logic is centralized in `CompletionProvider`, making behavior
 **Alternative:** Generate script and provide manual installation instructions
 
 **Rationale:**
+
 - Better user experience (one command vs. multiple manual steps)
 - Reduces errors from manual configuration
 - Aligns with user expectations for modern CLI tools
@@ -510,11 +549,11 @@ Dynamic completion logic is centralized in `CompletionProvider`, making behavior
 ## Future Enhancements
 
 1. **Contextual Flag Completion** - Suggest only valid flags for current command
-2. **Fuzzy Matching** - Allow partial matching for change/spec IDs
-3. **Rich Descriptions** - Include "why" section in completion suggestions (shell-dependent)
-4. **Completion Stats** - Track completion usage for analytics
-5. **Custom Completion Hooks** - Allow projects to extend completions
-6. **MCP Integration** - Provide completions via Model Context Protocol
+1. **Fuzzy Matching** - Allow partial matching for change/spec IDs
+1. **Rich Descriptions** - Include "why" section in completion suggestions (shell-dependent)
+1. **Completion Stats** - Track completion usage for analytics
+1. **Custom Completion Hooks** - Allow projects to extend completions
+1. **MCP Integration** - Provide completions via Model Context Protocol
 
 ## References
 

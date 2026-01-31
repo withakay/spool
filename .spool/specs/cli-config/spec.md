@@ -1,8 +1,11 @@
 # cli-config Specification
 
 ## Purpose
+
 Provide a user-friendly CLI interface for viewing and modifying global Spool configuration settings without manually editing JSON files.
+
 ## Requirements
+
 ### Requirement: Command Structure
 
 The config command SHALL provide subcommands for all configuration operations.

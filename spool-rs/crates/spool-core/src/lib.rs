@@ -1,3 +1,4 @@
+pub mod archive;
 pub mod config;
 pub mod create;
 pub mod discovery;
@@ -8,11 +9,10 @@ pub mod list;
 pub mod r#match;
 pub mod output;
 pub mod paths;
+pub mod ralph;
 pub mod repo_index;
 pub mod show;
 pub mod spool_dir;
 pub mod validate;
-
-pub mod ralph;
 
 pub mod workflow;

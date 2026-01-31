@@ -16,12 +16,14 @@ This doesn't support templates co-located with schemas. The instruction loader (
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Schemas as self-contained directories (schema.yaml + templates/)
 - User overrides via XDG data directory
 - Simple 2-level resolution (user → package)
 - Templates co-located with their schema
 
 **Non-Goals:**
+
 - Shared template fallback (intentionally avoiding complexity)
 - Runtime schema compilation
 - Schema inheritance
@@ -107,20 +109,22 @@ artifacts:
 ## Migration
 
 1. Create `schemas/` directory at package root
-2. Convert `SPEC_DRIVEN_SCHEMA` to `schemas/spec-driven/schema.yaml`
-3. Convert `TDD_SCHEMA` to `schemas/tdd/schema.yaml`
-4. Update `resolveSchema()` to load from directories
-5. Remove `builtin-schemas.ts`
-6. Update `listSchemas()` to scan directories
+1. Convert `SPEC_DRIVEN_SCHEMA` to `schemas/spec-driven/schema.yaml`
+1. Convert `TDD_SCHEMA` to `schemas/tdd/schema.yaml`
+1. Update `resolveSchema()` to load from directories
+1. Remove `builtin-schemas.ts`
+1. Update `listSchemas()` to scan directories
 
 ## Risks / Trade-offs
 
 **File I/O at runtime:**
+
 - Previously schemas were in-memory objects
 - Now requires reading YAML files
 - Mitigation: Schemas are small, loaded once per operation
 
 **Package distribution:**
+
 - Must ensure `schemas/` directory is included in npm package
 - Add to `files` in package.json
 

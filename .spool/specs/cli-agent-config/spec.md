@@ -245,9 +245,9 @@ The CLI SHALL integrate agent configuration with other Spool commands and workfl
 Agent configuration management enables teams to customize AI tool behavior, optimize for specific use cases, and maintain consistent settings across the project. These commands provide:
 
 1. **Per-tool settings**: Configure different models and settings for each AI tool (OpenCode, Claude Code, Codex, etc.)
-2. **Agent preferences**: Define how agents should select models and manage context
-3. **Context optimization**: Set appropriate context budgets for different workflows
-4. **Team consistency**: Share configuration through version control
-5. **Flexibility**: Override defaults for specific tools or agents without affecting others
+1. **Agent preferences**: Define how agents should select models and manage context
+1. **Context optimization**: Set appropriate context budgets for different workflows
+1. **Team consistency**: Share configuration through version control
+1. **Flexibility**: Override defaults for specific tools or agents without affecting others
 
 Without these tools, teams must manage configuration in ad-hoc ways, leading to inconsistent behavior, wasted tokens, and difficulty collaborating.

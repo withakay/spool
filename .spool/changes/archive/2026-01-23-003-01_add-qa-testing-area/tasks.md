@@ -23,11 +23,13 @@
 ## Wave 3: Validation and Testing
 
 1. Run integration test locally
+
    - Action: execute `qa/ralph/test-ralph-loop.sh` and verify it passes
    - Verify: script completes with exit code 0
    - Status: ✅
 
-2. Validate change
+1. Validate change
+
    - Action: run `node bin/spool.js validate 003-01_add-qa-testing-area --strict`
    - Verify: all validation checks pass
    - Status: ✅

@@ -16,18 +16,23 @@ After foundations and the view/validate commands, the next layer is the artifact
 ## Capabilities
 
 ### New Capabilities
+
 - `rust-artifact-workflow`: Rust implementations of artifact workflow commands.
 
 ### Modified Capabilities
+
 <!-- None. New Rust implementation. -->
 
 ## Impact
 
 **Affected areas:**
+
 - `spool-rs/crates/spool-cli/`, `spool-rs/crates/spool-core/`, `spool-rs/crates/spool-templates/`
 
 **Behavioral impact:**
+
 - None until Rust becomes default
 
 **Risks:**
+
 - Instruction content drift; mitigated by snapshot + file-write parity tests.
