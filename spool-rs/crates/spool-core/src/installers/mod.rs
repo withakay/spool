@@ -163,22 +163,13 @@ fn write_one(
 
 fn install_adapter_files(project_root: &Path, _mode: InstallMode, opts: &InitOptions) -> Result<()> {
     let version = env!("CARGO_PKG_VERSION");
-    let source_mode = crate::distribution::detect_source_mode(project_root, version);
+    let cwd = std::env::current_dir().unwrap_or_else(|_| project_root.to_path_buf());
+    let source_mode = crate::distribution::detect_source_mode(&cwd, version);
 
     for tool in &opts.tools {
         match tool.as_str() {
             TOOL_OPENCODE => {
-                let opencode_dir = std::env::var("OPENCODE_CONFIG_DIR")
-                    .ok()
-                    .map(std::path::PathBuf::from)
-                    .or_else(|| {
-                        std::env::var("HOME")
-                            .ok()
-                            .map(|h| std::path::PathBuf::from(h).join(".config").join("opencode"))
-                    });
-                let Some(config_dir) = opencode_dir else {
-                    continue;
-                };
+                let config_dir = project_root.join(".opencode");
                 let manifests = crate::distribution::opencode_manifests(&config_dir);
                 crate::distribution::install_manifests(&manifests, &source_mode, version)?;
             }
@@ -187,7 +178,7 @@ fn install_adapter_files(project_root: &Path, _mode: InstallMode, opts: &InitOpt
                 crate::distribution::install_manifests(&manifests, &source_mode, version)?;
             }
             TOOL_CODEX => {
-                let manifests = crate::distribution::codex_manifests()?;
+                let manifests = crate::distribution::codex_manifests(project_root);
                 crate::distribution::install_manifests(&manifests, &source_mode, version)?;
             }
             TOOL_GITHUB_COPILOT => {

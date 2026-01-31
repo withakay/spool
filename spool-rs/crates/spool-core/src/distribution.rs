@@ -17,6 +17,26 @@ pub struct FileManifest {
     pub is_dir: bool,
 }
 
+fn opencode_spool_skills_file_paths() -> Vec<String> {
+    let prefix = ".opencode/skills/spool-skills/";
+
+    let mut out: Vec<String> = Vec::new();
+    for f in spool_templates::default_project_files() {
+        let Some(rel) = f.relative_path.strip_prefix(prefix) else {
+            continue;
+        };
+        if rel.is_empty() {
+            continue;
+        }
+
+        out.push(format!("skills/{rel}"));
+    }
+
+    out.sort();
+    out.dedup();
+    out
+}
+
 pub fn detect_source_mode(repo_root: &Path, version: &str) -> SourceMode {
     let local_skills = repo_root.join(SPOOL_SKILLS_PATH);
     if local_skills.exists() && local_skills.is_dir() {
@@ -124,18 +144,26 @@ pub fn copy_dir_recursive(src: &Path, dest: &Path) -> Result<()> {
 }
 
 pub fn opencode_manifests(config_dir: &Path) -> Vec<FileManifest> {
-    vec![
-        FileManifest {
-            source: "adapters/opencode/spool-skills.js".to_string(),
-            dest: config_dir.join("plugins").join("spool-skills.js"),
+    let mut out = Vec::new();
+
+    out.push(FileManifest {
+        source: "adapters/opencode/spool-skills.js".to_string(),
+        dest: config_dir.join("plugins").join("spool-skills.js"),
+        is_dir: false,
+    });
+
+    let base = config_dir.join("skills").join("spool-skills");
+    for src in opencode_spool_skills_file_paths() {
+        let rel = src.strip_prefix("skills/").unwrap_or(src.as_str());
+        let dest = base.join(rel);
+        out.push(FileManifest {
+            source: src,
+            dest,
             is_dir: false,
-        },
-        FileManifest {
-            source: "skills".to_string(),
-            dest: config_dir.join("skills").join("spool-skills"),
-            is_dir: true,
-        },
-    ]
+        });
+    }
+
+    out
 }
 
 pub fn claude_manifests(project_root: &Path) -> Vec<FileManifest> {
@@ -146,14 +174,15 @@ pub fn claude_manifests(project_root: &Path) -> Vec<FileManifest> {
     }]
 }
 
-pub fn codex_manifests() -> Result<Vec<FileManifest>> {
-    let home = std::env::var("HOME").map_err(|_| miette!("HOME not set"))?;
-    let codex_dir = PathBuf::from(home).join(".codex").join("instructions");
-    Ok(vec![FileManifest {
+pub fn codex_manifests(project_root: &Path) -> Vec<FileManifest> {
+    vec![FileManifest {
         source: ".codex/spool-skills-bootstrap.md".to_string(),
-        dest: codex_dir.join("spool-skills-bootstrap.md"),
+        dest: project_root
+            .join(".codex")
+            .join("instructions")
+            .join("spool-skills-bootstrap.md"),
         is_dir: false,
-    }])
+    }]
 }
 
 pub fn install_manifests(
