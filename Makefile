@@ -2,13 +2,13 @@
 
 .PHONY: \
 	build test test-watch test-coverage lint clean help \
-	version-bump rust-build rust-build-release rust-test rust-lint rust-install install
+	version-bump rust-build rust-build-release rust-test rust-test-coverage rust-lint rust-install install
 
 build:
 	$(MAKE) rust-build
 
 test:
-	$(MAKE) rust-test
+	$(MAKE) rust-test-coverage
 
 test-watch:
 	@set -e; \
@@ -49,6 +49,16 @@ rust-build-release:
 rust-test:
 	cargo test --manifest-path spool-rs/Cargo.toml --workspace
 
+rust-test-coverage:
+	@set -e; \
+	if cargo llvm-cov --version >/dev/null 2>&1; then \
+		cargo llvm-cov --manifest-path spool-rs/Cargo.toml --workspace; \
+	else \
+		echo "cargo-llvm-cov is not installed, falling back to regular tests."; \
+		echo "Install: cargo install cargo-llvm-cov"; \
+		cargo test --manifest-path spool-rs/Cargo.toml --workspace; \
+	fi
+
 rust-lint:
 	cargo fmt --manifest-path spool-rs/Cargo.toml --all -- --check
 	cargo clippy --manifest-path spool-rs/Cargo.toml --workspace --all-targets -- \
@@ -81,6 +91,7 @@ help:
 	@echo "  version-bump   - Bump workspace version date (YYYYMMDDHHMM)"
 	@echo "  rust-build     - Build Rust spool (debug)"
 	@echo "  rust-test      - Run Rust tests"
+	@echo "  rust-test-coverage - Run Rust tests with coverage (fallback to regular tests)"
 	@echo "  rust-lint      - Run Rust fmt/clippy"
 	@echo "  rust-install   - Install Rust spool as 'spool' into ~/.local/bin (override INSTALL_DIR=...)"
 	@echo "  install        - Bump version date + install Rust spool as 'spool'"

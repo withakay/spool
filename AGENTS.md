@@ -73,6 +73,32 @@ make help
 
 The Makefile defaults should reflect the supported Rust workflow. Legacy Bun targets (if present) should be explicitly named.
 
+## Git Hooks with prek
+
+This project uses **[prek](https://github.com/j178/prek)**, a fast Rust-based alternative to `pre-commit`. Despite the name, `prek` uses the same `.pre-commit-config.yaml` configuration file format as Python's `pre-commit` tool.
+
+**Important**: Use `prek` commands, NOT `pre-commit` commands:
+
+```bash
+# Install hooks (run after cloning)
+prek install                    # Install pre-commit hook
+prek install -t pre-push        # Install pre-push hook
+
+# Run hooks manually
+prek run                        # Run on staged files
+prek run --all-files            # Run on all files
+prek run --stage pre-push       # Run pre-push hooks
+
+# Other useful commands
+prek list                       # List available hooks
+prek auto-update                # Update hook versions
+```
+
+**Current hook stages**:
+
+- **pre-commit**: fmt, clippy, test-coverage
+- **pre-push**: test-coverage, test
+
 ## OpenCode Path Convention
 
 **IMPORTANT**: OpenCode uses **singular** directory names for its configuration paths:
