@@ -32,7 +32,7 @@ ______________________________________________________________________
 - **Verify**: `spool validate 013-02_claude-code-integration --strict`
 - **Done When**: Claude Code loads a short skill that points to the CLI instruction artifacts
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Add template assets and (optional) session-start shim
 
@@ -40,14 +40,14 @@ ______________________________________________________________________
 - **Dependencies**: Task 1.1
 - **Action**:
   - Embed `.claude/skills/spool-workflow.md` in the default project template.
-  - If needed for non-project contexts, add a minimal `SessionStart` shim that only prints a pointer to:
+  - If needed for non-project contexts, add a minimal `SessionStart` hook shim that only prints a pointer to:
     - `spool agent instruction bootstrap --tool claude`
   - Document any deprecation path for `spool-skills/hooks/`.
   - When editing Rust for template embedding, apply the `rust-style` skill conventions.
 - **Verify**: `make test`
 - **Done When**: `spool init --tools claude` installs the Claude integration consistently
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -56,8 +56,8 @@ ______________________________________________________________________
 ### Checkpoint: Review Implementation
 
 - **Type**: checkpoint (requires human approval)
-- **Files**: `.claude/skills/spool-workflow.md`, `.spool/changes/013-02_claude-code-integration/proposal.md`
-- **Dependencies**: Task 1.2
+- **Files**: `.claude/skills/spool-workflow/SKILL.md`, `.spool/changes/013-02_claude-code-integration/proposal.md`
+- **Dependencies**: None
 - **Action**: Review that workflow content is not duplicated and delegates to CLI
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31

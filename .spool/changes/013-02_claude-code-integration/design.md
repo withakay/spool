@@ -10,6 +10,36 @@ Claude Code supports loading skills from `.claude/skills/`. The goal is to keep 
 - Non-Goals:
   - Duplicating long workflow docs in `.claude/skills/`.
 
+## Implementation Status
+
+- ✅ `.claude/skills/spool-workflow/SKILL.md` created in default project template
+- ✅ Minimal `session-start.sh` shim created in `spool-skills/adapters/claude/`
+- ✅ Deprecation documentation added for `spool-skills/hooks/`
+
+## Assumptions
+
+- The `spool agent instruction bootstrap --tool claude` command is implemented in change 013-04. Until then, the skill references the command string as a literal.
+- Distribution/fetch mechanics for instruction artifacts will be implemented in 013-05.
+- The SessionStart hook shim is minimal and only points to the bootstrap command - full workflow content is delegated to the CLI.
+
+## Deprecation Path for `spool-skills/hooks/`
+
+The old `spool-skills/hooks/` implementation:
+- Embedded full workflow content in SessionStart hook
+- Is being replaced by template-based approach and minimal shim
+- Migration path documented in `spool-skills/adapters/claude/README.md`
+
+Users should:
+1. Prefer project templates (`.claude/skills/`) when working in a project
+2. Use the minimal shim (`adapters/claude/session-start.sh`) for non-project contexts
+3. Stop using the old `spool-skills/hooks/` directory
+
+## Removal Timeline
+
+- Old hooks remain functional for backward compatibility
+- Users should migrate to the new approach
+- Future version will remove `spool-skills/hooks/` entirely
+
 ## Contracts
 
 ### CLI Contract
@@ -24,8 +54,8 @@ returns a tool-specific preamble that includes how to fetch the rest of the work
 
 Installer will embed/copy:
 
-- `.claude/skills/spool-workflow.md` (project template)
-- Optional shim under `spool-skills/adapters/claude/` (if required)
+- `.claude/skills/spool-workflow/SKILL.md` (project template) ✅ Implemented
+- Optional shim under `spool-skills/adapters/claude/` (if required) ✅ Implemented
 
 ## Decisions
 
