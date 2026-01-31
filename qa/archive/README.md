@@ -104,11 +104,11 @@ Example:
 ```bash
 test_archive_my_scenario() {
     test_start "My new test scenario"
-    
+
     create_test_change "009-my-test" true true true
-    
+
     "$SPOOL_BIN" archive 009-my-test --yes
-    
+
     assert_dir_not_exists "$TEST_SPOOL/changes/009-my-test"
     # Add more assertions...
 }
