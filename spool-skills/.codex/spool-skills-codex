@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+// DEPRECATION NOTICE
+// ===================
+// This Node CLI runner is deprecated. Use `spool agent instruction <artifact>` instead.
+// See: https://github.com/withakay/spool-skills/blob/main/.codex/INSTALL.md
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');

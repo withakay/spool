@@ -24,6 +24,16 @@ returns a Codex-friendly preamble that explains how to fetch other instruction a
 
 Installer will place the bootstrap snippet into the Codex instructions directory (as defined by the distribution manifest).
 
+**Assumption (pending 013-05 implementation):**
+- Source: `spool-rs/crates/spool-templates/assets/default/project/.codex/instructions/spool-skills-bootstrap.md`
+- Destination: `~/.codex/instructions/spool-skills-bootstrap.md` (per 013-05 file manifest)
+
+**Current implementation status:**
+- The bootstrap file is embedded in the project templates
+- The installer currently installs to project root: `project_root/.codex/instructions/spool-skills-bootstrap.md`
+- Full home directory installation (to `~/.codex/instructions/`) depends on 013-05
+- For now, the file will be available in project templates when `spool init --tools codex` is run
+
 ## Rust Style
 
 If this change requires Rust updates (e.g., template embedding or installer plumbing), follow the `rust-style` skill.

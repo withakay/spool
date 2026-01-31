@@ -34,7 +34,7 @@ ______________________________________________________________________
 - **Verify**: `spool validate 013-03_codex-bootstrap --strict`
 - **Done When**: Codex bootstrap is minimal and delegates to the CLI instruction artifacts
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Add template assets for Codex bootstrap
 
@@ -47,7 +47,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: `spool init --tools codex` installs the bootstrap file into the Codex instructions location
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -57,7 +57,7 @@ ______________________________________________________________________
 
 - **Type**: checkpoint (requires human approval)
 - **Files**: `spool-skills/.codex/spool-skills-bootstrap.md`, `.spool/changes/013-03_codex-bootstrap/proposal.md`
-- **Dependencies**: Task 1.2
+- **Dependencies**: None
 - **Action**: Review that Codex instructions remain short and non-duplicative
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31
