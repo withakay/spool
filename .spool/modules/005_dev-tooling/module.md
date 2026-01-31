@@ -11,3 +11,4 @@
 - [ ] 005-02_migrate-eslint-to-biome
 - [ ] 005-03_ci-cross-platform-releases
 - [ ] 005-04_npm-binary-packages
+- [ ] 005-05_prek-precommit-hooks-and-repo-linting

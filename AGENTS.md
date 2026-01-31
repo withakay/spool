@@ -84,7 +84,8 @@ When writing tests or code that references OpenCode paths, always use the singul
 
 When working in the Rust codebase use the skill `rust-style` to guide naming, structuring, and formatting etc.
 
-Guiding Principles:
+**Guiding Principles**:
+
 - YAGNI: Avoid adding features or abstractions until they are needed.
 - KISS: Keep it simple and straightforward; prefer clarity over cleverness.
 - DRY: Avoid duplication by abstracting common patterns into reusable functions, modules or crates.

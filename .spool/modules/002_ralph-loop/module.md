@@ -14,3 +14,4 @@
 - [ ] 002-05_clean-up-deprecated-change-commands
 - [ ] 002-06_add-agent-preamble-system
 - [ ] 002-07_improve-ralph-loop-parity
+- [ ] 002-08_extract-ralph-into-crate

@@ -11,6 +11,8 @@ Use this file for project-specific preferences (style, constraints, defaults). A
 
 ## Your Guidance
 
+- Make use of subagents to delegate tasks to. Try and use appropriate subagents for a given task. This helps reduce load and managing context. 
+
 ### Applying Changes
 - When a change proposal is implemented (AKA applied) use the `rust-style` skill to ensure that the linting and formatting rules are followed.
 
