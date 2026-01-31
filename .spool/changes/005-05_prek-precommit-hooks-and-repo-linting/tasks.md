@@ -60,7 +60,7 @@ ______________________________________________________________________
 - **Verify**: `make lint`
 - **Done When**: `make lint` enforces the policy and passes on a clean tree
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.2: Ensure hook + make targets are consistent
 
@@ -71,7 +71,7 @@ ______________________________________________________________________
 - **Verify**: `prek run --all-files` and `make lint`
 - **Done When**: Both commands run the same checks and succeed on a clean tree
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [ ] in-progress
 
 ______________________________________________________________________
 
