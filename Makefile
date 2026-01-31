@@ -2,7 +2,7 @@
 
 .PHONY: \
 	build test test-watch test-coverage lint clean help \
-	rust-build rust-build-release rust-test rust-lint rust-install install
+	version-bump rust-build rust-build-release rust-test rust-lint rust-install install
 
 build:
 	$(MAKE) rust-build
@@ -33,6 +33,13 @@ test-coverage:
 lint:
 	$(MAKE) rust-lint
 
+version-bump:
+	@set -e; \
+	MANIFEST="spool-rs/Cargo.toml"; \
+	STAMP=$$(date +%Y%m%d%H%M); \
+	NEW_VERSION=$$(python3 "spool-rs/tools/version_bump.py" --manifest "$$MANIFEST" --stamp "$$STAMP"); \
+	echo "Bumped workspace version to $$NEW_VERSION"
+
 rust-build:
 	cargo build --manifest-path spool-rs/Cargo.toml -p spool-cli --bin spool
 
@@ -46,15 +53,16 @@ rust-lint:
 	cargo fmt --manifest-path spool-rs/Cargo.toml --all -- --check
 	cargo clippy --manifest-path spool-rs/Cargo.toml --workspace --all-targets -- -D warnings
 
-rust-install: rust-build-release
+rust-install:
 	@set -e; \
+	$(MAKE) rust-build-release; \
 	INSTALL_DIR=$${INSTALL_DIR:-$${HOME}/.local/bin}; \
 	mkdir -p "$$INSTALL_DIR"; \
 	cp "spool-rs/target/release/spool" "$$INSTALL_DIR/spool"; \
 	chmod +x "$$INSTALL_DIR/spool"; \
 	"$$INSTALL_DIR/spool" --version
 
-install: rust-install
+install: version-bump rust-install
 
 clean:
 	rm -rf spool-rs/target
@@ -66,10 +74,11 @@ help:
 	@echo "  test-watch     - Run tests in watch mode (requires cargo-watch)"
 	@echo "  test-coverage  - Run coverage (requires cargo-llvm-cov)"
 	@echo "  lint           - Run linter"
+	@echo "  version-bump   - Bump workspace version date (YYYYMMDDHHMM)"
 	@echo "  rust-build     - Build Rust spool (debug)"
 	@echo "  rust-test      - Run Rust tests"
 	@echo "  rust-lint      - Run Rust fmt/clippy"
 	@echo "  rust-install   - Install Rust spool as 'spool' into ~/.local/bin (override INSTALL_DIR=...)"
-	@echo "  install        - Install Rust spool as 'spool'"
+	@echo "  install        - Bump version date + install Rust spool as 'spool'"
 	@echo "  clean          - Remove build artifacts"
 	@echo "  help           - Show this help message"
