@@ -38,7 +38,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: Fetcher can source from local repo or remote, with caching
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Wire install into `spool init` and refresh into `spool update`
 
@@ -51,7 +51,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: `spool init --tools ...` and `spool update` install/refresh adapters consistently
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -61,7 +61,7 @@ ______________________________________________________________________
 
 - **Type**: checkpoint (requires human approval)
 - **Files**: `.spool/changes/013-05_distribution-fetch-mechanics/proposal.md`, `.spool/changes/013-05_distribution-fetch-mechanics/design.md`
-- **Dependencies**: Task 1.2
+- **Dependencies**: None
 - **Action**: Review cache location, URL scheme, and tool-specific destinations
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31

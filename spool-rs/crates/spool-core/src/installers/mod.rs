@@ -45,6 +45,7 @@ pub fn install_default_templates(
     let spool_dir = spool_templates::normalize_spool_dir(&spool_dir_name);
 
     install_project_templates(project_root, &spool_dir, mode, opts)?;
+    install_adapter_files(project_root, mode, opts)?;
     Ok(())
 }
 
@@ -157,5 +158,44 @@ fn write_one(
     }
 
     crate::io::write(target, rendered_bytes)?;
+    Ok(())
+}
+
+fn install_adapter_files(project_root: &Path, _mode: InstallMode, opts: &InitOptions) -> Result<()> {
+    let version = env!("CARGO_PKG_VERSION");
+    let source_mode = crate::distribution::detect_source_mode(project_root, version);
+
+    for tool in &opts.tools {
+        match tool.as_str() {
+            TOOL_OPENCODE => {
+                let opencode_dir = std::env::var("OPENCODE_CONFIG_DIR")
+                    .ok()
+                    .map(std::path::PathBuf::from)
+                    .or_else(|| {
+                        std::env::var("HOME")
+                            .ok()
+                            .map(|h| std::path::PathBuf::from(h).join(".config").join("opencode"))
+                    });
+                let Some(config_dir) = opencode_dir else {
+                    continue;
+                };
+                let manifests = crate::distribution::opencode_manifests(&config_dir);
+                crate::distribution::install_manifests(&manifests, &source_mode, version)?;
+            }
+            TOOL_CLAUDE => {
+                let manifests = crate::distribution::claude_manifests(project_root);
+                crate::distribution::install_manifests(&manifests, &source_mode, version)?;
+            }
+            TOOL_CODEX => {
+                let manifests = crate::distribution::codex_manifests()?;
+                crate::distribution::install_manifests(&manifests, &source_mode, version)?;
+            }
+            TOOL_GITHUB_COPILOT => {
+                // No adapter files for GitHub Copilot yet
+            }
+            _ => {}
+        }
+    }
+
     Ok(())
 }

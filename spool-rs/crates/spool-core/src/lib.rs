@@ -2,6 +2,7 @@ pub mod archive;
 pub mod config;
 pub mod create;
 pub mod discovery;
+pub mod distribution;
 pub mod id;
 pub mod installers;
 pub mod io;
