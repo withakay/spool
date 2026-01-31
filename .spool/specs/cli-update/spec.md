@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Update Specification
+
+## Purpose
+
+Define the `cli-update` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Update refreshes harness wrappers without duplicating instruction bodies
 

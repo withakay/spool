@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cascading Config Specification
+
+## Purpose
+
+Define the `cascading-config` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Cascading project config sources
 

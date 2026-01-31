@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Repo Precommit Quality Gates Specification
+
+## Purpose
+
+Define the `repo-precommit-quality-gates` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Repo provides prek-compatible pre-commit config
 

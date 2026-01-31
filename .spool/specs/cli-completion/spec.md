@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Completion Specification
+
+## Purpose
+
+Define the `cli-completion` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Completion operations are grouped
 
@@ -26,7 +33,6 @@ The CLI SHALL expose completion operations under the `spool completions` group.
 - **AND** prints a deprecation warning pointing to `spool completions <subcommand>`
 - **AND** the shim is hidden from help and omitted from shell completions
 
-## MODIFIED Requirements
 
 ### Requirement: Completion Generation
 

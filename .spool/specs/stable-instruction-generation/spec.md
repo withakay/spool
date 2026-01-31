@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Stable Instruction Generation Specification
+
+## Purpose
+
+Define the `stable-instruction-generation` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Instruction generation command under agent namespace
 

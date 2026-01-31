@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Rust Parity Harness Specification
+
+## Purpose
+
+Define the `rust-parity-harness` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Parity harness covers init behavior
 

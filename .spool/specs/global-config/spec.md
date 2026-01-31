@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Global Config Specification
+
+## Purpose
+
+Define the `global-config` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Worktree workspace defaults
 

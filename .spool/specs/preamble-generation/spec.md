@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Preamble Generation Specification
+
+## Purpose
+
+Define the `preamble-generation` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Generate structured iteration preamble
 

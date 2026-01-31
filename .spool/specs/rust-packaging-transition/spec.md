@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Rust Packaging Transition Specification
+
+## Purpose
+
+Define the `rust-packaging-transition` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Transition plan preserves `spool` command name
 

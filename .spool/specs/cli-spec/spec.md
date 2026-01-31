@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Spec Specification
+
+## Purpose
+
+Define the `cli-spec` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Deprecated spec command is hidden
 

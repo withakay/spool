@@ -8,7 +8,8 @@ Provide reusable, consistent CLI plumbing for the Rust CLI so command handlers s
 
 This reduces duplication and makes command behavior consistent.
 
-## ADDED Requirements
+
+## Requirements
 
 ### Requirement: Command handlers use a shared Result-based flow
 

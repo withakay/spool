@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Init Specification
+
+## Purpose
+
+Define the `cli-init` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Worktree workspace layout (opt-in)
 

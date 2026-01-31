@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Npm Binary Distribution Specification
+
+## Purpose
+
+Define the `npm-binary-distribution` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: NPM install is optional and produces a working binary
 

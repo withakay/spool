@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Cli Research Specification
+
+## Purpose
+
+Define the `cli-research` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Research initialization
 

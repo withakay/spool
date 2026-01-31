@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Help All Dump Specification
+
+## Purpose
+
+Define the `help-all-dump` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: CLI supports complete help dump
 

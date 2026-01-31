@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Ralph Crate Specification
+
+## Purpose
+
+Define the `ralph-crate` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Ralph is extracted into its own crate
 

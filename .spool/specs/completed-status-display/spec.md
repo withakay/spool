@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Completed Status Display Specification
+
+## Purpose
+
+Define the `completed-status-display` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Changes with all tasks completed show "completed" status
 

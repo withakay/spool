@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Experimental Workflow Commands Specification
+
+## Purpose
+
+Define the `experimental-workflow-commands` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Experimental Workflow Slash Commands
 

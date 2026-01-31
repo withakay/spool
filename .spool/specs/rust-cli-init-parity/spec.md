@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Rust Cli Init Parity Specification
+
+## Purpose
+
+Define the `rust-cli-init-parity` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Rust init matches TypeScript init interaction model
 

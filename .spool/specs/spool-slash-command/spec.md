@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Spool Slash Command Specification
+
+## Purpose
+
+Define the `spool-slash-command` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Automatic installation during spool init
 

@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Interactive Module Selection Specification
+
+## Purpose
+
+Define the `interactive-module-selection` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Update spool-proposal skill
 

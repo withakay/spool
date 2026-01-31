@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Skills Specification
+
+## Purpose
+
+Define the `cli-skills` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Skills are managed via init/update (not CLI)
 

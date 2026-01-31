@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Instruction Guidance Injection Specification
+
+## Purpose
+
+Define the `instruction-guidance-injection` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Guidance is included in instruction artifacts
 

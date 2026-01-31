@@ -1,4 +1,11 @@
-## ADDED Requirements
+# User Guidance File Specification
+
+## Purpose
+
+Define the `user-guidance-file` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Project-local guidance file
 

@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Rust Clippy Policy Specification
+
+## Purpose
+
+Define the `rust-clippy-policy` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Repo defines a consistent clippy policy
 

@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Execution Logs Specification
+
+## Purpose
+
+Define the `execution-logs` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Spool writes structured execution logs to a central location
 

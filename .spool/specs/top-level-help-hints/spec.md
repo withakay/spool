@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Top Level Help Hints Specification
+
+## Purpose
+
+Define the `top-level-help-hints` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Top-level help provides option hints
 

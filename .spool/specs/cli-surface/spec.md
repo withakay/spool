@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Surface Specification
+
+## Purpose
+
+Define the `cli-surface` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Preferred help surface is small and stable
 

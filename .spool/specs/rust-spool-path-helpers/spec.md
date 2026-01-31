@@ -2,7 +2,8 @@
 
 Provide a canonical set of `.spool/` path builders in `spool-core` so other crates do not duplicate path construction.
 
-## ADDED Requirements
+
+## Requirements
 
 ### Requirement: Canonical path builder for `.spool/` root
 

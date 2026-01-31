@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Repo Integrity Validation Specification
+
+## Purpose
+
+Define the `repo-integrity-validation` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Canonical module identity
 

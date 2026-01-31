@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Ralph Specification
+
+## Purpose
+
+Define the `cli-ralph` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Context injection commands
 

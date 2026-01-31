@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Distribution Specification
+
+## Purpose
+
+Define the `distribution` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: GitHub Fetch for Adapter Files
 

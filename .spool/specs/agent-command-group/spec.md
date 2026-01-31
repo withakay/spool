@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Agent Command Group Specification
+
+## Purpose
+
+Define the `agent-command-group` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: CLI command group for agent utilities
 

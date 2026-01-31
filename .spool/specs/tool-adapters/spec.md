@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Tool Adapters Specification
+
+## Purpose
+
+Define the `tool-adapters` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Codex Bootstrap Snippet
 

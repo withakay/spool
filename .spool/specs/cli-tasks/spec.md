@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Cli Tasks Specification
+
+## Purpose
+
+Define the `cli-tasks` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Tasks initialization
 
@@ -149,7 +156,6 @@ The CLI SHALL maintain accurate status tracking for all tasks and support status
 - **AND** display counts for complete vs shelved
 - **AND** indicate estimated time remaining if duration information is available
 
-## ADDED Requirements
 
 ### Requirement: Task shelving
 

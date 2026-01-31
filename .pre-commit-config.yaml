@@ -63,3 +63,21 @@ repos:
           - clippy::unimplemented
         pass_filenames: false
         files: ^spool-rs/.*\.(rs|toml)$
+
+      - id: cargo-test-coverage
+        name: cargo test with coverage (spool-rs)
+        entry: make
+        language: system
+        args: [test-coverage]
+        pass_filenames: false
+        files: ^spool-rs/.*\.(rs|toml)$
+        stages: [pre-commit, pre-push]
+
+      - id: cargo-test
+        name: cargo test (spool-rs)
+        entry: make
+        language: system
+        args: [test]
+        pass_filenames: false
+        files: ^spool-rs/.*\.(rs|toml)$
+        stages: [pre-push]

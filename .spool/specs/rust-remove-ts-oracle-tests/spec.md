@@ -2,7 +2,8 @@
 
 Ensure Rust tests do not require the legacy TypeScript/Bun implementation at all.
 
-## ADDED Requirements
+
+## Requirements
 
 ### Requirement: TS oracle parity tests are removed
 

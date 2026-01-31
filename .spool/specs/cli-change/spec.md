@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Change Specification
+
+## Purpose
+
+Define the `cli-change` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Deprecated change command is hidden
 

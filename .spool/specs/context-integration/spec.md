@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Context Integration Specification
+
+## Purpose
+
+Define the `context-integration` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Integrate user-added context into preamble
 

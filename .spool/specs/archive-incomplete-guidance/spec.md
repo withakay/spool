@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Archive Incomplete Guidance Specification
+
+## Purpose
+
+Define the `archive-incomplete-guidance` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Incomplete change guidance display
 

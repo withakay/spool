@@ -15,6 +15,12 @@ Notes:
 - `<spoolDir>` is the project Spool working directory (default: `.spool/`, but it can be renamed via `projectPath`).
 - The CLI MUST NOT hardcode `.spool/` in behavior or messaging.
 
+
+#### Scenario: Agent config file path is deterministic
+
+- **WHEN** the CLI needs the project agent configuration path
+- **THEN** it uses `<spoolDir>/config.json`
+
 ### Requirement: Agent configuration initialization
 
 The CLI SHALL initialize `<spoolDir>/config.json` with default configuration for AI tools.

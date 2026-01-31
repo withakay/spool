@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Subcommand Help Routing Specification
+
+## Purpose
+
+Define the `subcommand-help-routing` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Help flag works at every command level
 

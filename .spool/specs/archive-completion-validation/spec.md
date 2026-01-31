@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Archive Completion Validation Specification
+
+## Purpose
+
+Define the `archive-completion-validation` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Pre-archive validation execution
 

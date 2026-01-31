@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Interactive Archive Selection Specification
+
+## Purpose
+
+Define the `interactive-archive-selection` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Archive command prompts for selection when no change ID provided
 

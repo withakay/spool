@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Serve Specification
+
+## Purpose
+
+Define the `cli-serve` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Serve Spool artifacts locally
 

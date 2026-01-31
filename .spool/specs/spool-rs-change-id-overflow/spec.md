@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Spool Rs Change Id Overflow Specification
+
+## Purpose
+
+Define the `spool-rs-change-id-overflow` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Change ID parser supports overflow change numbers
 

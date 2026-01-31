@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Spool Stats Specification
+
+## Purpose
+
+Define the `spool-stats` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Spool provides a local-only stats command
 

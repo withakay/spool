@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Module Specification
+
+## Purpose
+
+Define the `cli-module` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Verb-first module entrypoints
 

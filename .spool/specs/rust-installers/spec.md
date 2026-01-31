@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Rust Installers Specification
+
+## Purpose
+
+Define the `rust-installers` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: `spool-rs` is installed as `spool` by default
 
@@ -23,7 +30,6 @@ Installers MUST remove or disable any cached legacy TypeScript `spool` that woul
 - **THEN** `spool` resolves to the Rust implementation
 - **AND** the legacy cache entry is removed or renamed so it cannot shadow `spool`
 
-## REMOVED Requirements
 
 ### Requirement: Non-interactive installers match TypeScript byte-for-byte
 

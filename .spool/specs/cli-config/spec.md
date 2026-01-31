@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Config Specification
+
+## Purpose
+
+Define the `cli-config` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Configure worktree workspace defaults
 

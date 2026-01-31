@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Validate Specification
+
+## Purpose
+
+Define the `cli-validate` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Validate duplicate numeric change IDs
 

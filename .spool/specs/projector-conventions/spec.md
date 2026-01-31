@@ -1,4 +1,11 @@
-## MODIFIED Requirements
+# Projector Conventions Specification
+
+## Purpose
+
+Define the `projector-conventions` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Verb–Noun CLI Command Structure
 

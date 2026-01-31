@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Release Artifacts Specification
+
+## Purpose
+
+Define the `release-artifacts` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: GitHub Releases include cross-platform binaries
 

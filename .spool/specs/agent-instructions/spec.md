@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Agent Instructions Specification
+
+## Purpose
+
+Define the `agent-instructions` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Bootstrap Instruction Artifact
 

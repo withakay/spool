@@ -1,4 +1,11 @@
-## ADDED Requirements
+# Cli Artifact Workflow Specification
+
+## Purpose
+
+Define the `cli-artifact-workflow` capability, including required behavior and validation scenarios, so it remains stable and testable.
+
+
+## Requirements
 
 ### Requirement: Worktree-aware apply instructions
 
