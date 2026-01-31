@@ -22,7 +22,7 @@ ______________________________________________________________________
 - **Verify**: N/A
 - **Done When**: Naming and target list are documented and agreed
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 1.2: Implement npm packaging pipeline
 
@@ -35,7 +35,7 @@ ______________________________________________________________________
 - **Verify**: Publish dry-run (or publish to a test scope) succeeds
 - **Done When**: npm packages can be published for at least one platform end-to-end
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -48,4 +48,4 @@ ______________________________________________________________________
 - **Action**: Review the implementation before proceeding
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending

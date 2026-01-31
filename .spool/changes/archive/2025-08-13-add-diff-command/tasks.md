@@ -21,7 +21,7 @@
 
 ## 4. Testing
 
-- \[ \] 4.1 Test diff generation for modified files
-- \[ \] 4.2 Test handling of new files
-- \[ \] 4.3 Test handling of deleted files
-- \[ \] 4.4 Test interactive mode
+- [ ] 4.1 Test diff generation for modified files
+- [ ] 4.2 Test handling of new files
+- [ ] 4.3 Test handling of deleted files
+- [ ] 4.4 Test interactive mode

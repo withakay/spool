@@ -23,7 +23,7 @@ ______________________________________________________________________
   - Delegate to existing `instructionsCommand` function from artifact-workflow.ts
 - **Verify**: `bun run build`
 - **Done When**: Build passes, new file exists with proper exports
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 1.2: Export instructionsCommand from artifact-workflow.ts
 
@@ -34,7 +34,7 @@ ______________________________________________________________________
   - Ensure function signature is suitable for reuse
 - **Verify**: `bun run build`
 - **Done When**: Function is exported and can be imported from agent.ts
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 1.3: Register agent commands in CLI
 
@@ -45,7 +45,7 @@ ______________________________________________________________________
   - Call `registerAgentCommands(program)` to register the agent command group
 - **Verify**: `bun run spool agent --help`
 - **Done When**: `spool agent` shows help with instruction subcommand
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -61,7 +61,7 @@ ______________________________________________________________________
   - Use `console.error()` so it doesn't interfere with stdout JSON output
 - **Verify**: `bun run spool x-instructions proposal --change "001-06_promote-x-instructions-to-stable" 2>&1 | head -1`
 - **Done When**: Deprecation warning appears on first line of stderr
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 2.2: Verify JSON output not affected by deprecation warning
 
@@ -73,7 +73,7 @@ ______________________________________________________________________
   - Verify deprecation warning only appears on stderr
 - **Verify**: `bun run spool x-instructions proposal --change "001-06_promote-x-instructions-to-stable" --json | jq .`
 - **Done When**: JSON parses successfully, warning is only on stderr
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 2.3: Verify new command works identically
 
@@ -84,7 +84,7 @@ ______________________________________________________________________
   - Verify all options work (--change, --schema, --json)
 - **Verify**: `diff <(bun run spool agent instruction proposal --change "001-06" 2>/dev/null) <(bun run spool x-instructions proposal --change "001-06" 2>/dev/null)`
 - **Done When**: Outputs are identical
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -99,7 +99,7 @@ ______________________________________________________________________
   - Replace with `spool agent instruction`
 - **Verify**: `grep -r "x-instructions" src/core/templates/`
 - **Done When**: No references to x-instructions in skill templates
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 3.2: Update spool-apply skill
 
@@ -110,7 +110,7 @@ ______________________________________________________________________
   - Replace with `spool agent instruction`
 - **Verify**: `grep -r "x-instructions" .opencode/skill/`
 - **Done When**: No references to x-instructions in OpenCode skills
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 3.3: Update any documentation references
 
@@ -122,7 +122,7 @@ ______________________________________________________________________
   - Add note about new agent command group
 - **Verify**: `grep -r "x-instructions" docs/ README.md .spool/`
 - **Done When**: No outdated references in documentation
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -139,7 +139,7 @@ ______________________________________________________________________
   - Test that --json flag produces valid JSON
 - **Verify**: `bun test agent`
 - **Done When**: All tests pass
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 4.2: Run full test suite
 
@@ -150,7 +150,7 @@ ______________________________________________________________________
   - Fix any failing tests
 - **Verify**: `make test`
 - **Done When**: All tests pass
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 4.3: Manual verification of workflow
 
@@ -162,7 +162,7 @@ ______________________________________________________________________
   - Verify instruction generation works correctly
 - **Verify**: Manual testing
 - **Done When**: Full proposal workflow completes successfully with new command
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 

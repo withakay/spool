@@ -81,4 +81,4 @@ ______________________________________________________________________
   - Confirm size-limit behavior (warn vs truncate).
 - **Done When**: User confirms direction.
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending

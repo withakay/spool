@@ -31,7 +31,7 @@
 ## 4. Integration
 
 - \[x\] 4.1 Register change command in src/cli/index.ts
-- \[ \] 4.2 Add integration tests for all subcommands
+- [ ] 4.2 Add integration tests for all subcommands
 - \[x\] 4.3 Test JSON output for changes
 - \[x\] 4.4 Test legacy compatibility
 - \[x\] 4.5 Test validation with strict mode

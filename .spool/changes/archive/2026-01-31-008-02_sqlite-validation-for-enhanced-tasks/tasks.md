@@ -24,7 +24,7 @@ ______________________________________________________________________
   - Update guidance text to explain: wave deps are cross-wave; task deps are within-wave only
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: Rust template (and TS template, if still used) matches the new semantics
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 1.2: Extend Rust tasks.md parser/writer for wave deps + shelved + updated-at
 
@@ -38,7 +38,7 @@ ______________________________________________________________________
   - Update readiness evaluation to use wave deps + within-wave deps
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: Rust parser round-trips updated format and readiness logic matches specs
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -59,7 +59,7 @@ ______________________________________________________________________
   - Produce errors that include both conflicting directory paths and actionable remediation
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: `spool validate --changes` reports duplicate/invalid change directories correctly
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 2.2: Implement relational validation for waves/tasks/dependencies (Rust)
 
@@ -74,7 +74,7 @@ ______________________________________________________________________
   - Return diagnostics with source locations from the markdown parser
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: Invalid tasks.md structures are rejected with actionable, line-addressable errors
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -93,7 +93,7 @@ ______________________________________________________________________
   - Ensure commands refuse to operate when validation errors exist
 - **Verify**: cargo test -p spool-cli
 - **Done When**: Commands update tasks.md deterministically and validation blocks unsafe operations
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 3.2: Ensure Rust `spool validate` surfaces repo integrity + tasks validation
 
@@ -105,7 +105,7 @@ ______________________________________________________________________
   - Ensure JSON output includes the new issues with stable fields
 - **Verify**: cargo test -p spool-cli
 - **Done When**: `spool validate` reports new validations in both text and JSON modes
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -122,7 +122,7 @@ ______________________________________________________________________
   - Ensure any TypeScript parity work is explicitly deferred
 - **Verify**: spool validate "008-02_sqlite-validation-for-enhanced-tasks" --strict
 - **Done When**: Proposal artifacts reflect Rust-first implementation strategy
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -140,4 +140,4 @@ ______________________________________________________________________
   - Validate that error messages are actionable and point to exact locations
   - Confirm the wave/task dependency scoping matches the intended mental model
 - **Done When**: Human reviewer approves format and validator UX
-- **Status**: \[ \] pending
+- **Status**: [ ] pending

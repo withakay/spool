@@ -22,7 +22,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: Target matrix and versioning rules are documented and agreed
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 1.2: Add GitHub Actions release workflow
 
@@ -35,7 +35,7 @@ ______________________________________________________________________
 - **Verify**: GitHub Actions run on a test tag (or `workflow_dispatch`) succeeds
 - **Done When**: Release workflow creates a draft or published release with all expected assets
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 1.3: Add macOS/Linux installer script
 
@@ -47,7 +47,7 @@ ______________________________________________________________________
 - **Verify**: Install script succeeds on macOS and Linux runners in CI
 - **Done When**: Users can install with a copy/paste command and `spool --version` works
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -60,4 +60,4 @@ ______________________________________________________________________
 - **Action**: Review the implementation before proceeding
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31
-- **Status**: \[ \] pending
+- **Status**: [ ] pending

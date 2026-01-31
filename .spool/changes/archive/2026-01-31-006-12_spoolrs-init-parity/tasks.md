@@ -10,7 +10,7 @@
 - \[x\] 2.1 Add/confirm `spoolrs init --tools <tools>` and match TS parsing/validation (`all`, `none`, comma list)
 - \[x\] 2.2 Add interactive CLI dependencies (`dialoguer`, `crossterm`, `indicatif`) and wire up a prompt-driven tool selection wizard
 - \[x\] 2.3 Implement interactive tool selection when `--tools` is omitted in interactive sessions
-- \[ \] 2.4 Ensure extend mode preserves existing configured tools and adds selected tools only
+- [ ] 2.4 Ensure extend mode preserves existing configured tools and adds selected tools only
 
 ## 3. Artifact Parity Verification
 

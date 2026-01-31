@@ -46,24 +46,24 @@
 - \[x\] Handle Oh My Zsh vs standard Zsh installation paths
 - \[x\] Add test script for postinstall validation
 - \[x\] Document auto-install behavior and opt-out in README
-- \[ \] Manually test Zsh completion in Oh My Zsh environment (install, test tab completion, uninstall)
-- \[ \] Manually test Zsh completion in standard Zsh environment
-- \[ \] Test dynamic change/spec ID completion in real Spool projects
-- \[ \] Verify completion cache behavior (2-second TTL)
-- \[ \] Test behavior outside Spool projects (should skip dynamic completions)
+- [ ] Manually test Zsh completion in Oh My Zsh environment (install, test tab completion, uninstall)
+- [ ] Manually test Zsh completion in standard Zsh environment
+- [ ] Test dynamic change/spec ID completion in real Spool projects
+- [ ] Verify completion cache behavior (2-second TTL)
+- [ ] Test behavior outside Spool projects (should skip dynamic completions)
 - \[x\] Update `spool --help` output to include completion command (automatically done via Commander)
 
 ## Phase 5: Edge Cases & Error Handling
 
-- \[ \] Test and handle permission errors during installation
-- \[ \] Test and handle missing shell configuration directories (auto-create with notification)
-- \[ \] Test "already installed" detection and reinstall flow
-- \[ \] Test "not installed" detection during uninstall
-- \[ \] Verify `--no-color` flag is respected in completion command output
-- \[ \] Test shell detection failure scenarios with helpful error messages
-- \[ \] Ensure graceful handling when `$SHELL` is unset or invalid
-- \[ \] Test non-Zsh shells get clear "not supported yet" error messages
-- \[ \] Test generator output can be redirected to files without corruption
+- [ ] Test and handle permission errors during installation
+- [ ] Test and handle missing shell configuration directories (auto-create with notification)
+- [ ] Test "already installed" detection and reinstall flow
+- [ ] Test "not installed" detection during uninstall
+- [ ] Verify `--no-color` flag is respected in completion command output
+- [ ] Test shell detection failure scenarios with helpful error messages
+- [ ] Ensure graceful handling when `$SHELL` is unset or invalid
+- [ ] Test non-Zsh shells get clear "not supported yet" error messages
+- [ ] Test generator output can be redirected to files without corruption
 
 ## Dependencies
 

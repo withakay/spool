@@ -45,4 +45,4 @@
 ## 7. Documentation
 
 - \[x\] 7.1 Add help text for all commands marked as "Experimental"
-- \[ \] 7.2 Update AGENTS.md with new commands (post-archive)
+- [ ] 7.2 Update AGENTS.md with new commands (post-archive)

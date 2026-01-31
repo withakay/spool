@@ -43,7 +43,7 @@
 - \[x\] 4.2 Add `src/utils/item-discovery.ts` with:
   - `getActiveChangeIds(root = process.cwd()): Promise<string[]>` (exclude `archive/`)
   - `getSpecIds(root = process.cwd()): Promise<string[]>` (folders with `spec.md`)
-- \[ \] 4.3 Optional: `src/utils/concurrency.ts` helper for bounded parallelism
+- [ ] 4.3 Optional: `src/utils/concurrency.ts` helper for bounded parallelism
 - \[x\] 4.4 Reuse `src/core/validation/validator.ts` for item validation
 
 ## 5. JSON Output (Bulk Validation)
@@ -66,7 +66,7 @@
 
 - \[x\] 7.1 Add top-level validate tests: `test/commands/validate.test.ts`
   - Includes non-interactive hint, --all JSON, --specs with concurrency, ambiguity error
-- \[ \] 7.2 Add unit tests for `isInteractive` and item discovery helpers
+- [ ] 7.2 Add unit tests for `isInteractive` and item discovery helpers
 - \[x\] 7.3 Extend existing change/spec command tests to cover interactive `validate`
   - Added `test/commands/change.interactive-validate.test.ts`, `test/commands/spec.interactive-validate.test.ts`
 

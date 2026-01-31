@@ -11,12 +11,12 @@
 
 ## 2. Update Diff Command
 
-- \[ \] 2.1 Update cli-diff spec with requirement-level comparison
-- \[ \] 2.2 Parse specs into requirement-level structures
-- \[ \] 2.3 Apply deltas to generate future state
-- \[ \] 2.4 Implement side-by-side comparison view (changes only)
-- \[ \] 2.5 Add tests for requirement-level comparison
-- \[ \] 2.6 Add tests for side-by-side view formatting
+- [ ] 2.1 Update cli-diff spec with requirement-level comparison
+- [ ] 2.2 Parse specs into requirement-level structures
+- [ ] 2.3 Apply deltas to generate future state
+- [ ] 2.4 Implement side-by-side comparison view (changes only)
+- [ ] 2.5 Add tests for requirement-level comparison
+- [ ] 2.6 Add tests for side-by-side view formatting
 
 ## 3. Update Archive Command
 

@@ -21,10 +21,10 @@
 ## 4. Tests and Docs
 
 - \[x\] 4.1 Update tests: ensure `spool list` works for changes and specs; keep `change list` tests but assert warning
-- \[ \] 4.2 Update README and any usage docs to show new primary commands
-- \[ \] 4.3 Add migration notes in repo CHANGELOG or README
+- [ ] 4.2 Update README and any usage docs to show new primary commands
+- [ ] 4.3 Add migration notes in repo CHANGELOG or README
 
 ## 5. Follow-ups (Optional, not in this change)
 
-- \[ \] 5.1 Consider `spool show --specs/--changes` for discovery without ids
-- \[ \] 5.2 Consider JSON output for `spool list` with `--json` for both modes
+- [ ] 5.1 Consider `spool show --specs/--changes` for discovery without ids
+- [ ] 5.2 Consider JSON output for `spool list` with `--json` for both modes

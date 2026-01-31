@@ -56,7 +56,7 @@ Create a unified 'spool' skill that routes commands to matching spool-\* skills 
 
 - \[x\] All routing scenarios from spool-skill-routing spec pass (manual agent testing)
 - \[x\] All slash command scenarios from spool-slash-command spec pass
-- \[ \] Integration tests with opencode harness pass (requires agent harness testing)
+- [ ] Integration tests with opencode harness pass (requires agent harness testing)
 - \[x\] Manual testing of common workflows successful
 
 ## Implementation Notes
