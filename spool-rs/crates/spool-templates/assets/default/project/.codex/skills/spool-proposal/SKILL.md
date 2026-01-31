@@ -19,7 +19,7 @@ Create or continue a change, then generate proposal/spec/design/tasks using the 
 
    ```bash
    spool agent instruction proposal --change "<change-id>"
-   spool agent instruction spec --change "<change-id>"
+   spool agent instruction specs --change "<change-id>"
    spool agent instruction design --change "<change-id>"
    spool agent instruction tasks --change "<change-id>"
    ```

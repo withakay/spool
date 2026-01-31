@@ -202,6 +202,38 @@ spool archive <change-id> -y
 - \[ \] Verify research and review slash commands are available in at least one supported tool
 - \[ \] Run `make build` to verify the Rust CLI builds
 
+## Pre-commit Hooks (prek)
+
+Spool uses [prek](https://prek.j178.dev/) for pre-commit hooks. prek is a drop-in replacement for pre-commit and runs the same `.pre-commit-config.yaml`.
+
+### Quick Start
+
+```bash
+# Run hooks on staged files
+prek run
+
+# Run hooks on all files
+prek run --all-files
+
+# Install git hooks (runs automatically on commit)
+prek install
+```
+
+### Already using pre-commit?
+
+prek is fully compatible. Just replace `pre-commit` with `prek` in your workflow and reinstall hooks once:
+
+```bash
+prek install -f
+```
+
+### What the hooks check
+
+- **Whitespace / line endings**: trailing whitespace, EOF newline, mixed line endings
+- **Structured formats**: JSON syntax, YAML syntax + lint
+- **Markdown**: linting via markdownlint-cli2
+- **Rust**: `cargo fmt` + `cargo clippy` with the repo's lint policy
+
 ## Contributing
 
 ```bash
