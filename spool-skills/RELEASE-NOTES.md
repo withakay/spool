@@ -1,6 +1,6 @@
 # spool-skills Release Notes
 
-> **Note:** This is a fork of [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent.  
+> **Note:** This is a fork of [Superpowers](https://github.com/obra/superpowers) by Jesse Vincent.
 > The release notes below are from the original Superpowers project.
 
 ## v4.1.1 (2026-01-23)

@@ -9,5 +9,14 @@
   "homepage": "https://github.com/withakay/spool-skills",
   "repository": "https://github.com/withakay/spool-skills",
   "license": "MIT",
-  "keywords": ["skills", "tdd", "debugging", "collaboration", "best-practices", "workflows", "fork", "superpowers"]
+  "keywords": [
+    "skills",
+    "tdd",
+    "debugging",
+    "collaboration",
+    "best-practices",
+    "workflows",
+    "fork",
+    "superpowers"
+  ]
 }
