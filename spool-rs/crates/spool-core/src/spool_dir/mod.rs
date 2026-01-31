@@ -1,16 +1,14 @@
 use std::path::{Path, PathBuf};
 
-use crate::config::{ConfigContext, load_global_config, load_project_config};
+use crate::config::{ConfigContext, load_global_config, load_repo_project_path_override};
 
 pub fn get_spool_dir_name(project_root: &Path, ctx: &ConfigContext) -> String {
     // Priority order matches TS:
     // 1. Repo-level spool.json projectPath
-    // 2. Global config (~/.config/spool/config.json) projectPath
-    // 3. Default: '.spool'
-    if let Some(project_path) = load_project_config(project_root)
-        .and_then(|c| c.project_path)
-        .filter(|s| !s.trim().is_empty())
-    {
+    // 2. Repo-level .spool.json projectPath
+    // 3. Global config (~/.config/spool/config.json) projectPath
+    // 4. Default: '.spool'
+    if let Some(project_path) = load_repo_project_path_override(project_root) {
         return project_path;
     }
 
@@ -116,9 +114,28 @@ mod tests {
         let ctx = ConfigContext {
             xdg_config_home: None,
             home_dir: Some(home.path().to_path_buf()),
+            project_dir: None,
         };
 
         assert_eq!(get_spool_dir_name(td.path(), &ctx), ".repo-spool");
+    }
+
+    #[test]
+    fn dot_repo_config_overrides_repo_config() {
+        let td = tempfile::tempdir().unwrap();
+        crate::io::write_std(
+            &td.path().join("spool.json"),
+            "{\"projectPath\":\".repo-spool\"}",
+        )
+        .unwrap();
+        crate::io::write_std(
+            &td.path().join(".spool.json"),
+            "{\"projectPath\":\".dot-spool\"}",
+        )
+        .unwrap();
+
+        let ctx = ConfigContext::default();
+        assert_eq!(get_spool_dir_name(td.path(), &ctx), ".dot-spool");
     }
 
     #[test]
