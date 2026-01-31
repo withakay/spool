@@ -5,6 +5,8 @@ description: Archive a completed change and update main specifications. Use when
 
 Run the CLI-generated archive instructions for a specific change.
 
+Note: This file is installed/updated by Spool (`spool init`, `spool update`) and may be overwritten. Put project-specific guidance in `.spool/user-guidance.md`, `AGENTS.md`, and/or `CLAUDE.md`.
+
 **Rules**
 - Do NOT archive without explicit user confirmation.
 

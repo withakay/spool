@@ -13,6 +13,13 @@ Use `@/.spool/AGENTS.md` to learn:
 - Spec format and conventions
 - Project structure and guidelines
 
+Note: Files under `.spool/`, `.opencode/`, `.github/`, and `.codex/` are installed/updated by Spool (`spool init`, `spool update`) and may be overwritten.
+Add project-specific guidance in `.spool/user-guidance.md` (injected into agent instruction outputs) and/or below this managed block.
+
 Keep this managed block so 'spool update' can refresh the instructions.
 
 <!-- SPOOL:END -->
+
+## Project Guidance
+
+(Add any project-specific assistant guidance here. Prefer `.spool/user-guidance.md` for instructions you want applied consistently to Spool change workflows.)

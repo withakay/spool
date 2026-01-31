@@ -13,6 +13,10 @@ Use the Spool agent skill `spool-proposal` as the source of truth for this workf
 **Input**
 - The request is provided in the prompt arguments or <UserRequest> block. Use it to scope the change and name the change ID.
 
+**Module selection**
+- Choose a module by semantic fit (use `spool list --modules`).
+- If nothing fits, suggest creating a new module for the theme of the work.
+
 **Instructions**
 Tell the model to use the `spool-proposal` skill to complete this workflow, using any supplied arguments or context from the prompt.
 

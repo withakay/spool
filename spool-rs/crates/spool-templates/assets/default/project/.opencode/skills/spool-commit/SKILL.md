@@ -5,6 +5,8 @@ description: Create atomic git commits aligned to Spool changes. Use when you wa
 
 Create atomic git commits aligned to Spool changes.
 
+Note: This file is installed/updated by Spool (`spool init`, `spool update`) and may be overwritten. Put project-specific guidance in `.spool/user-guidance.md`, `AGENTS.md`, and/or `CLAUDE.md`.
+
 This skill is intended to be installed by `spool init` so agents can commit work per Spool change in a consistent way.
 
 **Concept:** In Spool-driven workflows, you typically make progress by creating/applying a change. After applying and verifying a change, you should usually create a git commit that corresponds to that change.
@@ -107,4 +109,3 @@ After committing, show:
 ## Important: auto_mode reset
 
 After this invocation finishes, auto commit behavior must be considered reset. Future operations require explicit `--auto` again.
-

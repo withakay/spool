@@ -5,6 +5,8 @@ description: Unified entry point for spool commands with intelligent skill-first
 
 Route spool commands to the best handler.
 
+Note: This file is installed/updated by Spool (`spool init`, `spool update`) and may be overwritten. Put project-specific guidance in `.spool/user-guidance.md`, `AGENTS.md`, and/or `CLAUDE.md`.
+
 ## Goal
 
 Users may type requests like `spool archive 001-03_add-spool-skill` or `spool dashboard`.

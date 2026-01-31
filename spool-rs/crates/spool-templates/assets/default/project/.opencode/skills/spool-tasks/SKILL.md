@@ -5,6 +5,8 @@ description: Use Spool tasks CLI to manage tasks.md (status/next/start/complete/
 
 Use the `spool tasks` CLI to track and update implementation tasks for a change.
 
+Note: This file is installed/updated by Spool (`spool init`, `spool update`) and may be overwritten. Put project-specific guidance in `.spool/user-guidance.md`, `AGENTS.md`, and/or `CLAUDE.md`.
+
 **Rules**
 - Prefer `spool tasks ...` over manual editing of `tasks.md`.
 - Enhanced tasks.md supports `start`, `shelve`, `unshelve`, and `add`.

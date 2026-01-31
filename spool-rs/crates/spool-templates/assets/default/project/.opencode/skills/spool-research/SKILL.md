@@ -5,6 +5,8 @@ description: Conduct structured research for feature development, technology eva
 
 Run the CLI-generated research instructions for a specific change.
 
+Note: This file is installed/updated by Spool (`spool init`, `spool update`) and may be overwritten. Put project-specific guidance in `.spool/user-guidance.md`, `AGENTS.md`, and/or `CLAUDE.md`.
+
 **Steps**
 
 1. Determine the target change ID (ask the user if unclear).
