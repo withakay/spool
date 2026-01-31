@@ -1,89 +1,21 @@
-# cli-spec Specification
+## ADDED Requirements
 
-## Purpose
+### Requirement: Deprecated spec command is hidden
 
-TBD - created by archiving change add-interactive-show-command. Update Purpose after archive.
+The CLI SHALL treat `spool spec ...` as a deprecated noun-based entrypoint.
 
-## Requirements
+#### Scenario: Deprecated spec command remains callable
 
-### Requirement: Interactive spec show
+- **WHEN** users execute `spool spec <subcommand>`
+- **THEN** the command executes successfully with its existing behavior
+- **AND** prints a deprecation warning pointing to verb-first alternatives (e.g., `spool show`, `spool list --specs`, `spool validate --specs`)
 
-The spec show command SHALL support interactive selection when no spec-id is provided.
+#### Scenario: Deprecated spec command is not shown in help
 
-#### Scenario: Interactive spec selection for show
+- **WHEN** users execute `spool --help`
+- **THEN** `spec` is not listed as a top-level command
 
-- **WHEN** executing `spool spec show` without arguments
-- **THEN** display an interactive list of available specs
-- **AND** allow the user to select a spec to show
-- **AND** display the selected spec content
-- **AND** maintain all existing show options (--json, --requirements, --no-scenarios, -r)
+#### Scenario: Deprecated spec command is not suggested in completion
 
-#### Scenario: Non-interactive fallback keeps current behavior
-
-- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `SPOOL_INTERACTIVE=0`
-- **WHEN** executing `spool spec show` without a spec-id
-- **THEN** do not prompt interactively
-- **AND** print the existing error message for missing spec-id
-- **AND** set non-zero exit code
-
-### Requirement: Spec Command
-
-The system SHALL provide a `spec` command with subcommands for displaying, listing, and validating specifications.
-
-#### Scenario: Show spec as JSON
-
-- **WHEN** executing `spool spec show init --json`
-- **THEN** parse the markdown spec file
-- **AND** extract headings and content hierarchically
-- **AND** output valid JSON to stdout
-
-#### Scenario: List all specs
-
-- **WHEN** executing `spool spec list`
-- **THEN** scan the spool/specs directory
-- **AND** return list of all available capabilities
-- **AND** support JSON output with `--json` flag
-
-#### Scenario: Filter spec content
-
-- **WHEN** executing `spool spec show init --requirements`
-- **THEN** display only requirement names and SHALL statements
-- **AND** exclude scenario content
-
-#### Scenario: Validate spec structure
-
-- **WHEN** executing `spool spec validate init`
-- **THEN** parse the spec file
-- **AND** validate against Zod schema
-- **AND** report any structural issues
-
-### Requirement: JSON Schema Definition
-
-The system SHALL define Zod schemas that accurately represent the spec structure for runtime validation.
-
-#### Scenario: Schema validation
-
-- **WHEN** parsing a spec into JSON
-- **THEN** validate the structure using Zod schemas
-- **AND** ensure all required fields are present
-- **AND** provide clear error messages for validation failures
-
-### Requirement: Interactive spec validation
-
-The spec validate command SHALL support interactive selection when no spec-id is provided.
-
-#### Scenario: Interactive spec selection for validation
-
-- **WHEN** executing `spool spec validate` without arguments
-- **THEN** display an interactive list of available specs
-- **AND** allow the user to select a spec to validate
-- **AND** validate the selected spec
-- **AND** maintain all existing validation options (--strict, --json)
-
-#### Scenario: Non-interactive fallback keeps current behavior
-
-- **GIVEN** stdin is not a TTY or `--no-interactive` is provided or environment variable `SPOOL_INTERACTIVE=0`
-- **WHEN** executing `spool spec validate` without a spec-id
-- **THEN** do not prompt interactively
-- **AND** print the existing error message for missing spec-id
-- **AND** set non-zero exit code
+- **WHEN** users use shell completion
+- **THEN** `spec` is not suggested as a top-level command

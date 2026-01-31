@@ -1,10 +1,4 @@
-# CLI Research Specification
-
-## Purpose
-
-The `spool research` command group provides domain research capabilities that help teams investigate technology choices, feature landscapes, architecture decisions, and potential pitfalls before proposing changes.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Research initialization
 
@@ -12,7 +6,7 @@ The CLI SHALL initialize the `.spool/research/` directory structure with templat
 
 #### Scenario: Initialize research directory
 
-- **WHEN** executing `spool research init`
+- **WHEN** executing `spool x-research init`
 - **THEN** create the `.spool/research/` directory if it does not exist
 - **AND** create the `.spool/research/investigations/` subdirectory
 - **AND** create `SUMMARY.md` template with sections for key findings, stack recommendations, feature prioritization, architecture considerations, pitfalls to avoid, and roadmap implications
@@ -29,11 +23,11 @@ The CLI SHALL display the current state of research artifacts, indicating which 
 
 #### Scenario: Show research status
 
-- **WHEN** executing `spool research status`
+- **WHEN** executing `spool x-research status`
 - **THEN** check for existence of `.spool/research/investigations/*.md` files
 - **AND** display a table showing each investigation's name, status (complete/incomplete/missing), and last modified timestamp
 - **AND** indicate whether SUMMARY.md exists and has content
-- **AND** print a hint to run `spool research init` if the directory structure is missing
+- **AND** print a hint to run `spool x-research init` if the directory structure is missing
 - **AND** suggest running specific investigations if they are incomplete
 
 ### Requirement: Research command templates
@@ -106,7 +100,7 @@ The CLI SHALL integrate research capabilities with the broader Spool workflow, e
 #### Scenario: Research before proposal workflow
 
 - **WHEN** a user begins planning a complex change that requires domain investigation
-- **THEN** suggest running `spool research init` to create research structure
+- **THEN** suggest running `spool x-research init` to create research structure
 - **AND** provide guidance on which investigations to complete based on the change type
 - **AND** indicate that research findings should inform the change proposal's "Why" and "What Changes" sections
 - **AND** recommend referencing `.spool/research/SUMMARY.md` in the proposal for context
@@ -124,9 +118,9 @@ The CLI SHALL provide clear error messages and recovery suggestions when researc
 
 #### Scenario: Investigation files are missing
 
-- **WHEN** executing `spool research status` and investigation files are missing
+- **WHEN** executing `spool x-research status` and investigation files are missing
 - **THEN** display a warning that investigations are incomplete
-- **AND** suggest running `spool research init` to create templates
+- **AND** suggest running `spool x-research init` to create templates
 - **AND** list which investigation files are missing
 
 ### Requirement: Template quality
@@ -140,15 +134,3 @@ The CLI SHALL generate high-quality templates that provide clear guidance for st
 - **AND** provide guidance on what content to include in each section
 - **AND** include placeholder questions or prompts to guide the research process
 - **AND** follow the format documented in project-planning-research-proposal.md
-
-## Why
-
-Domain research is critical for informed change proposals, especially when entering unfamiliar technical areas. These commands provide:
-
-1. **Structured investigation**: Organized approach to exploring technology choices, features, architecture, and pitfalls
-1. **Knowledge capture**: Research artifacts persist across sessions and can be referenced by team members
-1. **Better proposals**: Well-researched proposals have more accurate estimates and fewer unexpected issues
-1. **Risk mitigation**: Proactive identification of pitfalls and mitigations reduces implementation risk
-1. **Informed decisions**: Stack analysis and feature landscape support better technical decisions
-
-Without these tools, teams must conduct ad-hoc research that is often incomplete, lost between sessions, or not integrated into the proposal process.

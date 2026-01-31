@@ -1,38 +1,26 @@
-# rust-packaging-transition Specification
-
-## Purpose
-
-TBD - created by archiving change 006-10_packaging-and-transition-plan. Update Purpose after archive.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Transition plan preserves `spool` command name
 
-The transition plan MUST keep the user-facing `spool` command stable.
+The transition plan MUST keep the user-facing `spool` command stable and MUST define `spool-rs` as the supported implementation for the `spool` command.
 
-#### Scenario: Users upgrade without changing command name
+The legacy TypeScript/Bun implementation MUST be treated as deprecated and MUST NOT be installed or distributed in a way that claims the `spool` command by default.
 
-- GIVEN a user who previously installed Spool via any supported distribution method
-- WHEN they upgrade to a Rust-only version
-- THEN `spool --help` and `spool --version` behave consistently
+#### Scenario: npm-installed `spool` continues to work (Rust default)
 
-### Requirement: Distribution does not require Node, Bun, or npm
-
-Spool distribution and installation MUST NOT require Node.js, Bun, or npm.
-
-#### Scenario: Install and run without Node
-
-- GIVEN a machine without Node.js or Bun installed
-- WHEN a user installs Spool via a Rust-native method (for example, prebuilt binaries or `cargo install`)
-- THEN `spool --version` runs successfully
+- **GIVEN** a user who previously installed `@withakay/spool`
+- **WHEN** they upgrade to a version where `spool` resolves to the Rust implementation
+- **THEN** `spool --help` and `spool --version` behave identically at the CLI-contract level
+- **AND** the output clearly identifies `spool-rs` as the supported implementation
 
 ### Requirement: Platform artifacts and verification are defined
 
-The plan MUST define build artifacts per platform and how they are verified.
+The plan MUST define build artifacts per platform and how they are verified, and it MUST distinguish supported `spool-rs` artifacts from any deprecated TypeScript/Bun artifacts.
 
 #### Scenario: Release checklist is explicit
 
-- GIVEN the packaging documentation
-- WHEN a release engineer follows the checklist
-- THEN it includes commands to build artifacts
-- AND it includes checksum/integrity verification
+- **GIVEN** the packaging documentation
+- **WHEN** a release engineer follows the checklist
+- **THEN** it includes commands to build `spool-rs` artifacts for supported platforms
+- **AND** it includes checksum/integrity verification
+- **AND** it documents any legacy TypeScript/Bun artifacts as deprecated and non-default (if shipped)

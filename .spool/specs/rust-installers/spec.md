@@ -1,37 +1,39 @@
-# rust-installers Specification
+## ADDED Requirements
 
-## Purpose
+### Requirement: `spool-rs` is installed as `spool` by default
 
-TBD - created by archiving change 006-06_port-init-update-installers. Update Purpose after archive.
+Installers MUST ensure the default `spool` command resolves to the Rust implementation.
 
-## Requirements
+If the legacy TypeScript/Bun implementation is installed for legacy purposes, it MUST use a distinct command/name and MUST be labeled deprecated.
 
-### Requirement: Marker-managed edits preserve unmanaged content
+#### Scenario: Default CLI resolves to Rust
 
-The Rust implementation MUST only replace managed blocks and MUST preserve user-owned content outside markers.
+- **WHEN** a user installs Spool using the documented installer path
+- **THEN** running `spool --version` indicates the Rust implementation
+- **AND** the installation does not place a TypeScript/Bun `spool` ahead of Rust on PATH
 
-#### Scenario: Update preserves user edits
+### Requirement: Legacy TypeScript `spool` is removed from global cache
 
-- GIVEN a file containing a managed marker block and user edits outside the block
-- WHEN `spool update` is run
-- THEN only the managed block content is replaced
-- AND user edits outside the block remain unchanged
+Installers MUST remove or disable any cached legacy TypeScript `spool` that would shadow the Rust `spool` command.
 
-### Requirement: Installer outputs are deterministic and validated in Rust
+#### Scenario: Cached legacy CLI does not shadow Rust
 
-Installer outputs MUST be deterministic under non-interactive flags and MUST be validated by Rust test coverage.
+- **GIVEN** a machine with a cached legacy TypeScript `spool` in the global cache
+- **WHEN** the Rust `spool` installation or upgrade is performed
+- **THEN** `spool` resolves to the Rust implementation
+- **AND** the legacy cache entry is removed or renamed so it cannot shadow `spool`
 
-#### Scenario: Rust tests validate installers
+## REMOVED Requirements
 
-- WHEN running `cargo test --workspace`
-- THEN installer-related tests MUST validate the expected file outputs
+### Requirement: Non-interactive installers match TypeScript byte-for-byte
 
-### Requirement: Path conventions match existing behavior
+This requirement is removed; installer verification MUST NOT require executing the TypeScript/Bun implementation.
 
-Installer outputs MUST use the correct path conventions.
+#### Scenario: Rust installers do not depend on TypeScript
 
-#### Scenario: OpenCode singular directories
+- **WHEN** a developer runs `spool init` in non-interactive mode
+- **THEN** installer outputs MUST be validated using Rust-owned templates and/or Rust golden tests
+- **AND** the validation process SHALL NOT execute TypeScript/Bun code
 
-- GIVEN OpenCode installation selected
-- WHEN `spool init` installs skills/commands/plugins
-- THEN it writes under `.opencode/skill/`, `.opencode/command/`, and `.opencode/plugin/`
+**Reason**: The TypeScript/Bun implementation is deprecated and is no longer the canonical source for installer outputs.
+**Migration**: Treat Rust `spool init` outputs as canonical and validate outputs via templates and/or golden tests instead of comparing to the TypeScript implementation.

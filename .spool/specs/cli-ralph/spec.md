@@ -1,101 +1,107 @@
-# cli-ralph Specification
+## ADDED Requirements
 
-## Purpose
+### Requirement: Context injection commands
 
-TBD - created by archiving change 002-01_add-ralph-loop. Update Purpose after archive.
+The system SHALL support adding and clearing per-change context used by the ralph loop.
 
-## Requirements
+#### Scenario: Add context appends to per-change context file
 
-### Requirement: Ralph loop command
+- **WHEN** executing `spool ralph --add-context "<text>" --change <change-id>`
+- **THEN** the system SHALL append `<text>` to the per-change context file under `.spool/.state/ralph/<change-id>/`
+- **AND** the system SHALL print a confirmation message
 
-The system SHALL provide a `spool ralph` command (alias: `spool loop`) that runs an iterative agent loop.
+#### Scenario: Clear context empties the per-change context file
 
-#### Scenario: Run against a change proposal
+- **WHEN** executing `spool ralph --clear-context --change <change-id>`
+- **THEN** the system SHALL clear the per-change context file under `.spool/.state/ralph/<change-id>/`
+- **AND** the system SHALL print a confirmation message
 
-- **WHEN** executing `spool ralph "<prompt>" --change 002-01_add-ralph-loop`
-- **THEN** the system loads `.spool/changes/002-01_add-ralph-loop/proposal.md` as primary context
-- **AND** the system runs the selected harness at least once
+### Requirement: Context is reloaded every iteration
 
-#### Scenario: Alias command
+The system SHALL reload the per-change context file at the start of every ralph iteration.
 
-- **WHEN** executing `spool loop "<prompt>" --change 002-01_add-ralph-loop`
-- **THEN** the system behaves identically to `spool ralph`
+#### Scenario: Mid-loop context updates appear on the next iteration
 
-### Requirement: Change/module targeting defaults
+- **GIVEN** a ralph loop is running for `--change <change-id>`
+- **WHEN** new content is appended to the per-change context file between iterations
+- **THEN** the next iteration prompt SHALL include the new context content
 
-The command SHALL support explicit targeting via `--change` and `--module`.
+### Requirement: Iteration prompt includes structured preamble and labeled context
 
-#### Scenario: Resolve module from change
+The system SHALL structure the per-iteration prompt with a preamble and a clearly labeled context section when context is present.
 
-- **WHEN** executing `spool ralph "<prompt>" --change 002-01_add-ralph-loop`
-- **THEN** the system infers module id `002` from the change identifier
+#### Scenario: Preamble is included in iteration prompt
 
-#### Scenario: Interactive selection when omitted
+- **WHEN** the system starts ralph iteration `N`
+- **THEN** the prompt SHALL include a preamble indicating the current iteration number
+- **AND** the prompt SHALL include explicit instructions and autonomy requirements for an iterative development loop
 
-- **GIVEN** stdin is a TTY and `--no-interactive` is not set
-- **WHEN** executing `spool ralph "<prompt>"` without `--change`
-- **THEN** the system prompts the user to select an active change
+#### Scenario: Context section is labeled when context exists
 
-#### Scenario: Non-interactive error when omitted
+- **GIVEN** the per-change context content is non-empty
+- **WHEN** building the prompt for an iteration
+- **THEN** the prompt SHALL include a section labeled `## Additional Context (added by user mid-loop)`
 
-- **GIVEN** stdin is not a TTY or `--no-interactive` is set
-- **WHEN** executing `spool ralph "<prompt>"` without `--change`
-- **THEN** the system prints a helpful error indicating `--change` is required
-- **AND** sets a failing exit code
+### Requirement: Robust completion promise detection
 
-### Requirement: Harness selection and model
+The system SHALL detect the completion promise in harness output even when the promise contains surrounding whitespace and newlines.
 
-The command SHALL support selecting an agent harness and model.
+#### Scenario: Completion promise detection ignores whitespace
 
-#### Scenario: Use OpenCode harness
+- **GIVEN** `--completion-promise COMPLETE`
+- **WHEN** harness output contains `<promise>\nCOMPLETE\n</promise>`
+- **THEN** the system SHALL treat the completion promise as detected
 
-- **WHEN** executing `spool ralph "<prompt>" --change 002-01_add-ralph-loop --harness opencode`
-- **THEN** the system invokes `opencode run` to execute the prompt
+### Requirement: Loop resilience on harness failure
 
-#### Scenario: Pass model to harness
+The system SHALL record harness failures as iteration results and continue iterating unless fail-fast is enabled.
 
-- **WHEN** executing `spool ralph "<prompt>" --change 002-01_add-ralph-loop --model anthropic/claude-sonnet`
-- **THEN** the system passes the model identifier to the selected harness
+#### Scenario: Non-zero harness exit does not stop the loop
 
-### Requirement: Loop control and completion promise
+- **GIVEN** a harness exits with a non-zero exit code on iteration `N`
+- **AND** fail-fast mode is not enabled
+- **WHEN** the iteration completes
+- **THEN** the system SHALL record the failure in iteration history
+- **AND** the system SHALL proceed to iteration `N+1` (subject to `--max-iterations`)
 
-The loop SHALL run until a completion promise is detected or `--max-iterations` is reached.
+#### Scenario: Fail-fast stops the loop on harness failure
 
-#### Scenario: Completion promise ends the loop
+- **GIVEN** fail-fast mode is enabled
+- **WHEN** a harness exits with a non-zero exit code
+- **THEN** the system SHALL stop the loop
+- **AND** the command SHALL exit with a failing exit code
 
-- **WHEN** the harness output contains `<promise>COMPLETE</promise>`
-- **THEN** the system stops iterating (subject to `--min-iterations`)
+### Requirement: Rich iteration history and reporting
 
-#### Scenario: Minimum iterations
+The system SHALL persist per-iteration history including completion detection and basic execution telemetry.
 
-- **GIVEN** `--min-iterations 3`
-- **WHEN** the completion promise is detected on iteration 1
-- **THEN** the system continues iterating until at least iteration 3 completes
+#### Scenario: Each iteration records exit code and git change summary
 
-### Requirement: Per-change state persistence
+- **WHEN** a ralph iteration completes
+- **THEN** iteration history SHALL include the harness exit code
+- **AND** iteration history SHALL include a summary of git changes (at minimum: count of changed files)
 
-The system SHALL persist loop state and context per change.
+#### Scenario: Status command reports recent iteration outcomes
 
-#### Scenario: State stored per change
+- **WHEN** executing `spool ralph --status --change <change-id>`
+- **THEN** the output SHALL include the current iteration count
+- **AND** the output SHALL include recent iteration outcomes (at minimum: duration, completion found, and exit code)
 
-- **WHEN** running `spool ralph` with `--change 002-01_add-ralph-loop`
-- **THEN** the system writes loop state under `.spool/.state/ralph/002-01_add-ralph-loop/`
+### Requirement: Prompt file input
 
-#### Scenario: Status command
+The system SHALL support loading the user prompt from a file.
 
-- **WHEN** executing `spool ralph --status --change 002-01_add-ralph-loop`
-- **THEN** the system prints the current iteration and recent history for that change
+#### Scenario: Prompt loaded from file
 
-### Requirement: Safety and permissions
+- **WHEN** executing `spool ralph --prompt-file <path> --change <change-id>`
+- **THEN** the system SHALL read `<path>` as the user prompt
 
-The command SHALL support a non-interactive approval mode.
+### Requirement: Streaming control
 
-#### Scenario: Allow-all flag enables auto-approval
+The system SHALL support disabling live streaming of harness output.
 
-- **WHEN** executing `spool ralph "<prompt>" --change 002-01_add-ralph-loop --allow-all`
-- **THEN** the system configures the harness to auto-approve tool permissions
+#### Scenario: No-stream disables live output streaming
 
-#### Scenario: Allow-all aliases
-
-- **WHEN** executing `spool ralph "<prompt>" --change 002-01_add-ralph-loop --yolo`
-- **THEN** the system behaves as if `--allow-all` was provided
+- **WHEN** executing `spool ralph "<prompt>" --no-stream --change <change-id>`
+- **THEN** the system SHALL not stream harness output live
+- **AND** the system SHALL still capture enough output to detect completion promises

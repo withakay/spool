@@ -1,65 +1,18 @@
-# rust-parity-harness Specification
+## ADDED Requirements
 
-## Purpose
+### Requirement: Parity harness covers init behavior
 
-Provide Rust-only tests/harness utilities that validate the CLI contract deterministically (stdout/stderr/exit codes and filesystem side effects).
+The Rust parity harness SHALL include parity tests for `init` that compare Rust behavior against the TypeScript CLI for both:
 
-## Requirements
+- Non-interactive runs using `--tools`.
+- Interactive runs using a PTY-driven harness.
 
-### Requirement: Harness can execute the CLI and capture outputs
+#### Scenario: Parity test for non-interactive init
 
-Tests MUST be able to execute the Rust CLI with arguments and capture stdout, stderr, and exit code.
+- **WHEN** the parity harness runs `spool init --tools all` and `spoolrs init --tools all` against the same fixture repo
+- **THEN** the harness reports success only if both produce equivalent installed artifacts (modulo known/declared normalizations)
 
-#### Scenario: Execute CLI
+#### Scenario: Parity test for interactive init
 
-- WHEN the harness runs a command with args
-- THEN it MUST execute the Rust CLI and capture stdout/stderr/exit code
-
-### Requirement: Parity comparisons are deterministic
-
-Tests MUST avoid nondeterminism by controlling environment and normalizing outputs.
-
-#### Scenario: Normalized outputs compare consistently
-
-- WHEN the harness compares outputs
-- THEN ANSI codes MUST be removed when color is disabled
-- AND unstable path segments (like temp dirs) MUST be normalized if present
-
-### Requirement: Baseline parity tests exist
-
-The workspace MUST include tests for `--help`, `--version`, and at least one non-mutating command.
-
-#### Scenario: Baseline parity tests pass
-
-- WHEN running `cargo test --workspace`
-- THEN tests for `spool --help` MUST pass
-- AND tests for `spool --version` MUST pass
-- AND tests for one non-mutating command MUST pass
-
-### Requirement: Harness compares outputs and exit codes
-
-The harness MUST be able to compare stdout, stderr, and exit code.
-
-#### Scenario: Compare help output
-
-- WHEN the harness runs `spool --help`
-- THEN it records stdout/stderr and exit codes
-- AND the test fails if any differ from expected
-
-### Requirement: Harness supports fixture repositories
-
-The harness MUST run commands inside isolated fixture repos and support deterministic snapshots.
-
-#### Scenario: Run list in a fixture repo
-
-- WHEN the harness runs `spool list --json` in a fixture directory
-- THEN it captures stable JSON output for comparison
-
-### Requirement: Harness can test interactive flows via PTY
-
-The harness MUST support PTY-driven tests for commands that require TTY interaction.
-
-#### Scenario: Interactive command is executed under PTY
-
-- WHEN a test marks a command as interactive
-- THEN it runs it under a PTY and can feed deterministic input
+- **WHEN** the parity harness drives an interactive `init` session in both CLIs via PTY
+- **THEN** the harness reports success only if the resulting configured artifacts are equivalent

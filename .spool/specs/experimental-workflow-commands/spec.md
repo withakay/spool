@@ -1,10 +1,4 @@
-# experimental-workflow-commands Specification
-
-## Purpose
-
-TBD - created by archiving change 000-01_remove-opsx-colon-commands. Update Purpose after archive.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Experimental Workflow Slash Commands
 
@@ -12,7 +6,7 @@ The system SHALL expose the experimental workflow via hyphenated `/spool-*` slas
 
 #### Scenario: Listing experimental workflow commands
 
-- **WHEN** `spool artifact-experimental-setup` completes successfully
+- **WHEN** `spool x-artifact-experimental-setup` completes successfully
 - **THEN** the output lists the experimental commands:
   - `/spool-explore`
   - `/spool-new-change`
@@ -28,5 +22,5 @@ The system SHALL generate Claude command wrapper files as flat files under `.cla
 
 #### Scenario: Generating experimental workflow commands for Claude Code
 
-- **WHEN** `spool artifact-experimental-setup` runs
+- **WHEN** `spool x-artifact-experimental-setup` runs
 - **THEN** it creates `.claude/commands/spool-explore.md`, `.claude/commands/spool-new-change.md`, `.claude/commands/spool-continue-change.md`, `.claude/commands/spool-apply-change.md`, `.claude/commands/spool-ff-change.md`, `.claude/commands/spool-sync-specs.md`, and `.claude/commands/spool-archive-change.md`
