@@ -37,7 +37,7 @@ ______________________________________________________________________
   - `spool-skills/tests/opencode/run-tests.sh` (if applicable)
 - **Done When**: Plugin can be copy-installed and always points to a stable skills location
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Add template assets for OpenCode plugin + spool-skills skill bundle
 
@@ -51,7 +51,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: `spool init --tools opencode` installs both plugin and skills without repo-relative assumptions
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -61,7 +61,7 @@ ______________________________________________________________________
 
 - **Type**: checkpoint (requires human approval)
 - **Files**: `.spool/changes/013-01_opencode-adapter/proposal.md`, `spool-skills/adapters/opencode/spool-skills.js`
-- **Dependencies**: Task 1.2
+- **Dependencies**: None
 - **Action**: Review the OpenCode bootstrap approach and destination paths
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31
