@@ -32,7 +32,7 @@ ______________________________________________________________________
 - **Verify**: \<!-- command to verify, e.g., cargo test --workspace -->
 - **Done When**: <!-- acceptance criteria, e.g., tests pass -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ### Task 1.2: <!-- Task Name -->
 
@@ -43,7 +43,7 @@ ______________________________________________________________________
 - **Verify**: <!-- verification command -->
 - **Done When**: <!-- acceptance criteria -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -60,7 +60,7 @@ ______________________________________________________________________
 - **Verify**: <!-- verification command -->
 - **Done When**: <!-- acceptance criteria -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
@@ -77,7 +77,7 @@ ______________________________________________________________________
   <!-- Describe what should be reviewed or approved -->
 - **Done When**: <!-- when human confirms -->
 - **Updated At**: <!-- YYYY-MM-DD -->
-- **Status**: \[ \] pending
+- **Status**: [ ] pending
 
 ______________________________________________________________________
 
