@@ -1297,6 +1297,14 @@ fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let ctx = rt.ctx();
     let spool_path = rt.spool_path();
 
+    let user_guidance = match core_workflow::load_user_guidance(spool_path) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("Warning: failed to read .spool/user-guidance.md: {e}");
+            None
+        }
+    };
+
     let Some(artifact) = artifact else {
         let schema_name = schema
             .clone()
@@ -1345,6 +1353,7 @@ fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
         }
 
         print_apply_instructions_text(&apply);
+        print_user_guidance_markdown(user_guidance.as_deref());
         return Ok(());
     }
 
@@ -1389,12 +1398,15 @@ fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
         return Ok(());
     }
 
-    print_artifact_instructions_text(&resolved);
+    print_artifact_instructions_text(&resolved, user_guidance.as_deref());
 
     Ok(())
 }
 
-fn print_artifact_instructions_text(instructions: &core_workflow::InstructionsResponse) {
+fn print_artifact_instructions_text(
+    instructions: &core_workflow::InstructionsResponse,
+    user_guidance: Option<&str>,
+) {
     let missing: Vec<String> = instructions
         .dependencies
         .iter()
@@ -1446,6 +1458,16 @@ fn print_artifact_instructions_text(instructions: &core_workflow::InstructionsRe
         println!();
     }
 
+    if let Some(user_guidance) = user_guidance {
+        let t = user_guidance.trim();
+        if !t.is_empty() {
+            println!("<user_guidance>");
+            println!("{t}");
+            println!("</user_guidance>");
+            println!();
+        }
+    }
+
     println!("<output>");
     let out_path = std::path::Path::new(&instructions.change_dir).join(&instructions.output_path);
     println!("Write to: {}", out_path.to_string_lossy());
@@ -1483,6 +1505,21 @@ fn print_artifact_instructions_text(instructions: &core_workflow::InstructionsRe
     }
 
     println!("</artifact>");
+}
+
+fn print_user_guidance_markdown(user_guidance: Option<&str>) {
+    let Some(user_guidance) = user_guidance else {
+        return;
+    };
+    let t = user_guidance.trim();
+    if t.is_empty() {
+        return;
+    }
+
+    println!("### User Guidance");
+    println!();
+    println!("{t}");
+    println!();
 }
 
 fn print_apply_instructions_text(instructions: &core_workflow::ApplyInstructionsResponse) {
@@ -1596,6 +1633,14 @@ fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let ctx = rt.ctx();
     let spool_path = rt.spool_path();
 
+    let user_guidance = match core_workflow::load_user_guidance(spool_path) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("Warning: failed to read .spool/user-guidance.md: {e}");
+            None
+        }
+    };
+
     // Match TS/ora: spinner output is written to stderr.
     eprintln!("- Generating instructions...");
 
@@ -1629,6 +1674,7 @@ fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
         }
 
         print_apply_instructions_text(&apply);
+        print_user_guidance_markdown(user_guidance.as_deref());
         return Ok(());
     }
 
@@ -1648,7 +1694,7 @@ fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
         println!("{rendered}");
         return Ok(());
     }
-    print_artifact_instructions_text(&resolved);
+    print_artifact_instructions_text(&resolved, user_guidance.as_deref());
 
     Ok(())
 }
