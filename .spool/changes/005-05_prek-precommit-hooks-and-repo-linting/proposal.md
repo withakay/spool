@@ -13,10 +13,12 @@ Adding a standard pre-commit workflow (via prek) creates fast, repeatable qualit
 ## Capabilities
 
 ### New Capabilities
+
 - `repo-precommit-quality-gates`: Standardized pre-commit style checks and formatting using `prek` + `.pre-commit-config.yaml`.
 - `rust-clippy-policy`: A curated, documented clippy lint policy (including configuration) that can be run consistently in hooks and CI.
 
 ### Modified Capabilities
+
 - (none)
 
 ## Impact
