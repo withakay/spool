@@ -43,4 +43,3 @@ The requested command is provided either:
 4. **Error handling**:
    - If the invoked skill fails: prefix with `[spool-* skill error]` and preserve the original error
    - If the CLI fails: prefix with `[spool CLI error]` and preserve the original error
-

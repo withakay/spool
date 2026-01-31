@@ -4,169 +4,51 @@
 
 Complete guide for using spool-skills with [OpenCode.ai](https://opencode.ai).
 
-## Quick Install
+## Installation
 
-Tell OpenCode:
-
-```
-Clone https://github.com/withakay/spool-skills to ~/.config/opencode/spool-skills, then create directory ~/.config/opencode/plugins, then symlink ~/.config/opencode/spool-skills/.opencode/plugins/spool-skills.js to ~/.config/opencode/plugins/spool-skills.js, then symlink ~/.config/opencode/spool-skills/skills to ~/.config/opencode/skills/spool-skills, then restart opencode.
-```
-
-## Manual Installation
-
-### Prerequisites
-
-- [OpenCode.ai](https://opencode.ai) installed
-- Git installed
-
-### macOS / Linux
+spool-skills are installed automatically when you initialize Spool in your project:
 
 ```bash
-# 1. Install spool-skills (or update existing)
-if [ -d ~/.config/opencode/spool-skills ]; then
-  cd ~/.config/opencode/spool-skills && git pull
-else
-  git clone https://github.com/withakay/spool-skills.git ~/.config/opencode/spool-skills
-fi
+# Initialize Spool with OpenCode support
+spool init --tools opencode
 
-# 2. Create directories
-mkdir -p ~/.config/opencode/plugins ~/.config/opencode/skills
-
-# 3. Remove old symlinks/directories if they exist
-rm -f ~/.config/opencode/plugins/spool-skills.js
-rm -rf ~/.config/opencode/skills/spool-skills
-
-# 4. Create symlinks
-ln -s ~/.config/opencode/spool-skills/.opencode/plugins/spool-skills.js ~/.config/opencode/plugins/spool-skills.js
-ln -s ~/.config/opencode/spool-skills/skills ~/.config/opencode/skills/spool-skills
-
-# 5. Restart OpenCode
+# Or with multiple tools
+spool init --tools opencode,claude,codex
 ```
 
-#### Verify Installation
+This copies all spool-skills directly to `.opencode/skills/` in your project with the `spool-` prefix (e.g., `spool-brainstorming`, `spool-systematic-debugging`).
+
+### Verify Installation
 
 ```bash
-ls -l ~/.config/opencode/plugins/spool-skills.js
-ls -l ~/.config/opencode/skills/spool-skills
+ls .opencode/skills/ | grep spool-
 ```
 
-Both should show symlinks pointing to the spool-skills directory.
+You should see skills like:
+- `spool-brainstorming/`
+- `spool-dispatching-parallel-agents/`
+- `spool-systematic-debugging/`
+- etc.
 
-### Windows
+## Upgrading
 
-**Prerequisites:**
-- Git installed
-- Either **Developer Mode** enabled OR **Administrator privileges**
-  - Windows 10: Settings → Update & Security → For developers
-  - Windows 11: Settings → System → For developers
-
-Pick your shell below: [Command Prompt](#command-prompt) | [PowerShell](#powershell) | [Git Bash](#git-bash)
-
-#### Command Prompt
-
-Run as Administrator, or with Developer Mode enabled:
-
-```cmd
-:: 1. Install spool-skills
-git clone https://github.com/withakay/spool-skills.git "%USERPROFILE%\.config\opencode\spool-skills"
-
-:: 2. Create directories
-mkdir "%USERPROFILE%\.config\opencode\plugins" 2>nul
-mkdir "%USERPROFILE%\.config\opencode\skills" 2>nul
-
-:: 3. Remove existing links (safe for reinstalls)
-del "%USERPROFILE%\.config\opencode\plugins\spool-skills.js" 2>nul
-rmdir "%USERPROFILE%\.config\opencode\skills\superpowers" 2>nul
-
-:: 4. Create plugin symlink (requires Developer Mode or Admin)
-mklink "%USERPROFILE%\.config\opencode\plugins\spool-skills.js" "%USERPROFILE%\.config\opencode\superpowers\.opencode\plugins\spool-skills.js"
-
-:: 5. Create skills junction (works without special privileges)
-mklink /J "%USERPROFILE%\.config\opencode\skills\superpowers" "%USERPROFILE%\.config\opencode\superpowers\skills"
-
-:: 6. Restart OpenCode
-```
-
-#### PowerShell
-
-Run as Administrator, or with Developer Mode enabled:
-
-```powershell
-# 1. Install Superpowers
-git clone https://github.com/withakay/spool-skills.git "$env:USERPROFILE\.config\opencode\spool-skills"
-
-# 2. Create directories
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.config\opencode\plugins"
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.config\opencode\skills"
-
-# 3. Remove existing links (safe for reinstalls)
-Remove-Item "$env:USERPROFILE\.config\opencode\plugins\spool-skills.js" -Force -ErrorAction SilentlyContinue
-Remove-Item "$env:USERPROFILE\.config\opencode\skills\superpowers" -Force -ErrorAction SilentlyContinue
-
-# 4. Create plugin symlink (requires Developer Mode or Admin)
-New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.config\opencode\plugins\spool-skills.js" -Target "$env:USERPROFILE\.config\opencode\spool-skills\.opencode\plugins\spool-skills.js"
-
-# 5. Create skills junction (works without special privileges)
-New-Item -ItemType Junction -Path "$env:USERPROFILE\.config\opencode\skills\superpowers" -Target "$env:USERPROFILE\.config\opencode\spool-skills\skills"
-
-# 6. Restart OpenCode
-```
-
-#### Git Bash
-
-Note: Git Bash's native `ln` command copies files instead of creating symlinks. Use `cmd //c mklink` instead (the `//c` is Git Bash syntax for `/c`).
+To update spool-skills to the latest version:
 
 ```bash
-# 1. Install spool-skills
-git clone https://github.com/withakay/spool-skills.git ~/.config/opencode/spool-skills
-
-# 2. Create directories
-mkdir -p ~/.config/opencode/plugins ~/.config/opencode/skills
-
-# 3. Remove existing links (safe for reinstalls)
-rm -f ~/.config/opencode/plugins/spool-skills.js 2>/dev/null
-rm -rf ~/.config/opencode/skills/spool-skills 2>/dev/null
-
-# 4. Create plugin symlink (requires Developer Mode or Admin)
-cmd //c "mklink \"$(cygpath -w ~/.config/opencode/plugins/spool-skills.js)\" \"$(cygpath -w ~/.config/opencode/spool-skills/.opencode/plugins/spool-skills.js)\""
-
-# 5. Create skills junction (works without special privileges)
-cmd //c "mklink /J \"$(cygpath -w ~/.config/opencode/skills/spool-skills)\" \"$(cygpath -w ~/.config/opencode/spool-skills/skills)\""
-
-# 6. Restart OpenCode
+spool update --tools opencode
 ```
 
-#### WSL Users
+### Upgrading from Old Installation
 
-If running OpenCode inside WSL, use the [macOS / Linux](#macos--linux) instructions instead.
+If you previously had a nested structure (`.opencode/skills/spool-skills/`), remove it first:
 
-#### Verify Installation
+```bash
+# Remove old nested structure
+rm -rf .opencode/skills/spool-skills
 
-**Command Prompt:**
-```cmd
-dir /AL "%USERPROFILE%\.config\opencode\plugins"
-dir /AL "%USERPROFILE%\.config\opencode\skills"
+# Update with correct flat structure
+spool update --tools opencode --force
 ```
-
-**PowerShell:**
-```powershell
-Get-ChildItem "$env:USERPROFILE\.config\opencode\plugins" | Where-Object { $_.LinkType }
-Get-ChildItem "$env:USERPROFILE\.config\opencode\skills" | Where-Object { $_.LinkType }
-```
-
-Look for `<SYMLINK>` or `<JUNCTION>` in the output.
-
-#### Troubleshooting Windows
-
-**"You do not have sufficient privilege" error:**
-- Enable Developer Mode in Windows Settings, OR
-- Right-click your terminal → "Run as Administrator"
-
-**"Cannot create a file when that file already exists":**
-- Run the removal commands (step 3) first, then retry
-
-**Symlinks not working after git clone:**
-- Run `git config --global core.symlinks true` and re-clone
 
 ## Usage
 
@@ -183,12 +65,14 @@ use skill tool to list skills
 Use OpenCode's native `skill` tool to load a specific skill:
 
 ```
-use skill tool to load spool-skills/brainstorming
+use skill tool to load spool-brainstorming
 ```
+
+Note: Skills use the `spool-` prefix (e.g., `spool-brainstorming`, not `brainstorming`).
 
 ### Personal Skills
 
-Create your own skills in `~/.config/opencode/skills/`:
+Create your own skills in your OpenCode user config:
 
 ```bash
 mkdir -p ~/.config/opencode/skills/my-skill
@@ -209,10 +93,9 @@ description: Use when [condition] - [what it does]
 
 ### Project Skills
 
-Create project-specific skills in your OpenCode project:
+Create project-specific skills in your project:
 
 ```bash
-# In your OpenCode project
 mkdir -p .opencode/skills/my-project-skill
 ```
 
@@ -233,19 +116,20 @@ description: Use when [condition] - [what it does]
 
 OpenCode discovers skills from these locations:
 
-1. **Project skills** (`.opencode/skills/`) - Highest priority
-2. **Personal skills** (`~/.config/opencode/skills/`)
-3. **spool-skills** (`~/.config/opencode/skills/spool-skills/`) - via symlink
+1. **Project skills** (`.opencode/skills/`) - Highest priority, includes spool-skills
+2. **Personal skills** (`~/.config/opencode/skills/`) - User-level custom skills
+
+Skills are organized flat under the skills directory (no subfolders of skill collections).
 
 ## Features
 
 ### Automatic Context Injection
 
-The plugin automatically injects spool-skills context via the `experimental.chat.system.transform` hook. This adds the "using-superpowers" skill content to the system prompt on every request.
+The plugin automatically injects spool-skills context via the `experimental.chat.system.transform` hook. This adds the "using-spool-skills" skill content to the system prompt on every request.
 
 ### Native Skills Integration
 
-spool-skills uses OpenCode's native `skill` tool for skill discovery and loading. Skills are symlinked into `~/.config/opencode/skills/spool-skills/` so they appear alongside your personal and project skills.
+spool-skills uses OpenCode's native `skill` tool for skill discovery and loading. Skills are copied to `.opencode/skills/spool-<name>/` so they appear alongside your project skills.
 
 ### Tool Mapping
 
@@ -256,57 +140,35 @@ Skills written for Claude Code are automatically adapted for OpenCode. The boots
 - `Skill` tool → OpenCode's native `skill` tool
 - File operations → Native OpenCode tools
 
-## Architecture
+## Plugin
 
-### Plugin Structure
+The spool-skills OpenCode plugin (`spool-skills.js`) is installed to `.opencode/plugins/` and provides:
 
-**Location:** `~/.config/opencode/spool-skills/.opencode/plugins/spool-skills.js`
-
-**Components:**
-- `experimental.chat.system.transform` hook for bootstrap injection
-- Reads and injects the "using-superpowers" skill content
-
-### Skills
-
-**Location:** `~/.config/opencode/skills/spool-skills/` (symlink to `~/.config/opencode/spool-skills/skills/`)
-
-Skills are discovered by OpenCode's native skill system. Each skill has a `SKILL.md` file with YAML frontmatter.
-
-## Updating
-
-```bash
-cd ~/.config/opencode/spool-skills
-git pull
-```
-
-Restart OpenCode to load the updates.
+1. **Bootstrap injection**: Adds skill usage guidance to the system prompt
+2. **Skill mapping**: Translates Claude Code tool names to OpenCode equivalents
 
 ## Troubleshooting
 
-### Plugin not loading
-
-1. Check plugin exists: `ls ~/.config/opencode/spool-skills/.opencode/plugins/spool-skills.js`
-2. Check symlink/junction: `ls -l ~/.config/opencode/plugins/` (macOS/Linux) or `dir /AL %USERPROFILE%\.config\opencode\plugins` (Windows)
-3. Check OpenCode logs: `opencode run "test" --print-logs --log-level DEBUG`
-4. Look for plugin loading message in logs
-
 ### Skills not found
 
-1. Verify skills symlink: `ls -l ~/.config/opencode/skills/spool-skills` (should point to spool-skills/skills/)
+1. Verify skills exist: `ls .opencode/skills/ | grep spool-`
 2. Use OpenCode's `skill` tool to list available skills
 3. Check skill structure: each skill needs a `SKILL.md` file with valid frontmatter
 
-### Windows: Module not found error
+### Old nested structure still present
 
-If you see `Cannot find module` errors on Windows:
-- **Cause:** Git Bash `ln -sf` copies files instead of creating symlinks
-- **Fix:** Use `mklink /J` directory junctions instead (see Windows installation steps)
+If you see `.opencode/skills/spool-skills/` (nested folder), this is the old structure. Remove it:
 
-### Bootstrap not appearing
+```bash
+rm -rf .opencode/skills/spool-skills
+spool update --tools opencode --force
+```
 
-1. Verify using-superpowers skill exists: `ls ~/.config/opencode/spool-skills/skills/using-superpowers/SKILL.md`
-2. Check OpenCode version supports `experimental.chat.system.transform` hook
-3. Restart OpenCode after plugin changes
+### Plugin not loading
+
+1. Check plugin exists: `ls .opencode/plugins/spool-skills.js`
+2. Check OpenCode logs: `opencode run "test" --print-logs --log-level DEBUG`
+3. Look for plugin loading message in logs
 
 ## Getting Help
 
@@ -320,14 +182,11 @@ If you see `Cannot find module` errors on Windows:
 Verify your installation:
 
 ```bash
-# Check plugin loads
-opencode run --print-logs "hello" 2>&1 | grep -i superpowers
-
 # Check skills are discoverable
-opencode run "use skill tool to list all skills" 2>&1 | grep -i superpowers
+opencode run "use skill tool to list all skills" 2>&1 | grep spool-
 
-# Check bootstrap injection
-opencode run "what superpowers do you have?"
+# Check a specific skill loads
+opencode run "use skill tool to load spool-brainstorming"
 ```
 
-The agent should mention having spool-skills and be able to list skills from `spool-skills/`.
+The agent should be able to list and load skills with the `spool-` prefix.

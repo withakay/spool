@@ -46,7 +46,7 @@ When invoking this skill, check for these parameters in context:
 
    Then inspect the change:
     - `spool status --change "<change-id>"`
-   - If available, prefer `--json` and parse it
+    - If available, prefer `--json` and parse it
 
 3. Confirm the change is in a good commit state:
    - Ensure artifacts/tasks are complete enough that a commit makes sense
@@ -107,4 +107,3 @@ After committing, show:
 ## Important: auto_mode reset
 
 After this invocation finishes, auto commit behavior must be considered reset. Future operations require explicit `--auto` again.
-
