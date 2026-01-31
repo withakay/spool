@@ -19,14 +19,12 @@ export const SpoolPlugin = async ({ client, directory }) => {
   // Get bootstrap content from Spool CLI
   const getBootstrapContent = () => {
     try {
-      // TODO: Replace stub with actual CLI when 013-04 is implemented:
-      // const bootstrap = execSync(
-      //   'spool agent instruction bootstrap --tool opencode',
-      //   { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
-      // );
+      const bootstrap = execSync('spool agent instruction bootstrap --tool opencode', {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore']
+      }).trim();
 
-      // Stub content until 013-04 is implemented
-      const bootstrap = `You have access to Spool workflows.
+      const fallback = `You have access to Spool workflows.
 
 To load a Spool workflow, use OpenCode's native \`skill\` tool:
 \`\`\`
@@ -53,9 +51,10 @@ Load a specific workflow:
 use skill tool to load spool-skills/using-spool-skills
 \`\`\``;
 
+      const content = bootstrap.length > 0 ? bootstrap : fallback;
       return `<EXTREMELY_IMPORTANT>
-${bootstrap}
-</EXTREMELY_IMPORTANT>`;
+ ${content}
+ </EXTREMELY_IMPORTANT>`;
     } catch (error) {
       // Graceful degradation if CLI is not available
       return `<EXTREMELY_IMPORTANT>
