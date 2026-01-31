@@ -2,9 +2,18 @@
 
 Instructions for AI coding assistants using Spool for spec-driven development.
 
+## Managed Files
+
+Some project files are installed/updated by Spool (`spool init`, `spool update`) and may be overwritten (especially with `--force`).
+
+- Default guidance lives in: `.spool/AGENTS.md`
+- Project-specific guidance belongs in: `.spool/user-guidance.md`, `AGENTS.md`, and/or `CLAUDE.md`
+- Tool prompt wiring lives in: `.opencode/`, `.github/`, `.codex/` (and `.claude/` if present)
+
 ## TL;DR Quick Checklist
 
 - Search existing work: `spool list --specs`, `spool list`, `spool list --modules`
+- Choose a module by semantic fit; create a new module if none fit (avoid dumping unrelated work into an arbitrary existing module)
 - Decide scope: new capability vs modify existing capability
 - For large features (epics): Create a module to group related changes
 - Pick a unique `change-id`: For modular changes use `NNN-CC_name` format (e.g., `001-01_init-repo`)
@@ -264,6 +273,11 @@ Minimal `design.md` skeleton:
 ## Working with Modules
 
 Modules group related changes into epics. Use modules for large features that span multiple changes.
+
+Module selection guidance:
+- Prefer the closest semantic fit in an existing module.
+- If nothing fits, create a new module for the theme of the work.
+- Only use module `000` for truly ungrouped, one-off changes.
 
 ### When to Create a Module
 - Feature requires 3+ related changes
