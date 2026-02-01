@@ -29,3 +29,4 @@ Adopt and adapt the vendored `spool-skills/` (fork of Superpowers skills) into S
 - [x] 013-15_update-subagent-driven-development
 - [x] 013-16_fix-using-spool-skills-naming
 - [x] 013-17_update-finishing-branch-skill
+- [ ] 013-18_cleanup-spool-skills-repo
