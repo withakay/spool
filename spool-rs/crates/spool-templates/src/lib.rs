@@ -5,6 +5,9 @@ use include_dir::{Dir, include_dir};
 static DEFAULT_PROJECT_DIR: Dir<'static> =
     include_dir!("$CARGO_MANIFEST_DIR/assets/default/project");
 static DEFAULT_HOME_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/default/home");
+static SKILLS_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/skills");
+static ADAPTERS_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/adapters");
+static COMMANDS_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/commands");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EmbeddedFile {
@@ -18,6 +21,33 @@ pub fn default_project_files() -> Vec<EmbeddedFile> {
 
 pub fn default_home_files() -> Vec<EmbeddedFile> {
     dir_files(&DEFAULT_HOME_DIR)
+}
+
+pub fn skills_files() -> Vec<EmbeddedFile> {
+    dir_files(&SKILLS_DIR)
+}
+
+pub fn adapters_files() -> Vec<EmbeddedFile> {
+    dir_files(&ADAPTERS_DIR)
+}
+
+/// Get a specific skill file by path (e.g., "brainstorming/SKILL.md")
+pub fn get_skill_file(path: &str) -> Option<&'static [u8]> {
+    SKILLS_DIR.get_file(path).map(|f| f.contents())
+}
+
+/// Get a specific adapter file by path (e.g., "claude/session-start.sh")
+pub fn get_adapter_file(path: &str) -> Option<&'static [u8]> {
+    ADAPTERS_DIR.get_file(path).map(|f| f.contents())
+}
+
+pub fn commands_files() -> Vec<EmbeddedFile> {
+    dir_files(&COMMANDS_DIR)
+}
+
+/// Get a specific command file by path (e.g., "spool-apply.md")
+pub fn get_command_file(path: &str) -> Option<&'static [u8]> {
+    COMMANDS_DIR.get_file(path).map(|f| f.contents())
 }
 
 fn dir_files(dir: &'static Dir<'static>) -> Vec<EmbeddedFile> {
