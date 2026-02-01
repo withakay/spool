@@ -24,7 +24,7 @@ Adopt and adapt the vendored `spool-skills/` (fork of Superpowers skills) into S
 - [ ] 013-10_add-spool-integration-to-branch-finishing
 - [ ] 013-11_enhance-review-skills-with-spool-cli
 - [x] 013-12_integrate-plan-skills-with-spool-workflow
-- [x] 013-13_merge-writing-plans-into-spool-proposal
+- [x] 013-13_merge-writing-plans-into-spool-write-change-proposal
 - [x] 013-14_rename-spool-workflow-skills
 - [x] 013-15_update-subagent-driven-development
 - [x] 013-16_fix-using-spool-skills-naming

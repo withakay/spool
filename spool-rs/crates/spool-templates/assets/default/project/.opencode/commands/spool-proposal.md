@@ -9,7 +9,7 @@ $ARGUMENTS
 
 <!-- SPOOL:START -->
 
-Use the Spool agent skill `spool-proposal` as the source of truth for this workflow.
+Use the Spool agent skill `spool-write-change-proposal` (alias: `spool-proposal`) as the source of truth for this workflow.
 
 **Input**
 
@@ -22,11 +22,11 @@ Use the Spool agent skill `spool-proposal` as the source of truth for this workf
 - Avoid dumping unrelated work into an arbitrary existing module just because it exists.
 
 **Instructions**
-Tell the model to use the `spool-proposal` skill to complete this workflow, using any supplied arguments or context from the prompt.
+Tell the model to use the `spool-write-change-proposal` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**
 
-- If the `spool-proposal` skill is missing or unavailable, ask the user to run `spool init` (or `spool update` if the project is already initialized), then stop.
+- If the `spool-write-change-proposal` skill is missing or unavailable, ask the user to run `spool init` (or `spool update` if the project is already initialized), then stop.
 - Do not duplicate the full workflow here; defer to the skill guidance.
 
 <!-- SPOOL:END -->

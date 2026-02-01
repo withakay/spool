@@ -81,7 +81,7 @@ The change is now part of the main codebase specifications!
 - [ ] Tests are not passing
 
 **Recommended Actions:**
-1. Complete remaining tasks with `spool-apply`
+1. Complete remaining tasks with `spool-apply-change-proposal`
 2. Fix validation issues
 3. Run tests and ensure they pass
 4. Try archiving again
