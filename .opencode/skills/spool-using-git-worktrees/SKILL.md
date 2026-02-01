@@ -21,13 +21,18 @@ Follow this priority order:
 
 ```bash
 # Check in priority order
-ls -d .worktrees 2>/dev/null     # Preferred (hidden)
-ls -d worktrees 2>/dev/null      # Alternative
+ls -d ../spool-worktrees 2>/dev/null   # Preferred (one level up)
+ls -d .worktrees 2>/dev/null           # Preferred (hidden)
+ls -d worktrees 2>/dev/null            # Alternative
 ```
 
-**If found:** Use that directory. If both exist, `.worktrees` wins.
+### 2.1 Check AGENTS.md or CLAUDE.md
 
-### 2. Check CLAUDE.md
+```bash
+grep -i "worktree.*director" AGENTS.md 2>/dev/null
+```
+
+### 2.2 Check AGENTS.md or CLAUDE.md
 
 ```bash
 grep -i "worktree.*director" CLAUDE.md 2>/dev/null
@@ -37,13 +42,14 @@ grep -i "worktree.*director" CLAUDE.md 2>/dev/null
 
 ### 3. Ask User
 
-If no directory exists and no CLAUDE.md preference:
+If no directory exists and no AGENTS>md/CLAUDE.md preference:
 
 ```
 No worktree directory found. Where should I create worktrees?
 
+0. ../spool-worktrees/ (preferred, one level up)
 1. .worktrees/ (project-local, hidden)
-2. ~/.config/superpowers/worktrees/<project-name>/ (global location)
+2. ~/.config/spool/worktrees/<project-name>/ (global location)
 
 Which would you prefer?
 ```
@@ -61,14 +67,14 @@ git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/d
 
 **If NOT ignored:**
 
-Per Jesse's rule "Fix broken things immediately":
+Per Spool's rule "Fix broken things immediately":
 1. Add appropriate line to .gitignore
 2. Commit the change
 3. Proceed with worktree creation
 
 **Why critical:** Prevents accidentally committing worktree contents to repository.
 
-### For Global Directory (~/.config/superpowers/worktrees)
+### For Global Directory (~/.config/spool/worktrees)
 
 No .gitignore verification needed - outside project entirely.
 
@@ -88,8 +94,8 @@ case $LOCATION in
   .worktrees|worktrees)
     path="$LOCATION/$BRANCH_NAME"
     ;;
-  ~/.config/superpowers/worktrees/*)
-    path="~/.config/superpowers/worktrees/$project/$BRANCH_NAME"
+  ~/.config/spool/worktrees/*)
+    path="~/.config/spool/worktrees/$project/$BRANCH_NAME"
     ;;
 esac
 
