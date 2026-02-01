@@ -44,6 +44,20 @@ make rust-install
 spool --version
 ```
 
+Or install a prebuilt binary (macOS/Linux):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/withakay/spool/main/scripts/install.sh | sh
+spool --version
+```
+
+Or install via npm (optional):
+
+```bash
+npm install -g @withakay/spool
+spool --version
+```
+
 ### Initialize In A Repo
 
 ```bash

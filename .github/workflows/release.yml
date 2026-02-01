@@ -1,0 +1,308 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate_version:
+    name: Validate tag matches crate version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+
+          VERSION="${TAG#v}"
+
+          CARGO_VERSION=$(python3 - <<'PY'
+          import json
+          import subprocess
+
+          out = subprocess.check_output([
+            'cargo','metadata',
+            '--manifest-path','spool-rs/Cargo.toml',
+            '--format-version','1',
+            '--no-deps',
+          ])
+          meta = json.loads(out)
+
+          for pkg in meta['packages']:
+            if pkg.get('name') == 'spool-cli':
+              print(pkg['version'])
+              raise SystemExit(0)
+
+          raise SystemExit('spool-cli package not found')
+          PY
+          )
+
+          if [ "$CARGO_VERSION" != "$VERSION" ]; then
+            echo "Tag version ($VERSION) does not match spool-cli crate version ($CARGO_VERSION)"
+            exit 1
+          fi
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: [validate_version]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            target: x86_64-apple-darwin
+            archive: tar.gz
+            bin: spool
+          - os: macos-14
+            target: aarch64-apple-darwin
+            archive: tar.gz
+            bin: spool
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+            bin: spool
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            archive: tar.gz
+            bin: spool
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+            bin: spool.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (Linux aarch64)
+        if: runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross --locked
+
+      - name: Build (cargo)
+        if: !(runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu')
+        run: |
+          set -eu
+          cargo build --manifest-path spool-rs/Cargo.toml -p spool-cli --bin spool --release --target "${{ matrix.target }}"
+
+      - name: Build (cross)
+        if: runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          set -eu
+          cross build --manifest-path spool-rs/Cargo.toml -p spool-cli --bin spool --release --target "${{ matrix.target }}"
+
+      - name: Package (tar.gz)
+        if: matrix.archive == 'tar.gz'
+        env:
+          TAG: ${{ github.ref_name }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -eu
+          VERSION="$TAG"
+
+          ARCHIVE="spool-${VERSION}-${TARGET}.tar.gz"
+          CHECKSUM="spool-${VERSION}-${TARGET}.sha256"
+          tar -C "spool-rs/target/${TARGET}/release" -czf "$ARCHIVE" "${{ matrix.bin }}"
+
+          if command -v shasum >/dev/null 2>&1; then
+            HASH=$(shasum -a 256 "$ARCHIVE" | awk '{print $1}')
+          else
+            HASH=$(sha256sum "$ARCHIVE" | awk '{print $1}')
+          fi
+
+          printf '%s  %s\n' "$HASH" "$ARCHIVE" > "$CHECKSUM"
+
+      - name: Package (zip)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          $VERSION = $env:TAG
+          $TARGET = $env:TARGET
+          $ARCHIVE = "spool-$VERSION-$TARGET.zip"
+          $CHECKSUM = "spool-$VERSION-$TARGET.sha256"
+
+          # Ensure the zip contains the binary at the archive root (no nested directories).
+          Push-Location "spool-rs/target/$TARGET/release"
+          Compress-Archive -Path "${{ matrix.bin }}" -DestinationPath (Join-Path $PWD.Path "../../../.." | Join-Path -ChildPath $ARCHIVE)
+          Pop-Location
+
+          $HASH = (Get-FileHash $ARCHIVE -Algorithm SHA256).Hash.ToLower()
+          "$HASH  $ARCHIVE" | Out-File -Encoding ascii -NoNewline -FilePath $CHECKSUM
+          Add-Content -Encoding ascii -Path $CHECKSUM -Value ""
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: spool-${{ github.ref_name }}-${{ matrix.target }}
+          path: |
+            spool-${{ github.ref_name }}-${{ matrix.target }}.${{ matrix.archive }}
+            spool-${{ github.ref_name }}-${{ matrix.target }}.sha256
+
+  release:
+    name: Create GitHub release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten artifacts
+        run: |
+          set -eu
+          mkdir -p out
+          find dist -maxdepth 2 -type f -print -exec cp {} out/ \;
+
+      - name: Build aggregated checksums
+        run: |
+          set -eu
+          cd out
+          cat *.sha256 > sha256sums.txt
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          gh release create "$TAG" \
+            --draft \
+            --title "$TAG" \
+            --generate-notes \
+            out/*
+
+  publish_npm:
+    name: Publish npm packages
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.NPM_TOKEN != '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Prepare npm packages
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+
+          VERSION="${TAG#v}"
+          WORKDIR="$(mktemp -d)"
+          cp -R npm "$WORKDIR/npm"
+
+          # Extract binaries into the platform packages.
+          mkdir -p "$WORKDIR/npm/spool-darwin-x64/bin"
+          mkdir -p "$WORKDIR/npm/spool-darwin-arm64/bin"
+          mkdir -p "$WORKDIR/npm/spool-linux-x64/bin"
+          mkdir -p "$WORKDIR/npm/spool-linux-arm64/bin"
+          mkdir -p "$WORKDIR/npm/spool-win32-x64/bin"
+
+          tar -C "$WORKDIR/npm/spool-darwin-x64/bin" -xzf "dist/spool-${TAG}-x86_64-apple-darwin/spool-${TAG}-x86_64-apple-darwin.tar.gz" spool
+          tar -C "$WORKDIR/npm/spool-darwin-arm64/bin" -xzf "dist/spool-${TAG}-aarch64-apple-darwin/spool-${TAG}-aarch64-apple-darwin.tar.gz" spool
+          tar -C "$WORKDIR/npm/spool-linux-x64/bin" -xzf "dist/spool-${TAG}-x86_64-unknown-linux-gnu/spool-${TAG}-x86_64-unknown-linux-gnu.tar.gz" spool
+          tar -C "$WORKDIR/npm/spool-linux-arm64/bin" -xzf "dist/spool-${TAG}-aarch64-unknown-linux-gnu/spool-${TAG}-aarch64-unknown-linux-gnu.tar.gz" spool
+          unzip -q "dist/spool-${TAG}-x86_64-pc-windows-msvc/spool-${TAG}-x86_64-pc-windows-msvc.zip" -d "$WORKDIR/npm/spool-win32-x64/bin"
+
+          chmod +x "$WORKDIR/npm/spool-darwin-x64/bin/spool"
+          chmod +x "$WORKDIR/npm/spool-darwin-arm64/bin/spool"
+          chmod +x "$WORKDIR/npm/spool-linux-x64/bin/spool"
+          chmod +x "$WORKDIR/npm/spool-linux-arm64/bin/spool"
+
+          # Remove placeholders if present.
+          rm -f "$WORKDIR/npm/spool-darwin-x64/bin/.gitkeep" || true
+          rm -f "$WORKDIR/npm/spool-darwin-arm64/bin/.gitkeep" || true
+          rm -f "$WORKDIR/npm/spool-linux-x64/bin/.gitkeep" || true
+          rm -f "$WORKDIR/npm/spool-linux-arm64/bin/.gitkeep" || true
+          rm -f "$WORKDIR/npm/spool-win32-x64/bin/.gitkeep" || true
+
+          # Set versions and make meta optionalDependencies match.
+          node - <<'NODE' "$WORKDIR/npm" "$VERSION"
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const root = process.argv[2];
+          const version = process.argv[3];
+
+          const packages = [
+            'spool',
+            'spool-darwin-x64',
+            'spool-darwin-arm64',
+            'spool-linux-x64',
+            'spool-linux-arm64',
+            'spool-win32-x64',
+          ];
+
+          function readJson(p) {
+            return JSON.parse(fs.readFileSync(p, 'utf8'));
+          }
+
+          function writeJson(p, obj) {
+            fs.writeFileSync(p, JSON.stringify(obj, null, 2) + '\n');
+          }
+
+          for (const dir of packages) {
+            const pkgPath = path.join(root, dir, 'package.json');
+            const pkg = readJson(pkgPath);
+            pkg.version = version;
+            writeJson(pkgPath, pkg);
+          }
+
+          const metaPath = path.join(root, 'spool', 'package.json');
+          const meta = readJson(metaPath);
+          meta.optionalDependencies = meta.optionalDependencies || {};
+          for (const name of Object.keys(meta.optionalDependencies)) {
+            meta.optionalDependencies[name] = version;
+          }
+          writeJson(metaPath, meta);
+          NODE
+
+          echo "workdir=$WORKDIR" >> "$GITHUB_OUTPUT"
+        id: prep
+
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -eu
+          WORKDIR="${{ steps.prep.outputs.workdir }}"
+
+          npm publish --access public "$WORKDIR/npm/spool-darwin-x64"
+          npm publish --access public "$WORKDIR/npm/spool-darwin-arm64"
+          npm publish --access public "$WORKDIR/npm/spool-linux-x64"
+          npm publish --access public "$WORKDIR/npm/spool-linux-arm64"
+          npm publish --access public "$WORKDIR/npm/spool-win32-x64"
+          npm publish --access public "$WORKDIR/npm/spool"
