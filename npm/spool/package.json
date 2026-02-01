@@ -1,0 +1,30 @@
+{
+  "name": "@withakay/spool",
+  "version": "0.0.0",
+  "description": "Spool (native binary) - optional npm distribution",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/withakay/Spool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/withakay/Spool/issues"
+  },
+  "homepage": "https://github.com/withakay/Spool#readme",
+  "bin": {
+    "spool": "bin/spool.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "@withakay/spool-darwin-x64": "0.0.0",
+    "@withakay/spool-darwin-arm64": "0.0.0",
+    "@withakay/spool-linux-x64": "0.0.0",
+    "@withakay/spool-linux-arm64": "0.0.0",
+    "@withakay/spool-win32-x64": "0.0.0"
+  },
+  "files": [
+    "bin/spool.js"
+  ]
+}
