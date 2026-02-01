@@ -5,8 +5,8 @@
 - [x] Task 1.1: Convert to standard `app/` module layout
 - [x] Task 1.2: Move large help constants out of the module root
 - [x] Task 1.3: Split entrypoint and dispatch logic
-- [ ] Task 2.1: Add a size regression check
-- [ ] Task 3.1: Confirm the 1000-limit definition (checkpoint)
+- [x] Task 2.1: Add a size regression check
+- [x] Task 3.1: Confirm the 1000-limit definition (checkpoint)
 
 ## Wave 1: Split app.rs into modules
 
