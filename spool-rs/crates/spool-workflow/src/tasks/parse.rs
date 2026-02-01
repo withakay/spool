@@ -1,8 +1,9 @@
 use chrono::{DateTime, Local, NaiveDate};
 use regex::Regex;
-use rusqlite::OptionalExtension;
 use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
+
+use super::cycle::find_cycle_path;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TasksFormat {
@@ -39,7 +40,12 @@ impl TaskStatus {
     }
 
     pub fn is_done(self) -> bool {
-        matches!(self, TaskStatus::Complete | TaskStatus::Shelved)
+        match self {
+            TaskStatus::Pending => false,
+            TaskStatus::InProgress => false,
+            TaskStatus::Complete => true,
+            TaskStatus::Shelved => true,
+        }
     }
 }
 
@@ -114,147 +120,6 @@ pub struct TasksParseResult {
     pub waves: Vec<WaveInfo>,
     pub diagnostics: Vec<TaskDiagnostic>,
     pub progress: ProgressInfo,
-}
-
-pub fn compute_ready_and_blocked(
-    parsed: &TasksParseResult,
-) -> (Vec<TaskItem>, Vec<(TaskItem, Vec<String>)>) {
-    let tasks = &parsed.tasks;
-
-    if parsed.format == TasksFormat::Checkbox {
-        let mut ready: Vec<TaskItem> = tasks
-            .iter()
-            .filter(|t| t.status == TaskStatus::Pending)
-            .cloned()
-            .collect();
-        ready.sort_by(|a, b| a.header_line_index.cmp(&b.header_line_index));
-        return (ready, Vec::new());
-    }
-
-    let mut by_id: std::collections::BTreeMap<&str, &TaskItem> = std::collections::BTreeMap::new();
-    for t in tasks {
-        by_id.insert(t.id.as_str(), t);
-    }
-
-    let mut wave_complete: BTreeMap<u32, bool> = BTreeMap::new();
-    for w in &parsed.waves {
-        let done = tasks
-            .iter()
-            .filter(|t| t.wave == Some(w.wave))
-            .all(|t| t.status.is_done());
-        wave_complete.insert(w.wave, done);
-    }
-
-    let mut wave_unlocked: BTreeMap<u32, bool> = BTreeMap::new();
-    for w in &parsed.waves {
-        let unlocked = w
-            .depends_on
-            .iter()
-            .all(|dep| wave_complete.get(dep).copied().unwrap_or(false));
-        wave_unlocked.insert(w.wave, unlocked);
-    }
-
-    // Back-compat gating when no WaveInfo entries exist.
-    let mut first_incomplete_wave: Option<u32> = None;
-    if parsed.waves.is_empty() {
-        let mut waves: Vec<u32> = tasks.iter().filter_map(|t| t.wave).collect();
-        waves.sort();
-        waves.dedup();
-        for w in waves {
-            let all_done = tasks
-                .iter()
-                .filter(|t| t.wave == Some(w))
-                .all(|t| t.status.is_done());
-            if !all_done {
-                first_incomplete_wave = Some(w);
-                break;
-            }
-        }
-    }
-
-    let all_waves_complete = if parsed.waves.is_empty() {
-        first_incomplete_wave.is_none()
-    } else {
-        wave_complete.values().all(|v| *v)
-    };
-
-    let mut ready: Vec<TaskItem> = Vec::new();
-    let mut blocked: Vec<(TaskItem, Vec<String>)> = Vec::new();
-
-    for t in tasks {
-        if t.status != TaskStatus::Pending {
-            continue;
-        }
-        let mut blockers: Vec<String> = Vec::new();
-
-        if parsed.waves.is_empty() {
-            if let Some(first) = first_incomplete_wave {
-                let is_later_wave = t.wave.is_some_and(|w| w > first);
-                let is_checkpoint_like = t.wave.is_none();
-                if is_later_wave || is_checkpoint_like {
-                    blockers.push(format!("Blocked until Wave {first} is complete"));
-                }
-            }
-        } else {
-            match t.wave {
-                Some(w) => {
-                    if !wave_unlocked.get(&w).copied().unwrap_or(true) {
-                        if let Some(wave) = parsed.waves.iter().find(|wi| wi.wave == w) {
-                            for dep in &wave.depends_on {
-                                if !wave_complete.get(dep).copied().unwrap_or(false) {
-                                    blockers.push(format!("Blocked by Wave {dep}"));
-                                }
-                            }
-                        } else {
-                            blockers.push(format!("Blocked: Wave {w} is locked"));
-                        }
-                    }
-                }
-                None => {
-                    if !all_waves_complete {
-                        blockers.push("Blocked until all waves are complete".to_string());
-                    }
-                }
-            }
-        }
-
-        for dep in &t.dependencies {
-            if dep.is_empty() || dep == "Checkpoint" {
-                continue;
-            }
-            let Some(dep_task) = by_id.get(dep.as_str()).copied() else {
-                blockers.push(format!("Missing dependency: {dep}"));
-                continue;
-            };
-            if t.wave != dep_task.wave {
-                blockers.push(format!("Cross-wave dependency: {dep}"));
-            }
-            if dep_task.status != TaskStatus::Complete {
-                blockers.push(format!("Dependency not complete: {dep}"));
-            }
-        }
-
-        if blockers.is_empty() {
-            ready.push(t.clone());
-        } else {
-            blocked.push((t.clone(), blockers));
-        }
-    }
-
-    ready.sort_by(|a, b| {
-        let aw = a.wave.unwrap_or(u32::MAX);
-        let bw = b.wave.unwrap_or(u32::MAX);
-        aw.cmp(&bw)
-            .then(a.header_line_index.cmp(&b.header_line_index))
-    });
-    blocked.sort_by(|(a, _), (b, _)| {
-        let aw = a.wave.unwrap_or(u32::MAX);
-        let bw = b.wave.unwrap_or(u32::MAX);
-        aw.cmp(&bw)
-            .then(a.header_line_index.cmp(&b.header_line_index))
-    });
-
-    (ready, blocked)
 }
 
 pub fn enhanced_tasks_template(change_id: &str, now: DateTime<Local>) -> String {
@@ -796,54 +661,6 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
     }
 }
 
-fn find_cycle_path(edges: &[(String, String)]) -> Option<String> {
-    if edges.is_empty() {
-        return None;
-    }
-
-    let mut conn = rusqlite::Connection::open_in_memory().ok()?;
-    conn.execute(
-        "CREATE TABLE edge (src TEXT NOT NULL, dst TEXT NOT NULL);",
-        [],
-    )
-    .ok()?;
-
-    {
-        let tx = conn.transaction().ok()?;
-        {
-            let mut stmt = tx
-                .prepare("INSERT INTO edge (src, dst) VALUES (?1, ?2);")
-                .ok()?;
-            for (src, dst) in edges {
-                stmt.execute(rusqlite::params![src, dst]).ok()?;
-            }
-        }
-        tx.commit().ok()?;
-    }
-
-    // Detect a cycle and return a delimited path like: |a|b|c|a|
-    let sql = r#"
-WITH RECURSIVE
-  walk(start, current, path) AS (
-    SELECT src, dst, '|' || src || '|' || dst || '|'
-    FROM edge
-    UNION ALL
-    SELECT w.start, e.dst, w.path || e.dst || '|'
-    FROM walk w
-    JOIN edge e ON e.src = w.current
-    WHERE instr(w.path, '|' || e.dst || '|') = 0
-  )
-SELECT path
-FROM walk
-WHERE start = current
-LIMIT 1;
-"#;
-
-    let mut stmt = conn.prepare(sql).ok()?;
-    let path: Option<String> = stmt.query_row([], |row| row.get(0)).optional().ok()?;
-    path.map(|p| p.trim_matches('|').replace('|', " -> "))
-}
-
 fn parse_dependencies(raw: &str) -> Vec<String> {
     parse_dependencies_with_checkpoint(raw, TaskKind::Normal).0
 }
@@ -912,88 +729,4 @@ fn compute_progress(tasks: &[TaskItem]) -> ProgressInfo {
 
 pub fn tasks_path(spool_path: &Path, change_id: &str) -> PathBuf {
     spool_path.join("changes").join(change_id).join("tasks.md")
-}
-
-pub fn update_enhanced_task_status(
-    contents: &str,
-    task_id: &str,
-    new_status: TaskStatus,
-    now: DateTime<Local>,
-) -> String {
-    // Match TS: `^###\s+(?:Task\s+)?${taskId}\s*:`
-    let heading = Regex::new(&format!(
-        r"(?m)^###\s+(?:Task\s+)?{}\s*:\s*.+$",
-        regex::escape(task_id)
-    ))
-    .unwrap();
-
-    let status_line = match new_status {
-        TaskStatus::Complete => "- **Status**: [x] complete".to_string(),
-        TaskStatus::InProgress => "- **Status**: [ ] in-progress".to_string(),
-        TaskStatus::Pending => "- **Status**: [ ] pending".to_string(),
-        TaskStatus::Shelved => "- **Status**: [-] shelved".to_string(),
-    };
-
-    let date = now.format("%Y-%m-%d").to_string();
-    let updated_at_line = format!("- **Updated At**: {date}");
-
-    let mut lines: Vec<String> = contents.lines().map(|l| l.to_string()).collect();
-    let mut start_idx: Option<usize> = None;
-    for (i, line) in lines.iter().enumerate() {
-        if heading.is_match(line) {
-            start_idx = Some(i);
-            break;
-        }
-    }
-
-    if let Some(start) = start_idx {
-        let mut end = lines.len();
-        for (i, line) in lines.iter().enumerate().skip(start + 1) {
-            if line.starts_with("### ") || line.starts_with("## ") {
-                end = i;
-                break;
-            }
-        }
-
-        let mut status_idx: Option<usize> = None;
-        let mut updated_idx: Option<usize> = None;
-        for (i, line) in lines.iter().enumerate().take(end).skip(start + 1) {
-            let l = line.trim_start();
-            if status_idx.is_none() && l.starts_with("- **Status**:") {
-                status_idx = Some(i);
-            }
-            if updated_idx.is_none() && l.starts_with("- **Updated At**:") {
-                updated_idx = Some(i);
-            }
-        }
-
-        if let Some(i) = status_idx {
-            lines[i] = status_line.clone();
-        }
-        if let Some(i) = updated_idx {
-            lines[i] = updated_at_line.clone();
-        }
-
-        match (status_idx, updated_idx) {
-            (Some(s), None) => {
-                // Insert Updated At immediately before Status.
-                lines.insert(s, updated_at_line);
-            }
-            (None, Some(u)) => {
-                // Insert Status immediately after Updated At.
-                lines.insert(u + 1, status_line);
-            }
-            (None, None) => {
-                // Insert both at the end of the block.
-                lines.insert(end, updated_at_line);
-                lines.insert(end + 1, status_line);
-            }
-            (Some(_), Some(_)) => {}
-        }
-    }
-
-    // Preserve trailing newline behavior similar to TS templates.
-    let mut out = lines.join("\n");
-    out.push('\n');
-    out
 }
