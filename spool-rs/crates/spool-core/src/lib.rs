@@ -3,6 +3,7 @@ pub mod config;
 pub mod create;
 pub mod discovery;
 pub mod distribution;
+pub mod docs_server;
 pub mod id;
 pub mod installers;
 pub mod io;

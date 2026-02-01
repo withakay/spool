@@ -45,8 +45,47 @@ pub fn install_default_templates(
     let spool_dir = spool_templates::normalize_spool_dir(&spool_dir_name);
 
     install_project_templates(project_root, &spool_dir, mode, opts)?;
+
+    // Repository-local ignore rule for session state.
+    // This is not a templated file: we update `.gitignore` directly to preserve existing content.
+    if mode == InstallMode::Init {
+        ensure_repo_gitignore_ignores_session_json(project_root, &spool_dir)?;
+    }
+
     install_adapter_files(project_root, mode, opts)?;
     Ok(())
+}
+
+fn ensure_repo_gitignore_ignores_session_json(project_root: &Path, spool_dir: &str) -> Result<()> {
+    let entry = format!("{spool_dir}/session.json");
+    ensure_gitignore_contains_line(project_root, &entry)
+}
+
+fn ensure_gitignore_contains_line(project_root: &Path, entry: &str) -> Result<()> {
+    let path = project_root.join(".gitignore");
+    let existing = crate::io::read_to_string_optional(&path)?;
+
+    let Some(mut s) = existing else {
+        crate::io::write(&path, format!("{entry}\n"))?;
+        return Ok(());
+    };
+
+    if gitignore_has_exact_line(&s, entry) {
+        return Ok(());
+    }
+
+    if !s.ends_with('\n') {
+        s.push('\n');
+    }
+    s.push_str(entry);
+    s.push('\n');
+
+    crate::io::write(&path, s)?;
+    Ok(())
+}
+
+fn gitignore_has_exact_line(contents: &str, entry: &str) -> bool {
+    contents.lines().map(|l| l.trim()).any(|l| l == entry)
 }
 
 fn install_project_templates(
@@ -193,4 +232,45 @@ fn install_adapter_files(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gitignore_created_when_missing() {
+        let td = tempfile::tempdir().unwrap();
+        ensure_repo_gitignore_ignores_session_json(td.path(), ".spool").unwrap();
+        let s = std::fs::read_to_string(td.path().join(".gitignore")).unwrap();
+        assert_eq!(s, ".spool/session.json\n");
+    }
+
+    #[test]
+    fn gitignore_noop_when_already_present() {
+        let td = tempfile::tempdir().unwrap();
+        std::fs::write(td.path().join(".gitignore"), ".spool/session.json\n").unwrap();
+        ensure_repo_gitignore_ignores_session_json(td.path(), ".spool").unwrap();
+        let s = std::fs::read_to_string(td.path().join(".gitignore")).unwrap();
+        assert_eq!(s, ".spool/session.json\n");
+    }
+
+    #[test]
+    fn gitignore_does_not_duplicate_on_repeated_calls() {
+        let td = tempfile::tempdir().unwrap();
+        std::fs::write(td.path().join(".gitignore"), "node_modules\n").unwrap();
+        ensure_repo_gitignore_ignores_session_json(td.path(), ".spool").unwrap();
+        ensure_repo_gitignore_ignores_session_json(td.path(), ".spool").unwrap();
+        let s = std::fs::read_to_string(td.path().join(".gitignore")).unwrap();
+        assert_eq!(s, "node_modules\n.spool/session.json\n");
+    }
+
+    #[test]
+    fn gitignore_preserves_existing_content_and_adds_newline_if_missing() {
+        let td = tempfile::tempdir().unwrap();
+        std::fs::write(td.path().join(".gitignore"), "node_modules").unwrap();
+        ensure_repo_gitignore_ignores_session_json(td.path(), ".spool").unwrap();
+        let s = std::fs::read_to_string(td.path().join(".gitignore")).unwrap();
+        assert_eq!(s, "node_modules\n.spool/session.json\n");
+    }
 }

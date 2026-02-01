@@ -1,0 +1,117 @@
+use spool_core::validate::{validate_change, validate_module, validate_spec_markdown};
+use std::path::Path;
+
+fn write(path: &Path, contents: &str) {
+    let Some(parent) = path.parent() else {
+        panic!("path has no parent: {}", path.display());
+    };
+    std::fs::create_dir_all(parent).unwrap();
+    std::fs::write(path, contents).unwrap();
+}
+
+#[test]
+fn validate_spec_markdown_reports_missing_purpose_and_requirements() {
+    let md = r#"
+## Purpose
+
+## Requirements
+"#;
+
+    let r = validate_spec_markdown(md, false);
+    assert!(!r.valid);
+    assert!(r.summary.errors >= 1);
+}
+
+#[test]
+fn validate_spec_markdown_strict_treats_warnings_as_invalid() {
+    let md = r#"
+## Purpose
+
+Too short.
+
+## Requirements
+
+### Requirement: R
+The system SHALL do it.
+
+#### Scenario: S
+ok
+"#;
+
+    let non_strict = validate_spec_markdown(md, false);
+    assert!(non_strict.valid);
+    assert!(non_strict.summary.warnings >= 1);
+
+    let strict = validate_spec_markdown(md, true);
+    assert!(!strict.valid);
+    assert!(strict.summary.warnings >= 1);
+}
+
+#[test]
+fn validate_change_requires_at_least_one_delta() {
+    let td = tempfile::tempdir().unwrap();
+    let spool = td.path().join(".spool");
+    std::fs::create_dir_all(&spool).unwrap();
+
+    let r = validate_change(&spool, "001-01_demo", false).unwrap();
+    assert!(!r.valid);
+    assert!(
+        r.issues
+            .iter()
+            .any(|i| i.message.contains("at least one delta"))
+    );
+}
+
+#[test]
+fn validate_change_requires_shall_or_must_in_requirement_text() {
+    let td = tempfile::tempdir().unwrap();
+    let spool = td.path().join(".spool");
+    let change_id = "001-01_demo";
+
+    write(
+        &spool
+            .join("changes")
+            .join(change_id)
+            .join("specs")
+            .join("auth")
+            .join("spec.md"),
+        r#"
+## ADDED Requirements
+
+### Requirement: R
+This requirement has no keywords.
+
+#### Scenario: S
+ok
+"#,
+    );
+
+    let r = validate_change(&spool, change_id, false).unwrap();
+    assert!(!r.valid);
+    assert!(
+        r.issues
+            .iter()
+            .any(|i| i.message.contains("SHALL") || i.message.contains("MUST"))
+    );
+}
+
+#[test]
+fn validate_module_reports_missing_scope_and_short_purpose() {
+    let td = tempfile::tempdir().unwrap();
+    let spool = td.path().join(".spool");
+
+    write(
+        &spool.join("modules").join("006_demo").join("module.md"),
+        r#"
+## Purpose
+
+Too short.
+
+## Scope
+"#,
+    );
+
+    let (_name, r) = validate_module(&spool, "006_demo", false).unwrap();
+    assert!(!r.valid);
+    assert!(r.summary.errors >= 1);
+}

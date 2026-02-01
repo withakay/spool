@@ -25,6 +25,7 @@ const SPOOL_SKILLS: &[&str] = &[
     "finishing-a-development-branch",
     "receiving-code-review",
     "requesting-code-review",
+    "research",
     "subagent-driven-development",
     "systematic-debugging",
     "test-driven-development",
