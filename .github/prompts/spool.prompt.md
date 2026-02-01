@@ -1,8 +1,14 @@
-______________________________________________________________________
+---
+name: spool
+description: Route spool commands via the spool skill (skill-first, CLI fallback).
+category: Spool
+tags: [spool, routing]
+---
 
-## description: Route spool commands via the spool skill (skill-first, CLI fallback).
-
+The user has requested the following spool command.
+<SpoolCommand>
 $ARGUMENTS
+</SpoolCommand>
 
 <!-- SPOOL:START -->
 
@@ -13,6 +19,7 @@ Use the Spool agent skill `spool` as the source of truth for this workflow.
 - The spool command and arguments are provided in the prompt arguments or <SpoolCommand> block.
 
 **Instructions**
+
 Tell the model to use the `spool` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**

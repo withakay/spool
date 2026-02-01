@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## name: spool-apply-change-proposal description: Use when implementing, executing, applying, building, coding, or developing a feature, change, requirement, enhancement, fix, or modification. Use when running tasks from a spec or proposal.
+---
+name: spool-apply-change-proposal
+description: Use when implementing, executing, applying, building, coding, or developing a feature, change, requirement, enhancement, fix, or modification. Use when running tasks from a spec, proposal, or plan.
+---
 
 Run the CLI-generated apply instructions for a specific change.
 
@@ -11,10 +12,10 @@ Run the CLI-generated apply instructions for a specific change.
    - If the user provides one, use it.
    - Otherwise run `spool list` and ask the user which change to apply.
 
-1. Generate instructions (source of truth):
+2. Generate instructions (source of truth):
 
    ```bash
    spool agent instruction apply --change "<change-id>"
    ```
 
-1. Follow the printed instructions exactly.
+3. Follow the printed instructions exactly.

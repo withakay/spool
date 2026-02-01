@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## name: spool-tasks description: Use Spool tasks CLI to manage tasks.md (status/next/start/complete/shelve/add).
+---
+name: spool-tasks
+description: Use Spool tasks CLI to manage tasks.md (status/next/start/complete/shelve/add).
+---
 
 Use the `spool tasks` CLI to track and update implementation tasks for a change.
 

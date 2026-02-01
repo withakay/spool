@@ -1,8 +1,14 @@
-______________________________________________________________________
+---
+name: spool-proposal
+description: Scaffold a new Spool change and validate strictly.
+category: Spool
+tags: [spool, proposal]
+---
 
-## description: Scaffold a new Spool change and validate strictly.
-
+The user has requested the following change proposal.
+<UserRequest>
 $ARGUMENTS
+</UserRequest>
 
 <!-- SPOOL:START -->
 
@@ -14,10 +20,11 @@ Use the Spool agent skill `spool-write-change-proposal` (alias: `spool-proposal`
 
 **Module selection**
 
-- Choose a module by semantic fit (use `spool list --modules`).
-- If nothing fits, suggest creating a new module for the theme of the work.
+- Prefer a semantic fit in an existing module: run `spool list --modules` and choose the closest match by purpose/scope.
+- If no module is a good fit, propose creating a new module for the theme of the work.
 
 **Instructions**
+
 Tell the model to use the `spool-write-change-proposal` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**
