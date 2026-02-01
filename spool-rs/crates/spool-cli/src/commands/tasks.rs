@@ -1,0 +1,493 @@
+use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
+use crate::diagnostics;
+use crate::runtime::Runtime;
+use spool_core::paths as core_paths;
+use spool_workflow::tasks as wf_tasks;
+
+pub(crate) const TASKS_HELP: &str = "Usage: spool tasks <command> [options]\n\nTrack execution tasks for a change\n\nCommands:\n  init <change-id>                         Create enhanced tasks.md\n  status <change-id>                       Show task progress\n  next <change-id>                         Show the next available task\n  start <change-id> <task-id>              Mark a task in-progress\n  complete <change-id> <task-id>           Mark a task complete\n  shelve <change-id> <task-id>             Shelve a task (reversible)\n  unshelve <change-id> <task-id>           Restore a shelved task to pending\n  add <change-id> <task-name> [--wave <n>]  Add a new task (enhanced only)\n  show <change-id>                         Print tasks.md\n\nOptions:\n  --wave <n>                               Wave number for add (default: 1)\n  -h, --help                               display help for command\n\nRun 'spool -h' to see all commands.";
+
+pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!("{TASKS_HELP}");
+        return Ok(());
+    }
+
+    fn parse_wave_flag(args: &[String]) -> u32 {
+        args.iter()
+            .enumerate()
+            .find(|(_, a)| *a == "--wave")
+            .and_then(|(i, _)| args.get(i + 1))
+            .and_then(|v| v.parse::<u32>().ok())
+            .unwrap_or(1)
+    }
+
+    fn format_blockers(blockers: &[String]) -> String {
+        if blockers.is_empty() {
+            return "Task is blocked".to_string();
+        }
+        let mut out = String::from("Task is blocked:");
+        for b in blockers {
+            out.push_str("\n- ");
+            out.push_str(b);
+        }
+        out
+    }
+
+    let sub = args.first().map(|s| s.as_str()).unwrap_or("");
+    let change_id = args.get(1).map(|s| s.as_str()).unwrap_or("");
+    if change_id.is_empty() || change_id.starts_with('-') {
+        return fail("Missing required argument <change-id>");
+    }
+
+    let spool_path = rt.spool_path();
+    let change_dir = core_paths::change_dir(spool_path, change_id);
+
+    match sub {
+        "init" => {
+            if !change_dir.exists() {
+                return fail(format!("Change '{change_id}' not found"));
+            }
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            if path.exists() {
+                return fail(format!(
+                    "tasks.md already exists for \"{change_id}\". Use \"tasks add\" to add tasks."
+                ));
+            }
+
+            let now = chrono::Local::now();
+            let contents = wf_tasks::enhanced_tasks_template(change_id, now);
+            if let Some(parent) = path.parent() {
+                spool_core::io::create_dir_all(parent).map_err(to_cli_error)?;
+            }
+            spool_core::io::write(&path, contents.as_bytes()).map_err(to_cli_error)?;
+            eprintln!("✔ Enhanced tasks.md created for \"{change_id}\"");
+            Ok(())
+        }
+        "status" => {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            if !path.exists() {
+                println!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                );
+                return Ok(());
+            }
+
+            let contents = spool_core::io::read_to_string(&path)
+                .map_err(|_| CliError::msg(format!("Failed to read {}", path.display())))?;
+
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+
+            println!("Tasks for: {change_id}");
+            println!("──────────────────────────────────────────────────");
+            println!();
+
+            let warnings = diagnostics::render_task_diagnostics(
+                &path,
+                &parsed.diagnostics,
+                wf_tasks::DiagnosticLevel::Warning,
+            );
+            if !warnings.is_empty() {
+                println!("Warnings");
+                print!("{warnings}");
+                println!();
+            }
+
+            match parsed.format {
+                wf_tasks::TasksFormat::Enhanced => {
+                    let done = parsed.progress.complete + parsed.progress.shelved;
+                    println!(
+                        "Progress: {}/{} done ({} complete, {} shelved), {} in-progress, {} pending",
+                        done,
+                        parsed.progress.total,
+                        parsed.progress.complete,
+                        parsed.progress.shelved,
+                        parsed.progress.in_progress,
+                        parsed.progress.pending
+                    );
+                }
+                wf_tasks::TasksFormat::Checkbox => {
+                    println!(
+                        "Progress (compat): {}/{} complete",
+                        parsed.progress.complete, parsed.progress.total
+                    );
+                }
+            }
+
+            let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
+            println!();
+            println!("Ready");
+            for t in &ready {
+                println!("  - {}: {}", t.id, t.name);
+            }
+            println!();
+            println!("Blocked");
+            for (t, blockers) in &blocked {
+                println!("  - {}: {}", t.id, t.name);
+                for b in blockers {
+                    println!("    - {b}");
+                }
+            }
+
+            Ok(())
+        }
+        "next" => {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ))
+            })?;
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+
+            match parsed.format {
+                wf_tasks::TasksFormat::Checkbox => {
+                    let next = parsed
+                        .tasks
+                        .iter()
+                        .find(|t| t.status == wf_tasks::TaskStatus::Pending);
+                    if let Some(t) = next {
+                        println!("Next Task (compat)");
+                        println!("──────────────────────────────────────────────────");
+                        println!("Task {}: {}", t.id, t.name);
+                        println!(
+                            "Run \"spool tasks complete {change_id} {}\" when done",
+                            t.id
+                        );
+                    } else {
+                        println!("All tasks complete!");
+                    }
+                    Ok(())
+                }
+                wf_tasks::TasksFormat::Enhanced => {
+                    if parsed.progress.remaining == 0 {
+                        println!("All tasks complete!");
+                        return Ok(());
+                    }
+
+                    let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
+                    if ready.is_empty() {
+                        println!("No ready tasks.");
+                        if let Some((t, blockers)) = blocked.first() {
+                            println!("First blocked task: {} - {}", t.id, t.name);
+                            println!("{}", format_blockers(blockers));
+                        }
+                        return Ok(());
+                    }
+
+                    let t = &ready[0];
+                    println!("Next Task");
+                    println!("──────────────────────────────────────────────────");
+                    println!("Task {}: {}", t.id, t.name);
+                    println!();
+                    if !t.files.is_empty() {
+                        println!("Files: {}", t.files.join(", "));
+                    }
+                    if !t.action.trim().is_empty() {
+                        println!("Action:");
+                        for line in t.action.lines() {
+                            println!("  {line}");
+                        }
+                    }
+                    if let Some(v) = &t.verify {
+                        println!("Verify: {v}");
+                    }
+                    if let Some(v) = &t.done_when {
+                        println!("Done When: {v}");
+                    }
+                    println!();
+                    println!("Run \"spool tasks start {change_id} {}\" to begin", t.id);
+                    Ok(())
+                }
+            }
+        }
+        "start" => {
+            let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if task_id.is_empty() || task_id.starts_with('-') {
+                return fail("Missing required argument <task-id>");
+            }
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ))
+            })?;
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            if parsed.format == wf_tasks::TasksFormat::Checkbox {
+                return fail(
+                    "Checkbox-only tasks.md does not support in-progress. Use \"spool tasks complete\" when done.",
+                );
+            }
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+
+            let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
+                return fail(format!("Task \"{task_id}\" not found in tasks.md"));
+            };
+            let status_label = match task.status {
+                wf_tasks::TaskStatus::Pending => "pending",
+                wf_tasks::TaskStatus::InProgress => "in_progress",
+                wf_tasks::TaskStatus::Complete => "complete",
+                wf_tasks::TaskStatus::Shelved => "shelved",
+            };
+            if task.status == wf_tasks::TaskStatus::Shelved {
+                return fail(format!(
+                    "Task \"{task_id}\" is shelved (run \"spool tasks unshelve {change_id} {task_id}\" first)"
+                ));
+            }
+            if task.status != wf_tasks::TaskStatus::Pending {
+                return fail(format!(
+                    "Task \"{task_id}\" is not pending (current: {status_label})"
+                ));
+            }
+
+            let (ready, blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
+            if !ready.iter().any(|t| t.id == task_id) {
+                if let Some((_, blockers)) = blocked.iter().find(|(t, _)| t.id == task_id) {
+                    return fail(format_blockers(blockers));
+                }
+                return fail("Task is blocked");
+            }
+
+            let updated = wf_tasks::update_enhanced_task_status(
+                &contents,
+                task_id,
+                wf_tasks::TaskStatus::InProgress,
+                chrono::Local::now(),
+            );
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
+            eprintln!("✔ Task \"{task_id}\" marked as in-progress");
+            Ok(())
+        }
+        "complete" => {
+            let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if task_id.is_empty() || task_id.starts_with('-') {
+                return fail("Missing required argument <task-id>");
+            }
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ))
+            })?;
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            if parsed.format == wf_tasks::TasksFormat::Checkbox {
+                // 1-based index
+                let Ok(idx) = task_id.parse::<usize>() else {
+                    return fail(format!("Task \"{task_id}\" not found"));
+                };
+                let mut count = 0usize;
+                let mut lines: Vec<String> = contents.lines().map(|l| l.to_string()).collect();
+                for line in &mut lines {
+                    let t = line.trim_start();
+                    let is_box = t.starts_with("- [") || t.starts_with("* [");
+                    if !is_box {
+                        continue;
+                    }
+                    count += 1;
+                    if count == idx {
+                        if let Some((_, rest)) = t.split_once(']') {
+                            let prefix = if t.starts_with('*') { "* [x]" } else { "- [x]" };
+                            *line = format!("{}{}", prefix, rest);
+                        }
+                        break;
+                    }
+                }
+                if count < idx {
+                    return fail(format!("Task \"{task_id}\" not found"));
+                }
+                let mut out = lines.join("\n");
+                out.push('\n');
+                spool_core::io::write(&path, out.as_bytes()).map_err(to_cli_error)?;
+                eprintln!("✔ Task \"{task_id}\" marked as complete");
+                return Ok(());
+            }
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+
+            let updated = wf_tasks::update_enhanced_task_status(
+                &contents,
+                task_id,
+                wf_tasks::TaskStatus::Complete,
+                chrono::Local::now(),
+            );
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
+            eprintln!("✔ Task \"{task_id}\" marked as complete");
+            Ok(())
+        }
+        "shelve" => {
+            let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if task_id.is_empty() || task_id.starts_with('-') {
+                return fail("Missing required argument <task-id>");
+            }
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ))
+            })?;
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            if parsed.format == wf_tasks::TasksFormat::Checkbox {
+                return fail("Checkbox-only tasks.md does not support shelving.");
+            }
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+
+            let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
+                return fail(format!("Task \"{task_id}\" not found in tasks.md"));
+            };
+            if task.status == wf_tasks::TaskStatus::Complete {
+                return fail(format!("Task \"{task_id}\" is already complete"));
+            }
+
+            let updated = wf_tasks::update_enhanced_task_status(
+                &contents,
+                task_id,
+                wf_tasks::TaskStatus::Shelved,
+                chrono::Local::now(),
+            );
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
+            eprintln!("✔ Task \"{task_id}\" shelved");
+            Ok(())
+        }
+        "unshelve" => {
+            let task_id = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if task_id.is_empty() || task_id.starts_with('-') {
+                return fail("Missing required argument <task-id>");
+            }
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ))
+            })?;
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            if parsed.format == wf_tasks::TasksFormat::Checkbox {
+                return fail("Checkbox-only tasks.md does not support shelving.");
+            }
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+
+            let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
+                return fail(format!("Task \"{task_id}\" not found in tasks.md"));
+            };
+            if task.status != wf_tasks::TaskStatus::Shelved {
+                return fail(format!("Task \"{task_id}\" is not shelved"));
+            }
+
+            let updated = wf_tasks::update_enhanced_task_status(
+                &contents,
+                task_id,
+                wf_tasks::TaskStatus::Pending,
+                chrono::Local::now(),
+            );
+            spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
+            eprintln!("✔ Task \"{task_id}\" unshelved (pending)");
+            Ok(())
+        }
+        "add" => {
+            let task_name = args.get(2).map(|s| s.as_str()).unwrap_or("");
+            if task_name.is_empty() || task_name.starts_with('-') {
+                return fail("Missing required argument <task-name>");
+            }
+            let wave = parse_wave_flag(args);
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path).map_err(|_| {
+                CliError::msg(format!(
+                    "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+                ))
+            })?;
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+            if parsed.format != wf_tasks::TasksFormat::Enhanced {
+                return fail(
+                    "Cannot add tasks to checkbox-only tracking file. Convert to enhanced format first.",
+                );
+            }
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+
+            let mut max_n = 0u32;
+            for t in &parsed.tasks {
+                if let Some((w, n)) = t.id.split_once('.')
+                    && let (Ok(w), Ok(n)) = (w.parse::<u32>(), n.parse::<u32>())
+                    && w == wave
+                {
+                    max_n = max_n.max(n);
+                }
+            }
+            let new_id = format!("{wave}.{}", max_n + 1);
+
+            let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+            let block = format!(
+                "\n### Task {new_id}: {task_name}\n- **Files**: `path/to/file.ts`\n- **Dependencies**: None\n- **Action**:\n  [Describe what needs to be done]\n- **Verify**: `[command to verify, e.g., npm test]`\n- **Done When**: [Success criteria]\n- **Updated At**: {date}\n- **Status**: [ ] pending\n"
+            );
+
+            let mut out = contents.clone();
+            if out.contains(&format!("## Wave {wave}")) {
+                // Insert before the next major section after this wave.
+                if let Some(pos) = out.find("## Checkpoints") {
+                    out.insert_str(pos, &block);
+                } else {
+                    out.push_str(&block);
+                }
+            } else {
+                // Create wave section before checkpoints (or at end).
+                if let Some(pos) = out.find("## Checkpoints") {
+                    out.insert_str(
+                        pos,
+                        &format!("\n---\n\n## Wave {wave}\n- **Depends On**: None\n"),
+                    );
+                    let pos2 = out.find("## Checkpoints").unwrap_or(out.len());
+                    out.insert_str(pos2, &block);
+                } else {
+                    out.push_str(&format!(
+                        "\n---\n\n## Wave {wave}\n- **Depends On**: None\n"
+                    ));
+                    out.push_str(&block);
+                }
+            }
+
+            spool_core::io::write(&path, out.as_bytes()).map_err(to_cli_error)?;
+            eprintln!("✔ Task {new_id} \"{task_name}\" added to Wave {wave}");
+            Ok(())
+        }
+        "show" => {
+            let path = wf_tasks::tasks_path(spool_path, change_id);
+            let contents = spool_core::io::read_to_string(&path)
+                .map_err(|_| CliError::msg(format!("tasks.md not found for \"{change_id}\"")))?;
+            let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+
+            if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
+            {
+                return Err(CliError::msg(msg));
+            }
+            print!("{contents}");
+            Ok(())
+        }
+        _ => fail(format!("Unknown tasks subcommand '{sub}'")),
+    }
+}
