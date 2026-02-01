@@ -206,4 +206,70 @@ mod tests {
         let s = "pre\n<!-- SPOOL:START -->\nhello\nworld\n\n<!-- SPOOL:END -->\npost\n";
         assert_eq!(extract_managed_block(s), Some("hello\nworld\n"));
     }
+
+    #[test]
+    fn default_project_files_contains_expected_files() {
+        let files = default_project_files();
+        assert!(!files.is_empty());
+
+        let mut has_user_guidance = false;
+        for EmbeddedFile {
+            relative_path,
+            contents,
+        } in files
+        {
+            if relative_path == ".spool/user-guidance.md" {
+                has_user_guidance = true;
+                let contents = std::str::from_utf8(contents).expect("template should be UTF-8");
+                assert!(contents.contains(SPOOL_START_MARKER));
+                assert!(contents.contains(SPOOL_END_MARKER));
+            }
+        }
+
+        assert!(
+            has_user_guidance,
+            "expected .spool/user-guidance.md in templates"
+        );
+    }
+
+    #[test]
+    fn default_home_files_returns_a_vec() {
+        // The default home templates may be empty, but should still be loadable.
+        let _ = default_home_files();
+    }
+
+    #[test]
+    fn normalize_spool_dir_empty_defaults_to_dot_spool() {
+        assert_eq!(normalize_spool_dir(""), ".spool");
+    }
+
+    #[test]
+    fn render_bytes_returns_borrowed_when_no_rewrite_needed() {
+        let b = b"see .spool/AGENTS.md";
+        let out = render_bytes(b, ".spool");
+        assert_eq!(out.as_ref(), b);
+
+        let b = b"no spool path";
+        let out = render_bytes(b, ".x");
+        assert_eq!(out.as_ref(), b);
+    }
+
+    #[test]
+    fn render_bytes_preserves_non_utf8() {
+        let b = [0xff, 0x00, 0x41];
+        let out = render_bytes(&b, ".x");
+        assert_eq!(out.as_ref(), &b);
+    }
+
+    #[test]
+    fn extract_managed_block_rejects_inline_markers() {
+        let s = "pre <!-- SPOOL:START -->\nhello\n<!-- SPOOL:END -->\n";
+        assert_eq!(extract_managed_block(s), None);
+    }
+
+    #[test]
+    fn extract_managed_block_returns_empty_for_empty_inner() {
+        let s = "<!-- SPOOL:START -->\n<!-- SPOOL:END -->\n";
+        assert_eq!(extract_managed_block(s), Some(""));
+    }
 }
