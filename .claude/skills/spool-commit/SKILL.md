@@ -5,16 +5,15 @@ description: Create atomic git commits aligned to Spool changes. Use when you wa
 
 Create atomic git commits aligned to Spool changes.
 
-This skill is intended to be installed by `spool init` so agents can commit work per Spool change in a consistent way.
-
 **Concept:** In Spool-driven workflows, you typically make progress by creating/applying a change. After applying and verifying a change, you should usually create a git commit that corresponds to that change.
 
 **Key behavior**
+
 - Prefer 1 commit per applied Spool change (or a small number of commits if the change is large).
 - Include the Spool change id in the commit message when practical (e.g. `001-02_add-tasks`).
 - Use Spool inspection commands to anchor the commit to what was actually applied.
 
-## Parameters to check
+## Parameters
 
 When invoking this skill, check for these parameters in context:
 
@@ -38,30 +37,15 @@ When invoking this skill, check for these parameters in context:
    - `git status --short`
    - If no changes, stop with: "No changes found to commit"
 
-2. Identify Spool change context
-
-   If `change_id` not provided:
-   - Run `spool list --json`
-   - Use AskUserQuestion to select a change (recommended: most recently modified)
-
-   Then inspect the change:
-    - `spool status --change "<change-id>"`
-    - If available, prefer `--json` and parse it
+2. Identify Spool change context:
+   - If `change_id` not provided, run `spool list --json` and ask user to select
+   - Then inspect the change: `spool status --change "<change-id>"`
 
 3. Confirm the change is in a good commit state:
    - Ensure artifacts/tasks are complete enough that a commit makes sense
    - If the change is unfinished, ask user whether to commit "WIP" or wait
 
-## Commit grouping strategy (Spool-first)
-
-1. Default grouping: **one commit per change**
-   - Use the change id + change name as the primary unit
-
-2. If the change is too large:
-   - Split into 2–3 commits based on task boundaries
-   - Keep each commit independently buildable
-
-## Generate commit message
+## Commit Message Format
 
 Use conventional commit format:
 
@@ -71,39 +55,26 @@ Use conventional commit format:
 - Include Spool change id at end, in parentheses, when practical
 
 Examples:
+
 - `feat(todo): add task model and parsing (001-02_add-task-core)`
 - `fix(storage): persist tasks atomically (002-01_storage-save)`
 
 ## Procedure
 
-1. Read diffs
-   - `git diff`
-   - `git status --short`
+1. Read diffs: `git diff` and `git status --short`
 
-2. Stage files for the selected change
-   - Prefer staging only files touched by that change
-   - If unsure which files belong, use Spool inspection output + git diff to decide
+2. Stage files for the selected change (prefer staging only files touched by that change)
 
-3. Decide commit messages
+3. Decide commit messages:
+   - If `auto_mode` is true: commit immediately
+   - Otherwise: present recommended message + alternatives, ask user to confirm
 
-- If `auto_mode` is true:
-  - Commit immediately: `git commit -m "<message>"`
-
-- If `auto_mode` is false/missing:
-  - Present 1 recommended message + 2 alternatives
-  - Ask user to confirm or provide custom message
-
-4. Verify after each commit
-   - `git status --short`
-   - Optionally run the smallest relevant verification (tests/build) if fast
+4. Verify after each commit: `git status --short`
 
 ## Output
 
 After committing, show:
+
 - Change committed: <change-id>
 - Commit SHA + message (`git log -1 --oneline`)
 - Remaining uncommitted changes (if any)
-
-## Important: auto_mode reset
-
-After this invocation finishes, auto commit behavior must be considered reset. Future operations require explicit `--auto` again.

@@ -3,62 +3,53 @@ name: spool-workflow
 description: Spool workflow delegation - delegates all workflow content to Spool CLI instruction artifacts.
 ---
 
-This skill provides minimal Claude Code integration for Spool workflows. The canonical workflow content is managed by the Spool CLI.
+This skill delegates workflow operations to the Spool CLI.
 
-## Purpose
+**Principle**: The Spool CLI is the source of truth for workflow instructions. Skills should be thin wrappers that invoke the CLI and follow its output.
 
-Spool workflows (proposal, apply, review, archive, etc.) are stored as instruction artifacts managed by the Spool CLI. This skill delegates to those artifacts rather than embedding long policy text.
+## Available CLI Commands
 
-## Bootstrapping
-
-To initialize Spool workflows in Claude Code, use:
+### Change Management
 
 ```bash
-spool agent instruction bootstrap --tool claude
+spool create change "<name>" --module <module-id>
+spool list [--json]
+spool status --change "<change-id>"
 ```
 
-This command returns the canonical preamble and available workflow artifacts.
-
-## When to Use This Skill
-
-Use this skill when:
-- Creating a Spool change proposal
-- Applying an approved change proposal
-- Reviewing changes or implementations
-- Archiving completed changes
-- Managing Spool tasks or specs
-
-## Pattern: Delegate to CLI
-
-For all workflow operations, delegate to the Spool CLI:
+### Agent Instructions
 
 ```bash
-# Example: Create a proposal
-spool agent instruction proposal
-
-# Example: Apply a change
-spool agent instruction apply
-
-# Example: Review a change
-spool agent instruction review
-
-# Example: Archive a change
-spool agent instruction archive
+spool agent instruction proposal --change "<change-id>"
+spool agent instruction specs --change "<change-id>"
+spool agent instruction design --change "<change-id>"
+spool agent instruction tasks --change "<change-id>"
+spool agent instruction apply --change "<change-id>"
+spool agent instruction review --change "<change-id>"
+spool agent instruction archive --change "<change-id>"
 ```
 
-Do NOT embed long workflow instructions in this skill. The CLI instruction artifacts are the single source of truth.
-
-## Quick Reference
-
-Common Spool workflow commands:
+### Task Management
 
 ```bash
-spool list                      # List active changes
-spool list --specs              # List specifications
-spool show <change>             # Display change details
-spool validate <change>         # Validate a change
-spool tasks status <change>     # Show task progress
-spool agent instruction <artifact>  # Get workflow artifact
+spool tasks status <change-id>
+spool tasks next <change-id>
+spool tasks start <change-id> <task-id>
+spool tasks complete <change-id> <task-id>
 ```
 
-See `spool agent instruction --list` for available instruction artifacts.
+## Workflow Pattern
+
+1. Run the appropriate `spool agent instruction` command
+2. Read the output carefully
+3. Follow the printed instructions exactly
+4. Use `spool tasks` to track progress
+
+## Related Skills
+
+- `spool-write-change-proposal` - Create new changes
+- `spool-apply-change-proposal` - Implement changes
+- `spool-review` - Review changes
+- `spool-archive` - Archive completed changes
+- `spool-tasks` - Manage tasks
+- `spool-commit` - Create commits
