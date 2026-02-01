@@ -167,11 +167,13 @@ fn resolve_session_id(spool_path: Option<&Path>) -> String {
     let path = spool_path.join("session.json");
     if let Ok(contents) = std::fs::read_to_string(&path) {
         match serde_json::from_str::<SessionState>(&contents) {
-            Ok(state) => {
-                if !state.session_id.trim().is_empty() {
-                    return state.session_id;
-                }
+            Ok(SessionState {
+                session_id,
+                created_at: _,
+            }) if !session_id.trim().is_empty() => {
+                return session_id;
             }
+            Ok(_) => {}
             Err(e) => {
                 log::debug!("telemetry: failed to parse session.json: {e}");
             }
@@ -253,11 +255,15 @@ fn load_or_create_salt(path: &Path) -> Option<[u8; 32]> {
     Some(out)
 }
 
+#[allow(clippy::match_like_matches_macro)]
 fn logging_disabled() -> bool {
     let Some(v) = std::env::var_os("SPOOL_DISABLE_LOGGING") else {
         return false;
     };
     let v = v.to_string_lossy();
     let v = v.trim().to_ascii_lowercase();
-    matches!(v.as_str(), "1" | "true" | "yes")
+    match v.as_str() {
+        "1" | "true" | "yes" => true,
+        _ => false,
+    }
 }

@@ -101,16 +101,18 @@ pub fn collect_file_bytes(root: &Path) -> BTreeMap<String, Vec<u8>> {
 }
 
 pub fn reset_dir(dst: &Path, src: &Path) -> std::io::Result<()> {
-    if let Ok(entries) = std::fs::read_dir(dst) {
-        for e in entries.flatten() {
-            let p = e.path();
-            if let Ok(ft) = e.file_type() {
-                if ft.is_dir() {
-                    let _ = std::fs::remove_dir_all(&p);
-                } else {
-                    let _ = std::fs::remove_file(&p);
-                }
-            }
+    let Ok(entries) = std::fs::read_dir(dst) else {
+        return copy_dir_all(src, dst);
+    };
+    for e in entries.flatten() {
+        let path = e.path();
+        let Ok(ft) = e.file_type() else {
+            continue;
+        };
+        if ft.is_dir() {
+            let _ = std::fs::remove_dir_all(&path);
+        } else {
+            let _ = std::fs::remove_file(&path);
         }
     }
     copy_dir_all(src, dst)

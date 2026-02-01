@@ -25,10 +25,8 @@ pub enum FsEditError {
 }
 
 fn is_marker_on_own_line(content: &str, marker_index: usize, marker_len: usize) -> bool {
-    // Allow only whitespace between previous newline and marker.
     let bytes = content.as_bytes();
 
-    // Scan left to the previous newline (or start).
     let mut i = marker_index;
     while i > 0 {
         let c = bytes[i - 1];
@@ -41,7 +39,6 @@ fn is_marker_on_own_line(content: &str, marker_index: usize, marker_len: usize) 
         i -= 1;
     }
 
-    // Scan right to next newline (or end).
     let mut j = marker_index + marker_len;
     while j < bytes.len() {
         let c = bytes[j];
@@ -76,54 +73,56 @@ pub fn update_content_with_markers(
     start_marker: &str,
     end_marker: &str,
 ) -> Result<String, MarkerError> {
-    match existing {
-        None => Ok(format!(
+    let Some(existing) = existing else {
+        return Ok(format!(
             "{start}\n{body}\n{end}",
             start = start_marker,
             body = new_block_content,
             end = end_marker
-        )),
-        Some(existing_content) => {
-            let start = find_marker_index(existing_content, start_marker, 0);
-            let end = match start {
-                Some(start_idx) => {
-                    find_marker_index(existing_content, end_marker, start_idx + start_marker.len())
-                }
-                None => find_marker_index(existing_content, end_marker, 0),
-            };
+        ));
+    };
 
-            match (start, end) {
-                (Some(start_idx), Some(end_idx)) => {
-                    if end_idx < start_idx {
-                        return Err(MarkerError::EndBeforeStart {
-                            file_path: file_path.display().to_string(),
-                        });
-                    }
-                    let before = &existing_content[..start_idx];
-                    let after = &existing_content[end_idx + end_marker.len()..];
-                    Ok(format!(
-                        "{before}{start}\n{body}\n{end}{after}",
-                        before = before,
-                        start = start_marker,
-                        body = new_block_content,
-                        end = end_marker,
-                        after = after
-                    ))
-                }
-                (None, None) => Ok(format!(
-                    "{start}\n{body}\n{end}\n\n{rest}",
-                    start = start_marker,
-                    body = new_block_content,
-                    end = end_marker,
-                    rest = existing_content
-                )),
-                (s, e) => Err(MarkerError::MissingMarker {
+    let start = find_marker_index(existing, start_marker, 0);
+    let end = match start {
+        Some(start_idx) => find_marker_index(existing, end_marker, start_idx + start_marker.len()),
+        None => find_marker_index(existing, end_marker, 0),
+    };
+
+    match (start, end) {
+        (Some(start_idx), Some(end_idx)) => {
+            if end_idx < start_idx {
+                return Err(MarkerError::EndBeforeStart {
                     file_path: file_path.display().to_string(),
-                    found_start: s.is_some(),
-                    found_end: e.is_some(),
-                }),
+                });
             }
+            let before = &existing[..start_idx];
+            let after = &existing[end_idx + end_marker.len()..];
+            Ok(format!(
+                "{before}{start}\n{body}\n{end}{after}",
+                before = before,
+                start = start_marker,
+                body = new_block_content,
+                end = end_marker,
+                after = after
+            ))
         }
+        (None, None) => Ok(format!(
+            "{start}\n{body}\n{end}\n\n{rest}",
+            start = start_marker,
+            body = new_block_content,
+            end = end_marker,
+            rest = existing
+        )),
+        (Some(_), None) => Err(MarkerError::MissingMarker {
+            file_path: file_path.display().to_string(),
+            found_start: true,
+            found_end: false,
+        }),
+        (None, Some(_)) => Err(MarkerError::MissingMarker {
+            file_path: file_path.display().to_string(),
+            found_start: false,
+            found_end: true,
+        }),
     }
 }
 

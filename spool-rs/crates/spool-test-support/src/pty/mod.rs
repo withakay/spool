@@ -48,7 +48,11 @@ fn run_pty_with_interactive(
     cmd.cwd(cwd);
     cmd.env("CI", "1");
     cmd.env("NO_COLOR", "1");
-    cmd.env("SPOOL_INTERACTIVE", if interactive { "1" } else { "0" });
+    let interactive_value = match interactive {
+        true => "1",
+        false => "0",
+    };
+    cmd.env("SPOOL_INTERACTIVE", interactive_value);
     cmd.env("TERM", "dumb");
     cmd.env("HOME", home);
     cmd.env("XDG_DATA_HOME", home);
