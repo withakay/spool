@@ -1,10 +1,15 @@
 ---
+name: spool-apply
 description: Implement an approved Spool change and keep tasks in sync.
+category: Spool
+tags: [spool, apply]
 ---
-The user has requested to implement the following change proposal. Follow the Spool skill instructions.
+
+The user has requested to implement the following change proposal.
 <UserRequest>
-  $ARGUMENTS
+$ARGUMENTS
 </UserRequest>
+
 <!-- SPOOL:START -->
 
 Use the Spool agent skill `spool-apply-change-proposal` (alias: `spool-apply`) as the source of truth for this workflow.
@@ -14,6 +19,7 @@ Use the Spool agent skill `spool-apply-change-proposal` (alias: `spool-apply`) a
 - The change ID or implementation request is provided in the prompt arguments or <UserRequest> block.
 
 **Instructions**
+
 Tell the model to use the `spool-apply-change-proposal` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**

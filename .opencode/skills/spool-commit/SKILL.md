@@ -1,12 +1,9 @@
-______________________________________________________________________
-
-## name: spool-commit description: Create atomic git commits aligned to Spool changes. Use when you want to commit work after applying a change, optionally with auto-mode.
+---
+name: spool-commit
+description: Create atomic git commits aligned to Spool changes. Use when you want to commit work after applying a change, optionally with auto-mode.
+---
 
 Create atomic git commits aligned to Spool changes.
-
-Note: This file is installed/updated by Spool (`spool init`, `spool update`) and may be overwritten. Put project-specific guidance in `.spool/user-guidance.md`, `AGENTS.md`, and/or `CLAUDE.md`.
-
-This skill is intended to be installed by `spool init` so agents can commit work per Spool change in a consistent way.
 
 **Concept:** In Spool-driven workflows, you typically make progress by creating/applying a change. After applying and verifying a change, you should usually create a git commit that corresponds to that change.
 
@@ -16,22 +13,19 @@ This skill is intended to be installed by `spool init` so agents can commit work
 - Include the Spool change id in the commit message when practical (e.g. `001-02_add-tasks`).
 - Use Spool inspection commands to anchor the commit to what was actually applied.
 
-## Parameters to check
+## Parameters
 
 When invoking this skill, check for these parameters in context:
 
 - **auto_mode**: boolean flag
-
   - `true`: create commits immediately without asking for confirmation
   - `false` or missing: ask for confirmation of each commit message
   - CRITICAL: this only applies to the current invocation and is reset afterwards
 
 - **change_id**: optional, a Spool change id (recommended)
-
   - If missing, prompt the user to pick from `spool list --json`
 
 - **stacked_mode**: optional boolean
-
   - If `true`, create stacked branches per commit (only if tooling exists)
   - If `false` or missing, commit on current branch
 
@@ -40,39 +34,18 @@ When invoking this skill, check for these parameters in context:
 ## Prerequisites
 
 1. Verify repo has changes:
-
    - `git status --short`
    - If no changes, stop with: "No changes found to commit"
 
-1. Identify Spool change context
+2. Identify Spool change context:
+   - If `change_id` not provided, run `spool list --json` and ask user to select
+   - Then inspect the change: `spool status --change "<change-id>"`
 
-   If `change_id` not provided:
-
-   - Run `spool list --json`
-   - Use AskUserQuestion to select a change (recommended: most recently modified)
-
-   Then inspect the change:
-
-   - `spool status --change "<change-id>"`
-   - If available, prefer `--json` and parse it
-
-1. Confirm the change is in a good commit state:
-
+3. Confirm the change is in a good commit state:
    - Ensure artifacts/tasks are complete enough that a commit makes sense
    - If the change is unfinished, ask user whether to commit "WIP" or wait
 
-## Commit grouping strategy (Spool-first)
-
-1. Default grouping: **one commit per change**
-
-   - Use the change id + change name as the primary unit
-
-1. If the change is too large:
-
-   - Split into 2–3 commits based on task boundaries
-   - Keep each commit independently buildable
-
-## Generate commit message
+## Commit Message Format
 
 Use conventional commit format:
 
@@ -88,30 +61,15 @@ Examples:
 
 ## Procedure
 
-1. Read diffs
+1. Read diffs: `git diff` and `git status --short`
 
-   - `git diff`
-   - `git status --short`
+2. Stage files for the selected change (prefer staging only files touched by that change)
 
-1. Stage files for the selected change
+3. Decide commit messages:
+   - If `auto_mode` is true: commit immediately
+   - Otherwise: present recommended message + alternatives, ask user to confirm
 
-   - Prefer staging only files touched by that change
-   - If unsure which files belong, use Spool inspection output + git diff to decide
-
-1. Decide commit messages
-
-- If `auto_mode` is true:
-
-  - Commit immediately: `git commit -m "<message>"`
-
-- If `auto_mode` is false/missing:
-
-  - Present 1 recommended message + 2 alternatives
-  - Ask user to confirm or provide custom message
-
-4. Verify after each commit
-   - `git status --short`
-   - Optionally run the smallest relevant verification (tests/build) if fast
+4. Verify after each commit: `git status --short`
 
 ## Output
 
@@ -120,7 +78,3 @@ After committing, show:
 - Change committed: <change-id>
 - Commit SHA + message (`git log -1 --oneline`)
 - Remaining uncommitted changes (if any)
-
-## Important: auto_mode reset
-
-After this invocation finishes, auto commit behavior must be considered reset. Future operations require explicit `--auto` again.
