@@ -22,7 +22,8 @@ ______________________________________________________________________
   - `mv spool-proposal spool-write-change-proposal`
 - **Verify**: Directory exists at new path, not at old path
 - **Done When**: Skill directory renamed
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ### Task 1.2: Rename spool-apply to spool-apply-change-proposal
 
@@ -31,7 +32,8 @@ ______________________________________________________________________
   - `mv spool-apply spool-apply-change-proposal`
 - **Verify**: Directory exists at new path, not at old path
 - **Done When**: Skill directory renamed
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -44,7 +46,8 @@ ______________________________________________________________________
   - Update `name` field to `spool-write-change-proposal`
   - Update `description` to: "Use when creating, designing, planning, proposing, specifying a feature, change, requirement, enhancement, fix, modification, or spec. Use when writing tasks, proposals, or specifications for new work."
 - **Done When**: Frontmatter updated with new name and keyword-rich description
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ### Task 2.2: Update spool-apply-change-proposal SKILL.md
 
@@ -53,7 +56,8 @@ ______________________________________________________________________
   - Update `name` field to `spool-apply-change-proposal`
   - Update `description` to: "Use when implementing, executing, applying, building, coding, or developing a feature, change, requirement, enhancement, fix, or modification. Use when running tasks from a spec or proposal."
 - **Done When**: Frontmatter updated with new name and keyword-rich description
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -66,7 +70,8 @@ ______________________________________________________________________
   - Update routing to target `spool-write-change-proposal` and `spool-apply-change-proposal`
   - Keep short aliases working: `proposal` → `spool-write-change-proposal`, `apply` → `spool-apply-change-proposal`
 - **Done When**: Router uses new skill names
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -80,7 +85,8 @@ ______________________________________________________________________
   - Replace `spool-apply` with `spool-apply-change-proposal`
 - **Verify**: `grep -r "spool-proposal\|spool-apply" spool-rs/crates/spool-templates/assets/default/project/.opencode/skills/` returns no results (except router aliases)
 - **Done When**: All references updated
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ### Task 4.2: Update 013-12 and 013-13 proposals
 
@@ -88,7 +94,8 @@ ______________________________________________________________________
 - **Action**:
   - Update all references to use new skill names
 - **Done When**: Proposals reference new names
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [-] shelved
 
 ______________________________________________________________________
 
@@ -102,7 +109,8 @@ ______________________________________________________________________
   - Grep for old names to ensure none remain
 - **Verify**: `grep -r "spool-proposal\|spool-apply" spool-rs/` returns only router alias mentions
 - **Done When**: All tests pass, no stray old references
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ______________________________________________________________________
 

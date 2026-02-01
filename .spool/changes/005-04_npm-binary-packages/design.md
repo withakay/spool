@@ -36,5 +36,13 @@ Npm package versions MUST match the released Spool version so that `npm install`
 
 ## Open Questions
 
-- Exact npm package name(s) and scope (org-scoped vs unscoped).
-- Whether to publish via a dedicated workflow or as part of the GitHub Release workflow.
+- **Package naming**: use the scoped meta package `@withakay/spool` plus platform packages:
+  - `@withakay/spool-darwin-x64`
+  - `@withakay/spool-darwin-arm64`
+  - `@withakay/spool-linux-x64`
+  - `@withakay/spool-linux-arm64`
+  - `@withakay/spool-win32-x64`
+
+- **In-scope targets (v1)**: match the GitHub Release artifacts (macOS x64/arm64, Linux x64/arm64, Windows x64).
+
+- **Publish pipeline**: publish from the Release workflow on tag pushes, gated behind `NPM_TOKEN`.

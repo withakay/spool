@@ -77,8 +77,8 @@ spool tasks complete 003-02_crate-code-quality-audit 1.1
   - Remove duplicate tests
 - **Verify**: `cargo test -p spool-templates && cargo llvm-cov -p spool-templates --summary-only`
 - **Done When**: Code simplified, coverage >= 80%
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ### Task 2.2: Simplify and test spool-workflow
 
@@ -92,8 +92,8 @@ spool tasks complete 003-02_crate-code-quality-audit 1.1
   - Remove duplicate tests
 - **Verify**: `cargo test -p spool-workflow && cargo llvm-cov -p spool-workflow --summary-only`
 - **Done When**: Code simplified, coverage >= 80%
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ---
 
@@ -111,8 +111,8 @@ spool tasks complete 003-02_crate-code-quality-audit 1.1
   - Target 80%+ coverage
 - **Verify**: `cargo test -p spool-schemas && cargo llvm-cov -p spool-schemas --summary-only`
 - **Done When**: Code simplified, coverage >= 80%
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ### Task 3.2: Simplify and test spool-harness
 
@@ -125,8 +125,8 @@ spool tasks complete 003-02_crate-code-quality-audit 1.1
   - Target 80%+ coverage
 - **Verify**: `cargo test -p spool-harness && cargo llvm-cov -p spool-harness --summary-only`
 - **Done When**: Code simplified, coverage >= 80%
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ---
 
@@ -156,8 +156,8 @@ spool tasks complete 003-02_crate-code-quality-audit 1.1
   - Each command module should be <500 lines
 - **Verify**: `cargo build -p spool-cli && cargo test -p spool-cli`
 - **Done When**: main.rs < 300 lines, all commands in separate modules, all tests pass
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [x] complete
 
 ---
 
@@ -178,8 +178,8 @@ spool tasks complete 003-02_crate-code-quality-audit 1.1
   - Remove duplicate tests
 - **Verify**: `cargo test -p spool-core && cargo llvm-cov -p spool-core --summary-only`
 - **Done When**: Code simplified, all files <1000 lines, coverage >= 80%
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-01
+- **Status**: [ ] in-progress
 
 ### Task 5.2: Simplify and test spool-cli
 
@@ -205,7 +205,7 @@ spool tasks complete 003-02_crate-code-quality-audit 1.1
 ### Task 6.1: Verify overall coverage target
 
 - **Files**: All crates
-- **Dependencies**: Tasks 5.1, 5.2
+- **Dependencies**: Task 5.1, Task 5.2
 - **Action**:
   - Run full workspace coverage report
   - Verify overall coverage >= 80%
