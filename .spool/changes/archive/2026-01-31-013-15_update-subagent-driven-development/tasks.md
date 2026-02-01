@@ -23,7 +23,7 @@ ______________________________________________________________________
   - e.g., `superpowers:verification-before-completion` → `spool-verification-before-completion`
 - **Verify**: `grep -i superpowers spool-skills/skills/subagent-driven-development/SKILL.md` returns no results
 - **Done When**: No superpowers references remain
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.2: Replace executing-plans references
 
@@ -32,7 +32,7 @@ ______________________________________________________________________
   - Replace `executing-plans` with `spool-apply-change-proposal`
 - **Verify**: `grep executing-plans spool-skills/skills/subagent-driven-development/SKILL.md` returns no results
 - **Done When**: No executing-plans references remain
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.3: Replace writing-plans references
 
@@ -41,7 +41,7 @@ ______________________________________________________________________
   - Replace `writing-plans` with `spool-write-change-proposal`
 - **Verify**: `grep writing-plans spool-skills/skills/subagent-driven-development/SKILL.md` returns no results
 - **Done When**: No writing-plans references remain
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -54,7 +54,7 @@ ______________________________________________________________________
   - Replace `docs/plans/` references with `.spool/changes/<id>/tasks.md`
 - **Verify**: `grep "docs/plans" spool-skills/skills/subagent-driven-development/SKILL.md` returns no results
 - **Done When**: No docs/plans references remain
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.2: Replace TodoWrite with spool tasks CLI
 
@@ -64,7 +64,7 @@ ______________________________________________________________________
   - Update any task tracking examples
 - **Verify**: `grep -i todowrite spool-skills/skills/subagent-driven-development/SKILL.md` returns no results
 - **Done When**: No TodoWrite references remain
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.3: Update subagent context
 
@@ -72,7 +72,7 @@ ______________________________________________________________________
 - **Action**:
   - Update subagent prompt to use `spool agent instruction apply --change <id>` for context
 - **Done When**: Subagent context uses spool CLI
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -85,7 +85,7 @@ ______________________________________________________________________
   - Copy updated skill from `spool-skills/skills/subagent-driven-development/SKILL.md`
 - **Verify**: Files match
 - **Done When**: Embedded template updated
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -96,7 +96,7 @@ ______________________________________________________________________
 - **Action**:
   - `grep -E "superpowers:|executing-plans|writing-plans|docs/plans|TodoWrite" spool-skills/skills/subagent-driven-development/SKILL.md`
 - **Done When**: Grep returns no results
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 

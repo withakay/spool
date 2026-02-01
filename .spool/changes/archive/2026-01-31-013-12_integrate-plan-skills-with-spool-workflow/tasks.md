@@ -22,7 +22,7 @@ ______________________________________________________________________
   - Add "report and wait for feedback" between batches
   - Document checkpoint flow
 - **Done When**: spool-apply-change-proposal describes batch execution with review checkpoints
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.2: Add critical review step to spool-apply-change-proposal
 
@@ -32,7 +32,7 @@ ______________________________________________________________________
   - Document raising concerns before starting
   - Require user confirmation or no concerns to proceed
 - **Done When**: spool-apply-change-proposal includes critical review before execution
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.3: Add stop conditions to spool-apply-change-proposal
 
@@ -42,7 +42,7 @@ ______________________________________________________________________
   - List blockers: missing dependency, test fails, unclear instruction, repeated verification failure
   - Emphasize: stop and ask rather than guess
 - **Done When**: spool-apply-change-proposal has explicit stop conditions
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.4: Add completion handoff to spool-apply-change-proposal
 
@@ -51,7 +51,7 @@ ______________________________________________________________________
   - Add handoff to `spool-finishing-a-development-branch` after all tasks complete
   - Document the transition
 - **Done When**: spool-apply-change-proposal hands off to completion skill
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.5: Add branch safety check to spool-apply-change-proposal
 
@@ -60,7 +60,7 @@ ______________________________________________________________________
   - Add check for main/master branch
   - Require explicit consent before proceeding on protected branch
 - **Done When**: spool-apply-change-proposal warns about protected branches
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -74,7 +74,7 @@ ______________________________________________________________________
   - Remove `superpowers:` prefix from any skill references
 - **Verify**: `grep -E "executing-plans|superpowers:" spool-skills/skills/writing-plans/SKILL.md` returns no results
 - **Done When**: writing-plans points to spool-apply-change-proposal
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.2: Update subagent-driven-development references
 
@@ -85,7 +85,7 @@ ______________________________________________________________________
   - Update to modern skill names
 - **Verify**: `grep -E "executing-plans|superpowers:" spool-skills/skills/subagent-driven-development/SKILL.md` returns no results
 - **Done When**: No legacy references remain
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -98,7 +98,7 @@ ______________________________________________________________________
   - Remove entire directory
 - **Verify**: `ls spool-skills/skills/executing-plans` fails
 - **Done When**: Directory deleted
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 3.2: Delete executing-plans from embedded templates
 
@@ -107,7 +107,7 @@ ______________________________________________________________________
   - Remove entire directory
 - **Verify**: `ls spool-rs/crates/spool-templates/assets/default/project/.opencode/skills/spool-executing-plans` fails
 - **Done When**: Directory deleted
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 3.3: Remove executing-plans from distribution.rs
 
@@ -116,7 +116,7 @@ ______________________________________________________________________
   - Remove `"executing-plans"` from SPOOL_SKILLS array
 - **Verify**: `grep executing-plans spool-rs/crates/spool-core/src/distribution.rs` returns no results
 - **Done When**: executing-plans removed from distribution
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -128,7 +128,7 @@ ______________________________________________________________________
   - Run `cargo build --workspace`
   - Run `cargo test --workspace`
 - **Done When**: All tests pass
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 

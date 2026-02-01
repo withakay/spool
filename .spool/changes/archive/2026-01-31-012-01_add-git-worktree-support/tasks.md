@@ -31,7 +31,7 @@ ______________________________________________________________________
 - **Verify**: N/A
 - **Done When**: Design explicitly names the Mise local config file to support by default
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] out-of-scope (skill-based approach adopted instead)
 
 ### Task 1.2: Add global config keys for worktree defaults
 
@@ -43,7 +43,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: Defaults exist and can be loaded without breaking older configs
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] out-of-scope (skill-based approach adopted instead)
 
 ### Task 1.3: Emit worktree-aware apply instructions
 
@@ -56,7 +56,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: Apply instructions clearly instruct the agent to operate in the change worktree directory
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] out-of-scope (skill-based approach adopted instead)
 
 ______________________________________________________________________
 
@@ -74,7 +74,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: `spool init` can set up worktree layout without duplicating worktrees
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] out-of-scope (skill-based approach adopted instead)
 
 ### Task 2.2: Add integration tests for worktree instructions and copying
 
@@ -86,7 +86,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: Tests fail without implementation and pass with it
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] out-of-scope (skill-based approach adopted instead)
 
 ______________________________________________________________________
 
@@ -104,4 +104,4 @@ ______________________________________________________________________
   - Confirm whether Spool should manage ignores via `.git/info/exclude` or leave it as documentation.
 - **Done When**: Proposal is approved for implementation
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed (skill-based approach via using-git-worktrees skill fulfills the intent)

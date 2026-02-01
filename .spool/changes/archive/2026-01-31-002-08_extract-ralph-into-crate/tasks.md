@@ -23,7 +23,7 @@ ______________________________________________________________________
 - **Verify**: N/A
 - **Done When**: Extraction plan is concrete (crate layout + dependency direction)
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.2: Create `spool-ralph` crate and move source files
 
@@ -36,7 +36,7 @@ ______________________________________________________________________
 - **Verify**: `make build`
 - **Done When**: The workspace builds with the new crate present
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.3: Update `spool-cli` to use the new crate
 
@@ -47,7 +47,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: `spool ralph` compiles and runs using the extracted crate
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.4: Move Ralph tests to the new crate
 
@@ -58,7 +58,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: Ralph tests pass from their new location
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.5: Remove Ralph module from `spool-core`
 
@@ -70,7 +70,7 @@ ______________________________________________________________________
 - **Verify**: `make test`
 - **Done When**: `spool-core` no longer contains Ralph code and tests still pass
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ______________________________________________________________________
 
@@ -83,4 +83,4 @@ ______________________________________________________________________
 - **Action**: Review the implementation before proceeding
 - **Done When**: User confirms implementation is correct
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)

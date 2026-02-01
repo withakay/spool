@@ -132,7 +132,7 @@ ______________________________________________________________________
   - Verify preamble appears in agent context (check OpenCode logs or output)
 - **Verify**: Manual observation
 - **Done When**: Ralph loop runs successfully with preamble, agent behavior improved
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ______________________________________________________________________
 
@@ -157,7 +157,7 @@ ______________________________________________________________________
   - Update runner to construct and pass `RalphIterationState`
 - **Verify**: TypeScript compiles without errors
 - **Done When**: Type added, functions updated to use it
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ______________________________________________________________________
 

@@ -23,7 +23,7 @@ ______________________________________________________________________
   - Replace `subagent-driven-development` reference if needed (skill is being updated separately)
 - **Verify**: `grep executing-plans spool-skills/skills/finishing-a-development-branch/SKILL.md` returns no results
 - **Done When**: No executing-plans references
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -37,7 +37,7 @@ ______________________________________________________________________
   - Document: invokes `spool-archive` skill
   - Explain: integrates completed work into spool specs, marks change complete
 - **Done When**: Option 5 documented
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.2: Add spool change detection
 
@@ -47,7 +47,7 @@ ______________________________________________________________________
   - When detected: highlight option 5 as relevant
   - When not detected: note option 5 is not applicable
 - **Done When**: Detection logic documented
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -59,7 +59,7 @@ ______________________________________________________________________
 - **Action**:
   - Copy updated skill from `spool-skills/skills/finishing-a-development-branch/SKILL.md`
 - **Done When**: Embedded template updated
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 

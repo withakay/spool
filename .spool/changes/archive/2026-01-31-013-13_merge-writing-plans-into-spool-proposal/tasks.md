@@ -21,7 +21,7 @@ ______________________________________________________________________
   - Add guidance on bite-sized tasks (2-5 min steps)
   - Explain why small tasks enable verification and steady progress
 - **Done When**: spool-write-change-proposal describes task granularity best practices
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.2: Add TDD flow guidance to spool-write-change-proposal
 
@@ -30,7 +30,7 @@ ______________________________________________________________________
   - Add TDD flow for implementation tasks: failing test → run → implement → run → commit
   - Document why TDD ensures verifiable tasks
 - **Done When**: spool-write-change-proposal includes TDD task structure
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.3: Add task structure best practices to spool-write-change-proposal
 
@@ -39,7 +39,7 @@ ______________________________________________________________________
   - Add guidance: tasks should specify exact file paths, what code to write, exact commands
   - Emphasize tasks should be self-contained and unambiguous
 - **Done When**: spool-write-change-proposal includes task structure guidance
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.4: Add plan header guidance to spool-write-change-proposal
 
@@ -48,7 +48,7 @@ ______________________________________________________________________
   - Add guidance on documenting context: goal, architecture, tech stack
   - Reference how this maps to spool's proposal.md and design.md
 - **Done When**: spool-write-change-proposal includes context documentation guidance
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -62,7 +62,7 @@ ______________________________________________________________________
   - Remove any remaining `superpowers:` prefixes
 - **Verify**: `grep -E "writing-plans|superpowers:" spool-skills/skills/subagent-driven-development/SKILL.md` returns no results
 - **Done When**: No legacy references remain
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -75,7 +75,7 @@ ______________________________________________________________________
   - Remove entire directory
 - **Verify**: `ls spool-skills/skills/writing-plans` fails
 - **Done When**: Directory deleted
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 3.2: Delete writing-plans from embedded templates
 
@@ -84,7 +84,7 @@ ______________________________________________________________________
   - Remove entire directory
 - **Verify**: `ls spool-rs/crates/spool-templates/assets/default/project/.opencode/skills/spool-writing-plans` fails
 - **Done When**: Directory deleted
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 3.3: Remove writing-plans from distribution.rs
 
@@ -93,7 +93,7 @@ ______________________________________________________________________
   - Remove `"writing-plans"` from SPOOL_SKILLS array
 - **Verify**: `grep writing-plans spool-rs/crates/spool-core/src/distribution.rs` returns no results
 - **Done When**: writing-plans removed from distribution
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -105,7 +105,7 @@ ______________________________________________________________________
   - Run `cargo build --workspace`
   - Run `cargo test --workspace`
 - **Done When**: All tests pass
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 

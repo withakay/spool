@@ -83,4 +83,4 @@ ______________________________________________________________________
   - Confirm wording explicitly states ordering is best-effort past 99
 - **Done When**: Human reviewer approves wording and semantics
 - **Updated At**: 2026-01-29
-- **Status**: [ ] pending
+- **Status**: [x] completed

@@ -21,7 +21,7 @@ ______________________________________________________________________
   - Change `name: using-superpowers` to `name: using-spool-skills`
   - Update description to: "Use when discovering, finding, invoking, or loading skills. Ensures skills are invoked BEFORE responding. Establishes skill priority and usage patterns for OpenCode, Claude Code, and Codex."
 - **Done When**: Frontmatter updated
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -35,7 +35,7 @@ ______________________________________________________________________
   - Document: `skill list` to discover skills, `skill load <name>` to invoke
   - Note skill locations: `.opencode/skills/` (project), `~/.config/opencode/skills/` (user)
 - **Done When**: OpenCode instructions added
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.2: Add Claude Code skill instructions
 
@@ -45,7 +45,7 @@ ______________________________________________________________________
   - Document: `mcp_skill` function with `name` parameter
   - Note skill locations: `.claude/skills/` (project)
 - **Done When**: Claude Code instructions added
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.3: Add Codex skill instructions
 
@@ -55,7 +55,7 @@ ______________________________________________________________________
   - Document: read skill files from `.codex/skills/spool-<name>/SKILL.md`
   - Note how Codex discovers and uses skill content
 - **Done When**: Codex instructions added
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.4: Add harness detection guidance
 
@@ -64,7 +64,7 @@ ______________________________________________________________________
   - Add section: "## Detecting Your Harness"
   - Document hints: available tools, environment markers, directory structure
 - **Done When**: Detection guidance added
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -78,7 +78,7 @@ ______________________________________________________________________
   - Replace with `spool-skills` or remove as appropriate
 - **Verify**: `grep -i superpowers spool-skills/skills/using-spool-skills/SKILL.md` returns no results
 - **Done When**: No superpowers references
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -90,7 +90,7 @@ ______________________________________________________________________
 - **Action**:
   - Copy updated skill from `spool-skills/skills/using-spool-skills/SKILL.md`
 - **Done When**: Embedded template updated
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 

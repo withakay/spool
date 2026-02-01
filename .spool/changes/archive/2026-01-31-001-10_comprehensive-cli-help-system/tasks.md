@@ -33,7 +33,7 @@ ______________________________________________________________________
 - **Verify**: `spool agent instruction -h` shows instruction-specific help with artifacts list
 - **Done When**: `spool agent instruction -h` shows `AGENT_INSTRUCTION_HELP` content
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.2: Audit and fix all nested command help routing
 
@@ -53,7 +53,7 @@ ______________________________________________________________________
 - **Verify**: Test `-h` on several subcommands: `spool tasks status -h`, `spool config get -h`
 - **Done When**: All subcommands show their own help when `-h` is passed
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -82,7 +82,7 @@ ______________________________________________________________________
 - **Verify**: The data structure compiles and contains all commands
 - **Done When**: `ALL_HELP` constant defined with all command paths and help texts
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.2: Implement help --all command
 
@@ -96,7 +96,7 @@ ______________________________________________________________________
 - **Verify**: `spool help --all | head -100` shows formatted output
 - **Done When**: `spool help --all` outputs complete CLI reference
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.3: Add --help-all global flag
 
@@ -109,7 +109,7 @@ ______________________________________________________________________
 - **Verify**: `spool --help-all | head -100` shows same output as `spool help --all`
 - **Done When**: Both forms work identically
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.4: Add JSON output for help dump
 
@@ -123,7 +123,7 @@ ______________________________________________________________________
 - **Verify**: `spool help --all --json | jq '.commands[0].name'` returns valid JSON
 - **Done When**: JSON output includes all commands with their options
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -143,7 +143,7 @@ ______________________________________________________________________
 - **Verify**: `spool -h` shows footer hint
 - **Done When**: All help outputs include navigation hints
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 3.2: Update top-level HELP with better option hints
 
@@ -159,7 +159,7 @@ ______________________________________________________________________
 - **Verify**: `spool -h` shows option hints for key commands
 - **Done When**: Top-level help shows inline option hints
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -180,7 +180,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-cli`
 - **Done When**: All new tests pass
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 4.2: Manual validation of help walkthrough
 
@@ -196,7 +196,7 @@ ______________________________________________________________________
 - **Verify**: Manual verification
 - **Done When**: All commands show correct help at every level
 - **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 

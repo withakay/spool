@@ -163,7 +163,7 @@ ______________________________________________________________________
   - Confirm the Makefile defaults match the intended supported workflow.
 - **Done When**: Maintainers approve the deprecation policy and default install behavior.
 - **Updated At**: 2026-01-29
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 

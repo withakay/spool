@@ -20,7 +20,7 @@ ______________________________________________________________________
   - Encode the final decision as requirements (visible commands + hidden deprecated shims)
 - **Verify**: `spool --help` matches the spec after Wave 1
 - **Done When**: the CLI surface is unambiguous and the spec is the single source of truth
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.1: Implement the small stable help surface
 
@@ -34,7 +34,7 @@ ______________________________________________________________________
   - Remove skills from the visible CLI surface
 - **Verify**: `spool --help`
 - **Done When**: help output is consistent and only shows the preferred surface
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.2: Group config and completions (and deprecate old verbs)
 
@@ -48,7 +48,7 @@ ______________________________________________________________________
   - Keep legacy config verbs (`get/set/unset/reset/edit/path`) as hidden deprecated shims pointing to `spool config ...`
 - **Verify**: `spool config --help`, `spool completions --help`
 - **Done When**: new groups work end-to-end; shims still work and warn
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.3: Keep experimental commands isolated under `x-*`
 
@@ -60,7 +60,7 @@ ______________________________________________________________________
   - Flip `status` and `ralph` to stable (visible), make `x-status`/`x-ralph` hidden deprecated aliases
 - **Verify**: `spool --help` shows only the allowed `x-*`
 - **Done When**: experimental UX is consistent and does not pollute the stable help surface
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 1.4: Make `spool update` refresh skills
 
@@ -71,7 +71,7 @@ ______________________________________________________________________
   - Extend update summary output to include skills updates
 - **Verify**: `spool update` prints updated skills count/paths
 - **Done When**: update refreshes skills without requiring explicit CLI skill commands
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ______________________________________________________________________
 
@@ -87,7 +87,7 @@ ______________________________________________________________________
   - Omit hidden deprecated shims
 - **Verify**: `spool completions generate zsh > /tmp/spool.zsh` (and other shells as needed)
 - **Done When**: completion matches the preferred surface and is in sync with help output
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ______________________________________________________________________
 
@@ -102,7 +102,7 @@ ______________________________________________________________________
   - Avoid documenting deprecated shims except as migration notes
 - **Verify**: run scripts locally
 - **Done When**: docs/scripts demonstrate the preferred verb-first surface
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ______________________________________________________________________
 
@@ -115,7 +115,7 @@ ______________________________________________________________________
 - **Action**: run `make lint`, `make test`, `make build`
 - **Verify**: commands succeed
 - **Done When**: all checks pass
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
 
 ### Task 4.2: Validate change artifacts
 
@@ -124,4 +124,4 @@ ______________________________________________________________________
 - **Action**: `spool validate "001-05_rationalize-cli-commands" --strict --no-interactive`
 - **Verify**: validation succeeds
 - **Done When**: validation passes
-- **Status**: [ ] pending
+- **Status**: [-] discarded (obsolete - TypeScript migration)
