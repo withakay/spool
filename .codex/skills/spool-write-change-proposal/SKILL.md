@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## name: spool-write-change-proposal description: Use when creating, designing, planning, proposing, specifying a feature, change, requirement, enhancement, fix, modification, or spec. Use when writing tasks, proposals, or specifications for new work.
+---
+name: spool-write-change-proposal
+description: Use when creating, designing, planning, proposing, or specifying a feature, change, requirement, enhancement, fix, modification, or spec. Use when writing tasks, proposals, specifications, or requirements for new work.
+---
 
 Create or continue a change, then generate proposal/spec/design/tasks using the CLI instruction artifacts.
 
@@ -15,7 +16,7 @@ Create or continue a change, then generate proposal/spec/design/tasks using the 
      spool create change "<change-name>" --module <module-id>
      ```
 
-1. Generate the artifacts (source of truth):
+2. Generate the artifacts (source of truth):
 
    ```bash
    spool agent instruction proposal --change "<change-id>"
@@ -24,4 +25,4 @@ Create or continue a change, then generate proposal/spec/design/tasks using the 
    spool agent instruction tasks --change "<change-id>"
    ```
 
-1. Follow the printed instructions for each artifact exactly.
+3. Follow the printed instructions for each artifact exactly.

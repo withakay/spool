@@ -1,9 +1,13 @@
-______________________________________________________________________
+---
+name: spool-review
+description: Conduct adversarial review via Spool review skill.
+category: Spool
+tags: [spool, review]
+---
 
-## description: Conduct adversarial review via Spool review skill. argument-hint: change-id
-
+Review the following change or scope.
 <UserRequest>
-  (paste change id or review target here)
+$ARGUMENTS
 </UserRequest>
 
 <!-- SPOOL:START -->
@@ -15,6 +19,7 @@ Use the Spool agent skill `spool-review` as the source of truth for this workflo
 - The change ID or review target is provided in the prompt arguments or <UserRequest> block.
 
 **Instructions**
+
 Tell the model to use the `spool-review` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**

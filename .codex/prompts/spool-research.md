@@ -1,10 +1,14 @@
-______________________________________________________________________
+---
+name: spool-research
+description: Conduct Spool research via skills (stack, architecture, features, pitfalls).
+category: Spool
+tags: [spool, research]
+---
 
-## description: Conduct structured research for a Spool change. argument-hint: change-id
-
-<UserRequest>
-  (paste change id or research request here)
-</UserRequest>
+Conduct Spool research for the following topic.
+<Topic>
+$ARGUMENTS
+</Topic>
 
 <!-- SPOOL:START -->
 
@@ -12,9 +16,15 @@ Use the Spool agent skill `spool-research` as the source of truth for this workf
 
 **Input**
 
-- The change ID or research request is provided in the prompt arguments or <UserRequest> block.
+- The research topic is provided in the prompt arguments or <Topic> block. It may include an optional focus (stack, architecture, features, pitfalls).
+
+**Focus**
+
+- If the user specifies one of: stack, architecture, features, pitfalls, follow the skill's focus guidance.
+- If the focus is missing or unclear, ask the user whether they want a single investigation or the full research suite.
 
 **Instructions**
+
 Tell the model to use the `spool-research` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
 **Guardrails**
