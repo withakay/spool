@@ -74,7 +74,7 @@ pub fn count_tasks_markdown(contents: &str) -> (u32, u32) {
             continue;
         }
 
-        // TS: /^[-*]\s+\[[\sx]\]/i and /^[-*]\s+\[x\]/i
+        // TS: /^[-*]\s+\[[\sx]\]/i and /^[-*]\s+[x]/i
         let bytes = t.as_bytes();
         if bytes[0] != b'-' && bytes[0] != b'*' {
             continue;
