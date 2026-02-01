@@ -38,3 +38,45 @@ Keep the Spool task model “loss-minimizing”: preserve fields that don’t ma
 ## Research Files
 
 - `.spool/research/investigations/todo-task-interface-taskwarrior.md`
+
+---
+
+# Research: Clap CLI Improvements
+
+**Date**: 2026-02-01
+**Focus**: Features - reducing boilerplate, making a slick CLI
+
+## Key Finding
+
+The spool CLI is **100% hand-rolled** with zero clap usage. This creates ~900+ lines of unnecessary boilerplate that clap would eliminate.
+
+## Recommendation
+
+**Migrate to clap derive API** - estimated 75% reduction in parsing code and 100% elimination of manual help text.
+
+### Quick Wins
+
+| Feature | Impact | Effort |
+|---------|--------|--------|
+| Derive macros | Eliminate ~400 lines parsing code | Medium |
+| Auto-generated help | Delete ~500 lines help constants | Low |
+| Shell completions | Tab completion for free | Low |
+| Type-safe arguments | Compile-time validation | Free |
+| Colored/styled output | Professional UX | Low |
+
+### Migration Path
+
+1. Add clap dependency
+2. Migrate one command at a time (start with `spool tasks`)
+3. Add `clap_complete` for shell completions
+4. Delete legacy parsing/help code
+
+## Research Files
+
+- `.spool/research/investigations/clap-cli-improvements.md`
+
+## Next Steps
+
+- [ ] Create change proposal for clap migration
+- [ ] Add snapshot tests for current CLI output (regression baseline)
+- [ ] Pilot migration with `spool tasks` command
