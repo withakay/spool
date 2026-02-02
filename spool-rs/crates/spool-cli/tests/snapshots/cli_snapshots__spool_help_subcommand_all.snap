@@ -204,7 +204,7 @@ Options:
 
       --sort <SORT>
           Sort order
-          
+
           [default: recent]
           [possible values: recent, name]
 
@@ -315,7 +315,7 @@ Options:
 
       --type <TYP>
           Type: change, spec, or module
-          
+
           [possible values: change, spec, module]
 
       --strict
@@ -326,7 +326,7 @@ Options:
 
       --concurrency <CONCURRENCY>
           Concurrency (default: 6)
-          
+
           [default: 6]
 
       --no-interactive
@@ -359,7 +359,7 @@ Options:
 
       --type <TYP>
           Type: change or spec
-          
+
           [possible values: change, spec]
 
       --no-interactive
@@ -465,7 +465,7 @@ Options:
 
       --harness <HARNESS>
           Harness to run
-          
+
           [default: opencode]
 
       --model <MODEL>
@@ -473,7 +473,7 @@ Options:
 
       --min-iterations <MIN_ITERATIONS>
           Minimum iterations before stopping
-          
+
           [default: 1]
 
       --max-iterations <MAX_ITERATIONS>
@@ -481,7 +481,7 @@ Options:
 
       --completion-promise <COMPLETION_PROMISE>
           Completion promise token
-          
+
           [default: COMPLETE]
 
       --allow-all
@@ -580,7 +580,7 @@ Usage: spool completions <SHELL>
 Arguments:
   <SHELL>
           Shell type
-          
+
           [possible values: bash, zsh, fish, powershell]
 
 Options:

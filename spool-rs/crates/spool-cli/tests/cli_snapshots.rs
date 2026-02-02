@@ -17,6 +17,13 @@ fn normalize_version(text: String) -> String {
     text.replace(ver, "<VERSION>")
 }
 
+fn normalize_trailing_whitespace(text: String) -> String {
+    text.split('\n')
+        .map(|line| line.trim_end())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 fn snapshot(args: &[&str]) -> String {
     let repo = make_fixture_repo();
     let home = tempfile::tempdir().expect("home");
@@ -26,7 +33,7 @@ fn snapshot(args: &[&str]) -> String {
     assert_eq!(rs.code, 0, "unexpected exit code for args={args:?}");
     assert!(rs.stderr.is_empty(), "unexpected stderr for args={args:?}");
 
-    normalize_version(rs.stdout)
+    normalize_version(normalize_trailing_whitespace(rs.stdout))
 }
 
 #[test]
