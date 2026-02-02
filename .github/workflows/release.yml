@@ -62,7 +62,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-15-intel
             target: x86_64-apple-darwin
             archive: tar.gz
             bin: spool
@@ -99,7 +99,7 @@ jobs:
         run: cargo install cross --locked
 
       - name: Build (cargo)
-        if: !(runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu')
+        if: ${{ !(runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu') }}
         run: |
           set -eu
           cargo build --manifest-path spool-rs/Cargo.toml -p spool-cli --bin spool --release --target "${{ matrix.target }}"
@@ -180,7 +180,7 @@ jobs:
         run: |
           set -eu
           cd out
-          cat *.sha256 > sha256sums.txt
+          cat ./*.sha256 > sha256sums.txt
 
       - name: Create draft release
         env:
@@ -198,7 +198,7 @@ jobs:
     name: Publish npm packages
     needs: [build]
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.NPM_TOKEN != '' }}
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
