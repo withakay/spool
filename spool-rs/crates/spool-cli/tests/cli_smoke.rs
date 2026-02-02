@@ -64,6 +64,41 @@ fn list_show_validate_smoke() {
     let v: serde_json::Value = serde_json::from_str(&out.stdout).expect("list json");
     assert!(v.get("changes").is_some());
 
+    // Verify completed field exists and is true (test change has 1/1 tasks done)
+    let changes = v["changes"].as_array().expect("changes should be array");
+    assert!(!changes.is_empty());
+    let first_change = &changes[0];
+    assert!(
+        first_change.get("completed").is_some(),
+        "completed field should exist"
+    );
+    assert_eq!(
+        first_change["completed"].as_bool(),
+        Some(true),
+        "test change should be completed (1/1 tasks)"
+    );
+
+    // Test --completed filter returns the completed change
+    let out = run_rust_candidate(
+        rust_path,
+        &["list", "--completed", "--json"],
+        repo.path(),
+        home.path(),
+    );
+    assert_eq!(out.code, 0);
+    let v: serde_json::Value = serde_json::from_str(&out.stdout).expect("list completed json");
+    let completed_changes = v["changes"].as_array().expect("changes should be array");
+    assert_eq!(
+        completed_changes.len(),
+        1,
+        "should have exactly one completed change"
+    );
+    assert_eq!(
+        completed_changes[0]["name"].as_str(),
+        Some("000-01_test-change"),
+        "completed change should be test-change"
+    );
+
     let out = run_rust_candidate(
         rust_path,
         &["list", "--specs", "--json"],

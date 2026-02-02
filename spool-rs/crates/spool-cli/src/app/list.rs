@@ -34,6 +34,7 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let want_modules = args.iter().any(|a| a == "--modules");
     let want_json = args.iter().any(|a| a == "--json");
     let want_ready = args.iter().any(|a| a == "--ready");
+    let want_completed = args.iter().any(|a| a == "--completed");
 
     let sort = parse_sort_order(args).unwrap_or("recent");
     let mode = if want_specs {
@@ -133,12 +134,20 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 summaries.retain(|s| s.is_ready());
             }
 
+            // Filter to completed changes if requested
+            if want_completed {
+                summaries.retain(|s| s.completed_tasks == s.total_tasks && s.total_tasks > 0);
+            }
+
             if summaries.is_empty() {
                 if want_json {
                     let rendered =
                         serde_json::to_string_pretty(&serde_json::json!({ "changes": [] }))
                             .expect("json should serialize");
                     println!("{rendered}");
+                } else if want_completed {
+                    println!("No completed changes found.");
+                    println!("Run `spool list` to see all changes.");
                 } else {
                     println!("No active changes found.");
                 }
@@ -167,6 +176,7 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                             total_tasks: s.total_tasks,
                             last_modified: spool_core::list::to_iso_millis(s.last_modified),
                             status: status.to_string(),
+                            completed: s.completed_tasks == s.total_tasks && s.total_tasks > 0,
                         }
                     })
                     .collect();
@@ -204,6 +214,9 @@ pub(crate) fn handle_list_clap(rt: &Runtime, args: &ListArgs) -> CliResult<()> {
     }
     if args.ready {
         argv.push("--ready".to_string());
+    }
+    if args.completed {
+        argv.push("--completed".to_string());
     }
     if args.json {
         argv.push("--json".to_string());

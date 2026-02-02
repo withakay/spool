@@ -257,6 +257,9 @@ Options:
       --ready
           Filter to changes ready for implementation (has proposal, specs, tasks, and pending work)
 
+      --completed
+          Filter to completed changes (all tasks done)
+
       --sort <SORT>
           Sort order
 

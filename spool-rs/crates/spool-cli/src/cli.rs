@@ -668,6 +668,10 @@ pub struct ListArgs {
     #[arg(long)]
     pub ready: bool,
 
+    /// Filter to completed changes (all tasks done)
+    #[arg(long)]
+    pub completed: bool,
+
     /// Sort order
     #[arg(long, value_enum, default_value_t = ListSortOrder::Recent)]
     pub sort: ListSortOrder,

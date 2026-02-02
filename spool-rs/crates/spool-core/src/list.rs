@@ -23,6 +23,8 @@ pub struct ChangeListItem {
     #[serde(rename = "lastModified")]
     pub last_modified: String,
     pub status: String,
+    /// True when all tasks are complete (completed_tasks == total_tasks && total_tasks > 0)
+    pub completed: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]

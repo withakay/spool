@@ -17,4 +17,4 @@
 - [ ] 005-08_migrate-cli-to-clap
 - [ ] 005-09_homebrew-release
 - [x] 005-11_task-repository-pattern
-- [ ] 005-12_change-module-repositories
+- [x] 005-12_change-module-repositories
