@@ -3,6 +3,7 @@ use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
 use spool_core::workflow as core_workflow;
+use spool_domain::changes::ChangeRepository;
 
 pub(crate) fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
@@ -16,12 +17,13 @@ pub(crate) fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let want_json = args.iter().any(|a| a == "--json");
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
-        let changes = core_workflow::list_available_changes(rt.spool_path());
+        let change_repo = ChangeRepository::new(rt.spool_path());
+        let changes = change_repo.list().unwrap_or_default();
         let mut msg = "Missing required option --change".to_string();
         if !changes.is_empty() {
             msg.push_str("\n\nAvailable changes:\n");
             for c in changes {
-                msg.push_str(&format!("  {c}\n"));
+                msg.push_str(&format!("  {}\n", c.id));
             }
         }
         return fail(msg);
@@ -42,12 +44,13 @@ pub(crate) fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 return fail("Invalid change name");
             }
             Err(core_workflow::WorkflowError::ChangeNotFound(name)) => {
-                let changes = core_workflow::list_available_changes(spool_path);
+                let change_repo = ChangeRepository::new(spool_path);
+                let changes = change_repo.list().unwrap_or_default();
                 let mut msg = format!("Change '{name}' not found");
                 if !changes.is_empty() {
                     msg.push_str("\n\nAvailable changes:\n");
                     for c in changes {
-                        msg.push_str(&format!("  {c}\n"));
+                        msg.push_str(&format!("  {}\n", c.id));
                     }
                 }
                 return fail(msg);

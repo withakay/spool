@@ -5,6 +5,7 @@ use clap::CommandFactory;
 use spool_core::config::ConfigContext;
 use spool_core::paths as core_paths;
 use spool_core::workflow as core_workflow;
+use spool_domain::changes::ChangeRepository;
 use std::path::Path;
 
 pub(crate) fn schema_not_found_message(ctx: &ConfigContext, name: &str) -> String {
@@ -53,10 +54,8 @@ pub(crate) fn detect_item_type(rt: &Runtime, item: &str) -> String {
     let spool_path = rt.spool_path();
     let idx = rt.repo_index();
 
-    let is_change = idx.change_dir_names.iter().any(|n| n == item)
-        && core_paths::change_dir(spool_path, item)
-            .join("proposal.md")
-            .exists();
+    let change_repo = ChangeRepository::new(spool_path);
+    let is_change = change_repo.exists(item);
     let is_spec = idx.spec_dir_names.iter().any(|n| n == item)
         && core_paths::spec_markdown_path(spool_path, item).exists();
     match (is_change, is_spec) {
@@ -72,7 +71,11 @@ pub(crate) fn list_spec_ids(rt: &Runtime) -> Vec<String> {
 }
 
 pub(crate) fn list_change_ids(rt: &Runtime) -> Vec<String> {
-    list_change_ids_from_index(rt.spool_path(), rt.repo_index())
+    let change_repo = ChangeRepository::new(rt.spool_path());
+    change_repo
+        .list()
+        .map(|changes| changes.into_iter().map(|c| c.id).collect())
+        .unwrap_or_default()
 }
 
 pub(crate) fn list_candidate_items(rt: &Runtime) -> Vec<String> {
@@ -90,23 +93,6 @@ pub(crate) fn list_spec_ids_from_index(
     for id in &idx.spec_dir_names {
         if specs_dir.join(id).join("spec.md").exists() {
             ids.push(id.clone());
-        }
-    }
-    ids.sort();
-    ids
-}
-
-pub(crate) fn list_change_ids_from_index(
-    spool_path: &Path,
-    idx: &spool_core::repo_index::RepoIndex,
-) -> Vec<String> {
-    let mut ids: Vec<String> = Vec::new();
-    for name in &idx.change_dir_names {
-        if core_paths::change_dir(spool_path, name)
-            .join("proposal.md")
-            .exists()
-        {
-            ids.push(name.clone());
         }
     }
     ids.sort();

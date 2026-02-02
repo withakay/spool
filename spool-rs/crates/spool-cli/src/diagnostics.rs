@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use spool_core::validate::ValidationIssue;
-use spool_workflow::tasks::{DiagnosticLevel, TaskDiagnostic};
+use spool_domain::tasks::{DiagnosticLevel, TaskDiagnostic};
 
 pub fn format_path_line(path: &Path, line: Option<usize>) -> String {
     match line {
@@ -50,7 +50,7 @@ mod tests {
     use std::path::Path;
 
     use spool_core::validate::ValidationIssue;
-    use spool_workflow::tasks::{DiagnosticLevel, TaskDiagnostic};
+    use spool_domain::tasks::{DiagnosticLevel, TaskDiagnostic};
 
     #[test]
     fn format_path_line_includes_optional_line_number() {

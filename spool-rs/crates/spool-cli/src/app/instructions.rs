@@ -3,6 +3,7 @@ use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
 use spool_core::workflow as core_workflow;
+use spool_domain::changes::ChangeRepository;
 
 pub(crate) fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
@@ -27,7 +28,16 @@ pub(crate) fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()
     });
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
-        return fail("Missing required option --change");
+        let change_repo = ChangeRepository::new(rt.spool_path());
+        let changes = change_repo.list().unwrap_or_default();
+        let mut msg = "Missing required option --change".to_string();
+        if !changes.is_empty() {
+            msg.push_str("\n\nAvailable changes:\n");
+            for c in changes {
+                msg.push_str(&format!("  {}\n", c.id));
+            }
+        }
+        return fail(msg);
     }
     let change = change.expect("checked above");
     let schema = parse_string_flag(args, "--schema");
@@ -226,7 +236,16 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
 
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
-        return fail("Missing required option --change");
+        let change_repo = ChangeRepository::new(rt.spool_path());
+        let changes = change_repo.list().unwrap_or_default();
+        let mut msg = "Missing required option --change".to_string();
+        if !changes.is_empty() {
+            msg.push_str("\n\nAvailable changes:\n");
+            for c in changes {
+                msg.push_str(&format!("  {}\n", c.id));
+            }
+        }
+        return fail(msg);
     }
     let change = change.expect("checked above");
     let schema = parse_string_flag(args, "--schema");

@@ -1,7 +1,7 @@
 use crate::cli::{StateAction, StateArgs};
 use crate::cli_error::{CliError, CliResult, to_cli_error};
 use crate::runtime::Runtime;
-use spool_workflow::state as wf_state;
+use spool_domain::state as wf_state;
 
 pub(crate) fn handle_state_clap(rt: &Runtime, args: &StateArgs) -> CliResult<()> {
     let Some(action) = &args.action else {

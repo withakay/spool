@@ -96,7 +96,7 @@ fn snapshot_init_help() {
 
 #[test]
 fn snapshot_workflow_help() {
-    insta::assert_snapshot!("spool_workflow_help", snapshot(&["workflow", "--help"]));
+    insta::assert_snapshot!("spool_domain_help", snapshot(&["workflow", "--help"]));
 }
 
 #[test]

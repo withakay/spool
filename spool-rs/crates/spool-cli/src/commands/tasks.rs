@@ -3,7 +3,7 @@ use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::diagnostics;
 use crate::runtime::Runtime;
 use spool_core::paths as core_paths;
-use spool_workflow::tasks as wf_tasks;
+use spool_domain::tasks as wf_tasks;
 
 pub(crate) fn handle_tasks_clap(rt: &Runtime, args: &TasksArgs) -> CliResult<()> {
     let Some(action) = &args.action else {

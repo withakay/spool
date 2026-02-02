@@ -3,8 +3,8 @@ use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use chrono::{DateTime, Utc};
 use spool_core::paths as core_paths;
-use spool_workflow::changes::{ChangeRepository, ChangeStatus};
-use spool_workflow::modules::ModuleRepository;
+use spool_domain::changes::{ChangeRepository, ChangeStatus};
+use spool_domain::modules::ModuleRepository;
 
 #[derive(Debug, serde::Serialize)]
 struct ModulesResponse {

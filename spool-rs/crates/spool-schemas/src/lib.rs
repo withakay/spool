@@ -1,7 +1,7 @@
 //! Serde models for Spool's on-disk formats.
 //!
 //! This crate exists to keep YAML/JSON schema structs shared across crates
-//! (e.g. `spool-workflow`, `spool-core`, `spool-cli`).
+//! (e.g. `spool-domain`, `spool-core`, `spool-cli`).
 
 pub mod workflow;
 pub mod workflow_plan;

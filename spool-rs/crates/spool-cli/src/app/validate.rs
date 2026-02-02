@@ -4,6 +4,7 @@ use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
 use spool_core::paths as core_paths;
 use spool_core::{r#match::nearest_matches, validate as core_validate};
+use spool_domain::changes::ChangeRepository;
 use std::path::Path;
 
 pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
@@ -358,8 +359,8 @@ pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
             Ok(())
         }
         "change" => {
-            let proposal = core_paths::change_dir(spool_path, &item).join("proposal.md");
-            if !proposal.exists() {
+            let change_repo = ChangeRepository::new(spool_path);
+            if !change_repo.exists(&item) {
                 let candidates = super::common::list_change_ids(rt);
                 let suggestions = nearest_matches(&item, &candidates, 5);
                 return fail(super::common::unknown_with_suggestions(

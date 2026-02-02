@@ -1,7 +1,7 @@
 use crate::cli::{WorkflowAction, WorkflowArgs};
 use crate::cli_error::{CliError, CliResult, to_cli_error};
 use crate::runtime::Runtime;
-use spool_workflow::workflow as wf_workflow;
+use spool_domain::workflow as wf_workflow;
 
 pub(crate) fn handle_workflow_clap(rt: &Runtime, args: &WorkflowArgs) -> CliResult<()> {
     let Some(action) = &args.action else {

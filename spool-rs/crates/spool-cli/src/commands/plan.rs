@@ -1,7 +1,7 @@
 use crate::cli::{PlanAction, PlanArgs};
 use crate::cli_error::{CliError, CliResult, to_cli_error};
 use crate::runtime::Runtime;
-use spool_workflow::planning as wf_planning;
+use spool_domain::planning as wf_planning;
 
 pub(crate) fn handle_plan_clap(rt: &Runtime, args: &PlanArgs) -> CliResult<()> {
     let Some(action) = &args.action else {

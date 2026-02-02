@@ -27,7 +27,7 @@ spool-logging = { path = "../spool-logging" }
 spool-fs = { path = "../spool-fs" }
 spool-templates = { path = "../spool-templates" }
 chrono = { workspace = true }
-spool-workflow = { path = "../spool-workflow" }
+spool-domain = { path = "../spool-domain" }
 spool-schemas = { path = "../spool-schemas" }
 spool-harness = { path = "../spool-harness" }
 

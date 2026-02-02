@@ -3,7 +3,9 @@ use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
 use spool_core::paths as core_paths;
-use spool_core::{r#match::nearest_matches, show as core_show, validate as core_validate};
+use spool_core::{r#match::nearest_matches, show as core_show};
+use spool_domain::changes::ChangeRepository;
+use spool_domain::modules::ModuleRepository;
 
 pub(crate) fn handle_show(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
@@ -130,14 +132,12 @@ pub(crate) fn handle_show(rt: &Runtime, args: &[String]) -> CliResult<()> {
             Ok(())
         }
         "change" => {
+            let change_repo = ChangeRepository::new(spool_path);
+            if !change_repo.exists(&item) {
+                return fail(format!("Change '{item}' not found"));
+            }
             let change_path = core_paths::change_dir(spool_path, &item);
             let proposal_path = change_path.join("proposal.md");
-            if !proposal_path.exists() {
-                return fail(format!(
-                    "Change '{item}' not found at {}",
-                    proposal_path.display()
-                ));
-            }
             if want_json {
                 let mut files: Vec<core_show::DeltaSpecFile> = Vec::new();
                 let paths =
@@ -260,12 +260,11 @@ fn handle_show_module(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
     let spool_path = rt.spool_path();
 
-    let resolved = core_validate::resolve_module(spool_path, &module_id).map_err(to_cli_error)?;
-    let Some(m) = resolved else {
-        return fail(format!("Module '{module_id}' not found"));
-    };
+    let module_repo = ModuleRepository::new(spool_path);
+    let module = module_repo.get(&module_id).map_err(to_cli_error)?;
 
-    let md = spool_core::io::read_to_string_or_default(&m.module_md);
+    let module_md_path = module.path.join("module.md");
+    let md = spool_core::io::read_to_string_or_default(&module_md_path);
     print!("{md}");
 
     Ok(())

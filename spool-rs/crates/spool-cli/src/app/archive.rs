@@ -2,6 +2,8 @@ use crate::cli::ArchiveArgs;
 use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use spool_core::paths as core_paths;
+use spool_domain::changes::ChangeRepository;
+use spool_domain::tasks::TaskRepository;
 
 pub(crate) fn handle_archive(rt: &Runtime, args: &[String]) -> CliResult<()> {
     use spool_core::archive;
@@ -33,17 +35,18 @@ pub(crate) fn handle_archive(rt: &Runtime, args: &[String]) -> CliResult<()> {
         .map(|s| s.as_str());
 
     // If no change specified, list available changes and prompt for selection
+    let change_repo = ChangeRepository::new(spool_path);
     let change_name = if let Some(name) = change_name {
         name.to_string()
     } else {
-        let available = archive::list_available_changes(spool_path).map_err(to_cli_error)?;
+        let available = change_repo.list().unwrap_or_default();
         if available.is_empty() {
             return fail("No changes found to archive.");
         }
 
         println!("Available changes:");
-        for (idx, name) in available.iter().enumerate() {
-            println!("  {}. {}", idx + 1, name);
+        for (idx, change) in available.iter().enumerate() {
+            println!("  {}. {}", idx + 1, change.id);
         }
         println!();
 
@@ -53,40 +56,35 @@ pub(crate) fn handle_archive(rt: &Runtime, args: &[String]) -> CliResult<()> {
     };
 
     // Verify change exists
-    if !archive::change_exists(spool_path, &change_name) {
+    if !change_repo.exists(&change_name) {
         return fail(format!("Change '{}' not found", change_name));
     }
 
     // Check task completion unless skipping validation
     if !skip_validation {
-        let tasks_path = core_paths::change_dir(spool_path, &change_name).join("tasks.md");
-        if tasks_path.exists() {
-            let contents = spool_core::io::read_to_string(&tasks_path).map_err(to_cli_error)?;
-            match archive::check_task_completion(&contents) {
-                archive::TaskStatus::HasIncomplete { pending, total } => {
-                    println!(
-                        "Warning: Change has {} incomplete tasks out of {}",
-                        pending, total
-                    );
-                    if !auto_confirm {
-                        println!("Continue with archive anyway? [y/N]: ");
-                        let mut input = String::new();
-                        std::io::stdin()
-                            .read_line(&mut input)
-                            .map_err(|_| CliError::msg("Failed to read input"))?;
-                        let input = input.trim().to_lowercase();
-                        if input != "y" && input != "yes" {
-                            println!("Archive cancelled.");
-                            return Ok(());
-                        }
+        let task_repo = TaskRepository::new(spool_path);
+        let (completed, total) = task_repo.get_task_counts(&change_name).unwrap_or((0, 0));
+        if total > 0 {
+            if completed < total {
+                let pending = total - completed;
+                println!(
+                    "Warning: Change has {} incomplete tasks out of {}",
+                    pending, total
+                );
+                if !auto_confirm {
+                    println!("Continue with archive anyway? [y/N]: ");
+                    let mut input = String::new();
+                    std::io::stdin()
+                        .read_line(&mut input)
+                        .map_err(|_| CliError::msg("Failed to read input"))?;
+                    let input = input.trim().to_lowercase();
+                    if input != "y" && input != "yes" {
+                        println!("Archive cancelled.");
+                        return Ok(());
                     }
                 }
-                archive::TaskStatus::AllComplete => {
-                    eprintln!("✔ All tasks complete");
-                }
-                archive::TaskStatus::NoTasks => {
-                    // No tasks.md or no tasks, proceed
-                }
+            } else {
+                eprintln!("✔ All tasks complete");
             }
         }
     }
