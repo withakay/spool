@@ -125,25 +125,23 @@ fn stream_pipe(
     let mut collected = String::new();
     if let Some(pipe) = pipe {
         let reader = BufReader::new(pipe);
-        for line in reader.lines() {
-            if let Ok(line) = line {
-                // Update last activity time
-                if let Ok(mut last) = last_activity.lock() {
-                    *last = Instant::now();
-                }
-
-                // Stream to console
-                if is_stdout {
-                    println!("{}", line);
-                    let _ = std::io::stdout().flush();
-                } else {
-                    eprintln!("{}", line);
-                    let _ = std::io::stderr().flush();
-                }
-
-                collected.push_str(&line);
-                collected.push('\n');
+        for line in reader.lines().map_while(Result::ok) {
+            // Update last activity time
+            if let Ok(mut last) = last_activity.lock() {
+                *last = Instant::now();
             }
+
+            // Stream to console
+            if is_stdout {
+                println!("{}", line);
+                let _ = std::io::stdout().flush();
+            } else {
+                eprintln!("{}", line);
+                let _ = std::io::stderr().flush();
+            }
+
+            collected.push_str(&line);
+            collected.push('\n');
         }
     }
     collected

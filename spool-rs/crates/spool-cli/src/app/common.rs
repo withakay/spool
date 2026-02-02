@@ -1,12 +1,11 @@
 use crate::cli::Cli;
 use crate::runtime::Runtime;
-use crate::util::parse_string_flag;
 use clap::ColorChoice;
 use clap::CommandFactory;
 use spool_core::config::ConfigContext;
 use spool_core::paths as core_paths;
 use spool_core::workflow as core_workflow;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub(crate) fn schema_not_found_message(ctx: &ConfigContext, name: &str) -> String {
     let schemas = core_workflow::list_available_schemas(ctx);
@@ -140,18 +139,4 @@ pub(crate) fn last_positional(args: &[String]) -> Option<String> {
         last = Some(a.clone());
     }
     last
-}
-
-pub(crate) fn project_root_override_for_init_update(args: &[String]) -> PathBuf {
-    for a in args.iter().skip(1) {
-        if a.starts_with('-') {
-            continue;
-        }
-        return PathBuf::from(a);
-    }
-    PathBuf::from(".")
-}
-
-pub(crate) fn parse_schema_flag(args: &[String]) -> Option<String> {
-    parse_string_flag(args, "--schema")
 }

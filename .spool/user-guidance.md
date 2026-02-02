@@ -27,8 +27,9 @@ Always attempt to make use of subagents to delegate tasks to. Try and use approp
 
 - When a change proposal is implemented (AKA applied) use the `rust-style` skill to ensure that the linting and formatting rules are followed.
 - Ask the @code-simplifier subagent to simplify and refine any Rust code that has been modified as part of the change proposal implementation. This helps ensure that all code adheres to project coding standards and best practices.
+- **Always** run `make check` after applying changes to verify code quality and functionality. `make check` runs tests, linters, and other quality checks to ensure the codebase remains stable.
 
 
 ### Archiving Changes
 
-- When a change proposal is archived increase the patch portion of version string in `Cargo.toml`.
+- When a change proposal is archived run `make version-bump-patch` to increase the patch portion of the version string.

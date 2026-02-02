@@ -2,6 +2,7 @@
 
 MAX_RUST_FILE_LINES ?= 1000
 BUMP ?= none
+RUST_WARNINGS_AS_ERRORS ?= -D warnings
 
 .PHONY: \
 	build test test-watch test-coverage lint check check-max-lines clean help \
@@ -17,7 +18,7 @@ test: ## Run tests
 test-watch: ## Run tests in watch mode (requires cargo-watch)
 	@set -e; \
 	if cargo watch -V >/dev/null 2>&1; then \
-		cargo watch -x "test --manifest-path spool-rs/Cargo.toml --workspace"; \
+		RUSTFLAGS="$(RUST_WARNINGS_AS_ERRORS) $(RUSTFLAGS)" cargo watch -x "test --manifest-path spool-rs/Cargo.toml --workspace"; \
 	else \
 		echo "cargo-watch is not installed."; \
 		echo "Install: cargo install cargo-watch"; \
@@ -27,7 +28,7 @@ test-watch: ## Run tests in watch mode (requires cargo-watch)
 test-coverage: ## Run coverage (requires cargo-llvm-cov)
 	@set -e; \
 	if cargo llvm-cov --version >/dev/null 2>&1; then \
-		cargo llvm-cov --manifest-path spool-rs/Cargo.toml --workspace --tests; \
+		RUSTFLAGS="$(RUST_WARNINGS_AS_ERRORS) $(RUSTFLAGS)" cargo llvm-cov --manifest-path spool-rs/Cargo.toml --workspace --tests; \
 	else \
 		echo "cargo-llvm-cov is not installed."; \
 		echo "Install: cargo install cargo-llvm-cov"; \
@@ -73,16 +74,16 @@ rust-build-release: ## Build Rust spool (release)
 	cargo build --manifest-path spool-rs/Cargo.toml -p spool-cli --bin spool --release
 
 rust-test: ## Run Rust tests
-	cargo test --manifest-path spool-rs/Cargo.toml --workspace
+	RUSTFLAGS="$(RUST_WARNINGS_AS_ERRORS) $(RUSTFLAGS)" cargo test --manifest-path spool-rs/Cargo.toml --workspace
 
 rust-test-coverage: ## Run Rust tests with coverage (fallback to regular tests)
 	@set -e; \
 	if cargo llvm-cov --version >/dev/null 2>&1; then \
-		cargo llvm-cov --manifest-path spool-rs/Cargo.toml --workspace --tests; \
+		RUSTFLAGS="$(RUST_WARNINGS_AS_ERRORS) $(RUSTFLAGS)" cargo llvm-cov --manifest-path spool-rs/Cargo.toml --workspace --tests; \
 	else \
 		echo "cargo-llvm-cov is not installed, falling back to regular tests."; \
 		echo "Install: cargo install cargo-llvm-cov"; \
-		cargo test --manifest-path spool-rs/Cargo.toml --workspace; \
+		RUSTFLAGS="$(RUST_WARNINGS_AS_ERRORS) $(RUSTFLAGS)" cargo test --manifest-path spool-rs/Cargo.toml --workspace; \
 	fi
 
 rust-lint: ## Run Rust fmt/clippy

@@ -150,8 +150,8 @@ pub fn github_manifests(project_root: &Path) -> Vec<FileManifest> {
     for file in commands_files() {
         let rel_path = file.relative_path;
         // Convert spool-apply.md -> spool-apply.prompt.md for GitHub
-        let dest_name = if rel_path.ends_with(".md") {
-            format!("{}.prompt.md", &rel_path[..rel_path.len() - 3])
+        let dest_name = if let Some(stripped) = rel_path.strip_suffix(".md") {
+            format!("{stripped}.prompt.md")
         } else {
             rel_path.to_string()
         };

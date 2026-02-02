@@ -1,6 +1,6 @@
 use spool_core::distribution::{
-    AssetType, FileManifest, claude_manifests, codex_manifests, github_manifests,
-    install_manifests, opencode_manifests,
+    AssetType, claude_manifests, codex_manifests, github_manifests, install_manifests,
+    opencode_manifests,
 };
 use std::path::Path;
 
@@ -181,7 +181,7 @@ fn install_manifests_creates_parent_directories() {
     let td = tempfile::tempdir().unwrap();
     let deep_path = td.path().join("a").join("b").join("c").join(".claude");
 
-    let manifests = claude_manifests(&deep_path.parent().unwrap());
+    let manifests = claude_manifests(deep_path.parent().unwrap());
     install_manifests(&manifests).unwrap();
 
     // Parent directories should be created
