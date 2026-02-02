@@ -1,3 +1,4 @@
+use crate::cli::{ShowArgs, ShowCommand, ShowItemType};
 use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
@@ -6,7 +7,10 @@ use spool_core::{r#match::nearest_matches, show as core_show, validate as core_v
 
 pub(crate) fn handle_show(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::SHOW_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["show"], "spool show")
+        );
         return Ok(());
     }
 
@@ -154,6 +158,59 @@ pub(crate) fn handle_show(rt: &Runtime, args: &[String]) -> CliResult<()> {
         }
         _ => fail("Unhandled show type"),
     }
+}
+
+pub(crate) fn handle_show_clap(rt: &Runtime, args: &ShowArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    if let Some(typ) = args.typ {
+        let s = match typ {
+            ShowItemType::Change => "change",
+            ShowItemType::Spec => "spec",
+        };
+        argv.push("--type".to_string());
+        argv.push(s.to_string());
+    }
+    if args.no_interactive {
+        argv.push("--no-interactive".to_string());
+    }
+    if args.deltas_only {
+        argv.push("--deltas-only".to_string());
+    }
+    if args.requirements_only {
+        argv.push("--requirements-only".to_string());
+    }
+    if args.requirements {
+        argv.push("--requirements".to_string());
+    }
+    if args.no_scenarios {
+        argv.push("--no-scenarios".to_string());
+    }
+    if let Some(idx) = args.requirement {
+        argv.push("--requirement".to_string());
+        argv.push(idx.to_string());
+    }
+
+    match &args.command {
+        Some(ShowCommand::Module(m)) => {
+            argv.push("module".to_string());
+            if m.json {
+                argv.push("--json".to_string());
+            }
+            argv.push(m.module_id.clone());
+            return handle_show(rt, &argv);
+        }
+        None => {}
+    }
+
+    if let Some(item) = &args.item {
+        argv.push(item.clone());
+    }
+
+    handle_show(rt, &argv)
 }
 
 fn ignored_show_flags(

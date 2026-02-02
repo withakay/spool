@@ -1,39 +1,45 @@
-use crate::cli_error::CliResult;
+use crate::cli::{Cli, Commands};
+use crate::cli_error::{CliResult, fail};
 use crate::runtime::Runtime;
 use crate::{commands, util};
+use clap::Parser;
+use clap::error::ErrorKind;
 
 pub(super) fn run(args: &[String]) -> CliResult<()> {
-    // Match Commander: `spool --help` shows top-level help, but `spool <cmd> --help`
-    // shows subcommand help.
-    let first = args.first().map(|s| s.as_str());
-
-    // Handle --help-all global flag
-    if args.iter().any(|a| a == "--help-all") {
-        let filtered: Vec<String> = args
-            .iter()
-            .filter(|a| a.as_str() != "--help-all")
-            .cloned()
-            .collect();
-        return commands::handle_help_all(&filtered);
+    // Match TS behavior: `--no-color` sets NO_COLOR=1 globally before command execution.
+    if args.iter().any(|a| a == "--no-color") {
+        // Rust 1.93+ marks `set_var` unsafe due to potential UB when racing with
+        // other threads reading the environment. We do this before any command
+        // execution or thread spawning.
+        unsafe {
+            std::env::set_var("NO_COLOR", "1");
+        }
     }
 
-    // Handle help command with possible --all flag
-    if first == Some("help") {
-        return commands::handle_help(&args[1..]);
-    }
+    let mut argv: Vec<String> = Vec::with_capacity(args.len() + 1);
+    argv.push("spool".to_string());
+    argv.extend(args.iter().cloned());
 
-    let looks_like_global_help = args.is_empty() || matches!(first, Some("--help") | Some("-h"));
-    if looks_like_global_help {
-        println!("{}", super::help::HELP);
-        println!();
-        println!("Run 'spool help --all' for the complete CLI reference.");
-        return Ok(());
-    }
+    let cli = match Cli::try_parse_from(argv) {
+        Ok(v) => v,
+        Err(e) => match e.kind() {
+            ErrorKind::DisplayHelp => {
+                print!("{e}");
+                return Ok(());
+            }
+            ErrorKind::DisplayVersion => {
+                // Match Commander.js behavior: `spool --version` prints the version only.
+                println!("{}", env!("CARGO_PKG_VERSION"));
+                return Ok(());
+            }
+            _ => {
+                return fail(e.to_string());
+            }
+        },
+    };
 
-    if args.len() == 1 && (args[0] == "--version" || args[0] == "-V") {
-        // Match Commander.js default: prints version only.
-        println!("{}", env!("CARGO_PKG_VERSION"));
-        return Ok(());
+    if cli.help_all {
+        return commands::handle_help_all_flags(false);
     }
 
     let rt = Runtime::new();
@@ -42,206 +48,230 @@ pub(super) fn run(args: &[String]) -> CliResult<()> {
     let project_root = util::project_root_for_logging(&rt, args);
     let spool_path_for_logging = util::spool_path_for_logging(&project_root, &rt);
 
-    match args.first().map(|s| s.as_str()) {
-        Some("create") => {
+    match &cli.command {
+        Some(Commands::Help(args)) => {
+            return commands::handle_help_clap(args);
+        }
+        Some(Commands::Completions(args)) => {
+            return commands::handle_completions(args.shell);
+        }
+        Some(Commands::Create(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_create(&rt, &args[1..]),
+                || commands::handle_create_clap(&rt, args),
             );
         }
-        Some("new") => {
+        Some(Commands::New(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_new(&rt, &args[1..]),
+                || commands::handle_new_clap(&rt, args),
             );
         }
-        Some("init") => {
+        Some(Commands::Init(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::init::handle_init(&rt, &args[1..]),
+                || super::init::handle_init_clap(&rt, args),
             );
         }
-        Some("update") => {
+        Some(Commands::Update(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::update::handle_update(&rt, &args[1..]),
+                || super::update::handle_update_clap(&rt, args),
             );
         }
-        Some("list") => {
+        Some(Commands::List(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::list::handle_list(&rt, &args[1..]),
+                || super::list::handle_list_clap(&rt, args),
             );
         }
-        Some("plan") => {
+        Some(Commands::Plan(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_plan(&rt, &args[1..]),
+                || commands::handle_plan_clap(&rt, args),
             );
         }
-        Some("state") => {
+        Some(Commands::State(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_state(&rt, &args[1..]),
+                || commands::handle_state_clap(&rt, args),
             );
         }
-        Some("tasks") => {
+        Some(Commands::Tasks(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_tasks(&rt, &args[1..]),
+                || commands::handle_tasks_clap(&rt, args),
             );
         }
-        Some("workflow") => {
+        Some(Commands::Workflow(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_workflow(&rt, &args[1..]),
+                || commands::handle_workflow_clap(&rt, args),
             );
         }
-        Some("status") => {
+        Some(Commands::Status(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::status::handle_status(&rt, &args[1..]),
+                || super::status::handle_status_clap(&rt, args),
             );
         }
-        Some("stats") => {
+        Some(Commands::Stats(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_stats(&rt, &args[1..]),
+                || commands::handle_stats_clap(&rt, args),
             );
         }
-        Some("config") => {
+        Some(Commands::Config(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_config(&rt, &args[1..]),
+                || commands::handle_config_clap(&rt, args),
             );
         }
-        Some("agent-config") => {
+        Some(Commands::AgentConfig(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || commands::handle_agent_config(&rt, &args[1..]),
+                || commands::handle_agent_config_clap(&rt, args),
             );
         }
-        Some("templates") | Some("x-templates") => {
+        Some(Commands::Templates(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::templates::handle_templates(&rt, &args[1..]),
+                || super::templates::handle_templates_clap(&rt, args),
             );
         }
-        Some("instructions") => {
+        Some(Commands::XTemplates(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::instructions::handle_instructions(&rt, &args[1..]),
+                || super::templates::handle_x_templates_clap(&rt, args),
             );
         }
-        Some("agent") => {
+        Some(Commands::Instructions(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::instructions::handle_agent(&rt, &args[1..]),
+                || super::instructions::handle_instructions_alias_clap(&rt, args),
             );
         }
-        Some("x-instructions") => {
+        Some(Commands::XInstructions(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::instructions::handle_x_instructions(&rt, &args[1..]),
+                || super::instructions::handle_x_instructions_alias_clap(&rt, args),
             );
         }
-        Some("show") => {
+        Some(Commands::Agent(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::show::handle_show(&rt, &args[1..]),
+                || super::instructions::handle_agent_clap(&rt, args),
             );
         }
-        Some("validate") => {
+        Some(Commands::Show(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::validate::handle_validate(&rt, &args[1..]),
+                || super::show::handle_show_clap(&rt, args),
             );
         }
-        Some("ralph") => {
+        Some(Commands::Validate(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::ralph::handle_ralph(&rt, &args[1..]),
+                || super::validate::handle_validate_clap(&rt, args),
             );
         }
-        Some("loop") => {
+        Some(Commands::Ralph(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::ralph::handle_loop(&rt, &args[1..]),
+                || super::ralph::handle_ralph_clap(&rt, args),
             );
         }
-        Some("archive") => {
+        Some(Commands::Loop(args)) => {
             return util::with_logging(
                 &rt,
                 &command_id,
                 &project_root,
                 &spool_path_for_logging,
-                || super::archive::handle_archive(&rt, &args[1..]),
+                || super::ralph::handle_loop_clap(&rt, args),
             );
         }
-        _ => {}
+        Some(Commands::Archive(args)) => {
+            return util::with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || super::archive::handle_archive_clap(&rt, args),
+            );
+        }
+        Some(Commands::Dashboard(_)) => {
+            return fail("dashboard is not implemented in spool-cli yet");
+        }
+        Some(Commands::Split(_)) => {
+            return fail("split is not implemented in spool-cli yet");
+        }
+        Some(Commands::XSchemas(_)) => {
+            return fail("x-schemas is not implemented in spool-cli yet");
+        }
+        None => {}
     }
 
     util::with_logging(
@@ -251,7 +281,7 @@ pub(super) fn run(args: &[String]) -> CliResult<()> {
         &spool_path_for_logging,
         || {
             // Temporary fallback for unimplemented commands.
-            println!("{}", super::help::HELP);
+            println!("{}", super::common::render_command_long_help(&[], "spool"));
             Ok(())
         },
     )

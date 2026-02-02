@@ -1,0 +1,18 @@
+---
+source: crates/spool-cli/tests/cli_snapshots.rs
+expression: "snapshot(&[\"init\", \"--help\"])"
+---
+Initialize Spool in your project
+
+Usage: spool init [OPTIONS] [PATH]
+
+Arguments:
+  [PATH]  Target directory (defaults to current directory)
+
+Options:
+      --no-color       Disable color output
+      --tools <TOOLS>  Configure AI tools non-interactively (all, none, or comma-separated ids)
+  -f, --force          Overwrite existing tool files without prompting
+      --help-all       Print the full CLI reference (equivalent to `spool help --all`)
+      --home <HOME>    Override HOME used for locating global Spool config (for parity/testing)
+  -h, --help           Print help

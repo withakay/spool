@@ -1,3 +1,4 @@
+use crate::cli::StatusArgs;
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
@@ -5,7 +6,10 @@ use spool_core::workflow as core_workflow;
 
 pub(crate) fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::STATUS_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["status"], "spool status")
+        );
         return Ok(());
     }
 
@@ -96,4 +100,20 @@ pub(crate) fn handle_status(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 
     Ok(())
+}
+
+pub(crate) fn handle_status_clap(rt: &Runtime, args: &StatusArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+    if let Some(change) = &args.change {
+        argv.push("--change".to_string());
+        argv.push(change.clone());
+    }
+    if let Some(schema) = &args.schema {
+        argv.push("--schema".to_string());
+        argv.push(schema.clone());
+    }
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    handle_status(rt, &argv)
 }

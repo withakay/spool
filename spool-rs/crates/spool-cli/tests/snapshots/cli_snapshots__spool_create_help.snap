@@ -1,0 +1,16 @@
+---
+source: crates/spool-cli/tests/cli_snapshots.rs
+expression: "snapshot(&[\"create\", \"--help\"])"
+---
+Create items
+
+Usage: spool create [OPTIONS] [COMMAND]
+
+Commands:
+  module  Create a module
+  change  Create a change
+
+Options:
+      --no-color  Disable color output
+      --help-all  Print the full CLI reference (equivalent to `spool help --all`)
+  -h, --help      Print help

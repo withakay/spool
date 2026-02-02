@@ -1,3 +1,4 @@
+use crate::ralph::duration::format_duration;
 use crate::ralph::prompt::{BuildPromptOptions, build_ralph_prompt};
 use crate::ralph::state::{
     RalphHistoryEntry, RalphState, append_context, clear_context, load_context, load_state,
@@ -7,7 +8,7 @@ use miette::{Result, miette};
 use spool_harness::{Harness, HarnessName};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Clone)]
 pub struct RalphOptions {
@@ -24,6 +25,9 @@ pub struct RalphOptions {
     pub status: bool,
     pub add_context: Option<String>,
     pub clear_context: bool,
+    pub verbose: bool,
+    /// Inactivity timeout - restart iteration if no output for this duration.
+    pub inactivity_timeout: Option<Duration>,
 }
 
 pub fn run_ralph(spool_path: &Path, opts: RalphOptions, harness: &mut dyn Harness) -> Result<()> {
@@ -90,6 +94,26 @@ pub fn run_ralph(spool_path: &Path, opts: RalphOptions, harness: &mut dyn Harnes
         return Err(miette!("--max-iterations must be >= 1"));
     }
 
+    // Print startup message so user knows something is happening
+    println!(
+        "\n=== Starting Ralph for {change} (harness: {harness}) ===",
+        change = change_id,
+        harness = harness.name().0
+    );
+    if let Some(model) = &opts.model {
+        println!("Model: {model}");
+    }
+    if let Some(max) = opts.max_iterations {
+        println!("Max iterations: {max}");
+    }
+    if opts.allow_all {
+        println!("Mode: --yolo (auto-approve all)");
+    }
+    if let Some(timeout) = opts.inactivity_timeout {
+        println!("Inactivity timeout: {}", format_duration(timeout));
+    }
+    println!();
+
     for _ in 0..max_iters {
         let iteration = state.iteration.saturating_add(1);
 
@@ -110,6 +134,12 @@ pub fn run_ralph(spool_path: &Path, opts: RalphOptions, harness: &mut dyn Harnes
             },
         )?;
 
+        if opts.verbose {
+            println!("--- Prompt sent to harness ---");
+            println!("{}", prompt);
+            println!("--- End of prompt ---\n");
+        }
+
         let started = std::time::Instant::now();
         let run = harness.run(&spool_harness::HarnessRunConfig {
             prompt,
@@ -117,14 +147,17 @@ pub fn run_ralph(spool_path: &Path, opts: RalphOptions, harness: &mut dyn Harnes
             cwd: std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
             env: std::collections::BTreeMap::new(),
             interactive: opts.interactive && !opts.allow_all,
+            inactivity_timeout: opts.inactivity_timeout,
         })?;
 
-        // Mirror TS harness: pass through output.
-        if !run.stdout.is_empty() {
-            print!("{}", run.stdout);
-        }
-        if !run.stderr.is_empty() {
-            eprint!("{}", run.stderr);
+        // Pass through output if harness didn't already stream it
+        if !harness.streams_output() {
+            if !run.stdout.is_empty() {
+                print!("{}", run.stdout);
+            }
+            if !run.stderr.is_empty() {
+                eprint!("{}", run.stderr);
+            }
         }
 
         // Mirror TS: completion promise is detected from stdout (not stderr).
@@ -136,6 +169,13 @@ pub fn run_ralph(spool_path: &Path, opts: RalphOptions, harness: &mut dyn Harnes
         } else {
             0
         };
+
+        // Handle timeout - log and continue to next iteration
+        if run.timed_out {
+            println!("\n=== Inactivity timeout reached. Restarting iteration... ===\n");
+            // Don't update state for timed out iterations, just retry
+            continue;
+        }
 
         if run.exit_code != 0 {
             return Err(miette!(

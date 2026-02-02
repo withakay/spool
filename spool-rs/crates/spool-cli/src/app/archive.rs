@@ -1,3 +1,4 @@
+use crate::cli::ArchiveArgs;
 use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use spool_core::paths as core_paths;
@@ -6,7 +7,10 @@ pub(crate) fn handle_archive(rt: &Runtime, args: &[String]) -> CliResult<()> {
     use spool_core::archive;
 
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::ARCHIVE_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["archive"], "spool archive")
+        );
         return Ok(());
     }
 
@@ -166,4 +170,21 @@ pub(crate) fn handle_archive(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 
     Ok(())
+}
+
+pub(crate) fn handle_archive_clap(rt: &Runtime, args: &ArchiveArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+    if let Some(change) = &args.change {
+        argv.push(change.clone());
+    }
+    if args.yes {
+        argv.push("-y".to_string());
+    }
+    if args.skip_specs {
+        argv.push("--skip-specs".to_string());
+    }
+    if args.no_validate {
+        argv.push("--no-validate".to_string());
+    }
+    handle_archive(rt, &argv)
 }

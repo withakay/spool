@@ -1,18 +1,66 @@
+use crate::cli::{CreateAction, CreateArgs, NewAction, NewArgs};
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::{parse_string_flag, split_csv};
 use spool_core::{create as core_create, workflow as core_workflow};
 
-pub(crate) const CREATE_HELP: &str = "Usage: spool create <type> [options]\n\nCreate items\n\nTypes:\n  module <name>                 Create a module\n  change <name>                 Create a change\n\nOptions:\n  --schema <name>               Workflow schema name (default: spec-driven)\n  --module <id>                 Module id (default: 000)\n  --description <text>          Description (writes README.md)\n  --scope <capabilities>        Module scope (comma-separated, default: \"*\")\n  --depends-on <modules>        Module dependencies (comma-separated module ids)\n  -h, --help                    display help for command";
+pub(crate) fn handle_create_clap(rt: &Runtime, args: &CreateArgs) -> CliResult<()> {
+    let Some(action) = &args.action else {
+        // Preserve legacy behavior: `spool create` errors.
+        return fail("Missing required argument <type>");
+    };
 
-pub(crate) const NEW_HELP: &str = "Usage: spool new <type> [options]\n\n[Experimental] Create new items\n\nTypes:\n  change <name>                 Create a change\n\nOptions:\n  --schema <name>               Workflow schema name (default: spec-driven)\n  --module <id>                 Module id (default: 000)\n  --description <text>          Description (writes README.md)\n  -h, --help                    display help for command";
+    let forwarded: Vec<String> = match action {
+        CreateAction::Module {
+            name,
+            scope,
+            depends_on,
+        } => {
+            let mut out = vec!["module".to_string()];
+            if let Some(name) = name {
+                out.push(name.clone());
+            }
+            if let Some(scope) = scope {
+                out.push("--scope".to_string());
+                out.push(scope.clone());
+            }
+            if let Some(depends_on) = depends_on {
+                out.push("--depends-on".to_string());
+                out.push(depends_on.clone());
+            }
+            out
+        }
+        CreateAction::Change {
+            name,
+            schema,
+            module,
+            description,
+        } => {
+            let mut out = vec!["change".to_string()];
+            if let Some(name) = name {
+                out.push(name.clone());
+            }
+            if let Some(schema) = schema {
+                out.push("--schema".to_string());
+                out.push(schema.clone());
+            }
+            if let Some(module) = module {
+                out.push("--module".to_string());
+                out.push(module.clone());
+            }
+            if let Some(description) = description {
+                out.push("--description".to_string());
+                out.push(description.clone());
+            }
+            out
+        }
+        CreateAction::External(rest) => rest.clone(),
+    };
+
+    handle_create(rt, &forwarded)
+}
 
 pub(crate) fn handle_create(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{CREATE_HELP}");
-        return Ok(());
-    }
-
     let Some(kind) = args.first().map(|s| s.as_str()) else {
         return fail("Missing required argument <type>");
     };
@@ -102,11 +150,6 @@ pub(crate) fn handle_create(rt: &Runtime, args: &[String]) -> CliResult<()> {
 }
 
 pub(crate) fn handle_new(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{NEW_HELP}");
-        return Ok(());
-    }
-
     let Some(kind) = args.first().map(|s| s.as_str()) else {
         return fail("Missing required argument <type>");
     };
@@ -166,4 +209,40 @@ pub(crate) fn handle_new(rt: &Runtime, args: &[String]) -> CliResult<()> {
         }
         Err(e) => Err(to_cli_error(e)),
     }
+}
+
+pub(crate) fn handle_new_clap(rt: &Runtime, args: &NewArgs) -> CliResult<()> {
+    let Some(action) = &args.action else {
+        return fail("Missing required argument <type>");
+    };
+
+    let forwarded: Vec<String> = match action {
+        NewAction::Change {
+            name,
+            schema,
+            module,
+            description,
+        } => {
+            let mut out = vec!["change".to_string()];
+            if let Some(name) = name {
+                out.push(name.clone());
+            }
+            if let Some(schema) = schema {
+                out.push("--schema".to_string());
+                out.push(schema.clone());
+            }
+            if let Some(module) = module {
+                out.push("--module".to_string());
+                out.push(module.clone());
+            }
+            if let Some(description) = description {
+                out.push("--description".to_string());
+                out.push(description.clone());
+            }
+            out
+        }
+        NewAction::External(rest) => rest.clone(),
+    };
+
+    handle_new(rt, &forwarded)
 }

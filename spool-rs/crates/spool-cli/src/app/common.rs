@@ -1,5 +1,8 @@
+use crate::cli::Cli;
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
+use clap::ColorChoice;
+use clap::CommandFactory;
 use spool_core::config::ConfigContext;
 use spool_core::paths as core_paths;
 use spool_core::workflow as core_workflow;
@@ -12,6 +15,31 @@ pub(crate) fn schema_not_found_message(ctx: &ConfigContext, name: &str) -> Strin
         msg.push_str(&format!(". Available schemas:\n  {}", schemas.join("\n  ")));
     }
     msg
+}
+
+pub(crate) fn render_command_long_help(path: &[&str], bin_name: &str) -> String {
+    let mut cmd = Cli::command();
+    cmd = cmd.color(ColorChoice::Never);
+
+    if path.is_empty() {
+        return cmd.bin_name(bin_name).render_long_help().to_string();
+    }
+
+    let mut current = cmd;
+    for (i, part) in path.iter().enumerate() {
+        let Some(found) = current.find_subcommand_mut(part) else {
+            return format!("Usage: {bin_name}\n\n(Help unavailable)");
+        };
+
+        let mut found = found.clone().color(ColorChoice::Never);
+        if i + 1 == path.len() {
+            found = found.bin_name(bin_name);
+            return found.render_long_help().to_string();
+        }
+        current = found;
+    }
+
+    format!("Usage: {bin_name}\n\n(Help unavailable)")
 }
 
 pub(crate) fn unknown_with_suggestions(kind: &str, item: &str, suggestions: &[String]) -> String {

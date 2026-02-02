@@ -1,3 +1,4 @@
+use crate::cli::UpdateArgs;
 use crate::cli_error::{CliResult, to_cli_error};
 use crate::runtime::Runtime;
 use spool_core::installers::{InitOptions, InstallMode, install_default_templates};
@@ -5,7 +6,10 @@ use std::collections::BTreeSet;
 
 pub(super) fn handle_update(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::UPDATE_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["update"], "spool update")
+        );
         return Ok(());
     }
 
@@ -25,4 +29,15 @@ pub(super) fn handle_update(rt: &Runtime, args: &[String]) -> CliResult<()> {
         .map_err(to_cli_error)?;
 
     Ok(())
+}
+
+pub(crate) fn handle_update_clap(rt: &Runtime, args: &UpdateArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    if let Some(path) = &args.path {
+        argv.push(path.clone());
+    }
+    handle_update(rt, &argv)
 }

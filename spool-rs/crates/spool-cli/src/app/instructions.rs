@@ -1,3 +1,4 @@
+use crate::cli::{AgentArgs, AgentCommand, AgentInstructionArgs, InstructionAliasArgs};
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
@@ -5,7 +6,10 @@ use spool_core::workflow as core_workflow;
 
 pub(crate) fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::INSTRUCTIONS_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["instructions"], "spool instructions")
+        );
         return Ok(());
     }
 
@@ -138,6 +142,13 @@ pub(crate) fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()
 }
 
 pub(crate) fn handle_x_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["x-instructions"], "spool x-instructions")
+        );
+        return Ok(());
+    }
     eprintln!(
         "Warning: \"spool x-instructions\" is deprecated. Use \"spool agent instruction\" instead."
     );
@@ -150,11 +161,17 @@ pub(crate) fn handle_agent(rt: &Runtime, args: &[String]) -> CliResult<()> {
         Some("instruction") => handle_agent_instruction(rt, &args[1..]),
         // Show parent help only if no valid subcommand or explicit help request
         _ if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") => {
-            println!("{}", super::AGENT_HELP);
+            println!(
+                "{}",
+                super::common::render_command_long_help(&["agent"], "spool agent")
+            );
             Ok(())
         }
         _ => {
-            println!("{}", super::AGENT_HELP);
+            println!(
+                "{}",
+                super::common::render_command_long_help(&["agent"], "spool agent")
+            );
             Ok(())
         }
     }
@@ -162,7 +179,13 @@ pub(crate) fn handle_agent(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
 pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::AGENT_INSTRUCTION_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(
+                &["agent", "instruction"],
+                "spool agent instruction",
+            )
+        );
         return Ok(());
     }
     let want_json = args.iter().any(|a| a == "--json");
@@ -275,6 +298,74 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
     print_artifact_instructions_text(&resolved, user_guidance.as_deref());
 
     Ok(())
+}
+
+pub(crate) fn handle_instructions_alias_clap(
+    rt: &Runtime,
+    args: &InstructionAliasArgs,
+) -> CliResult<()> {
+    let argv = instruction_alias_to_argv(args);
+    handle_instructions(rt, &argv)
+}
+
+pub(crate) fn handle_x_instructions_alias_clap(
+    rt: &Runtime,
+    args: &InstructionAliasArgs,
+) -> CliResult<()> {
+    let argv = instruction_alias_to_argv(args);
+    handle_x_instructions(rt, &argv)
+}
+
+pub(crate) fn handle_agent_clap(rt: &Runtime, args: &AgentArgs) -> CliResult<()> {
+    match &args.command {
+        Some(AgentCommand::Instruction(instr)) => handle_agent_instruction_clap(rt, instr),
+        Some(AgentCommand::External(v)) => handle_agent(rt, v),
+        None => handle_agent(rt, &[]),
+    }
+}
+
+fn handle_agent_instruction_clap(rt: &Runtime, args: &AgentInstructionArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+    argv.push(args.artifact.clone());
+    if let Some(change) = &args.change {
+        argv.push("--change".to_string());
+        argv.push(change.clone());
+    }
+    if let Some(tool) = &args.tool {
+        argv.push("--tool".to_string());
+        argv.push(tool.clone());
+    }
+    if let Some(schema) = &args.schema {
+        argv.push("--schema".to_string());
+        argv.push(schema.clone());
+    }
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    handle_agent_instruction(rt, &argv)
+}
+
+fn instruction_alias_to_argv(args: &InstructionAliasArgs) -> Vec<String> {
+    let mut argv: Vec<String> = Vec::new();
+    if let Some(artifact) = &args.artifact {
+        argv.push(artifact.clone());
+    }
+    if let Some(change) = &args.change {
+        argv.push("--change".to_string());
+        argv.push(change.clone());
+    }
+    if let Some(tool) = &args.tool {
+        argv.push("--tool".to_string());
+        argv.push(tool.clone());
+    }
+    if let Some(schema) = &args.schema {
+        argv.push("--schema".to_string());
+        argv.push(schema.clone());
+    }
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    argv
 }
 
 fn generate_bootstrap_instruction(tool: &str) -> String {

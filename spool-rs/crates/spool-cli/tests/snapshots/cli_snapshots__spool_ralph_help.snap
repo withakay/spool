@@ -1,0 +1,48 @@
+---
+source: crates/spool-cli/tests/cli_snapshots.rs
+expression: "snapshot(&[\"ralph\", \"--help\"])"
+---
+Run iterative AI loop against a change proposal
+
+Usage: spool ralph [OPTIONS] [PROMPT]...
+
+Arguments:
+  [PROMPT]...  Prompt text
+
+Options:
+      --change <CHANGE>
+          Target a specific change
+      --no-color
+          Disable color output
+      --help-all
+          Print the full CLI reference (equivalent to `spool help --all`)
+      --module <MODULE>
+          Target a module (selects a change)
+      --harness <HARNESS>
+          Harness to run [default: opencode]
+      --model <MODEL>
+          Model id for the harness
+      --min-iterations <MIN_ITERATIONS>
+          Minimum iterations before stopping [default: 1]
+      --max-iterations <MAX_ITERATIONS>
+          Maximum iterations (default: unlimited)
+      --completion-promise <COMPLETION_PROMISE>
+          Completion promise token [default: COMPLETE]
+      --allow-all
+          Allow all tool actions (dangerous)
+      --no-commit
+          Do not create git commits per iteration
+      --status
+          Show current Ralph state for the change
+      --add-context <ADD_CONTEXT>
+          Append extra context to the Ralph loop
+      --clear-context
+          Clear the Ralph loop context file
+      --no-interactive
+          Do not prompt for selections
+  -v, --verbose
+          Verbose output
+      --timeout <TIMEOUT>
+          Inactivity timeout (e.g. 15m)
+  -h, --help
+          Print help

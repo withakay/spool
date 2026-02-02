@@ -1,16 +1,12 @@
+use crate::cli::{PlanAction, PlanArgs};
 use crate::cli_error::{CliError, CliResult, to_cli_error};
 use crate::runtime::Runtime;
 use spool_workflow::planning as wf_planning;
 
-pub(crate) const PLAN_HELP: &str = "Usage: spool plan <command> [options]\n\nProject planning tools\n\nCommands:\n  init                           Initialize planning structure\n  status                         Show current milestone progress\n\nOptions:\n  -h, --help                     display help for command";
-
-pub(crate) fn handle_plan(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{PLAN_HELP}");
-        return Ok(());
-    }
-
-    let sub = args.first().map(|s| s.as_str()).unwrap_or("");
+pub(crate) fn handle_plan_clap(rt: &Runtime, args: &PlanArgs) -> CliResult<()> {
+    let Some(action) = &args.action else {
+        return Err(CliError::msg("Missing required plan subcommand"));
+    };
 
     let spool_path = rt.spool_path();
     let spool_dir = spool_path
@@ -19,8 +15,8 @@ pub(crate) fn handle_plan(rt: &Runtime, args: &[String]) -> CliResult<()> {
         .unwrap_or_else(|| ".spool".to_string());
     let current_date = chrono::Local::now().format("%Y-%m-%d").to_string();
 
-    match sub {
-        "init" => {
+    match action {
+        PlanAction::Init => {
             wf_planning::init_planning_structure(spool_path, &current_date, &spool_dir)
                 .map_err(to_cli_error)?;
             eprintln!("✔ Planning structure initialized");
@@ -30,7 +26,7 @@ pub(crate) fn handle_plan(rt: &Runtime, args: &[String]) -> CliResult<()> {
             println!("  - {}/planning/STATE.md", spool_dir);
             Ok(())
         }
-        "status" => {
+        PlanAction::Status => {
             let roadmap_path = wf_planning::planning_dir(spool_path).join("ROADMAP.md");
             let contents = spool_core::io::read_to_string(&roadmap_path).map_err(|_| {
                 CliError::msg(
@@ -66,6 +62,5 @@ pub(crate) fn handle_plan(rt: &Runtime, args: &[String]) -> CliResult<()> {
             }
             Ok(())
         }
-        _ => Err(CliError::msg(format!("Unknown plan subcommand '{sub}'"))),
     }
 }

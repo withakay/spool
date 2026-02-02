@@ -1,0 +1,625 @@
+---
+source: crates/spool-cli/tests/cli_snapshots.rs
+expression: "snapshot(&[\"--help-all\"])"
+---
+================================================================================
+SPOOL CLI REFERENCE
+================================================================================
+
+spool
+-----
+AI-native system for spec-driven development
+
+Usage: spool [OPTIONS] [COMMAND]
+
+Commands:
+  dashboard       Display an interactive dashboard of specs and changes
+  init            Initialize Spool in your project
+  update          Update Spool instruction files
+  tasks           Track execution tasks for a change
+  plan            Project planning tools
+  state           View and update planning/STATE.md
+  workflow        Manage and run workflows
+  list            List items (changes by default). Use --specs or --modules to list other items
+  archive         Archive a completed change and update main specs
+  config          View and modify global Spool configuration
+  create          Create items
+  validate        Validate changes, specs, and modules
+  show            Show a change or spec
+  agent           Commands that generate machine-readable output for AI agents
+  ralph           Run iterative AI loop against a change proposal
+  loop            Deprecated alias for `ralph`
+  split           Split a large change into smaller changes
+  status          Display artifact completion status for a change
+  completions     Generate shell completion scripts
+  help            Display help information
+  stats           Show local execution usage stats
+  templates       Show resolved template paths for all artifacts in a schema (deprecated)
+  x-templates     Show resolved template paths for all artifacts in a schema
+  x-schemas       List available workflow schemas with descriptions
+  instructions    Agent instruction bootstrap (deprecated)
+  x-instructions  Agent instruction bootstrap (experimental)
+  agent-config    Agent config
+
+Options:
+      --no-color
+          Disable color output
+
+      --help-all
+          Print the full CLI reference (equivalent to `spool help --all`)
+
+  -h, --help
+          Print help
+
+  -V, --version
+          Print version
+
+Run 'spool help --all' for the complete CLI reference.
+
+
+--------------------------------------------------------------------------------
+
+spool init
+----------
+Initialize Spool in your project
+
+Usage: spool init [OPTIONS] [PATH]
+
+Arguments:
+  [PATH]
+          Target directory (defaults to current directory)
+
+Options:
+      --tools <TOOLS>
+          Configure AI tools non-interactively (all, none, or comma-separated ids)
+
+  -f, --force
+          Overwrite existing tool files without prompting
+
+      --home <HOME>
+          Override HOME used for locating global Spool config (for parity/testing)
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool update
+------------
+Update Spool instruction files
+
+Usage: spool update [OPTIONS] [PATH]
+
+Arguments:
+  [PATH]
+          Target directory (defaults to current directory)
+
+Options:
+      --json
+          Output as JSON (not implemented yet)
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool tasks
+-----------
+Track execution tasks for a change
+
+Usage: spool tasks [COMMAND]
+
+Commands:
+  init      Create enhanced tasks.md
+  status    Show task progress
+  next      Show the next available task
+  start     Mark a task in-progress
+  complete  Mark a task complete
+  shelve    Shelve a task (reversible)
+  unshelve  Restore a shelved task to pending
+  add       Add a new task (enhanced only)
+  show      Print tasks.md
+  help      Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool plan
+----------
+Project planning tools
+
+Usage: spool plan <COMMAND>
+
+Commands:
+  init    Initialize planning structure
+  status  Show current milestone progress
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool state
+-----------
+View and update planning/STATE.md
+
+Usage: spool state <COMMAND>
+
+Commands:
+  show      Show current project state
+  decision  Record a decision
+  blocker   Record a blocker
+  note      Add a session note
+  focus     Set current focus
+  question  Add an open question
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool workflow
+--------------
+Manage and run workflows
+
+Usage: spool workflow <COMMAND>
+
+Commands:
+  init  Initialize workflow templates
+  list  List available workflows
+  show  Show workflow details
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool list
+----------
+List items (changes by default). Use --specs or --modules to list other items
+
+Usage: spool list [OPTIONS]
+
+Options:
+      --specs
+          List specs instead of changes
+
+      --changes
+          List changes explicitly (default)
+
+      --modules
+          List modules instead of changes
+
+      --sort <SORT>
+          Sort order
+          
+          [default: recent]
+          [possible values: recent, name]
+
+      --json
+          Output as JSON
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool archive
+-------------
+Archive a completed change and update main specs
+
+Usage: spool archive [OPTIONS] [CHANGE]
+
+Arguments:
+  [CHANGE]
+          Change id (directory name)
+
+Options:
+  -y, --yes
+          Skip confirmation prompts
+
+      --skip-specs
+          Skip spec updates
+
+      --no-validate
+          Skip validation checks
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool config
+------------
+View and modify global Spool configuration
+
+Usage: spool config [COMMAND]
+
+Commands:
+  path   Print config file path
+  list   Print config JSON
+  get    Read value by path
+  set    Set value by path
+  unset  Remove value by path
+  help   Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool create
+------------
+Create items
+
+Usage: spool create [COMMAND]
+
+Commands:
+  module  Create a module
+  change  Create a change
+  help    Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool validate
+--------------
+Validate changes, specs, and modules
+
+Usage: spool validate [OPTIONS] [ITEM]
+       spool validate <COMMAND>
+
+Commands:
+  module  Validate a module
+  help    Print this message or the help of the given subcommand(s)
+
+Arguments:
+  [ITEM]
+          Item name (change id or spec id)
+
+Options:
+      --all
+          Validate everything
+
+      --changes
+          Validate changes
+
+      --specs
+          Validate specs
+
+      --modules
+          Validate modules
+
+      --module <MODULE>
+          Validate a module by id
+
+      --type <TYP>
+          Type: change, spec, or module
+          
+          [possible values: change, spec, module]
+
+      --strict
+          Treat warnings as errors
+
+      --json
+          Output as JSON
+
+      --concurrency <CONCURRENCY>
+          Concurrency (default: 6)
+          
+          [default: 6]
+
+      --no-interactive
+          Disable interactive prompts
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool show
+----------
+Show a change or spec
+
+Usage: spool show [OPTIONS] [ITEM]
+       spool show <COMMAND>
+
+Commands:
+  module  Show a module
+  help    Print this message or the help of the given subcommand(s)
+
+Arguments:
+  [ITEM]
+          Item name (change id or spec id)
+
+Options:
+      --json
+          Output as JSON
+
+      --type <TYP>
+          Type: change or spec
+          
+          [possible values: change, spec]
+
+      --no-interactive
+          Disable interactive prompts
+
+      --deltas-only
+          Change JSON only: only include deltas (deprecated)
+
+      --requirements-only
+          Change JSON only: only include deltas (deprecated)
+
+      --requirements
+          Spec JSON only: exclude scenarios
+
+      --no-scenarios
+          Spec JSON only: exclude scenarios
+
+  -r, --requirement <REQUIREMENT>
+          Spec JSON only: select requirement (1-based)
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool agent
+-----------
+Commands that generate machine-readable output for AI agents
+
+Usage: spool agent [COMMAND]
+
+Commands:
+  instruction  Generate enriched instructions
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool agent instruction
+-----------------------
+Generate enriched instructions
+
+Usage: spool agent instruction [OPTIONS] <ARTIFACT>
+
+Arguments:
+  <ARTIFACT>
+          Artifact id (e.g. bootstrap, apply, proposal)
+
+Options:
+      --change <CHANGE>
+          Change id (directory name)
+
+      --tool <TOOL>
+          Tool name for bootstrap (opencode|claude|codex)
+
+      --schema <SCHEMA>
+          Workflow schema name
+
+      --json
+          Output as JSON
+
+  -h, --help
+          Print help
+
+Artifacts:
+  bootstrap  Generate a tool bootstrap preamble
+  proposal    Show the change proposal
+  specs       Show the specification deltas
+  tasks       Show the implementation task list
+  apply       Show implementation instructions
+  review      Show review instructions
+  archive     Show archive instructions
+
+Examples:
+  spool agent instruction bootstrap --tool opencode
+  spool agent instruction proposal --change 005-08_migrate-cli-to-clap
+  spool agent instruction apply --change 005-08_migrate-cli-to-clap
+
+
+--------------------------------------------------------------------------------
+
+spool ralph
+-----------
+Run iterative AI loop against a change proposal
+
+Usage: spool ralph [OPTIONS] [PROMPT]...
+
+Arguments:
+  [PROMPT]...
+          Prompt text
+
+Options:
+      --change <CHANGE>
+          Target a specific change
+
+      --module <MODULE>
+          Target a module (selects a change)
+
+      --harness <HARNESS>
+          Harness to run
+          
+          [default: opencode]
+
+      --model <MODEL>
+          Model id for the harness
+
+      --min-iterations <MIN_ITERATIONS>
+          Minimum iterations before stopping
+          
+          [default: 1]
+
+      --max-iterations <MAX_ITERATIONS>
+          Maximum iterations (default: unlimited)
+
+      --completion-promise <COMPLETION_PROMISE>
+          Completion promise token
+          
+          [default: COMPLETE]
+
+      --allow-all
+          Allow all tool actions (dangerous)
+
+      --no-commit
+          Do not create git commits per iteration
+
+      --status
+          Show current Ralph state for the change
+
+      --add-context <ADD_CONTEXT>
+          Append extra context to the Ralph loop
+
+      --clear-context
+          Clear the Ralph loop context file
+
+      --no-interactive
+          Do not prompt for selections
+
+  -v, --verbose
+          Verbose output
+
+      --timeout <TIMEOUT>
+          Inactivity timeout (e.g. 15m)
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool status
+------------
+Display artifact completion status for a change
+
+Usage: spool status [OPTIONS]
+
+Options:
+      --change <CHANGE>
+          Change id (directory name)
+
+      --schema <SCHEMA>
+          Workflow schema name
+
+      --json
+          Output as JSON
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool x-templates
+-----------------
+Show resolved template paths for all artifacts in a schema
+
+Usage: spool x-templates [OPTIONS]
+
+Options:
+      --schema <SCHEMA>
+          Workflow schema name (default: spec-driven)
+
+      --json
+          Output as JSON
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool x-schemas
+---------------
+List available workflow schemas with descriptions
+
+Usage: spool x-schemas [OPTIONS]
+
+Options:
+      --json
+          Output as JSON
+
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool completions
+-----------------
+Generate shell completion scripts
+
+Usage: spool completions <SHELL>
+
+Arguments:
+  <SHELL>
+          Shell type
+          
+          [possible values: bash, zsh, fish, powershell]
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool stats
+-----------
+Show local execution usage stats
+
+Usage: spool stats
+
+Options:
+  -h, --help
+          Print help
+
+
+--------------------------------------------------------------------------------
+
+spool agent-config
+------------------
+Agent config
+
+Usage: spool agent-config <COMMAND>
+
+Commands:
+  init     Create <spool-dir>/config.json if missing
+  summary  Print merged config summary and sources
+  get      Read merged value by path
+  set      Set value in <spool-dir>/config.json
+
+Options:
+  -h, --help
+          Print help
+
+
+================================================================================
+Run 'spool <command> -h' for detailed command help.
+================================================================================

@@ -1,17 +1,58 @@
+use crate::cli::{TasksAction, TasksArgs};
 use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::diagnostics;
 use crate::runtime::Runtime;
 use spool_core::paths as core_paths;
 use spool_workflow::tasks as wf_tasks;
 
-pub(crate) const TASKS_HELP: &str = "Usage: spool tasks <command> [options]\n\nTrack execution tasks for a change\n\nCommands:\n  init <change-id>                         Create enhanced tasks.md\n  status <change-id>                       Show task progress\n  next <change-id>                         Show the next available task\n  start <change-id> <task-id>              Mark a task in-progress\n  complete <change-id> <task-id>           Mark a task complete\n  shelve <change-id> <task-id>             Shelve a task (reversible)\n  unshelve <change-id> <task-id>           Restore a shelved task to pending\n  add <change-id> <task-name> [--wave <n>]  Add a new task (enhanced only)\n  show <change-id>                         Print tasks.md\n\nOptions:\n  --wave <n>                               Wave number for add (default: 1)\n  -h, --help                               display help for command\n\nRun 'spool -h' to see all commands.";
+pub(crate) fn handle_tasks_clap(rt: &Runtime, args: &TasksArgs) -> CliResult<()> {
+    let Some(action) = &args.action else {
+        // Preserve legacy behavior: `spool tasks` errors.
+        return fail("Missing required argument <change-id>");
+    };
+
+    let forwarded: Vec<String> = match action {
+        TasksAction::Init { change_id } => vec!["init".to_string(), change_id.clone()],
+        TasksAction::Status { change_id, wave } => {
+            let mut out = vec!["status".to_string(), change_id.clone()];
+            if let Some(wave) = wave {
+                out.push("--wave".to_string());
+                out.push(wave.to_string());
+            }
+            out
+        }
+        TasksAction::Next { change_id } => vec!["next".to_string(), change_id.clone()],
+        TasksAction::Start { change_id, task_id } => {
+            vec!["start".to_string(), change_id.clone(), task_id.clone()]
+        }
+        TasksAction::Complete { change_id, task_id } => {
+            vec!["complete".to_string(), change_id.clone(), task_id.clone()]
+        }
+        TasksAction::Shelve { change_id, task_id } => {
+            vec!["shelve".to_string(), change_id.clone(), task_id.clone()]
+        }
+        TasksAction::Unshelve { change_id, task_id } => {
+            vec!["unshelve".to_string(), change_id.clone(), task_id.clone()]
+        }
+        TasksAction::Add {
+            change_id,
+            task_name,
+            wave,
+        } => vec![
+            "add".to_string(),
+            change_id.clone(),
+            task_name.clone(),
+            "--wave".to_string(),
+            wave.to_string(),
+        ],
+        TasksAction::Show { change_id } => vec!["show".to_string(), change_id.clone()],
+        TasksAction::External(rest) => rest.clone(),
+    };
+
+    handle_tasks(rt, &forwarded)
+}
 
 pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{TASKS_HELP}");
-        return Ok(());
-    }
-
     fn parse_wave_flag(args: &[String]) -> u32 {
         args.iter()
             .enumerate()

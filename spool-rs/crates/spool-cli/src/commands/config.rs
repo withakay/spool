@@ -1,10 +1,14 @@
+use crate::cli::{AgentConfigAction, AgentConfigArgs, ConfigArgs, ConfigCommand};
 use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use std::path::Path;
 
 pub(crate) fn handle_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", crate::CONFIG_HELP);
+        println!(
+            "{}",
+            crate::app::common::render_command_long_help(&["config"], "spool config")
+        );
         return Ok(());
     }
 
@@ -79,9 +83,60 @@ pub(crate) fn handle_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 }
 
+pub(crate) fn handle_config_clap(rt: &Runtime, args: &ConfigArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+
+    match &args.command {
+        None => {}
+        Some(ConfigCommand::Path(common)) => {
+            argv.push("path".to_string());
+            if common.string {
+                argv.push("--string".to_string());
+            }
+        }
+        Some(ConfigCommand::List(common)) => {
+            argv.push("list".to_string());
+            if common.string {
+                argv.push("--string".to_string());
+            }
+        }
+        Some(ConfigCommand::Get { key, common }) => {
+            argv.push("get".to_string());
+            argv.push(key.clone());
+            if common.string {
+                argv.push("--string".to_string());
+            }
+        }
+        Some(ConfigCommand::Set { key, value, common }) => {
+            argv.push("set".to_string());
+            argv.push(key.clone());
+            argv.push(value.clone());
+            if common.string {
+                argv.push("--string".to_string());
+            }
+        }
+        Some(ConfigCommand::Unset { key, common }) => {
+            argv.push("unset".to_string());
+            argv.push(key.clone());
+            if common.string {
+                argv.push("--string".to_string());
+            }
+        }
+        Some(ConfigCommand::External(v)) => {
+            let sub = v.first().map(|s| s.as_str()).unwrap_or("");
+            argv.push(sub.to_string());
+        }
+    }
+
+    handle_config(rt, &argv)
+}
+
 pub(crate) fn handle_agent_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", crate::AGENT_CONFIG_HELP);
+        println!(
+            "{}",
+            crate::app::common::render_command_long_help(&["agent-config"], "spool agent-config")
+        );
         return Ok(());
     }
 
@@ -180,6 +235,41 @@ pub(crate) fn handle_agent_config(rt: &Runtime, args: &[String]) -> CliResult<()
         }
         _ => fail(format!("Unknown agent-config subcommand '{sub}'")),
     }
+}
+
+pub(crate) fn handle_agent_config_clap(rt: &Runtime, args: &AgentConfigArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+
+    match &args.action {
+        Some(AgentConfigAction::Init) => {
+            argv.push("init".to_string());
+        }
+        Some(AgentConfigAction::Summary) => {
+            argv.push("summary".to_string());
+        }
+        Some(AgentConfigAction::Get { path, string }) => {
+            argv.push("get".to_string());
+            argv.push(path.clone());
+            if *string {
+                argv.push("--string".to_string());
+            }
+        }
+        Some(AgentConfigAction::Set {
+            path,
+            value,
+            string,
+        }) => {
+            argv.push("set".to_string());
+            argv.push(path.clone());
+            argv.push(value.clone());
+            if *string {
+                argv.push("--string".to_string());
+            }
+        }
+        None => {}
+    }
+
+    handle_agent_config(rt, &argv)
 }
 
 fn read_json_object_or_empty(path: &Path) -> CliResult<serde_json::Value> {

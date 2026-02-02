@@ -1,3 +1,4 @@
+use crate::cli::{ListArgs, ListSortOrder};
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use chrono::{DateTime, Utc};
@@ -20,7 +21,10 @@ struct SpecsResponse {
 
 pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::LIST_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["list"], "spool list")
+        );
         return Ok(());
     }
 
@@ -173,6 +177,31 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 
     Ok(())
+}
+
+pub(crate) fn handle_list_clap(rt: &Runtime, args: &ListArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+    if args.specs {
+        argv.push("--specs".to_string());
+    }
+    if args.changes {
+        argv.push("--changes".to_string());
+    }
+    if args.modules {
+        argv.push("--modules".to_string());
+    }
+    if args.json {
+        argv.push("--json".to_string());
+    }
+
+    let sort = match args.sort {
+        ListSortOrder::Recent => "recent",
+        ListSortOrder::Name => "name",
+    };
+    argv.push("--sort".to_string());
+    argv.push(sort.to_string());
+
+    handle_list(rt, &argv)
 }
 
 fn parse_sort_order(args: &[String]) -> Option<&str> {

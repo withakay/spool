@@ -79,6 +79,7 @@ impl Harness for StubHarness {
             stderr: step.stderr,
             exit_code: step.exit_code,
             duration: started.elapsed().max(Duration::from_millis(1)),
+            timed_out: false,
         })
     }
 

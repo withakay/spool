@@ -48,6 +48,7 @@ impl Harness for FixedHarness {
             stderr,
             exit_code,
             duration: Duration::from_millis(1),
+            timed_out: false,
         })
     }
 
@@ -88,6 +89,8 @@ fn default_opts() -> RalphOptions {
         status: false,
         add_context: None,
         clear_context: false,
+        verbose: false,
+        inactivity_timeout: None,
     }
 }
 

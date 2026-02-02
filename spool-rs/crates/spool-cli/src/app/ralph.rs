@@ -1,3 +1,4 @@
+use crate::cli::RalphArgs;
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
@@ -8,7 +9,9 @@ use spool_harness::stub::StubHarness;
 
 pub(crate) fn handle_loop(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}\n\n{}", super::LOOP_HELP, super::RALPH_HELP);
+        let loop_help = super::common::render_command_long_help(&["loop"], "spool loop");
+        let ralph_help = super::common::render_command_long_help(&["ralph"], "spool ralph");
+        println!("{loop_help}\n\n{ralph_help}");
         return Ok(());
     }
     // Match TS: loop is deprecated wrapper.
@@ -18,7 +21,10 @@ pub(crate) fn handle_loop(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
 pub(crate) fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::RALPH_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["ralph"], "spool ralph")
+        );
         return Ok(());
     }
 
@@ -42,6 +48,7 @@ pub(crate) fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
                     | "--max-iterations"
                     | "--completion-promise"
                     | "--add-context"
+                    | "--timeout"
                     | "--stub-script"
             );
 
@@ -58,6 +65,7 @@ pub(crate) fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 || a.starts_with("--max-iterations=")
                 || a.starts_with("--completion-promise=")
                 || a.starts_with("--add-context=")
+                || a.starts_with("--timeout=")
                 || a.starts_with("--stub-script=")
             {
                 i += 1;
@@ -97,6 +105,18 @@ pub(crate) fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let add_context = parse_string_flag(args, "--add-context");
     let clear_context = args.iter().any(|a| a == "--clear-context");
     let interactive = !args.iter().any(|a| a == "--no-interactive");
+    let verbose = args.iter().any(|a| a == "--verbose" || a == "-v");
+
+    let inactivity_timeout = if let Some(raw) = parse_string_flag(args, "--timeout") {
+        match core_ralph::parse_duration(&raw) {
+            Ok(d) => Some(d),
+            Err(e) => {
+                return fail(format!("Invalid --timeout '{raw}': {e}"));
+            }
+        }
+    } else {
+        None
+    };
 
     // Hidden testing flag.
     let stub_script = parse_string_flag(args, "--stub-script");
@@ -157,9 +177,81 @@ pub(crate) fn handle_ralph(rt: &Runtime, args: &[String]) -> CliResult<()> {
         status,
         add_context,
         clear_context,
+        verbose,
+        inactivity_timeout,
     };
 
     core_ralph::run_ralph(spool_path, opts, harness_impl.as_mut()).map_err(to_cli_error)?;
 
     Ok(())
+}
+
+pub(crate) fn handle_ralph_clap(rt: &Runtime, args: &RalphArgs) -> CliResult<()> {
+    let argv = ralph_args_to_argv(args);
+    handle_ralph(rt, &argv)
+}
+
+pub(crate) fn handle_loop_clap(rt: &Runtime, args: &RalphArgs) -> CliResult<()> {
+    let argv = ralph_args_to_argv(args);
+    handle_loop(rt, &argv)
+}
+
+fn ralph_args_to_argv(args: &RalphArgs) -> Vec<String> {
+    let mut argv: Vec<String> = Vec::new();
+    if let Some(change) = &args.change {
+        argv.push("--change".to_string());
+        argv.push(change.clone());
+    }
+    if let Some(module) = &args.module {
+        argv.push("--module".to_string());
+        argv.push(module.clone());
+    }
+    argv.push("--harness".to_string());
+    argv.push(args.harness.clone());
+    if let Some(model) = &args.model {
+        argv.push("--model".to_string());
+        argv.push(model.clone());
+    }
+    argv.push("--min-iterations".to_string());
+    argv.push(args.min_iterations.to_string());
+    if let Some(max) = args.max_iterations {
+        argv.push("--max-iterations".to_string());
+        argv.push(max.to_string());
+    }
+    argv.push("--completion-promise".to_string());
+    argv.push(args.completion_promise.clone());
+    if args.allow_all {
+        argv.push("--allow-all".to_string());
+    }
+    if args.no_commit {
+        argv.push("--no-commit".to_string());
+    }
+    if args.status {
+        argv.push("--status".to_string());
+    }
+    if let Some(add_context) = &args.add_context {
+        argv.push("--add-context".to_string());
+        argv.push(add_context.clone());
+    }
+    if args.clear_context {
+        argv.push("--clear-context".to_string());
+    }
+    if args.no_interactive {
+        argv.push("--no-interactive".to_string());
+    }
+    if args.verbose {
+        argv.push("--verbose".to_string());
+    }
+    if let Some(stub_script) = &args.stub_script {
+        argv.push("--stub-script".to_string());
+        argv.push(stub_script.clone());
+    }
+    if let Some(timeout) = &args.timeout {
+        argv.push("--timeout".to_string());
+        argv.push(timeout.clone());
+    }
+    if !args.prompt.is_empty() {
+        argv.extend(args.prompt.iter().cloned());
+    }
+    argv
 }

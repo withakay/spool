@@ -1,0 +1,15 @@
+---
+source: crates/spool-cli/tests/cli_snapshots.rs
+expression: "snapshot(&[\"agent\", \"--help\"])"
+---
+Commands that generate machine-readable output for AI agents
+
+Usage: spool agent [OPTIONS] [COMMAND]
+
+Commands:
+  instruction  Generate enriched instructions
+
+Options:
+      --no-color  Disable color output
+      --help-all  Print the full CLI reference (equivalent to `spool help --all`)
+  -h, --help      Print help

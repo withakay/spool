@@ -1,124 +1,102 @@
+use crate::cli::HelpArgs;
 use crate::cli_error::CliResult;
+use clap::CommandFactory;
 
-pub(crate) const HELP: &str = "Usage: spool [options] [command]\n\nAI-native system for spec-driven development\n\nOptions:\n  -V, --version                    output the version number\n  --no-color                       Disable color output\n  -h, --help                       display help for command\n\nCommands:\n  init [--tools <...>] [path]      Initialize Spool in your project\n  update [options] [path]          Update Spool instruction files\n  tasks                            Track execution tasks for a change\n  plan                             Project planning tools\n  state                            View and update planning/STATE.md\n  workflow                         Manage and run workflows\n  list [--json|--specs|--modules]  List items (changes by default). Use --specs\n                                   or --modules to list other items.\n  dashboard                        Display an interactive dashboard of specs and\n                                   changes\n  archive [--json] [change-name]   Archive a completed change and update main\n                                   specs\n  config [options]                 View and modify global Spool configuration\n  create                           Create items\n  validate [--json|--all] [item]   Validate changes, specs, and modules\n  show [options] [item-name]       Show a change or spec\n  completions                      Manage shell completions for Spool CLI\n  status [options]                 [Experimental] Display artifact completion\n                                   status for a change\n  x-templates [options]            [Experimental] Show resolved template paths\n                                   for all artifacts in a schema\n  x-schemas [options]              [Experimental] List available workflow\n                                   schemas with descriptions\n  agent                            Commands that generate machine-readable\n                                   output for AI agents\n  ralph [options] [prompt]         Run the Ralph Wiggum iterative development\n                                   loop\n";
+fn help_all_parts() -> Vec<Vec<String>> {
+    // Keep output stable and user-facing (exclude deprecated aliases like
+    // `templates`, `instructions`, `loop`, etc.), while still deriving help
+    // text from clap.
+    let mut out: Vec<Vec<String>> = Vec::new();
+    out.push(Vec::new());
 
-pub(crate) const HELP_ALL_HELP: &str = "Usage: spool help [command] [options]\n\nDisplay help information\n\nOptions:\n  --all           Show help for all commands\n  --json          Output as JSON (with --all)\n  -h, --help      display help for command";
+    let cmd = crate::cli::Cli::command();
+    let names: &[&[&str]] = &[
+        &["init"],
+        &["update"],
+        &["tasks"],
+        &["plan"],
+        &["state"],
+        &["workflow"],
+        &["list"],
+        &["archive"],
+        &["config"],
+        &["create"],
+        &["validate"],
+        &["show"],
+        &["agent"],
+        &["agent", "instruction"],
+        &["ralph"],
+        &["status"],
+        &["x-templates"],
+        &["x-schemas"],
+        &["completions"],
+        &["stats"],
+        &["agent-config"],
+    ];
 
-/// Command help entry for the help dump system
-pub(crate) struct CommandHelpEntry {
-    pub(crate) path: &'static str,
-    pub(crate) help: &'static str,
+    for path in names {
+        // Only include paths that exist in the current clap tree.
+        let mut current = cmd.clone();
+        let mut ok = true;
+        for part in *path {
+            let Some(found) = current.find_subcommand_mut(part) else {
+                ok = false;
+                break;
+            };
+            current = found.clone();
+        }
+
+        if ok {
+            out.push(path.iter().map(|s| s.to_string()).collect());
+        }
+    }
+
+    out
 }
 
-/// All command help entries for `spool help --all`
-pub(crate) const ALL_HELP: &[CommandHelpEntry] = &[
-    CommandHelpEntry {
-        path: "spool",
-        help: HELP,
-    },
-    CommandHelpEntry {
-        path: "spool init",
-        help: crate::INIT_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool update",
-        help: crate::UPDATE_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool tasks",
-        help: super::tasks::TASKS_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool plan",
-        help: super::plan::PLAN_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool state",
-        help: super::state::STATE_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool workflow",
-        help: super::workflow::WORKFLOW_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool list",
-        help: crate::LIST_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool archive",
-        help: crate::ARCHIVE_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool config",
-        help: crate::CONFIG_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool create",
-        help: super::CREATE_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool validate",
-        help: crate::VALIDATE_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool show",
-        help: crate::SHOW_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool status",
-        help: crate::STATUS_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool agent",
-        help: crate::AGENT_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool agent instruction",
-        help: crate::AGENT_INSTRUCTION_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool ralph",
-        help: crate::RALPH_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool agent-config",
-        help: crate::AGENT_CONFIG_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool x-templates",
-        help: crate::TEMPLATES_HELP,
-    },
-    CommandHelpEntry {
-        path: "spool stats",
-        help: crate::STATS_HELP,
-    },
-];
+fn render_help(parts: &[&str], bin_name: &str) -> String {
+    crate::app::common::render_command_long_help(parts, bin_name)
+}
 
-pub(crate) fn handle_help(args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{HELP_ALL_HELP}");
+pub(crate) fn handle_help_clap(args: &HelpArgs) -> CliResult<()> {
+    if args.all {
+        return handle_help_all_flags(args.json);
+    }
+
+    if !args.command.is_empty() {
+        let mut bin_name = "spool".to_string();
+        for p in &args.command {
+            bin_name.push(' ');
+            bin_name.push_str(p);
+        }
+        let parts: Vec<&str> = args.command.iter().map(|s| s.as_str()).collect();
+        print!("{}", render_help(&parts, &bin_name));
         return Ok(());
     }
 
-    if args.iter().any(|a| a == "--all") {
-        return handle_help_all(args);
-    }
-
-    // Show global help by default
-    println!("{HELP}");
+    print!("{}", render_help(&[], "spool"));
     Ok(())
 }
 
 pub(crate) fn handle_help_all(args: &[String]) -> CliResult<()> {
     let json_output = args.iter().any(|a| a == "--json");
 
+    let entries = help_all_parts();
+
     if json_output {
-        let commands: Vec<serde_json::Value> = ALL_HELP
+        let commands: Vec<serde_json::Value> = entries
             .iter()
-            .map(|entry| {
+            .map(|parts| {
+                let path = if parts.is_empty() {
+                    "spool".to_string()
+                } else {
+                    format!("spool {}", parts.join(" "))
+                };
+                let bin_name = path.clone();
+                let parts_ref: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();
                 serde_json::json!({
-                    "path": entry.path,
-                    "help": entry.help,
+                    "path": path,
+                    "help": render_help(&parts_ref, &bin_name),
                 })
             })
             .collect();
@@ -138,15 +116,24 @@ pub(crate) fn handle_help_all(args: &[String]) -> CliResult<()> {
     println!("SPOOL CLI REFERENCE");
     println!("================================================================================\n");
 
-    for (i, entry) in ALL_HELP.iter().enumerate() {
+    for (i, parts) in entries.iter().enumerate() {
+        let path = if parts.is_empty() {
+            "spool".to_string()
+        } else {
+            format!("spool {}", parts.join(" "))
+        };
+
+        let bin_name = path.clone();
+        let parts_ref: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();
+
         if i > 0 {
             println!(
                 "\n--------------------------------------------------------------------------------\n"
             );
         }
-        println!("{}", entry.path);
-        println!("{}", "-".repeat(entry.path.len()));
-        println!("{}", entry.help);
+        println!("{path}");
+        println!("{}", "-".repeat(path.len()));
+        println!("{}", render_help(&parts_ref, &bin_name));
     }
 
     println!("\n================================================================================");
@@ -154,4 +141,11 @@ pub(crate) fn handle_help_all(args: &[String]) -> CliResult<()> {
     println!("================================================================================");
 
     Ok(())
+}
+
+pub(crate) fn handle_help_all_flags(json_output: bool) -> CliResult<()> {
+    if json_output {
+        return handle_help_all(&["--json".to_string()]);
+    }
+    handle_help_all(&[])
 }

@@ -74,6 +74,7 @@ fn opencode_harness_runs_opencode_binary_and_returns_outputs() {
             cwd: dir.path().to_path_buf(),
             env: BTreeMap::new(),
             interactive: false,
+            inactivity_timeout: None,
         })
         .unwrap();
 
@@ -103,6 +104,7 @@ fn opencode_harness_errors_when_opencode_missing() {
             cwd: dir.path().to_path_buf(),
             env: BTreeMap::new(),
             interactive: false,
+            inactivity_timeout: None,
         })
         .expect_err("should error");
 

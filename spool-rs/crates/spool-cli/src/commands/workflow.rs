@@ -1,22 +1,17 @@
+use crate::cli::{WorkflowAction, WorkflowArgs};
 use crate::cli_error::{CliError, CliResult, to_cli_error};
 use crate::runtime::Runtime;
 use spool_workflow::workflow as wf_workflow;
 
-pub(crate) const WORKFLOW_HELP: &str = "Usage: spool workflow <command> [options]\n\nManage and run workflows\n\nCommands:\n  init                            Initialize workflow templates\n  list                            List available workflows\n  show <workflow-name>            Show workflow details\n\nOptions:\n  -h, --help                      display help for command";
-
-pub(crate) fn handle_workflow(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{WORKFLOW_HELP}");
-        return Ok(());
-    }
-
-    let sub = args.first().map(|s| s.as_str()).unwrap_or("");
-    let wf_name = args.get(1).map(|s| s.as_str()).unwrap_or("");
+pub(crate) fn handle_workflow_clap(rt: &Runtime, args: &WorkflowArgs) -> CliResult<()> {
+    let Some(action) = &args.action else {
+        return Err(CliError::msg("Missing required workflow subcommand"));
+    };
 
     let spool_path = rt.spool_path();
 
-    match sub {
-        "init" => {
+    match action {
+        WorkflowAction::Init => {
             wf_workflow::init_workflow_structure(spool_path).map_err(to_cli_error)?;
             println!("Created workflows directory with example workflows:");
             println!("  - research.yaml  (domain investigation)");
@@ -26,7 +21,7 @@ pub(crate) fn handle_workflow(rt: &Runtime, args: &[String]) -> CliResult<()> {
             println!("Prompt templates are installed via `spool init`.");
             Ok(())
         }
-        "list" => {
+        WorkflowAction::List => {
             let workflows = wf_workflow::list_workflows(spool_path);
             if workflows.is_empty() {
                 println!("No workflows found. Run `spool workflow init` to create examples.");
@@ -53,11 +48,13 @@ pub(crate) fn handle_workflow(rt: &Runtime, args: &[String]) -> CliResult<()> {
             }
             Ok(())
         }
-        "show" => {
-            if wf_name.is_empty() || wf_name.starts_with('-') {
+        WorkflowAction::Show { workflow_name } => {
+            let workflow_name = workflow_name.join(" ");
+            if workflow_name.trim().is_empty() {
                 return Err(CliError::msg("Missing required argument <workflow-name>"));
             }
-            let wf = wf_workflow::load_workflow(spool_path, wf_name)
+
+            let wf = wf_workflow::load_workflow(spool_path, &workflow_name)
                 .map_err(|e| CliError::msg(format!("Invalid workflow: {e}")))?;
 
             fn agent_label(a: &spool_schemas::AgentType) -> &'static str {
@@ -104,8 +101,5 @@ pub(crate) fn handle_workflow(rt: &Runtime, args: &[String]) -> CliResult<()> {
             }
             Ok(())
         }
-        _ => Err(CliError::msg(format!(
-            "Unknown workflow subcommand '{sub}'"
-        ))),
     }
 }

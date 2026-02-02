@@ -1,3 +1,4 @@
+use crate::cli::InitArgs;
 use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
@@ -6,7 +7,10 @@ use std::collections::BTreeSet;
 
 pub(super) fn handle_init(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::INIT_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["init"], "spool init")
+        );
         return Ok(());
     }
 
@@ -139,4 +143,26 @@ pub(super) fn handle_init(rt: &Runtime, args: &[String]) -> CliResult<()> {
     install_default_templates(target_path, ctx, InstallMode::Init, &opts).map_err(to_cli_error)?;
 
     Ok(())
+}
+
+pub(crate) fn handle_init_clap(rt: &Runtime, args: &InitArgs) -> CliResult<()> {
+    if let Some(home) = &args.home {
+        // For parity/testing.
+        unsafe {
+            std::env::set_var("HOME", home);
+        }
+    }
+
+    let mut argv: Vec<String> = Vec::new();
+    if let Some(tools) = &args.tools {
+        argv.push("--tools".to_string());
+        argv.push(tools.clone());
+    }
+    if args.force {
+        argv.push("--force".to_string());
+    }
+    if let Some(path) = &args.path {
+        argv.push(path.clone());
+    }
+    handle_init(rt, &argv)
 }

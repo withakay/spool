@@ -1,15 +1,11 @@
+use crate::cli::StatsArgs;
 use crate::cli_error::CliResult;
 use crate::runtime::Runtime;
 use std::collections::BTreeMap;
 use std::io::BufRead;
 use std::path::{Path, PathBuf};
 
-pub(crate) fn handle_stats(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", crate::STATS_HELP);
-        return Ok(());
-    }
-
+pub(crate) fn handle_stats_clap(rt: &Runtime, _args: &StatsArgs) -> CliResult<()> {
     let Some(config_dir) = spool_core::config::spool_config_dir(rt.ctx()) else {
         println!("No Spool config directory found.");
         return Ok(());

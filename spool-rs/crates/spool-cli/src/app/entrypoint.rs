@@ -9,16 +9,6 @@ pub(crate) fn main() {
 
     let args: Vec<String> = std::env::args().skip(1).collect();
 
-    // Match TS behavior: `--no-color` sets NO_COLOR=1 globally before command execution.
-    if args.iter().any(|a| a == "--no-color") {
-        // Rust 1.93+ marks `set_var` unsafe due to potential UB when racing with
-        // other threads reading the environment. We do this before any command
-        // execution or thread spawning.
-        unsafe {
-            std::env::set_var("NO_COLOR", "1");
-        }
-    }
-
     if let Err(e) = super::run::run(&args) {
         if !e.is_silent() {
             eprintln!();

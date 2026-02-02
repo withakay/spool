@@ -1,3 +1,4 @@
+use crate::cli::TemplatesArgs;
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
@@ -5,7 +6,10 @@ use spool_core::workflow as core_workflow;
 
 pub(crate) fn handle_templates(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::TEMPLATES_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["templates"], "spool templates")
+        );
         return Ok(());
     }
     let want_json = args.iter().any(|a| a == "--json");
@@ -67,4 +71,30 @@ pub(crate) fn handle_templates(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 
     Ok(())
+}
+
+pub(crate) fn handle_templates_clap(rt: &Runtime, args: &TemplatesArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+    if let Some(schema) = &args.schema {
+        argv.push("--schema".to_string());
+        argv.push(schema.clone());
+    }
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    handle_templates(rt, &argv)
+}
+
+pub(crate) fn handle_x_templates_clap(rt: &Runtime, args: &TemplatesArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+    if let Some(schema) = &args.schema {
+        argv.push("--schema".to_string());
+        argv.push(schema.clone());
+    }
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    // The legacy handler expects `x-templates` vs `templates` only for the warning text;
+    // `spool-cli` preserves behavior by routing both through the same implementation.
+    handle_templates(rt, &argv)
 }

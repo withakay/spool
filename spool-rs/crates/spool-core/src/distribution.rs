@@ -1,241 +1,198 @@
 use miette::{Result, miette};
+use spool_templates::{
+    commands_files, get_adapter_file, get_command_file, get_skill_file, skills_files,
+};
 use std::path::{Path, PathBuf};
-
-const GITHUB_REPO: &str = "withakay/spool";
-const SPOOL_SKILLS_PATH: &str = "spool-skills";
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SourceMode {
-    Local(PathBuf),
-    Remote { tag: String },
-}
 
 #[derive(Debug, Clone)]
 pub struct FileManifest {
+    /// Source path relative to embedded assets (e.g., "brainstorming/SKILL.md" for skills)
     pub source: String,
+    /// Destination path on disk
     pub dest: PathBuf,
-    pub is_dir: bool,
+    /// Asset type determines which embedded directory to read from
+    pub asset_type: AssetType,
 }
 
-/// List of skills in spool-skills/skills/ that should be distributed.
-/// These are the skill directory names (without spool- prefix).
-const SPOOL_SKILLS: &[&str] = &[
-    "brainstorming",
-    "dispatching-parallel-agents",
-    "finishing-a-development-branch",
-    "receiving-code-review",
-    "requesting-code-review",
-    "research",
-    "subagent-driven-development",
-    "systematic-debugging",
-    "test-driven-development",
-    "using-git-worktrees",
-    "using-spool-skills",
-    "verification-before-completion",
-    "writing-skills",
-];
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AssetType {
+    Skill,
+    Adapter,
+    Command,
+}
 
-/// Returns manifest entries for spool-skills.
-/// Source paths are relative to spool-skills/ (e.g., "skills/brainstorming/SKILL.md")
-/// Dest paths have spool- prefix (e.g., "spool-brainstorming/SKILL.md")
-fn spool_skills_manifests(skills_dir: &std::path::Path) -> Vec<FileManifest> {
+/// Returns manifest entries for all spool-skills.
+/// Source paths are relative to assets/skills/ (e.g., "brainstorming/SKILL.md")
+/// Dest paths have spool- prefix added if not already present
+/// (e.g., "brainstorming/SKILL.md" -> "spool-brainstorming/SKILL.md")
+/// (e.g., "spool/SKILL.md" -> "spool/SKILL.md" - no double prefix)
+fn spool_skills_manifests(skills_dir: &Path) -> Vec<FileManifest> {
     let mut manifests = Vec::new();
 
-    for skill_name in SPOOL_SKILLS {
-        // Source: skills/<skill>/SKILL.md (relative to spool-skills/)
-        let source = format!("skills/{}/SKILL.md", skill_name);
-        // Dest: spool-<skill>/SKILL.md under the target skills dir
-        let dest = skills_dir.join(format!("spool-{}/SKILL.md", skill_name));
+    // Get all skill files from embedded assets
+    for file in skills_files() {
+        let rel_path = file.relative_path;
+        // Extract skill name from path (e.g., "brainstorming/SKILL.md" -> "brainstorming")
+        let parts: Vec<&str> = rel_path.split('/').collect();
+        if parts.is_empty() {
+            continue;
+        }
+        let skill_name = parts[0];
+
+        // Build destination path, adding spool- prefix only if not already present
+        let dest_skill_name = if skill_name.starts_with("spool") {
+            skill_name.to_string()
+        } else {
+            format!("spool-{}", skill_name)
+        };
+
+        let rest = if parts.len() > 1 {
+            parts[1..].join("/")
+        } else {
+            rel_path.to_string()
+        };
+        let dest = skills_dir.join(format!("{}/{}", dest_skill_name, rest));
 
         manifests.push(FileManifest {
-            source,
+            source: rel_path.to_string(),
             dest,
-            is_dir: false,
+            asset_type: AssetType::Skill,
         });
     }
 
     manifests
 }
 
-pub fn detect_source_mode(repo_root: &Path, version: &str) -> SourceMode {
-    let local_skills = repo_root.join(SPOOL_SKILLS_PATH);
-    if local_skills.exists() && local_skills.is_dir() {
-        return SourceMode::Local(local_skills);
-    }
-    SourceMode::Remote {
-        tag: format!("v{}", version),
-    }
-}
+/// Returns manifest entries for all spool commands.
+/// Commands are copied directly to the commands directory with their original names.
+fn spool_commands_manifests(commands_dir: &Path) -> Vec<FileManifest> {
+    let mut manifests = Vec::new();
 
-pub fn cache_dir(version: &str) -> Result<PathBuf> {
-    let home = std::env::var("HOME").map_err(|_| miette!("HOME not set"))?;
-    let cache = PathBuf::from(home)
-        .join(".config")
-        .join("spool")
-        .join("cache")
-        .join(SPOOL_SKILLS_PATH)
-        .join(version);
-    Ok(cache)
-}
-
-pub fn build_github_url(tag: &str, path: &str) -> String {
-    format!(
-        "https://raw.githubusercontent.com/{}/{}/{}/{}",
-        GITHUB_REPO, tag, SPOOL_SKILLS_PATH, path
-    )
-}
-
-pub fn fetch_file(url: &str) -> Result<Vec<u8>> {
-    let output = std::process::Command::new("curl")
-        .arg("-fsSL")
-        .arg(url)
-        .output()
-        .map_err(|e| miette!("Failed to execute curl: {}", e))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(miette!("curl failed: {}", stderr));
+    for file in commands_files() {
+        let rel_path = file.relative_path;
+        manifests.push(FileManifest {
+            source: rel_path.to_string(),
+            dest: commands_dir.join(rel_path),
+            asset_type: AssetType::Command,
+        });
     }
 
-    Ok(output.stdout)
-}
-
-pub fn fetch_or_cache(mode: &SourceMode, rel_path: &str, version: &str) -> Result<Vec<u8>> {
-    match mode {
-        SourceMode::Local(base) => {
-            let src = base.join(rel_path);
-            std::fs::read(&src)
-                .map_err(|e| miette!("Failed to read local file {}: {}", src.display(), e))
-        }
-        SourceMode::Remote { tag } => {
-            let cache = cache_dir(version)?;
-            let cached_file = cache.join(rel_path);
-
-            if cached_file.exists() {
-                return std::fs::read(&cached_file)
-                    .map_err(|e| miette!("Failed to read cached file: {}", e));
-            }
-
-            let url = build_github_url(tag, rel_path);
-            let bytes = fetch_file(&url).or_else(|_| {
-                let fallback_url = build_github_url("main", rel_path);
-                fetch_file(&fallback_url)
-            })?;
-
-            if let Some(parent) = cached_file.parent() {
-                crate::io::create_dir_all(parent)?;
-            }
-            crate::io::write(&cached_file, &bytes)?;
-
-            Ok(bytes)
-        }
-    }
-}
-
-pub fn copy_dir_recursive(src: &Path, dest: &Path) -> Result<()> {
-    if !src.exists() {
-        return Err(miette!(
-            "Source directory does not exist: {}",
-            src.display()
-        ));
-    }
-
-    crate::io::create_dir_all(dest)?;
-
-    let entries = std::fs::read_dir(src)
-        .map_err(|e| miette!("Failed to read directory {}: {}", src.display(), e))?;
-
-    for entry in entries {
-        let entry = entry.map_err(|e| miette!("Failed to read entry: {}", e))?;
-        let path = entry.path();
-        let file_name = entry.file_name();
-        let dest_path = dest.join(&file_name);
-
-        if path.is_dir() {
-            copy_dir_recursive(&path, &dest_path)?;
-        } else {
-            let bytes = std::fs::read(&path)
-                .map_err(|e| miette!("Failed to read {}: {}", path.display(), e))?;
-            crate::io::write(&dest_path, &bytes)?;
-        }
-    }
-
-    Ok(())
+    manifests
 }
 
 pub fn opencode_manifests(config_dir: &Path) -> Vec<FileManifest> {
     let mut out = Vec::new();
 
     out.push(FileManifest {
-        source: "adapters/opencode/spool-skills.js".to_string(),
+        source: "opencode/spool-skills.js".to_string(),
         dest: config_dir.join("plugins").join("spool-skills.js"),
-        is_dir: false,
+        asset_type: AssetType::Adapter,
     });
 
     // Skills go directly under skills/ (flat structure with spool- prefix)
     let skills_dir = config_dir.join("skills");
     out.extend(spool_skills_manifests(&skills_dir));
 
+    // Commands go under commands/
+    let commands_dir = config_dir.join("commands");
+    out.extend(spool_commands_manifests(&commands_dir));
+
     out
 }
 
 pub fn claude_manifests(project_root: &Path) -> Vec<FileManifest> {
     let mut out = vec![FileManifest {
-        source: "adapters/claude/session-start.sh".to_string(),
+        source: "claude/session-start.sh".to_string(),
         dest: project_root.join(".claude").join("session-start.sh"),
-        is_dir: false,
+        asset_type: AssetType::Adapter,
     }];
 
     // Skills go directly under .claude/skills/ (flat structure with spool- prefix)
     let skills_dir = project_root.join(".claude").join("skills");
     out.extend(spool_skills_manifests(&skills_dir));
 
+    // Commands go under .claude/commands/
+    let commands_dir = project_root.join(".claude").join("commands");
+    out.extend(spool_commands_manifests(&commands_dir));
+
     out
 }
 
 pub fn codex_manifests(project_root: &Path) -> Vec<FileManifest> {
     let mut out = vec![FileManifest {
-        source: ".codex/spool-skills-bootstrap.md".to_string(),
+        source: "codex/spool-skills-bootstrap.md".to_string(),
         dest: project_root
             .join(".codex")
             .join("instructions")
             .join("spool-skills-bootstrap.md"),
-        is_dir: false,
+        asset_type: AssetType::Adapter,
     }];
 
     // Skills go directly under .codex/skills/ (flat structure with spool- prefix)
     let skills_dir = project_root.join(".codex").join("skills");
     out.extend(spool_skills_manifests(&skills_dir));
 
+    // Commands go under .codex/prompts/ (Codex uses "prompts" terminology)
+    let commands_dir = project_root.join(".codex").join("prompts");
+    out.extend(spool_commands_manifests(&commands_dir));
+
     out
 }
 
-pub fn install_manifests(
-    manifests: &[FileManifest],
-    mode: &SourceMode,
-    version: &str,
-) -> Result<()> {
-    for manifest in manifests {
-        if manifest.is_dir {
-            match mode {
-                SourceMode::Local(base) => {
-                    let src = base.join(&manifest.source);
-                    copy_dir_recursive(&src, &manifest.dest)?;
-                }
-                SourceMode::Remote { .. } => {
-                    return Err(miette!(
-                        "Directory installation from remote not yet implemented: {}",
-                        manifest.source
-                    ));
-                }
-            }
+pub fn github_manifests(project_root: &Path) -> Vec<FileManifest> {
+    // Skills go directly under .github/skills/ (flat structure with spool- prefix)
+    let skills_dir = project_root.join(".github").join("skills");
+    let mut out = spool_skills_manifests(&skills_dir);
+
+    // Commands go under .github/prompts/ (GitHub uses "prompts" terminology)
+    // Note: GitHub Copilot uses .prompt.md suffix convention
+    let prompts_dir = project_root.join(".github").join("prompts");
+    for file in commands_files() {
+        let rel_path = file.relative_path;
+        // Convert spool-apply.md -> spool-apply.prompt.md for GitHub
+        let dest_name = if rel_path.ends_with(".md") {
+            format!("{}.prompt.md", &rel_path[..rel_path.len() - 3])
         } else {
-            let bytes = fetch_or_cache(mode, &manifest.source, version)?;
-            if let Some(parent) = manifest.dest.parent() {
-                crate::io::create_dir_all(parent)?;
-            }
-            crate::io::write(&manifest.dest, &bytes)?;
+            rel_path.to_string()
+        };
+        out.push(FileManifest {
+            source: rel_path.to_string(),
+            dest: prompts_dir.join(dest_name),
+            asset_type: AssetType::Command,
+        });
+    }
+
+    out
+}
+
+/// Install manifests from embedded assets to disk.
+pub fn install_manifests(manifests: &[FileManifest]) -> Result<()> {
+    for manifest in manifests {
+        let bytes = match manifest.asset_type {
+            AssetType::Skill => get_skill_file(&manifest.source).ok_or_else(|| {
+                miette!(
+                    "Skill file not found in embedded assets: {}",
+                    manifest.source
+                )
+            })?,
+            AssetType::Adapter => get_adapter_file(&manifest.source).ok_or_else(|| {
+                miette!(
+                    "Adapter file not found in embedded assets: {}",
+                    manifest.source
+                )
+            })?,
+            AssetType::Command => get_command_file(&manifest.source).ok_or_else(|| {
+                miette!(
+                    "Command file not found in embedded assets: {}",
+                    manifest.source
+                )
+            })?,
+        };
+
+        if let Some(parent) = manifest.dest.parent() {
+            crate::io::create_dir_all(parent)?;
         }
+        crate::io::write(&manifest.dest, bytes)?;
     }
     Ok(())
 }

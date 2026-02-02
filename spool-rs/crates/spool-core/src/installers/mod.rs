@@ -205,27 +205,24 @@ fn install_adapter_files(
     _mode: InstallMode,
     opts: &InitOptions,
 ) -> Result<()> {
-    let version = env!("CARGO_PKG_VERSION");
-    let cwd = std::env::current_dir().unwrap_or_else(|_| project_root.to_path_buf());
-    let source_mode = crate::distribution::detect_source_mode(&cwd, version);
-
     for tool in &opts.tools {
         match tool.as_str() {
             TOOL_OPENCODE => {
                 let config_dir = project_root.join(".opencode");
                 let manifests = crate::distribution::opencode_manifests(&config_dir);
-                crate::distribution::install_manifests(&manifests, &source_mode, version)?;
+                crate::distribution::install_manifests(&manifests)?;
             }
             TOOL_CLAUDE => {
                 let manifests = crate::distribution::claude_manifests(project_root);
-                crate::distribution::install_manifests(&manifests, &source_mode, version)?;
+                crate::distribution::install_manifests(&manifests)?;
             }
             TOOL_CODEX => {
                 let manifests = crate::distribution::codex_manifests(project_root);
-                crate::distribution::install_manifests(&manifests, &source_mode, version)?;
+                crate::distribution::install_manifests(&manifests)?;
             }
             TOOL_GITHUB_COPILOT => {
-                // No adapter files for GitHub Copilot yet
+                let manifests = crate::distribution::github_manifests(project_root);
+                crate::distribution::install_manifests(&manifests)?;
             }
             _ => {}
         }

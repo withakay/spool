@@ -1,3 +1,4 @@
+use crate::cli::{ValidateArgs, ValidateCommand, ValidateItemType};
 use crate::cli_error::{CliResult, fail, silent_fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
@@ -7,7 +8,10 @@ use std::path::Path;
 
 pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!("{}", super::VALIDATE_HELP);
+        println!(
+            "{}",
+            super::common::render_command_long_help(&["validate"], "spool validate")
+        );
         return Ok(());
     }
 
@@ -383,6 +387,51 @@ pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
             ))
         }
     }
+}
+
+pub(crate) fn handle_validate_clap(rt: &Runtime, args: &ValidateArgs) -> CliResult<()> {
+    let mut argv: Vec<String> = Vec::new();
+
+    if let Some(ValidateCommand::Module { module_id }) = &args.command {
+        argv.push("module".to_string());
+        if let Some(module_id) = module_id {
+            argv.push(module_id.clone());
+        }
+        return handle_validate(rt, &argv);
+    }
+
+    if args.all {
+        argv.push("--all".to_string());
+    }
+    if args.changes {
+        argv.push("--changes".to_string());
+    }
+    if args.specs {
+        argv.push("--specs".to_string());
+    }
+    if args.modules {
+        argv.push("--modules".to_string());
+    }
+    if let Some(typ) = args.typ {
+        let s = match typ {
+            ValidateItemType::Change => "change",
+            ValidateItemType::Spec => "spec",
+            ValidateItemType::Module => "module",
+        };
+        argv.push("--type".to_string());
+        argv.push(s.to_string());
+    }
+    if args.strict {
+        argv.push("--strict".to_string());
+    }
+    if args.json {
+        argv.push("--json".to_string());
+    }
+    if let Some(item) = &args.item {
+        argv.push(item.clone());
+    }
+
+    handle_validate(rt, &argv)
 }
 
 fn handle_validate_module(rt: &Runtime, args: &[String]) -> CliResult<()> {

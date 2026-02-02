@@ -1,0 +1,23 @@
+---
+source: crates/spool-cli/tests/cli_snapshots.rs
+expression: "snapshot(&[\"tasks\", \"--help\"])"
+---
+Track execution tasks for a change
+
+Usage: spool tasks [OPTIONS] [COMMAND]
+
+Commands:
+  init      Create enhanced tasks.md
+  status    Show task progress
+  next      Show the next available task
+  start     Mark a task in-progress
+  complete  Mark a task complete
+  shelve    Shelve a task (reversible)
+  unshelve  Restore a shelved task to pending
+  add       Add a new task (enhanced only)
+  show      Print tasks.md
+
+Options:
+      --no-color  Disable color output
+      --help-all  Print the full CLI reference (equivalent to `spool help --all`)
+  -h, --help      Print help
