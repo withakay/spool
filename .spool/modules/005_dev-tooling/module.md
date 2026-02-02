@@ -16,3 +16,5 @@
 - [ ] 005-07_split-spool-cli-app-rs
 - [ ] 005-08_migrate-cli-to-clap
 - [ ] 005-09_homebrew-release
+- [ ] 005-11_task-repository-pattern
+- [ ] 005-12_change-module-repositories
