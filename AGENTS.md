@@ -65,8 +65,8 @@ make test-watch
 # Run tests with coverage
 make test-coverage
 
-# Run linter
-make lint
+# Run linter checks
+make check
 
 # Clean build artifacts
 make clean
