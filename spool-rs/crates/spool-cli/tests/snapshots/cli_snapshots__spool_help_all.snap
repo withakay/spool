@@ -1,6 +1,5 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 51
 expression: "snapshot(&[\"--help-all\"])"
 ---
 ================================================================================
@@ -116,11 +115,14 @@ spool tasks
 Manage implementation tasks for a change
 
 Track task progress through status, start, complete, and shelve actions.
-Tasks are organized in waves for phased implementation.
+Tasks are organized in waves for phased implementation. Use 'ready' to
+find actionable tasks across changes.
 
 Examples:
   spool tasks status 005-01_add-auth
   spool tasks next 005-01_add-auth
+  spool tasks ready
+  spool tasks ready 005-01_add-auth
   spool tasks start 005-01_add-auth 1.1
   spool tasks complete 005-01_add-auth 1.1
 
@@ -130,6 +132,7 @@ Commands:
   init      Create enhanced tasks.md
   status    Show task progress
   next      Show the next available task
+  ready     Show all ready tasks (pending tasks in earliest incomplete wave)
   start     Mark a task in-progress
   complete  Mark a task complete
   shelve    Shelve a task (reversible)
@@ -230,10 +233,12 @@ spool list
 List changes, specs, or modules with status summaries
 
 By default lists changes sorted by most recent. Use --specs or --modules
-to list other item types. Use --json for machine-readable output.
+to list other item types. Use --ready to filter to changes ready for
+implementation (have proposal, specs, tasks, and pending work).
 
 Examples:
   spool list
+  spool list --ready
   spool list --specs
   spool list --modules --json
 
@@ -248,6 +253,9 @@ Options:
 
       --modules
           List modules instead of changes
+
+      --ready
+          Filter to changes ready for implementation (has proposal, specs, tasks, and pending work)
 
       --sort <SORT>
           Sort order

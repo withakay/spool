@@ -1,16 +1,18 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 61
 expression: "snapshot(&[\"tasks\", \"--help\"])"
 ---
 Manage implementation tasks for a change
 
 Track task progress through status, start, complete, and shelve actions.
-Tasks are organized in waves for phased implementation.
+Tasks are organized in waves for phased implementation. Use 'ready' to
+find actionable tasks across changes.
 
 Examples:
   spool tasks status 005-01_add-auth
   spool tasks next 005-01_add-auth
+  spool tasks ready
+  spool tasks ready 005-01_add-auth
   spool tasks start 005-01_add-auth 1.1
   spool tasks complete 005-01_add-auth 1.1
 
@@ -20,6 +22,7 @@ Commands:
   init      Create enhanced tasks.md
   status    Show task progress
   next      Show the next available task
+  ready     Show all ready tasks (pending tasks in earliest incomplete wave)
   start     Mark a task in-progress
   complete  Mark a task complete
   shelve    Shelve a task (reversible)

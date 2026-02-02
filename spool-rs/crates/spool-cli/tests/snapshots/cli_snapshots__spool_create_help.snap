@@ -1,6 +1,5 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 66
 expression: "snapshot(&[\"create\", \"--help\"])"
 ---
 Create a new module or change proposal

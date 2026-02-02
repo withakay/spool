@@ -1,6 +1,5 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 71
 expression: "snapshot(&[\"agent\", \"--help\"])"
 ---
 Generate instructions and context for AI coding agents

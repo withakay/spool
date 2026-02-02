@@ -1,15 +1,16 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 84
 expression: "snapshot(&[\"list\", \"--help\"])"
 ---
 List changes, specs, or modules with status summaries
 
 By default lists changes sorted by most recent. Use --specs or --modules
-to list other item types. Use --json for machine-readable output.
+to list other item types. Use --ready to filter to changes ready for
+implementation (have proposal, specs, tasks, and pending work).
 
 Examples:
   spool list
+  spool list --ready
   spool list --specs
   spool list --modules --json
 
@@ -30,6 +31,9 @@ Options:
 
       --modules
           List modules instead of changes
+
+      --ready
+          Filter to changes ready for implementation (has proposal, specs, tasks, and pending work)
 
       --sort <SORT>
           Sort order

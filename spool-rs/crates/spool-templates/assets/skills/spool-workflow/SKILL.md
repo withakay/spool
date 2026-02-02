@@ -14,6 +14,7 @@ This skill delegates workflow operations to the Spool CLI.
 ```bash
 spool create change "<name>" --module <module-id>
 spool list [--json]
+spool list --ready                    # Show only changes ready for implementation
 spool status --change "<change-id>"
 ```
 
@@ -34,6 +35,8 @@ spool agent instruction archive --change "<change-id>"
 ```bash
 spool tasks status <change-id>
 spool tasks next <change-id>
+spool tasks ready                     # Show ready tasks across all changes
+spool tasks ready <change-id>         # Show ready tasks for a specific change
 spool tasks start <change-id> <task-id>
 spool tasks complete <change-id> <task-id>
 ```

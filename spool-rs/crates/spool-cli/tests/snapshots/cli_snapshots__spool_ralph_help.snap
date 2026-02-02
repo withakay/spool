@@ -1,6 +1,5 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 104
 expression: "snapshot(&[\"ralph\", \"--help\"])"
 ---
 Run an AI agent loop to implement a change

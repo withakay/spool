@@ -53,10 +53,12 @@ pub enum Commands {
     /// List changes, specs, or modules with status summaries
     ///
     /// By default lists changes sorted by most recent. Use --specs or --modules
-    /// to list other item types. Use --json for machine-readable output.
+    /// to list other item types. Use --ready to filter to changes ready for
+    /// implementation (have proposal, specs, tasks, and pending work).
     ///
     /// Examples:
     ///   spool list
+    ///   spool list --ready
     ///   spool list --specs
     ///   spool list --modules --json
     #[command(verbatim_doc_comment)]
@@ -115,11 +117,14 @@ pub enum Commands {
     /// Manage implementation tasks for a change
     ///
     /// Track task progress through status, start, complete, and shelve actions.
-    /// Tasks are organized in waves for phased implementation.
+    /// Tasks are organized in waves for phased implementation. Use 'ready' to
+    /// find actionable tasks across changes.
     ///
     /// Examples:
     ///   spool tasks status 005-01_add-auth
     ///   spool tasks next 005-01_add-auth
+    ///   spool tasks ready
+    ///   spool tasks ready 005-01_add-auth
     ///   spool tasks start 005-01_add-auth 1.1
     ///   spool tasks complete 005-01_add-auth 1.1
     #[command(verbatim_doc_comment)]
@@ -659,6 +664,10 @@ pub struct ListArgs {
     #[arg(long)]
     pub modules: bool,
 
+    /// Filter to changes ready for implementation (has proposal, specs, tasks, and pending work)
+    #[arg(long)]
+    pub ready: bool,
+
     /// Sort order
     #[arg(long, value_enum, default_value_t = ListSortOrder::Recent)]
     pub sort: ListSortOrder,
@@ -718,6 +727,25 @@ pub enum TasksAction {
     Next {
         /// Change id (e.g. 005-08_migrate-cli-to-clap)
         change_id: String,
+    },
+
+    /// Show all ready tasks (pending tasks in earliest incomplete wave)
+    ///
+    /// Without a change argument, shows ready tasks across all changes.
+    /// With a change argument, shows ready tasks for that specific change.
+    ///
+    /// Examples:
+    ///   spool tasks ready
+    ///   spool tasks ready 005-01_my-change
+    ///   spool tasks ready --json
+    #[command(verbatim_doc_comment)]
+    Ready {
+        /// Change id (optional - if omitted, shows tasks from all changes)
+        change_id: Option<String>,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
     },
 
     /// Mark a task in-progress

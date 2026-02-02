@@ -1,6 +1,5 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 94
 expression: "snapshot(&[\"init\", \"--help\"])"
 ---
 Set up Spool in a project

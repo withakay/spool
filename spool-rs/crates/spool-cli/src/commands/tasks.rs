@@ -22,6 +22,16 @@ pub(crate) fn handle_tasks_clap(rt: &Runtime, args: &TasksArgs) -> CliResult<()>
             out
         }
         TasksAction::Next { change_id } => vec!["next".to_string(), change_id.clone()],
+        TasksAction::Ready { change_id, json } => {
+            let mut out = vec!["ready".to_string()];
+            if let Some(id) = change_id {
+                out.push(id.clone());
+            }
+            if *json {
+                out.push("--json".to_string());
+            }
+            out
+        }
         TasksAction::Start { change_id, task_id } => {
             vec!["start".to_string(), change_id.clone(), task_id.clone()]
         }
@@ -75,12 +85,18 @@ pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
+    let spool_path = rt.spool_path();
+
+    // Handle "ready" specially since change_id is optional
+    if sub == "ready" {
+        return handle_tasks_ready(rt, args);
+    }
+
     let change_id = args.get(1).map(|s| s.as_str()).unwrap_or("");
     if change_id.is_empty() || change_id.starts_with('-') {
         return fail("Missing required argument <change-id>");
     }
 
-    let spool_path = rt.spool_path();
     let change_dir = core_paths::change_dir(spool_path, change_id);
 
     match sub {
@@ -531,4 +547,168 @@ pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
         }
         _ => fail(format!("Unknown tasks subcommand '{sub}'")),
     }
+}
+
+/// Handle `tasks ready [change_id] [--json]`
+fn handle_tasks_ready(rt: &Runtime, args: &[String]) -> CliResult<()> {
+    let want_json = args.iter().any(|a| a == "--json");
+
+    // Check if we have a change_id (arg after "ready" that doesn't start with -)
+    let change_id = args
+        .get(1)
+        .filter(|s| !s.starts_with('-'))
+        .map(|s| s.as_str());
+
+    if let Some(change_id) = change_id {
+        // Single change mode
+        handle_tasks_ready_single(rt, change_id, want_json)
+    } else {
+        // All changes mode
+        handle_tasks_ready_all(rt, want_json)
+    }
+}
+
+/// Show ready tasks for a single change
+fn handle_tasks_ready_single(rt: &Runtime, change_id: &str, want_json: bool) -> CliResult<()> {
+    let spool_path = rt.spool_path();
+    let path = wf_tasks::tasks_path(spool_path, change_id);
+
+    let contents = spool_core::io::read_to_string(&path).map_err(|_| {
+        CliError::msg(format!(
+            "No tasks.md found for \"{change_id}\". Run \"spool tasks init {change_id}\" first."
+        ))
+    })?;
+
+    let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+
+    if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics) {
+        return Err(CliError::msg(msg));
+    }
+
+    let (ready, _blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
+
+    if want_json {
+        let json_tasks: Vec<serde_json::Value> = ready
+            .iter()
+            .map(|t| {
+                serde_json::json!({
+                    "id": t.id,
+                    "name": t.name,
+                    "wave": t.wave,
+                    "files": t.files,
+                    "action": t.action,
+                    "verify": t.verify,
+                    "done_when": t.done_when,
+                })
+            })
+            .collect();
+        let output = serde_json::json!({
+            "change_id": change_id,
+            "ready_tasks": json_tasks,
+        });
+        println!("{}", serde_json::to_string_pretty(&output).unwrap());
+        return Ok(());
+    }
+
+    if ready.is_empty() {
+        if parsed.progress.remaining == 0 {
+            println!("All tasks complete for \"{change_id}\"!");
+        } else {
+            println!("No ready tasks for \"{change_id}\" (tasks may be blocked or shelved).");
+        }
+        return Ok(());
+    }
+
+    println!("Ready Tasks for: {change_id}");
+    println!("──────────────────────────────────────────────────");
+    println!();
+
+    for t in &ready {
+        println!("Task {}: {}", t.id, t.name);
+        if !t.files.is_empty() {
+            println!("  Files: {}", t.files.join(", "));
+        }
+    }
+
+    println!();
+    println!("Run \"spool tasks start {change_id} <task-id>\" to begin a task");
+
+    Ok(())
+}
+
+/// Show ready tasks across all changes
+fn handle_tasks_ready_all(rt: &Runtime, want_json: bool) -> CliResult<()> {
+    use spool_domain::changes::ChangeRepository;
+
+    let spool_path = rt.spool_path();
+    let change_repo = ChangeRepository::new(spool_path);
+    let summaries = change_repo.list().map_err(to_cli_error)?;
+
+    // Only process changes that are ready (have proposal, specs, tasks, and pending work)
+    let ready_changes: Vec<_> = summaries.iter().filter(|s| s.is_ready()).collect();
+
+    if ready_changes.is_empty() {
+        if want_json {
+            println!("[]");
+        } else {
+            println!("No ready changes found.");
+        }
+        return Ok(());
+    }
+
+    let mut all_results: Vec<serde_json::Value> = Vec::new();
+    let mut has_any_tasks = false;
+
+    for summary in &ready_changes {
+        let path = wf_tasks::tasks_path(spool_path, &summary.id);
+        let Ok(contents) = spool_core::io::read_to_string(&path) else {
+            continue;
+        };
+
+        let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
+
+        // Skip if there are blocking errors
+        if diagnostics::blocking_task_error_message(&path, &parsed.diagnostics).is_some() {
+            continue;
+        }
+
+        let (ready, _blocked) = wf_tasks::compute_ready_and_blocked(&parsed);
+
+        if ready.is_empty() {
+            continue;
+        }
+
+        has_any_tasks = true;
+
+        if want_json {
+            let json_tasks: Vec<serde_json::Value> = ready
+                .iter()
+                .map(|t| {
+                    serde_json::json!({
+                        "id": t.id,
+                        "name": t.name,
+                        "wave": t.wave,
+                    })
+                })
+                .collect();
+            all_results.push(serde_json::json!({
+                "change_id": summary.id,
+                "ready_tasks": json_tasks,
+            }));
+        } else {
+            println!("{}:", summary.id);
+            for t in &ready {
+                println!("  {} - {}", t.id, t.name);
+            }
+            println!();
+        }
+    }
+
+    if want_json {
+        println!("{}", serde_json::to_string_pretty(&all_results).unwrap());
+    } else if !has_any_tasks {
+        println!("No ready tasks found across any changes.");
+    }
+
+    Ok(())
 }

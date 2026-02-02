@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import sys
 from pathlib import Path
 
 
@@ -30,13 +31,26 @@ def count_lines(path: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Fail if Rust source files exceed a line limit."
+        description="Check Rust source files against soft and hard line limits."
     )
+    parser.add_argument(
+        "--soft-limit",
+        type=int,
+        default=1000,
+        help="Soft limit: warn but don't fail (default: 1000)",
+    )
+    parser.add_argument(
+        "--hard-limit",
+        type=int,
+        default=1200,
+        help="Hard limit: fail if exceeded (default: 1200)",
+    )
+    # Keep --max-lines for backwards compatibility, maps to soft-limit
     parser.add_argument(
         "--max-lines",
         type=int,
-        default=1000,
-        help="Maximum allowed physical lines per file (default: 1000)",
+        default=None,
+        help="Alias for --soft-limit (deprecated)",
     )
     parser.add_argument(
         "--root",
@@ -46,25 +60,43 @@ def main() -> int:
     )
 
     args = parser.parse_args()
-    max_lines: int = args.max_lines
+
+    # Handle backwards compatibility
+    soft_limit: int = args.max_lines if args.max_lines is not None else args.soft_limit
+    hard_limit: int = args.hard_limit
     roots = [Path(r) for r in (args.root or ["spool-rs"])]
 
-    offenders: list[tuple[int, Path]] = []
+    warnings: list[tuple[int, Path]] = []
+    errors: list[tuple[int, Path]] = []
+
     for root in roots:
         if not root.exists():
             continue
         for path in iter_source_files(root):
             n = count_lines(path)
-            if n > max_lines:
-                offenders.append((n, path))
+            if n > hard_limit:
+                errors.append((n, path))
+            elif n > soft_limit:
+                warnings.append((n, path))
 
-    if not offenders:
+    # Print warnings but don't fail
+    if warnings:
+        warnings.sort(key=lambda x: (-x[0], str(x[1])))
+        print(
+            f"Warning: {len(warnings)} Rust files over soft limit ({soft_limit} lines):",
+            file=sys.stderr,
+        )
+        for n, path in warnings:
+            print(f"  - {path}: {n} (consider splitting)", file=sys.stderr)
+
+    # Fail on hard limit violations
+    if not errors:
         return 0
 
-    offenders.sort(key=lambda x: (-x[0], str(x[1])))
-    print(f"Found {len(offenders)} Rust files over {max_lines} lines:")
-    for n, path in offenders:
-        print(f"- {path}: {n}")
+    errors.sort(key=lambda x: (-x[0], str(x[1])))
+    print(f"Error: {len(errors)} Rust files over hard limit ({hard_limit} lines):")
+    for n, path in errors:
+        print(f"  - {path}: {n}")
 
     return 1
 

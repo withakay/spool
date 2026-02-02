@@ -10,7 +10,8 @@ Run the CLI-generated apply instructions for a specific change.
 1. Determine the target change ID.
 
    - If the user provides one, use it.
-   - Otherwise run `spool list` and ask the user which change to apply.
+   - Otherwise run `spool list --ready` to see changes ready for implementation.
+   - Ask the user which change to apply if multiple are ready.
 
 2. Generate instructions (source of truth):
 
@@ -19,3 +20,5 @@ Run the CLI-generated apply instructions for a specific change.
    ```
 
 3. Follow the printed instructions exactly.
+
+4. Use `spool tasks ready <change-id>` to see actionable tasks at any point.

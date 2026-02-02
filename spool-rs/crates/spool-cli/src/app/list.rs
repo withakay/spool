@@ -33,6 +33,7 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let want_specs = args.iter().any(|a| a == "--specs");
     let want_modules = args.iter().any(|a| a == "--modules");
     let want_json = args.iter().any(|a| a == "--json");
+    let want_ready = args.iter().any(|a| a == "--ready");
 
     let sort = parse_sort_order(args).unwrap_or("recent");
     let mode = if want_specs {
@@ -127,6 +128,11 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
             let change_repo = ChangeRepository::new(spool_path);
             let mut summaries = change_repo.list().map_err(to_cli_error)?;
 
+            // Filter to ready changes if requested
+            if want_ready {
+                summaries.retain(|s| s.is_ready());
+            }
+
             if summaries.is_empty() {
                 if want_json {
                     let rendered =
@@ -195,6 +201,9 @@ pub(crate) fn handle_list_clap(rt: &Runtime, args: &ListArgs) -> CliResult<()> {
     }
     if args.modules {
         argv.push("--modules".to_string());
+    }
+    if args.ready {
+        argv.push("--ready".to_string());
     }
     if args.json {
         argv.push("--json".to_string());

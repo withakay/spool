@@ -16,6 +16,9 @@ Use the `spool tasks` CLI to track and update implementation tasks for a change.
 ```bash
 spool tasks status <change-id>
 spool tasks next <change-id>
+spool tasks ready                               # Show ready tasks across ALL changes
+spool tasks ready <change-id>                   # Show ready tasks for a specific change
+spool tasks ready --json                        # JSON output for automation
 spool tasks start <change-id> <task-id>
 spool tasks complete <change-id> <task-id>
 spool tasks complete <change-id> <index>
@@ -31,7 +34,9 @@ spool tasks show <change-id>
 
 **If the user asks "what should I do next?"**
 
-- Run `spool tasks next <change-id>` and follow the printed Action/Verify/Done When.
+- If working on a specific change: Run `spool tasks next <change-id>`
+- If looking for any ready work: Run `spool tasks ready` to see all actionable tasks
+- Follow the printed Action/Verify/Done When for the chosen task.
 
 **Guardrails**
 

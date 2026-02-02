@@ -1,6 +1,5 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 99
 expression: "snapshot(&[\"workflow\", \"--help\"])"
 ---
 Initialize and inspect workflow definitions

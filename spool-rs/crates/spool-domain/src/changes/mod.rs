@@ -132,6 +132,17 @@ impl ChangeSummary {
             ChangeStatus::InProgress
         }
     }
+
+    /// Check if this change is ready for implementation.
+    ///
+    /// A change is "ready" when it has all required artifacts (proposal, specs, tasks)
+    /// and has pending work remaining (status is InProgress).
+    pub fn is_ready(&self) -> bool {
+        self.has_proposal
+            && self.has_specs
+            && self.has_tasks
+            && self.status() == ChangeStatus::InProgress
+    }
 }
 
 /// Extract module ID from a change ID.

@@ -1,6 +1,5 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 89
 expression: "snapshot(&[\"validate\", \"--help\"])"
 ---
 Check changes, specs, and modules for errors and warnings
