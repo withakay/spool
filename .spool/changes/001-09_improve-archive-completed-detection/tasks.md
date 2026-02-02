@@ -28,8 +28,8 @@ ______________________________________________________________________
   Add a `completed: bool` field to the `ChangeListItem` struct. The field should be `true` when `completed_tasks == total_tasks && total_tasks > 0`, otherwise `false`. Update the struct's serde attributes to include this field in JSON output.
 - **Verify**: `cargo test -p spool-core`
 - **Done When**: ChangeListItem struct has completed field and existing tests pass
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-02
+- **Status**: [x] complete
 
 ### Task 1.2: Update list command JSON serialization
 
@@ -39,8 +39,8 @@ ______________________________________________________________________
   Update the list command logic (around line 2576-2633) to populate the new `completed` field when building ChangeListItem instances. The logic is: `completed_tasks == total_tasks && total_tasks > 0`.
 - **Verify**: `spool list --json | jq '.[0].completed'`
 - **Done When**: JSON output includes `"completed": true/false` for each change
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-02
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -56,8 +56,8 @@ ______________________________________________________________________
   Add a `--completed` flag to the list command argument parsing. When set, filter the changes list to only include items where `completed == true`. Update the help text constant HELP and any relevant documentation strings.
 - **Verify**: `spool list --completed` should only show completed changes
 - **Done When**: Running `spool list --completed` filters to completed changes only; `spool list --help` shows the new flag
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-02
+- **Status**: [x] complete
 
 ### Task 2.2: Handle empty completed list gracefully
 
@@ -67,8 +67,8 @@ ______________________________________________________________________
   When `--completed` is used and no completed changes exist, display an informational message like "No completed changes found. Run `spool list` to see all changes." rather than showing an empty table.
 - **Verify**: Create a test scenario with no completed changes and run `spool list --completed`
 - **Done When**: User sees helpful message instead of empty output when no completed changes exist
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-02
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -88,8 +88,8 @@ ______________________________________________________________________
   4. Preserve existing behavior when change ID is explicitly provided
 - **Verify**: Test the skill invocation without a change ID
 - **Done When**: `/spool-archive` without args prompts for selection from completed changes
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-02
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -109,8 +109,8 @@ ______________________________________________________________________
   4. `--completed` flag filters correctly
 - **Verify**: `cargo test -p spool-cli`
 - **Done When**: All new tests pass and cover the documented scenarios
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-02
+- **Status**: [x] complete
 
 ### Task 4.2: Manual validation of full workflow
 
@@ -124,8 +124,8 @@ ______________________________________________________________________
   4. Test `/spool-archive` skill without change ID
 - **Verify**: Manual verification
 - **Done When**: All scenarios work as expected
-- **Updated At**: 2026-01-31
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-02
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
