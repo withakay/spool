@@ -170,3 +170,10 @@ target
 # Contains mutation testing data
 **/mutants.out*/
 .spool/session.json
+
+# direnv (local only)
+.envrc
+.direnv/
+
+# Local SSH config helpers
+.local/ssh/config_github_remote
