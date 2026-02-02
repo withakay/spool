@@ -21,7 +21,7 @@
 ### ModuleRepository
 - [x] Create `spool-workflow/src/modules/repository.rs`
 - [x] Implement `ModuleRepository::new()`
-- [x] Implement `ModuleRepository::get()`
+- [x] Implement `ModuleRepository::get()` - supports both ID and full name
 - [x] Implement `ModuleRepository::list()`
 - [x] Implement `ModuleRepository::exists()`
 - [x] Add unit tests for ModuleRepository
@@ -34,29 +34,43 @@
 - [x] Remove direct path construction and file reads
 
 ### status.rs
-- [ ] Migrate to use `ChangeRepository::get()`
-- [ ] Use `Change` domain model for status display
+- [x] Migrate to use `ChangeRepository::list()` for available changes
+- [x] Use repository for error message suggestions
 
 ### validate.rs
-- [ ] Migrate to use `ChangeRepository::list()` for iteration
-- [ ] Use `Change` domain model for validation
+- [x] Migrate to use `ChangeRepository::exists()` for change validation
 
-### Other commands
-- [ ] Audit and migrate `archive.rs`
-- [ ] Audit and migrate `show.rs`
-- [ ] Audit and migrate `instructions.rs`
-- [ ] Audit and migrate `common.rs`
+### common.rs
+- [x] Migrate `list_change_ids()` to use `ChangeRepository::list()`
+- [x] Migrate `detect_item_type()` to use `ChangeRepository::exists()`
+- [x] Remove unused `list_change_ids_from_index()` function
+
+### archive.rs
+- [x] Migrate to use `ChangeRepository::list()` for available changes
+- [x] Migrate to use `ChangeRepository::exists()` for validation
+- [x] Migrate to use `TaskRepository::get_task_counts()` for completion check
+
+### show.rs
+- [x] Migrate to use `ChangeRepository::exists()` for change validation
+- [x] Migrate to use `ModuleRepository::get()` for module lookup
+
+### instructions.rs
+- [x] Add `ChangeRepository::list()` for available changes in error messages
 
 ## Phase 3: Cleanup
 
-- [ ] Remove duplicated loading logic from CLI commands
-- [ ] Review and potentially deprecate low-level path helpers
-- [ ] Update documentation
+- [x] Remove duplicated loading logic from CLI commands
+- [x] Update AGENTS.md with repository pattern documentation
+- [x] All tests pass including edge cases (module ID vs full name)
 
 ## Validation
 
 - [x] All existing tests pass
 - [x] `spool list` works correctly with new repositories
 - [x] `spool list --modules` works correctly
-- [ ] `spool status --change <id>` works correctly
+- [x] `spool status --change <id>` works correctly
+- [x] `spool validate change <id>` works correctly
+- [x] `spool show module <id>` works with both ID and full name
+- [x] `spool archive` shows available changes
+- [x] `make check` passes (fmt, clippy, tests, coverage)
 - [x] Performance is acceptable (no regression)

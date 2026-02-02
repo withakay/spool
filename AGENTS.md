@@ -115,6 +115,42 @@ This differs from other tools like Claude Code which use plural forms (`.claude/
 
 When writing tests or code that references OpenCode paths, always use the singular form.
 
+## Repository Pattern for Data Access
+
+The codebase uses a repository pattern for accessing Spool data. When working with changes, modules, or tasks, use the repository abstractions in `spool-domain` rather than direct file I/O:
+
+```rust
+use spool_domain::changes::ChangeRepository;
+use spool_domain::modules::ModuleRepository;
+use spool_domain::tasks::TaskRepository;
+
+// Get a repository instance
+let change_repo = ChangeRepository::new(spool_path);
+let module_repo = ModuleRepository::new(spool_path);
+let task_repo = TaskRepository::new(spool_path);
+
+// Query data through the repository
+let changes = change_repo.list()?;           // List all changes
+let change = change_repo.get("005-01_foo")?; // Get full change with artifacts
+let exists = change_repo.exists("005-01_foo"); // Check existence
+
+let modules = module_repo.list()?;           // List all modules
+let module = module_repo.get("005")?;        // Get module by ID
+
+let (completed, total) = task_repo.get_task_counts("005-01_foo")?;
+```
+
+**Benefits**:
+- Single source of truth for data access
+- Hides markdown storage format as implementation detail
+- Consistent handling of both checkbox and enhanced task formats
+- Rich domain objects with computed properties (status, completeness)
+
+**Do NOT**:
+- Parse markdown files directly for change/task data
+- Use `core_paths::change_dir()` for data access (use for path construction only)
+- Duplicate task counting logic
+
 ## Coding conventions
 
 When working in the Rust codebase use the skill `rust-style` to guide naming, structuring, and formatting etc.
