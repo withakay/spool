@@ -57,14 +57,23 @@ jobs:
       - name: Update formula url/sha256
         run: |
           set -euo pipefail
-          export TAR_URL="${{ steps.meta.outputs.tar_url }}"
-          export SHA256="${{ steps.sha.outputs.sha256 }}"
+          TAR_URL="${{ steps.meta.outputs.tar_url }}"
+          SHA256="${{ steps.sha.outputs.sha256 }}"
           : "${TAR_URL:?missing TAR_URL from meta}"
           : "${SHA256:?missing SHA256 from sha}"
-          perl -0777 -pe '
-            s{^(\s*url\s*")[^\"]*(")}{$1 . $ENV{TAR_URL} . $2}me;
-            s{^(\s*sha256\s*")[^\"]*(")}{$1 . $ENV{SHA256} . $2}me;
-          ' -i "${FORMULA_PATH}"
+
+          # Check if url line exists (not commented)
+          if grep -qE '^\s*url\s*"' "${FORMULA_PATH}"; then
+            # Update existing url and sha256
+            sed -i.bak -E "s|^(\s*url\s*\").*(\")|\1${TAR_URL}\2|" "${FORMULA_PATH}"
+            sed -i.bak -E "s|^(\s*sha256\s*\").*(\")|\1${SHA256}\2|" "${FORMULA_PATH}"
+          else
+            # Add url and sha256 after license line (first release)
+            sed -i.bak -E "/^\s*license\s/a\\
+          url \"${TAR_URL}\"\\
+          sha256 \"${SHA256}\"" "${FORMULA_PATH}"
+          fi
+          rm -f "${FORMULA_PATH}.bak"
           grep -En '^\s*(url|sha256)\s*"' "${FORMULA_PATH}"
 
       - name: Commit & push to main
