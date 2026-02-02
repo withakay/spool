@@ -8,7 +8,6 @@ mod ralph;
 mod run;
 mod show;
 mod status;
-mod templates;
 mod update;
 mod validate;
 

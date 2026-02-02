@@ -1,169 +1,9 @@
-use crate::cli::{AgentArgs, AgentCommand, AgentInstructionArgs, InstructionAliasArgs};
+use crate::cli::{AgentArgs, AgentCommand, AgentInstructionArgs};
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
 use spool_core::workflow as core_workflow;
 use spool_domain::changes::ChangeRepository;
-
-pub(crate) fn handle_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "{}",
-            super::common::render_command_long_help(&["instructions"], "spool instructions")
-        );
-        return Ok(());
-    }
-
-    eprintln!(
-        "Warning: \"spool instructions\" is deprecated. Use \"spool x-instructions\" instead."
-    );
-
-    let want_json = args.iter().any(|a| a == "--json");
-    let artifact = args.first().and_then(|a| {
-        if a.starts_with('-') {
-            None
-        } else {
-            Some(a.as_str())
-        }
-    });
-    let change = parse_string_flag(args, "--change");
-    if change.as_deref().unwrap_or("").is_empty() {
-        let change_repo = ChangeRepository::new(rt.spool_path());
-        let changes = change_repo.list().unwrap_or_default();
-        let mut msg = "Missing required option --change".to_string();
-        if !changes.is_empty() {
-            msg.push_str("\n\nAvailable changes:\n");
-            for c in changes {
-                msg.push_str(&format!("  {}\n", c.id));
-            }
-        }
-        return fail(msg);
-    }
-    let change = change.expect("checked above");
-    let schema = parse_string_flag(args, "--schema");
-
-    let ctx = rt.ctx();
-    let spool_path = rt.spool_path();
-
-    let user_guidance = match core_workflow::load_user_guidance(spool_path) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!("Warning: failed to read .spool/user-guidance.md: {e}");
-            None
-        }
-    };
-
-    let Some(artifact) = artifact else {
-        let schema_name = schema
-            .clone()
-            .unwrap_or_else(|| core_workflow::default_schema_name().to_string());
-        let mut msg = "Missing required argument <artifact>".to_string();
-        if let Ok(r) = core_workflow::resolve_schema(Some(&schema_name), ctx) {
-            let list = r
-                .schema
-                .artifacts
-                .into_iter()
-                .map(|a| a.id)
-                .collect::<Vec<_>>();
-            if !list.is_empty() {
-                msg.push_str(&format!("\n\nValid artifacts:\n  {}", list.join("\n  ")));
-            }
-        }
-        return fail(msg);
-    };
-
-    if artifact == "apply" {
-        // Match TS/ora: spinner output is written to stderr.
-        eprintln!("- Generating apply instructions...");
-        let apply = match core_workflow::compute_apply_instructions(
-            spool_path,
-            &change,
-            schema.as_deref(),
-            ctx,
-        ) {
-            Ok(r) => r,
-            Err(core_workflow::WorkflowError::InvalidChangeName) => {
-                return fail("Invalid change name");
-            }
-            Err(core_workflow::WorkflowError::ChangeNotFound(name)) => {
-                return fail(format!("Change '{name}' not found"));
-            }
-            Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
-                return fail(super::common::schema_not_found_message(ctx, &name));
-            }
-            Err(e) => return Err(to_cli_error(e)),
-        };
-
-        if want_json {
-            let rendered = serde_json::to_string_pretty(&apply).expect("json should serialize");
-            println!("{rendered}");
-            return Ok(());
-        }
-
-        print_apply_instructions_text(&apply);
-        print_user_guidance_markdown(user_guidance.as_deref());
-        return Ok(());
-    }
-
-    // Match TS/ora: spinner output is written to stderr.
-    eprintln!("- Generating instructions...");
-
-    let resolved = match core_workflow::resolve_instructions(
-        spool_path,
-        &change,
-        schema.as_deref(),
-        artifact,
-        ctx,
-    ) {
-        Ok(r) => r,
-        Err(core_workflow::WorkflowError::ArtifactNotFound(name)) => {
-            let schema_name = schema
-                .clone()
-                .unwrap_or_else(|| core_workflow::read_change_schema(spool_path, &change));
-            let mut msg = format!("Artifact '{name}' not found in schema '{schema_name}'.");
-            if let Ok(r) = core_workflow::resolve_schema(Some(&schema_name), ctx) {
-                let list = r
-                    .schema
-                    .artifacts
-                    .into_iter()
-                    .map(|a| a.id)
-                    .collect::<Vec<_>>();
-                if !list.is_empty() {
-                    msg.push_str(&format!("\n\nValid artifacts:\n  {}", list.join("\n  ")));
-                }
-            }
-            return fail(msg);
-        }
-        Err(core_workflow::WorkflowError::SchemaNotFound(name)) => {
-            return fail(super::common::schema_not_found_message(ctx, &name));
-        }
-        Err(e) => return Err(to_cli_error(e)),
-    };
-
-    if want_json {
-        let rendered = serde_json::to_string_pretty(&resolved).expect("json should serialize");
-        println!("{rendered}");
-        return Ok(());
-    }
-
-    print_artifact_instructions_text(&resolved, user_guidance.as_deref());
-
-    Ok(())
-}
-
-pub(crate) fn handle_x_instructions(rt: &Runtime, args: &[String]) -> CliResult<()> {
-    if args.iter().any(|a| a == "--help" || a == "-h") {
-        println!(
-            "{}",
-            super::common::render_command_long_help(&["x-instructions"], "spool x-instructions")
-        );
-        return Ok(());
-    }
-    eprintln!(
-        "Warning: \"spool x-instructions\" is deprecated. Use \"spool agent instruction\" instead."
-    );
-    handle_agent_instruction(rt, args)
-}
 
 pub(crate) fn handle_agent(rt: &Runtime, args: &[String]) -> CliResult<()> {
     // Check for subcommand first - subcommand handlers have their own help checks
@@ -319,22 +159,6 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
     Ok(())
 }
 
-pub(crate) fn handle_instructions_alias_clap(
-    rt: &Runtime,
-    args: &InstructionAliasArgs,
-) -> CliResult<()> {
-    let argv = instruction_alias_to_argv(args);
-    handle_instructions(rt, &argv)
-}
-
-pub(crate) fn handle_x_instructions_alias_clap(
-    rt: &Runtime,
-    args: &InstructionAliasArgs,
-) -> CliResult<()> {
-    let argv = instruction_alias_to_argv(args);
-    handle_x_instructions(rt, &argv)
-}
-
 pub(crate) fn handle_agent_clap(rt: &Runtime, args: &AgentArgs) -> CliResult<()> {
     match &args.command {
         Some(AgentCommand::Instruction(instr)) => handle_agent_instruction_clap(rt, instr),
@@ -362,29 +186,6 @@ fn handle_agent_instruction_clap(rt: &Runtime, args: &AgentInstructionArgs) -> C
         argv.push("--json".to_string());
     }
     handle_agent_instruction(rt, &argv)
-}
-
-fn instruction_alias_to_argv(args: &InstructionAliasArgs) -> Vec<String> {
-    let mut argv: Vec<String> = Vec::new();
-    if let Some(artifact) = &args.artifact {
-        argv.push(artifact.clone());
-    }
-    if let Some(change) = &args.change {
-        argv.push("--change".to_string());
-        argv.push(change.clone());
-    }
-    if let Some(tool) = &args.tool {
-        argv.push("--tool".to_string());
-        argv.push(tool.clone());
-    }
-    if let Some(schema) = &args.schema {
-        argv.push("--schema".to_string());
-        argv.push(schema.clone());
-    }
-    if args.json {
-        argv.push("--json".to_string());
-    }
-    argv
 }
 
 fn generate_bootstrap_instruction(tool: &str) -> String {

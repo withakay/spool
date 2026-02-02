@@ -123,24 +123,13 @@ fn list_show_validate_smoke() {
 }
 
 #[test]
-fn templates_instructions_status_archive_smoke() {
+fn agent_instruction_status_archive_smoke() {
     let base = make_base_repo();
     let repo = tempfile::tempdir().expect("work");
     let home = tempfile::tempdir().expect("home");
     let rust_path = assert_cmd::cargo::cargo_bin!("spool");
 
     reset_repo(repo.path(), base.path());
-
-    // templates
-    let out = run_rust_candidate(
-        rust_path,
-        &["templates", "--json"],
-        repo.path(),
-        home.path(),
-    );
-    assert_eq!(out.code, 0);
-    let v: serde_json::Value = serde_json::from_str(&out.stdout).expect("templates json");
-    assert!(v.is_object());
 
     // agent instruction apply
     let out = run_rust_candidate(
@@ -266,7 +255,7 @@ fn create_workflow_plan_state_config_smoke() {
     );
     assert_eq!(out.code, 0);
 
-    // config + agent-config
+    // config
     let out = run_rust_candidate(rust_path, &["config", "path"], repo.path(), home.path());
     assert_eq!(out.code, 0);
     let out = run_rust_candidate(
@@ -287,28 +276,6 @@ fn create_workflow_plan_state_config_smoke() {
     let out = run_rust_candidate(
         rust_path,
         &["config", "unset", "alpha"],
-        repo.path(),
-        home.path(),
-    );
-    assert_eq!(out.code, 0);
-
-    let out = run_rust_candidate(
-        rust_path,
-        &["agent-config", "init"],
-        repo.path(),
-        home.path(),
-    );
-    assert_eq!(out.code, 0);
-    let out = run_rust_candidate(
-        rust_path,
-        &["agent-config", "summary"],
-        repo.path(),
-        home.path(),
-    );
-    assert_eq!(out.code, 0);
-    let out = run_rust_candidate(
-        rust_path,
-        &["agent-config", "get", "defaults.context_budget"],
         repo.path(),
         home.path(),
     );

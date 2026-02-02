@@ -9,7 +9,6 @@ pub(crate) mod tasks;
 pub(crate) mod workflow;
 
 pub(crate) use completions::handle_completions;
-pub(crate) use config::handle_agent_config_clap;
 pub(crate) use config::handle_config_clap;
 pub(crate) use create::handle_create_clap;
 pub(crate) use create::handle_new_clap;

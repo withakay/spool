@@ -38,94 +38,231 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum Commands {
-    /// Display an interactive dashboard of specs and changes
-    Dashboard(DashboardArgs),
-
-    /// Initialize Spool in your project
-    Init(InitArgs),
-
-    /// Update Spool instruction files
-    Update(UpdateArgs),
-
-    /// Deprecated alias for `create change`
-    #[command(hide = true)]
-    New(NewArgs),
-
-    /// Track execution tasks for a change
-    Tasks(TasksArgs),
-
-    /// Project planning tools
-    Plan(PlanArgs),
-
-    /// View and update planning/STATE.md
-    State(StateArgs),
-
-    /// Manage and run workflows
-    Workflow(WorkflowArgs),
-
-    /// List items (changes by default). Use --specs or --modules to list other items.
-    List(ListArgs),
-
-    /// Archive a completed change and update main specs
-    Archive(ArchiveArgs),
-
-    /// View and modify global Spool configuration
-    Config(ConfigArgs),
-
-    /// Create items
+    // ─── Change Lifecycle ───────────────────────────────────────────────────────
+    /// Create a new module or change proposal
+    ///
+    /// Modules group related changes and specs. Changes are the unit of work
+    /// in Spool - each change has a proposal, spec deltas, and implementation tasks.
+    ///
+    /// Examples:
+    ///   spool create module my-feature
+    ///   spool create change add-auth --module 001
+    #[command(verbatim_doc_comment)]
     Create(CreateArgs),
 
-    /// Validate changes, specs, and modules
-    Validate(ValidateArgs),
+    /// List changes, specs, or modules with status summaries
+    ///
+    /// By default lists changes sorted by most recent. Use --specs or --modules
+    /// to list other item types. Use --json for machine-readable output.
+    ///
+    /// Examples:
+    ///   spool list
+    ///   spool list --specs
+    ///   spool list --modules --json
+    #[command(verbatim_doc_comment)]
+    List(ListArgs),
 
-    /// Show a change or spec
+    /// Display details of a change, spec, or module
+    ///
+    /// Shows the full content and metadata for an item. For changes, displays
+    /// the proposal, spec deltas, and task progress. Use --json for structured output.
+    ///
+    /// Examples:
+    ///   spool show 005-01_add-auth
+    ///   spool show --type spec auth-service
+    ///   spool show module 005
+    #[command(verbatim_doc_comment)]
     Show(ShowArgs),
 
-    /// Commands that generate machine-readable output for AI agents
+    /// Check completion status of change artifacts
+    ///
+    /// Displays which artifacts (proposal, specs, tasks) are complete for a change.
+    /// Useful for tracking progress before archiving.
+    ///
+    /// Examples:
+    ///   spool status --change 005-01_add-auth
+    #[command(verbatim_doc_comment)]
+    Status(StatusArgs),
+
+    /// Check changes, specs, and modules for errors and warnings
+    ///
+    /// Validates markdown structure, required fields, and cross-references.
+    /// Use --strict to treat warnings as errors. Returns non-zero on failure.
+    ///
+    /// Examples:
+    ///   spool validate --all
+    ///   spool validate 005-01_add-auth
+    ///   spool validate --specs --strict
+    #[command(verbatim_doc_comment)]
+    Validate(ValidateArgs),
+
+    /// Move a completed change to archive and update main specs
+    ///
+    /// Archives the change directory and merges spec deltas into the main specs.
+    /// Validates the change is complete before archiving. Use -y to skip prompts.
+    ///
+    /// Examples:
+    ///   spool archive 005-01_add-auth
+    ///   spool archive 005-01_add-auth -y --skip-specs
+    #[command(verbatim_doc_comment)]
+    Archive(ArchiveArgs),
+
+    /// Split a large change into smaller changes [not implemented]
+    #[command(hide = true)]
+    Split(SplitArgs),
+
+    // ─── Task Management ────────────────────────────────────────────────────────
+    /// Manage implementation tasks for a change
+    ///
+    /// Track task progress through status, start, complete, and shelve actions.
+    /// Tasks are organized in waves for phased implementation.
+    ///
+    /// Examples:
+    ///   spool tasks status 005-01_add-auth
+    ///   spool tasks next 005-01_add-auth
+    ///   spool tasks start 005-01_add-auth 1.1
+    ///   spool tasks complete 005-01_add-auth 1.1
+    #[command(verbatim_doc_comment)]
+    Tasks(TasksArgs),
+
+    /// Initialize and track project roadmap
+    ///
+    /// Creates planning structure for milestones and tracks overall progress
+    /// across multiple changes and modules.
+    ///
+    /// Examples:
+    ///   spool plan init
+    ///   spool plan status
+    #[command(verbatim_doc_comment)]
+    Plan(PlanArgs),
+
+    /// Track session state and working context
+    ///
+    /// Record decisions, blockers, notes, and current focus in STATE.md.
+    /// Helps maintain context across coding sessions.
+    ///
+    /// Examples:
+    ///   spool state show
+    ///   spool state focus "implementing auth flow"
+    ///   spool state decision "using JWT for tokens"
+    ///   spool state blocker "waiting on API spec"
+    #[command(verbatim_doc_comment)]
+    State(StateArgs),
+
+    // ─── AI Automation ──────────────────────────────────────────────────────────
+    /// Generate instructions and context for AI coding agents
+    ///
+    /// Produces structured output for AI tools like Claude Code, Codex, or OpenCode.
+    /// Includes change proposals, specs, tasks, and implementation guidance.
+    ///
+    /// Examples:
+    ///   spool agent instruction bootstrap --tool claude
+    ///   spool agent instruction apply --change 005-01_add-auth
+    ///   spool agent instruction tasks --change 005-01_add-auth
+    #[command(verbatim_doc_comment)]
     Agent(AgentArgs),
 
-    /// Run iterative AI loop against a change proposal
+    /// Run an AI agent loop to implement a change
+    ///
+    /// Iteratively runs an AI coding agent (OpenCode, Claude, etc.) to implement
+    /// a change proposal. Monitors progress and commits incrementally.
+    ///
+    /// Examples:
+    ///   spool ralph --change 005-01_add-auth
+    ///   spool ralph --change 005-01_add-auth --harness claude --max-iterations 5
+    #[command(verbatim_doc_comment)]
     Ralph(RalphArgs),
 
     /// Deprecated alias for `ralph`
+    #[command(hide = true)]
     Loop(RalphArgs),
 
-    /// Split a large change into smaller changes
-    Split(SplitArgs),
+    // ─── Project Setup ──────────────────────────────────────────────────────────
+    /// Set up Spool in a project
+    ///
+    /// Creates the .spool/ directory structure and optionally configures
+    /// AI tool integrations (Claude Code, Codex, OpenCode).
+    ///
+    /// Examples:
+    ///   spool init
+    ///   spool init --tools claude,codex
+    ///   spool init --tools all --force
+    #[command(verbatim_doc_comment)]
+    Init(InitArgs),
 
-    /// Display artifact completion status for a change
-    Status(StatusArgs),
+    /// Refresh Spool instruction files and AI tool configs
+    ///
+    /// Updates agent instructions, skills, and tool configurations to the
+    /// latest versions without reinitializing the project.
+    ///
+    /// Examples:
+    ///   spool update
+    #[command(verbatim_doc_comment)]
+    Update(UpdateArgs),
 
-    /// Generate shell completion scripts
+    /// Read and write global Spool settings
+    ///
+    /// Manages configuration in ~/.config/spool/config.json. Settings include
+    /// default schemas, tool preferences, and execution options.
+    ///
+    /// Examples:
+    ///   spool config path
+    ///   spool config get defaults.schema
+    ///   spool config set defaults.schema "spec-driven"
+    #[command(verbatim_doc_comment)]
+    Config(ConfigArgs),
+
+    /// Initialize and inspect workflow definitions
+    ///
+    /// Workflows define the artifact structure for changes (proposal, specs, tasks).
+    /// Use 'init' to create custom workflows or 'list' to see available schemas.
+    ///
+    /// Examples:
+    ///   spool workflow list
+    ///   spool workflow show spec-driven
+    ///   spool workflow init
+    #[command(verbatim_doc_comment)]
+    Workflow(WorkflowArgs),
+
+    // ─── Utilities ──────────────────────────────────────────────────────────────
+    /// Display an interactive dashboard [not implemented]
+    #[command(hide = true)]
+    Dashboard(DashboardArgs),
+
+    /// Output shell completion scripts
+    ///
+    /// Generates completion scripts for bash, zsh, fish, or powershell.
+    /// Add to your shell config for tab completion of spool commands.
+    ///
+    /// Examples:
+    ///   spool completions bash >> ~/.bashrc
+    ///   spool completions zsh >> ~/.zshrc
+    ///   spool completions fish > ~/.config/fish/completions/spool.fish
+    #[command(verbatim_doc_comment)]
     Completions(CompletionsArgs),
 
-    /// Display help information
-    Help(HelpArgs),
-
-    /// Show local execution usage stats
+    /// Display command execution counts and history
+    ///
+    /// Shows statistics about spool command usage in this project.
+    /// Useful for understanding workflow patterns.
     Stats(StatsArgs),
 
-    /// Show resolved template paths for all artifacts in a schema (deprecated)
-    Templates(TemplatesArgs),
+    /// Show help for spool commands
+    ///
+    /// Displays help for a specific command or the full CLI reference.
+    /// Use --all to see all commands and options in one view.
+    ///
+    /// Examples:
+    ///   spool help tasks
+    ///   spool help --all
+    ///   spool help agent instruction
+    #[command(verbatim_doc_comment)]
+    Help(HelpArgs),
 
-    /// Show resolved template paths for all artifacts in a schema
-    #[command(name = "x-templates")]
-    XTemplates(TemplatesArgs),
-
-    /// List available workflow schemas with descriptions
-    #[command(name = "x-schemas")]
-    XSchemas(XSchemasArgs),
-
-    /// Agent instruction bootstrap (deprecated)
-    Instructions(InstructionAliasArgs),
-
-    /// Agent instruction bootstrap (experimental)
-    #[command(name = "x-instructions")]
-    XInstructions(InstructionAliasArgs),
-
-    /// Agent config
-    #[command(name = "agent-config")]
-    AgentConfig(AgentConfigArgs),
+    // ─── Hidden / Deprecated ────────────────────────────────────────────────────
+    /// Deprecated alias for `create change`
+    #[command(hide = true)]
+    New(NewArgs),
 }
 
 /// Deprecated alias for `create change`.
@@ -767,91 +904,6 @@ pub enum ValidateItemType {
     Change,
     Spec,
     Module,
-}
-
-/// Show resolved template paths for all artifacts in a schema.
-#[derive(Args, Debug, Clone)]
-pub struct TemplatesArgs {
-    /// Workflow schema name (default: spec-driven)
-    #[arg(long)]
-    pub schema: Option<String>,
-
-    /// Output as JSON
-    #[arg(long)]
-    pub json: bool,
-}
-
-/// List available workflow schemas with descriptions.
-#[derive(Args, Debug, Clone)]
-pub struct XSchemasArgs {
-    /// Output as JSON
-    #[arg(long)]
-    pub json: bool,
-}
-
-/// Deprecated wrappers for agent instruction output.
-#[derive(Args, Debug, Clone)]
-pub struct InstructionAliasArgs {
-    /// Artifact id (e.g. bootstrap, apply, proposal)
-    #[arg(value_name = "ARTIFACT")]
-    pub artifact: Option<String>,
-
-    /// Change id (directory name)
-    #[arg(long)]
-    pub change: Option<String>,
-
-    /// Tool name for bootstrap (opencode|claude|codex)
-    #[arg(long)]
-    pub tool: Option<String>,
-
-    /// Workflow schema name
-    #[arg(long)]
-    pub schema: Option<String>,
-
-    /// Output as JSON
-    #[arg(long)]
-    pub json: bool,
-}
-
-/// Agent config.
-#[derive(Args, Debug, Clone)]
-#[command(subcommand_required = true, arg_required_else_help = true)]
-#[command(disable_help_subcommand = true)]
-pub struct AgentConfigArgs {
-    #[command(subcommand)]
-    pub action: Option<AgentConfigAction>,
-}
-
-#[derive(Subcommand, Debug, Clone)]
-pub enum AgentConfigAction {
-    /// Create <spool-dir>/config.json if missing
-    Init,
-
-    /// Print merged config summary and sources
-    Summary,
-
-    /// Read merged value by path
-    Get {
-        /// Key path (dot-separated)
-        path: String,
-
-        /// Treat <value> as a string
-        #[arg(long)]
-        string: bool,
-    },
-
-    /// Set value in <spool-dir>/config.json
-    Set {
-        /// Key path (dot-separated)
-        path: String,
-
-        /// Value (JSON or string)
-        value: String,
-
-        /// Treat <value> as a string
-        #[arg(long)]
-        string: bool,
-    },
 }
 
 /// Run iterative AI loop against a change proposal.

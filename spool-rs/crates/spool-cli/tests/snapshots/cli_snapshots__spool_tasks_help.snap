@@ -1,8 +1,18 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
+assertion_line: 61
 expression: "snapshot(&[\"tasks\", \"--help\"])"
 ---
-Track execution tasks for a change
+Manage implementation tasks for a change
+
+Track task progress through status, start, complete, and shelve actions.
+Tasks are organized in waves for phased implementation.
+
+Examples:
+  spool tasks status 005-01_add-auth
+  spool tasks next 005-01_add-auth
+  spool tasks start 005-01_add-auth 1.1
+  spool tasks complete 005-01_add-auth 1.1
 
 Usage: spool tasks [OPTIONS] [COMMAND]
 
@@ -18,6 +28,11 @@ Commands:
   show      Print tasks.md
 
 Options:
-      --no-color  Disable color output
-      --help-all  Print the full CLI reference (equivalent to `spool help --all`)
-  -h, --help      Print help
+      --no-color
+          Disable color output
+
+      --help-all
+          Print the full CLI reference (equivalent to `spool help --all`)
+
+  -h, --help
+          Print help (see a summary with '-h')

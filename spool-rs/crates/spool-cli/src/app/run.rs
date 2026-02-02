@@ -163,51 +163,7 @@ pub(super) fn run(args: &[String]) -> CliResult<()> {
                 || commands::handle_config_clap(&rt, args),
             );
         }
-        Some(Commands::AgentConfig(args)) => {
-            return util::with_logging(
-                &rt,
-                &command_id,
-                &project_root,
-                &spool_path_for_logging,
-                || commands::handle_agent_config_clap(&rt, args),
-            );
-        }
-        Some(Commands::Templates(args)) => {
-            return util::with_logging(
-                &rt,
-                &command_id,
-                &project_root,
-                &spool_path_for_logging,
-                || super::templates::handle_templates_clap(&rt, args),
-            );
-        }
-        Some(Commands::XTemplates(args)) => {
-            return util::with_logging(
-                &rt,
-                &command_id,
-                &project_root,
-                &spool_path_for_logging,
-                || super::templates::handle_x_templates_clap(&rt, args),
-            );
-        }
-        Some(Commands::Instructions(args)) => {
-            return util::with_logging(
-                &rt,
-                &command_id,
-                &project_root,
-                &spool_path_for_logging,
-                || super::instructions::handle_instructions_alias_clap(&rt, args),
-            );
-        }
-        Some(Commands::XInstructions(args)) => {
-            return util::with_logging(
-                &rt,
-                &command_id,
-                &project_root,
-                &spool_path_for_logging,
-                || super::instructions::handle_x_instructions_alias_clap(&rt, args),
-            );
-        }
+
         Some(Commands::Agent(args)) => {
             return util::with_logging(
                 &rt,
@@ -267,9 +223,6 @@ pub(super) fn run(args: &[String]) -> CliResult<()> {
         }
         Some(Commands::Split(_)) => {
             return fail("split is not implemented in spool-cli yet");
-        }
-        Some(Commands::XSchemas(_)) => {
-            return fail("x-schemas is not implemented in spool-cli yet");
         }
         None => {}
     }

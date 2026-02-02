@@ -1,18 +1,44 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
-assertion_line: 77
+assertion_line: 84
 expression: "snapshot(&[\"list\", \"--help\"])"
 ---
-List items (changes by default). Use --specs or --modules to list other items
+List changes, specs, or modules with status summaries
+
+By default lists changes sorted by most recent. Use --specs or --modules
+to list other item types. Use --json for machine-readable output.
+
+Examples:
+  spool list
+  spool list --specs
+  spool list --modules --json
 
 Usage: spool list [OPTIONS]
 
 Options:
-      --no-color     Disable color output
-      --specs        List specs instead of changes
-      --changes      List changes explicitly (default)
-      --help-all     Print the full CLI reference (equivalent to `spool help --all`)
-      --modules      List modules instead of changes
-      --sort <SORT>  Sort order [default: recent] [possible values: recent, name]
-      --json         Output as JSON
-  -h, --help         Print help
+      --no-color
+          Disable color output
+
+      --specs
+          List specs instead of changes
+
+      --changes
+          List changes explicitly (default)
+
+      --help-all
+          Print the full CLI reference (equivalent to `spool help --all`)
+
+      --modules
+          List modules instead of changes
+
+      --sort <SORT>
+          Sort order
+
+          [default: recent]
+          [possible values: recent, name]
+
+      --json
+          Output as JSON
+
+  -h, --help
+          Print help (see a summary with '-h')

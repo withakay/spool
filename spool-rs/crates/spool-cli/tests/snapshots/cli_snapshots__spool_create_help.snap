@@ -1,8 +1,16 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
+assertion_line: 66
 expression: "snapshot(&[\"create\", \"--help\"])"
 ---
-Create items
+Create a new module or change proposal
+
+Modules group related changes and specs. Changes are the unit of work
+in Spool - each change has a proposal, spec deltas, and implementation tasks.
+
+Examples:
+  spool create module my-feature
+  spool create change add-auth --module 001
 
 Usage: spool create [OPTIONS] [COMMAND]
 
@@ -11,6 +19,11 @@ Commands:
   change  Create a change
 
 Options:
-      --no-color  Disable color output
-      --help-all  Print the full CLI reference (equivalent to `spool help --all`)
-  -h, --help      Print help
+      --no-color
+          Disable color output
+
+      --help-all
+          Print the full CLI reference (equivalent to `spool help --all`)
+
+  -h, --help
+          Print help (see a summary with '-h')

@@ -1,5 +1,6 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
+assertion_line: 46
 expression: "snapshot(&[\"--help\"])"
 ---
 AI-native system for spec-driven development
@@ -7,33 +8,24 @@ AI-native system for spec-driven development
 Usage: spool [OPTIONS] [COMMAND]
 
 Commands:
-  dashboard       Display an interactive dashboard of specs and changes
-  init            Initialize Spool in your project
-  update          Update Spool instruction files
-  tasks           Track execution tasks for a change
-  plan            Project planning tools
-  state           View and update planning/STATE.md
-  workflow        Manage and run workflows
-  list            List items (changes by default). Use --specs or --modules to list other items
-  archive         Archive a completed change and update main specs
-  config          View and modify global Spool configuration
-  create          Create items
-  validate        Validate changes, specs, and modules
-  show            Show a change or spec
-  agent           Commands that generate machine-readable output for AI agents
-  ralph           Run iterative AI loop against a change proposal
-  loop            Deprecated alias for `ralph`
-  split           Split a large change into smaller changes
-  status          Display artifact completion status for a change
-  completions     Generate shell completion scripts
-  help            Display help information
-  stats           Show local execution usage stats
-  templates       Show resolved template paths for all artifacts in a schema (deprecated)
-  x-templates     Show resolved template paths for all artifacts in a schema
-  x-schemas       List available workflow schemas with descriptions
-  instructions    Agent instruction bootstrap (deprecated)
-  x-instructions  Agent instruction bootstrap (experimental)
-  agent-config    Agent config
+  create       Create a new module or change proposal
+  list         List changes, specs, or modules with status summaries
+  show         Display details of a change, spec, or module
+  status       Check completion status of change artifacts
+  validate     Check changes, specs, and modules for errors and warnings
+  archive      Move a completed change to archive and update main specs
+  tasks        Manage implementation tasks for a change
+  plan         Initialize and track project roadmap
+  state        Track session state and working context
+  agent        Generate instructions and context for AI coding agents
+  ralph        Run an AI agent loop to implement a change
+  init         Set up Spool in a project
+  update       Refresh Spool instruction files and AI tool configs
+  config       Read and write global Spool settings
+  workflow     Initialize and inspect workflow definitions
+  completions  Output shell completion scripts
+  stats        Display command execution counts and history
+  help         Show help for spool commands
 
 Options:
       --no-color  Disable color output

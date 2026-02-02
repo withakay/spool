@@ -1,8 +1,17 @@
 ---
 source: crates/spool-cli/tests/cli_snapshots.rs
+assertion_line: 89
 expression: "snapshot(&[\"validate\", \"--help\"])"
 ---
-Validate changes, specs, and modules
+Check changes, specs, and modules for errors and warnings
+
+Validates markdown structure, required fields, and cross-references.
+Use --strict to treat warnings as errors. Returns non-zero on failure.
+
+Examples:
+  spool validate --all
+  spool validate 005-01_add-auth
+  spool validate --specs --strict
 
 Usage: spool validate [OPTIONS] [ITEM]
        spool validate <COMMAND>
@@ -11,19 +20,49 @@ Commands:
   module  Validate a module
 
 Arguments:
-  [ITEM]  Item name (change id or spec id)
+  [ITEM]
+          Item name (change id or spec id)
 
 Options:
-      --no-color                   Disable color output
-      --all                        Validate everything
-      --help-all                   Print the full CLI reference (equivalent to `spool help --all`)
-      --changes                    Validate changes
-      --specs                      Validate specs
-      --modules                    Validate modules
-      --module <MODULE>            Validate a module by id
-      --type <TYP>                 Type: change, spec, or module [possible values: change, spec, module]
-      --strict                     Treat warnings as errors
-      --json                       Output as JSON
-      --concurrency <CONCURRENCY>  Concurrency (default: 6) [default: 6]
-      --no-interactive             Disable interactive prompts
-  -h, --help                       Print help
+      --no-color
+          Disable color output
+
+      --all
+          Validate everything
+
+      --help-all
+          Print the full CLI reference (equivalent to `spool help --all`)
+
+      --changes
+          Validate changes
+
+      --specs
+          Validate specs
+
+      --modules
+          Validate modules
+
+      --module <MODULE>
+          Validate a module by id
+
+      --type <TYP>
+          Type: change, spec, or module
+
+          [possible values: change, spec, module]
+
+      --strict
+          Treat warnings as errors
+
+      --json
+          Output as JSON
+
+      --concurrency <CONCURRENCY>
+          Concurrency (default: 6)
+
+          [default: 6]
+
+      --no-interactive
+          Disable interactive prompts
+
+  -h, --help
+          Print help (see a summary with '-h')
