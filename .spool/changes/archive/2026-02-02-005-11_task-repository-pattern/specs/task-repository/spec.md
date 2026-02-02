@@ -2,7 +2,7 @@
 
 ### Requirement: TaskRepository provides centralized task access
 
-A `TaskRepository` struct SHALL exist in `spool-workflow` that provides methods for loading and querying task data without exposing markdown parsing details.
+A `TaskRepository` struct SHALL exist in `spool-domain` that provides methods for loading and querying task data without exposing markdown parsing details.
 
 #### Scenario: Get task counts for a change
 
@@ -30,11 +30,10 @@ The `spool list` command SHALL use `TaskRepository` for task counting instead of
 ## REMOVED Requirements
 
 ### Requirement: Duplicate task counting in spool-core
-
-The `count_tasks_markdown()` function SHALL be removed from `spool-core/src/list.rs` as it duplicates functionality in `spool-workflow` and only supports checkbox format.
+The `count_tasks_markdown()` function SHALL be removed from `spool-core/src/list.rs` as it duplicates functionality in `spool-domain` and only supports checkbox format.
 
 #### Scenario: Duplicate counter removed
 
-- **GIVEN** task counting is performed via TaskRepository
-- **WHEN** running `spool list`
-- **THEN** task counting does not depend on `count_tasks_markdown()`
+- **GIVEN** the task repository is used for task counting
+- **WHEN** building the workspace or running `spool list`
+- **THEN** there is no dependency on `count_tasks_markdown()`
