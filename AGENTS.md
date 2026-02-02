@@ -38,11 +38,15 @@ Spool project/home templates are owned by the Rust embedded assets:
 
 `spool init` (Rust CLI) installs files from embedded assets, not from this repo's checked-in `.opencode/` directory.
 
-- Project templates live under `spool-rs/crates/spool-templates/assets/default/project/` (includes `.spool/`, `.opencode/`, `.claude/`, `.github/`, etc.)
-- Home templates live under `spool-rs/crates/spool-templates/assets/default/home/` (e.g., `.codex/...`)
+- **Shared skills**: `spool-rs/crates/spool-templates/assets/skills/` - installed to all harnesses
+- **Shared adapters**: `spool-rs/crates/spool-templates/assets/adapters/` - harness-specific bootstrap files
+- **Project templates**: `spool-rs/crates/spool-templates/assets/default/project/` (includes `.spool/`, harness commands/prompts)
+- **Home templates**: `spool-rs/crates/spool-templates/assets/default/home/` (e.g., `.codex/...`)
 - Assets are embedded via `include_dir!` in `spool-rs/crates/spool-templates/src/lib.rs` and written by `spool-rs/crates/spool-core/src/installers/mod.rs`
 
 If you want agents to learn new workflows (e.g., task tracking), update the embedded skill markdown in those assets.
+
+**See `spool-rs/crates/spool-templates/AGENTS.md` for detailed guidance on maintaining templates and keeping harness files in sync.**
 
 ## Development Commands
 

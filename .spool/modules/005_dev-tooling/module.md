@@ -15,3 +15,4 @@
 - [ ] 005-06_add-session-json-to-gitignore
 - [ ] 005-07_split-spool-cli-app-rs
 - [ ] 005-08_migrate-cli-to-clap
+- [ ] 005-09_homebrew-release
