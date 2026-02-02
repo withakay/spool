@@ -65,43 +65,6 @@ pub fn list_change_dirs(spool_path: &Path) -> Result<Vec<PathBuf>> {
         .collect())
 }
 
-pub fn count_tasks_markdown(contents: &str) -> (u32, u32) {
-    let mut total = 0u32;
-    let mut completed = 0u32;
-    for line in contents.lines() {
-        let t = line.trim_start();
-        if t.len() < 6 {
-            continue;
-        }
-
-        // TS: /^[-*]\s+\[[\sx]\]/i and /^[-*]\s+[x]/i
-        let bytes = t.as_bytes();
-        if bytes[0] != b'-' && bytes[0] != b'*' {
-            continue;
-        }
-        // Require at least one whitespace after bullet.
-        if bytes.get(1).is_some_and(|b| !b.is_ascii_whitespace()) {
-            continue;
-        }
-        let mut i = 1usize;
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        if i + 2 >= bytes.len() || bytes[i] != b'[' || bytes[i + 2] != b']' {
-            continue;
-        }
-        let mid = bytes[i + 1];
-        if mid != b' ' && mid != b's' && mid != b'S' && mid != b'x' && mid != b'X' {
-            continue;
-        }
-        total += 1;
-        if mid == b'x' || mid == b'X' {
-            completed += 1;
-        }
-    }
-    (total, completed)
-}
-
 pub fn last_modified_recursive(path: &Path) -> Result<DateTime<Utc>> {
     use std::collections::VecDeque;
 
@@ -373,20 +336,6 @@ fn find_section<'a>(sections: &'a [Section], title: &str) -> Option<&'a Section>
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn counts_tasks_like_ts() {
-        let input = r#"
-- [ ] a
-- [x] b
-* [s] c
-* [X] d
--[] not
-"#;
-        let (total, completed) = count_tasks_markdown(input);
-        assert_eq!(total, 4);
-        assert_eq!(completed, 2);
-    }
 
     #[test]
     fn counts_requirements_from_headings() {

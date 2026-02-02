@@ -3,6 +3,8 @@ use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use chrono::{DateTime, Utc};
 use spool_core::paths as core_paths;
+use spool_workflow::changes::{ChangeRepository, ChangeStatus};
+use spool_workflow::modules::ModuleRepository;
 
 #[derive(Debug, serde::Serialize)]
 struct ModulesResponse {
@@ -46,9 +48,23 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
     match mode {
         "modules" => {
-            let modules = spool_core::list::list_modules(spool_path).unwrap_or_default();
+            let module_repo = ModuleRepository::new(spool_path);
+            let modules = module_repo.list().map_err(to_cli_error)?;
+
             if want_json {
-                let payload = ModulesResponse { modules };
+                // Convert to legacy format for JSON compatibility
+                let legacy_modules: Vec<spool_core::list::ModuleListItem> = modules
+                    .iter()
+                    .map(|m| spool_core::list::ModuleListItem {
+                        id: m.id.clone(),
+                        name: m.name.clone(),
+                        full_name: format!("{}_{}", m.id, m.name),
+                        change_count: m.change_count as usize,
+                    })
+                    .collect();
+                let payload = ModulesResponse {
+                    modules: legacy_modules,
+                };
                 let rendered =
                     serde_json::to_string_pretty(&payload).expect("json should serialize");
                 println!("{rendered}");
@@ -63,8 +79,9 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
             println!("Modules:\n");
             for m in modules {
+                let full_name = format!("{}_{}", m.id, m.name);
                 if m.change_count == 0 {
-                    println!("  {}", m.full_name);
+                    println!("  {full_name}");
                     continue;
                 }
                 let suffix = if m.change_count == 1 {
@@ -72,7 +89,7 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 } else {
                     "changes"
                 };
-                println!("  {} ({} {suffix})", m.full_name, m.change_count);
+                println!("  {full_name} ({} {suffix})", m.change_count);
             }
             println!();
         }
@@ -107,20 +124,10 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 return fail("No Spool changes directory found. Run 'spool init' first.");
             }
 
-            let mut items: Vec<(String, u32, u32, DateTime<Utc>)> = Vec::new();
-            for name in &rt.repo_index().change_dir_names {
-                let change_path = core_paths::change_dir(spool_path, name);
-                let tasks_path = change_path.join("tasks.md");
-                let (total, completed) = spool_core::io::read_to_string_optional(&tasks_path)
-                    .map_err(to_cli_error)?
-                    .map(|c| spool_core::list::count_tasks_markdown(&c))
-                    .unwrap_or((0, 0));
-                let lm = spool_core::list::last_modified_recursive(&change_path)
-                    .unwrap_or_else(|_| Utc::now());
-                items.push((name.clone(), completed, total, lm));
-            }
+            let change_repo = ChangeRepository::new(spool_path);
+            let mut summaries = change_repo.list().map_err(to_cli_error)?;
 
-            if items.is_empty() {
+            if summaries.is_empty() {
                 if want_json {
                     let rendered =
                         serde_json::to_string_pretty(&serde_json::json!({ "changes": [] }))
@@ -132,28 +139,27 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 return Ok(());
             }
 
+            // Sort according to preference
             if sort == "name" {
-                items.sort_by(|a, b| a.0.cmp(&b.0));
+                summaries.sort_by(|a, b| a.id.cmp(&b.id));
             } else {
-                items.sort_by(|a, b| b.3.cmp(&a.3));
+                summaries.sort_by(|a, b| b.last_modified.cmp(&a.last_modified));
             }
 
             if want_json {
-                let changes: Vec<spool_core::list::ChangeListItem> = items
-                    .into_iter()
-                    .map(|(name, completed, total, lm)| {
-                        let status = if total == 0 {
-                            "no-tasks"
-                        } else if completed == total {
-                            "complete"
-                        } else {
-                            "in-progress"
+                let changes: Vec<spool_core::list::ChangeListItem> = summaries
+                    .iter()
+                    .map(|s| {
+                        let status = match s.status() {
+                            ChangeStatus::NoTasks => "no-tasks",
+                            ChangeStatus::InProgress => "in-progress",
+                            ChangeStatus::Complete => "complete",
                         };
                         spool_core::list::ChangeListItem {
-                            name,
-                            completed_tasks: completed,
-                            total_tasks: total,
-                            last_modified: spool_core::list::to_iso_millis(lm),
+                            name: s.id.clone(),
+                            completed_tasks: s.completed_tasks,
+                            total_tasks: s.total_tasks,
+                            last_modified: spool_core::list::to_iso_millis(s.last_modified),
                             status: status.to_string(),
                         }
                     })
@@ -166,11 +172,11 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
             }
 
             println!("Changes:");
-            let name_width = items.iter().map(|i| i.0.len()).max().unwrap_or(0);
-            for (name, completed, total, lm) in items {
-                let status = format_task_status(total, completed);
-                let time_ago = format_relative_time(lm);
-                let padded = format!("{name: <width$}", width = name_width);
+            let name_width = summaries.iter().map(|s| s.id.len()).max().unwrap_or(0);
+            for s in summaries {
+                let status = format_task_status(s.total_tasks, s.completed_tasks);
+                let time_ago = format_relative_time(s.last_modified);
+                let padded = format!("{: <width$}", s.id, width = name_width);
                 println!("  {padded}     {: <12}  {time_ago}", status);
             }
         }
