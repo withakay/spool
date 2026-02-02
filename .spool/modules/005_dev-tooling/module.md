@@ -13,8 +13,8 @@
 - [ ] 005-04_npm-binary-packages
 - [ ] 005-05_prek-precommit-hooks-and-repo-linting
 - [ ] 005-06_add-session-json-to-gitignore
-- [ ] 005-07_split-spool-cli-app-rs
+- [x] 005-07_split-spool-cli-app-rs
 - [ ] 005-08_migrate-cli-to-clap
 - [ ] 005-09_homebrew-release
-- [ ] 005-11_task-repository-pattern
+- [x] 005-11_task-repository-pattern
 - [ ] 005-12_change-module-repositories

@@ -32,3 +32,9 @@ The `spool list` command SHALL use `TaskRepository` for task counting instead of
 ### Requirement: Duplicate task counting in spool-core
 
 The `count_tasks_markdown()` function SHALL be removed from `spool-core/src/list.rs` as it duplicates functionality in `spool-workflow` and only supports checkbox format.
+
+#### Scenario: Duplicate counter removed
+
+- **GIVEN** task counting is performed via TaskRepository
+- **WHEN** running `spool list`
+- **THEN** task counting does not depend on `count_tasks_markdown()`

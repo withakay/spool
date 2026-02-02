@@ -4,7 +4,6 @@
 
 Define the `repo-precommit-quality-gates` capability, including required behavior and validation scenarios, so it remains stable and testable.
 
-
 ## Requirements
 
 ### Requirement: Repo provides prek-compatible pre-commit config
@@ -55,3 +54,14 @@ The pre-commit configuration MUST run Rust formatting and linting checks consist
 
 - **WHEN** Rust sources are staged
 - **THEN** the hook run executes `cargo clippy` with the repo's defined lint policy and fails on violations
+
+### Requirement: Repo prevents oversized source files
+
+The repository SHALL prevent source files from growing beyond a maintainability limit.
+
+#### Scenario: spool-cli Rust sources stay under the per-file limit
+
+- **GIVEN** the repository contains `spool-rs/crates/spool-cli/src/**/*.rs`
+- **WHEN** quality gates run (tests and/or pre-commit hooks)
+- **THEN** they SHALL fail if any file exceeds the configured per-file size limit
+- **AND** the default limit is 1000 (SLOC or strict lines, as documented)
