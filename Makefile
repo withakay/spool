@@ -6,6 +6,7 @@ RUST_WARNINGS_AS_ERRORS ?= -D warnings
 
 .PHONY: \
 	build test test-watch test-coverage lint check check-max-lines clean help \
+	release \
 	version-bump version-bump-patch version-bump-minor version-bump-major \
 	rust-build rust-build-release rust-test rust-test-coverage rust-lint rust-install install
 
@@ -50,6 +51,32 @@ check: ## Run pre-commit hooks via prek
 
 check-max-lines: ## Fail if Rust files exceed 1000 lines (override MAX_RUST_FILE_LINES=...)
 	python3 "spool-rs/tools/check_max_lines.py" --max-lines "$(MAX_RUST_FILE_LINES)" --root "spool-rs"
+
+release: ## Trigger Release Please workflow (creates/updates release PR)
+	@set -e; \
+	if gh --version >/dev/null 2>&1; then \
+		:; \
+	else \
+		echo "gh is not installed."; \
+		echo "Install: https://cli.github.com/"; \
+		exit 1; \
+	fi; \
+	if gh auth status >/dev/null 2>&1; then \
+		:; \
+	else \
+		echo "gh is not authenticated."; \
+		echo "Run: gh auth login"; \
+		exit 1; \
+	fi; \
+	CONCLUSION=$$(gh run list --workflow ci.yml --branch main --limit 1 --json conclusion -q '.[0].conclusion' 2>/dev/null || true); \
+	if [ "$$CONCLUSION" != "success" ]; then \
+		echo "Latest CI run on main is not successful (conclusion=$$CONCLUSION)."; \
+		echo "Wait for CI to finish, or rerun CI, then retry."; \
+		exit 1; \
+	fi; \
+	gh workflow run release-please.yml --ref main; \
+	echo "Triggered Release Please."; \
+	echo "View runs: gh run list --workflow release-please.yml --branch main --limit 5"
 
 version-bump: ## Bump workspace version (BUMP=none|patch|minor|major)
 	@set -e; \
