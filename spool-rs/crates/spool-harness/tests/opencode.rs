@@ -1,3 +1,7 @@
+// These tests use Unix shell scripts and permission APIs, so they only run on Unix.
+// The underlying harness code is cross-platform; only the test scaffolding is Unix-specific.
+#![cfg(unix)]
+
 use spool_harness::{Harness, HarnessRunConfig, OpencodeHarness};
 use std::collections::BTreeMap;
 use std::os::unix::fs::PermissionsExt;

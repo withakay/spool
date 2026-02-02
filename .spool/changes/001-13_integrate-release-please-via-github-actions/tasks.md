@@ -33,7 +33,7 @@ ______________________________________________________________________
 - **Verify**: Manual inspection (no runtime verification)
 - **Done When**: Requirements in `specs/release-please-releases/spec.md` match the observed pipeline constraints
 - **Updated At**: 2026-02-02
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 1.2: Add release-please workflow and config
 
@@ -46,7 +46,7 @@ ______________________________________________________________________
 - **Verify**: YAML validates; workflow is syntactically correct
 - **Done When**: Repo contains a release-please workflow + config files and they align with spec requirements
 - **Updated At**: 2026-02-02
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ______________________________________________________________________
 
@@ -64,7 +64,7 @@ ______________________________________________________________________
 - **Verify**: Manual inspection (release testing requires real tags/releases)
 - **Done When**: Workflows have consistent triggers and no obvious double-release behavior
 - **Updated At**: 2026-02-02
-- **Status**: [ ] pending
+- **Status**: [x] completed
 
 ### Task 2.2: Update maintainer documentation
 
@@ -76,4 +76,4 @@ ______________________________________________________________________
 - **Verify**: Manual doc review
 - **Done When**: Docs reflect release-please-first releases and remove/soften manual tagging guidance
 - **Updated At**: 2026-02-02
-- **Status**: [ ] pending
+- **Status**: [x] completed
