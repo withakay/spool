@@ -1351,6 +1351,7 @@ name = "spool-workflow"
 version = "0.20.8-local.202602021243"
 dependencies = [
  "chrono",
+ "miette",
  "regex",
  "rusqlite",
  "serde",
@@ -1359,6 +1360,7 @@ dependencies = [
  "spool-schemas",
  "tempfile",
  "thiserror 2.0.18",
+ "walkdir",
 ]
 
 [[package]]

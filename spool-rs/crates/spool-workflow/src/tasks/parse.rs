@@ -122,6 +122,26 @@ pub struct TasksParseResult {
     pub progress: ProgressInfo,
 }
 
+impl TasksParseResult {
+    /// Create an empty result (for when no tasks file exists).
+    pub fn empty() -> Self {
+        Self {
+            format: TasksFormat::Checkbox,
+            tasks: Vec::new(),
+            waves: Vec::new(),
+            diagnostics: Vec::new(),
+            progress: ProgressInfo {
+                total: 0,
+                complete: 0,
+                shelved: 0,
+                in_progress: 0,
+                pending: 0,
+                remaining: 0,
+            },
+        }
+    }
+}
+
 pub fn enhanced_tasks_template(change_id: &str, now: DateTime<Local>) -> String {
     let date = now.format("%Y-%m-%d").to_string();
     format!(
