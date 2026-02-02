@@ -19,7 +19,7 @@
 
 Spool is a Spec Driven development tool that bring project-centric planning and an emphasis on **long-running, multi-agent tasks** to AI coding agents.
 
-It's designed for the type of AI-assisted development where work spans multiple sessions, needs explicit verification criteria, and benefits from parallel subagents. The approach draws inspiration f[...] 
+It's designed for the type of AI-assisted development where work spans multiple sessions, needs explicit verification criteria, and benefits from parallel subagents. The approach draws inspiration f[...]
 
 ## What You Get
 

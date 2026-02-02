@@ -229,6 +229,19 @@ pub enum Commands {
     #[command(verbatim_doc_comment)]
     Workflow(WorkflowArgs),
 
+    // ─── Local Docs Server ──────────────────────────────────────────────────────
+    /// Serve local Spool artifacts and docs over HTTP
+    ///
+    /// Starts a per-project local server for browsing `.spool/` artifacts and
+    /// project docs with clickable navigation.
+    ///
+    /// Examples:
+    ///   spool serve start
+    ///   spool serve status
+    ///   spool serve stop
+    #[command(verbatim_doc_comment)]
+    Serve(ServeArgs),
+
     // ─── Utilities ──────────────────────────────────────────────────────────────
     /// Display an interactive dashboard [not implemented]
     #[command(hide = true)]
@@ -268,6 +281,27 @@ pub enum Commands {
     /// Deprecated alias for `create change`
     #[command(hide = true)]
     New(NewArgs),
+}
+
+/// Local docs server.
+#[derive(Args, Debug, Clone)]
+#[command(subcommand_required = true, arg_required_else_help = true)]
+#[command(disable_help_subcommand = true)]
+pub struct ServeArgs {
+    #[command(subcommand)]
+    pub action: Option<ServeAction>,
+}
+
+#[derive(Subcommand, Debug, Clone)]
+pub enum ServeAction {
+    /// Start the server for the current project
+    Start,
+
+    /// Stop the server for the current project
+    Stop,
+
+    /// Show status (URL) for the current project
+    Status,
 }
 
 /// Deprecated alias for `create change`.

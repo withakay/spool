@@ -22,6 +22,7 @@ Commands:
   update       Refresh Spool instruction files and AI tool configs
   config       Read and write global Spool settings
   workflow     Initialize and inspect workflow definitions
+  serve        Serve local Spool artifacts and docs over HTTP
   completions  Output shell completion scripts
   stats        Display command execution counts and history
   help         Show help for spool commands

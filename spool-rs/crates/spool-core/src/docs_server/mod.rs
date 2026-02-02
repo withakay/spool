@@ -5,9 +5,12 @@ use std::process::{Command, Stdio};
 use chrono::Utc;
 use miette::{Result, bail, miette};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 const DEFAULT_BIND: &str = "127.0.0.1";
 const DEFAULT_PORT: u16 = 9009;
+
+mod site;
 
 #[derive(Debug, Clone)]
 pub struct ServeConfig {
@@ -26,6 +29,57 @@ impl Default for ServeConfig {
             caddy_bin: None,
         }
     }
+}
+
+pub fn serve_config_from_json(v: &Value) -> ServeConfig {
+    let mut cfg = ServeConfig::default();
+    let Value::Object(top) = v else {
+        return cfg;
+    };
+
+    let Some(serve) = top.get("serve") else {
+        return cfg;
+    };
+    let Value::Object(serve) = serve else {
+        return cfg;
+    };
+
+    if let Some(Value::String(s)) = serve.get("bind") {
+        let s = s.trim();
+        if !s.is_empty() {
+            cfg.bind = s.to_string();
+        }
+    }
+
+    if let Some(v) = serve.get("port") {
+        let port = match v {
+            Value::Number(n) => n.as_u64().and_then(|u| u16::try_from(u).ok()),
+            Value::String(s) => s.trim().parse::<u16>().ok(),
+            Value::Null => None,
+            Value::Bool(_) => None,
+            Value::Array(_) => None,
+            Value::Object(_) => None,
+        };
+        if let Some(port) = port {
+            cfg.port = port;
+        }
+    }
+
+    if let Some(Value::String(s)) = serve.get("token") {
+        let s = s.trim();
+        if !s.is_empty() {
+            cfg.token = Some(s.to_string());
+        }
+    }
+
+    if let Some(Value::String(s)) = serve.get("caddyBin") {
+        let s = s.trim();
+        if !s.is_empty() {
+            cfg.caddy_bin = Some(s.to_string());
+        }
+    }
+
+    cfg
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -145,62 +199,7 @@ fn ensure_caddy_available(caddy_bin: &str) -> Result<()> {
 }
 
 fn ensure_site_files(spool_path: &Path) -> Result<()> {
-    let dir = site_dir(spool_path);
-    crate::io::create_dir_all(&dir)?;
-
-    let index = dir.join("index.html");
-    if !index.exists() {
-        crate::io::write(
-            &index,
-            r#"<!doctype html>
-<html lang=\"en\">
-  <head>
-    <meta charset=\"utf-8\" />
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-    <title>Spool</title>
-    <style>
-      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; }
-      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-      a { color: #0b5fff; }
-    </style>
-  </head>
-  <body>
-    <h1>Spool</h1>
-    <p>Local docs server is running.</p>
-    <p>Try:</p>
-    <ul>
-      <li><a href=\"/spool/changes/\">.spool/changes/</a></li>
-      <li><a href=\"/spool/specs/\">.spool/specs/</a></li>
-      <li><a href=\"/spool/modules/\">.spool/modules/</a></li>
-    </ul>
-    <p><a href=\"/manifest.json\">manifest.json</a></p>
-  </body>
-</html>
-"#,
-        )?;
-    }
-
-    let manifest = dir.join("manifest.json");
-    if !manifest.exists() {
-        crate::io::write(
-            &manifest,
-            r#"{
-  "version": "1",
-  "routes": [
-    "/spool/changes/",
-    "/spool/specs/",
-    "/spool/modules/",
-    "/spool/planning/",
-    "/spool/research/",
-    "/docs/",
-    "/documents/"
-  ]
-}
-"#,
-        )?;
-    }
-
-    Ok(())
+    site::ensure_base_files(spool_path)
 }
 
 fn quoted(p: &Path) -> String {
@@ -208,7 +207,7 @@ fn quoted(p: &Path) -> String {
 }
 
 fn write_caddyfile(
-    project_root: &Path,
+    _project_root: &Path,
     spool_path: &Path,
     bind: &str,
     port: u16,
@@ -220,13 +219,16 @@ fn write_caddyfile(
     let site = site_dir(spool_path);
     let access = access_log_path(spool_path);
 
-    let changes = crate::paths::changes_dir(spool_path);
-    let specs = crate::paths::specs_dir(spool_path);
-    let modules = crate::paths::modules_dir(spool_path);
-    let planning = spool_path.join("planning");
-    let research = spool_path.join("research");
-    let docs = project_root.join("docs");
-    let documents = project_root.join("documents");
+    // Serve generated site content under `.spool/.state/docs-server/site/`.
+    // `site::build_site` copies source directories into this location and renders
+    // Markdown to `*.md.html` alongside `index.html` directory listings.
+    let changes = site.join("spool").join("changes");
+    let specs = site.join("spool").join("specs");
+    let modules = site.join("spool").join("modules");
+    let planning = site.join("spool").join("planning");
+    let research = site.join("spool").join("research");
+    let docs = site.join("docs");
+    let documents = site.join("documents");
 
     // Serve only if the directories exist (Caddy's file_server with missing root is noisy).
     let mut handlers = String::new();
@@ -234,48 +236,48 @@ fn write_caddyfile(
     handlers.push_str(&format!("  log {{ output file {} }}\n", quoted(&access)));
     if changes.exists() {
         handlers.push_str(&format!(
-            "  handle_path /spool/changes/* {{ root * {}; file_server }}\n",
+            "  handle_path /spool/changes/* {{ root * {}; try_files {{path}}.html {{path}} {{path}}/index.html; file_server }}\n",
             quoted(&changes)
         ));
     }
     if specs.exists() {
         handlers.push_str(&format!(
-            "  handle_path /spool/specs/* {{ root * {}; file_server }}\n",
+            "  handle_path /spool/specs/* {{ root * {}; try_files {{path}}.html {{path}} {{path}}/index.html; file_server }}\n",
             quoted(&specs)
         ));
     }
     if modules.exists() {
         handlers.push_str(&format!(
-            "  handle_path /spool/modules/* {{ root * {}; file_server }}\n",
+            "  handle_path /spool/modules/* {{ root * {}; try_files {{path}}.html {{path}} {{path}}/index.html; file_server }}\n",
             quoted(&modules)
         ));
     }
     if planning.exists() {
         handlers.push_str(&format!(
-            "  handle_path /spool/planning/* {{ root * {}; file_server }}\n",
+            "  handle_path /spool/planning/* {{ root * {}; try_files {{path}}.html {{path}} {{path}}/index.html; file_server }}\n",
             quoted(&planning)
         ));
     }
     if research.exists() {
         handlers.push_str(&format!(
-            "  handle_path /spool/research/* {{ root * {}; file_server }}\n",
+            "  handle_path /spool/research/* {{ root * {}; try_files {{path}}.html {{path}} {{path}}/index.html; file_server }}\n",
             quoted(&research)
         ));
     }
     if docs.exists() {
         handlers.push_str(&format!(
-            "  handle_path /docs/* {{ root * {}; file_server }}\n",
+            "  handle_path /docs/* {{ root * {}; try_files {{path}}.html {{path}} {{path}}/index.html; file_server }}\n",
             quoted(&docs)
         ));
     }
     if documents.exists() {
         handlers.push_str(&format!(
-            "  handle_path /documents/* {{ root * {}; file_server }}\n",
+            "  handle_path /documents/* {{ root * {}; try_files {{path}}.html {{path}} {{path}}/index.html; file_server }}\n",
             quoted(&documents)
         ));
     }
     handlers.push_str(&format!("  root * {}\n", quoted(&site)));
-    handlers.push_str("  try_files {path} /index.html\n");
+    handlers.push_str("  try_files {{path}}.html {{path}} {{path}}/index.html /index.html\n");
     handlers.push_str("  file_server\n");
     handlers.push_str("}\n");
 
@@ -402,6 +404,8 @@ pub fn start(project_root: &Path, spool_path: &Path, cfg: ServeConfig) -> Result
 
     let caddy_bin = caddy_bin_from_env_or_default(&cfg);
     ensure_caddy_available(&caddy_bin)?;
+
+    site::build_site(project_root, spool_path)?;
     write_caddyfile(project_root, spool_path, &bind, chosen, token.as_deref())?;
 
     crate::io::create_dir_all(&logs_dir(spool_path))?;
@@ -605,6 +609,9 @@ mod tests {
         crate::io::create_dir_all(&project_root.join("docs")).unwrap();
         crate::io::create_dir_all(&project_root.join("documents")).unwrap();
 
+        // Build generated site tree so write_caddyfile includes handlers.
+        super::site::build_site(&project_root, &spool_path).unwrap();
+
         write_caddyfile(&project_root, &spool_path, "127.0.0.1", 9009, Some("tok")).unwrap();
 
         let caddyfile = crate::io::read_to_string(&caddyfile_path(&spool_path)).unwrap();
@@ -628,11 +635,31 @@ mod tests {
         crate::io::create_dir_all(&project_root).unwrap();
         crate::io::create_dir_all(&spool_path).unwrap();
 
+        super::site::build_site(&project_root, &spool_path).unwrap();
+
         write_caddyfile(&project_root, &spool_path, "127.0.0.1", 9009, None).unwrap();
 
         let caddyfile = crate::io::read_to_string(&caddyfile_path(&spool_path)).unwrap();
         assert!(caddyfile.contains("import spool_site"));
         assert!(!caddyfile.contains("Forbidden\" 403"));
+    }
+
+    #[test]
+    fn serve_config_from_json_reads_serve_keys() {
+        let v = serde_json::json!({
+            "serve": {
+                "bind": "0.0.0.0",
+                "port": 9012,
+                "token": "abc",
+                "caddyBin": "/custom/caddy"
+            }
+        });
+
+        let cfg = serve_config_from_json(&v);
+        assert_eq!(cfg.bind, "0.0.0.0");
+        assert_eq!(cfg.port, 9012);
+        assert_eq!(cfg.token.as_deref(), Some("abc"));
+        assert_eq!(cfg.caddy_bin.as_deref(), Some("/custom/caddy"));
     }
 
     #[test]

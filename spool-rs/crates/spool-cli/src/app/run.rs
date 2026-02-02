@@ -164,6 +164,16 @@ pub(super) fn run(args: &[String]) -> CliResult<()> {
             );
         }
 
+        Some(Commands::Serve(args)) => {
+            return util::with_logging(
+                &rt,
+                &command_id,
+                &project_root,
+                &spool_path_for_logging,
+                || commands::handle_serve_clap(&rt, args),
+            );
+        }
+
         Some(Commands::Agent(args)) => {
             return util::with_logging(
                 &rt,
