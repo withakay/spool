@@ -136,7 +136,10 @@ fn init_refuses_to_overwrite_existing_file_without_markers_when_not_forced() {
     );
 }
 
+// PTY-based interactive tests are skipped on Windows due to platform differences
+// in terminal handling that cause hangs. The underlying init logic is cross-platform.
 #[test]
+#[cfg(unix)]
 fn init_interactive_detects_tools_and_installs_adapter_files() {
     let base = fixtures::make_empty_repo();
     let repo = tempfile::tempdir().expect("work");
