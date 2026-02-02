@@ -1255,13 +1255,13 @@ dependencies = [
  "serde",
  "serde_json",
  "spool-core",
+ "spool-domain",
  "spool-fs",
  "spool-harness",
  "spool-logging",
  "spool-schemas",
  "spool-templates",
  "spool-test-support",
- "spool-workflow",
  "tempfile",
  "tracing",
  "tracing-log",
@@ -1284,6 +1284,23 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.18",
  "uuid",
+]
+
+[[package]]
+name = "spool-domain"
+version = "0.20.8-local.202602021243"
+dependencies = [
+ "chrono",
+ "miette",
+ "regex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "spool-schemas",
+ "tempfile",
+ "thiserror 2.0.18",
+ "walkdir",
 ]
 
 [[package]]
@@ -1344,23 +1361,6 @@ dependencies = [
  "portable-pty",
  "strip-ansi-escapes",
  "tempfile",
-]
-
-[[package]]
-name = "spool-workflow"
-version = "0.20.8-local.202602021243"
-dependencies = [
- "chrono",
- "miette",
- "regex",
- "rusqlite",
- "serde",
- "serde_json",
- "serde_yaml",
- "spool-schemas",
- "tempfile",
- "thiserror 2.0.18",
- "walkdir",
 ]
 
 [[package]]
