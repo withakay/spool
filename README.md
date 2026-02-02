@@ -39,19 +39,28 @@ It’s designed for the reality of AI-assisted development where work spans mult
 
 ### Install
 
+**Homebrew (macOS):**
+
+```bash
+brew tap withakay/spool
+brew install spool
+```
+
+**Build from source:**
+
 ```bash
 make rust-install
 spool --version
 ```
 
-Or install a prebuilt binary (macOS/Linux):
+**Prebuilt binary (macOS/Linux):**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/withakay/spool/main/scripts/install.sh | sh
 spool --version
 ```
 
-Or install via npm (optional):
+**npm (optional):**
 
 ```bash
 npm install -g @withakay/spool
