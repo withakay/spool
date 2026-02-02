@@ -17,9 +17,9 @@
 
 # Spool
 
-Spool is a fork of **OpenSpec** that adds project-centric planning and an emphasis on **long-running, multi-agent tasks**.
+Spool is a Spec Driven development tool that bring project-centric planning and an emphasis on **long-running, multi-agent tasks** to AI coding agents.
 
-It’s designed for the reality of AI-assisted development where work spans multiple sessions, needs explicit verification criteria, and benefits from parallel subagents. The approach draws inspiration from Kiro, Beads, Loom, and GSD-style execution.
+It’s designed for the type of AI-assisted development where work spans multiple sessions, needs explicit verification criteria, and benefits from parallel subagents. The approach draws inspiration from Kiro, OpenSpec, Beads, Loom, and GSD-style execution.
 
 ## What You Get
 
