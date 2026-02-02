@@ -216,7 +216,49 @@ spool list --specs
 spool show <change-or-spec>
 spool validate [item]
 spool archive <change-id> -y
+
+# Local docs server (requires Caddy)
+spool serve start
+spool serve status
+spool serve stop
 ```
+
+## Local Docs Server (`spool serve`)
+
+Spool can serve a local, per-project docs browser over HTTP to make reviewing `.spool/` artifacts and project docs easy.
+
+### Prerequisite: Caddy
+
+`spool serve start` requires the external `caddy` binary.
+
+If `caddy` is missing, Spool prints an install hint and exits with code 1.
+
+### What Gets Served
+
+Only these allowlisted roots are exposed:
+
+- `.spool/changes/`, `.spool/specs/`, `.spool/modules/`
+- `.spool/planning/` and `.spool/research/` (if present)
+- `docs/` and `documents/` (if present)
+
+### Configuration
+
+Configure in `.spool/config.json` under `serve`:
+
+```json
+{
+  "serve": {
+    "bind": "127.0.0.1",
+    "port": 9009,
+    "token": "optional-only-used-for-non-loopback",
+    "caddyBin": "optional-path-to-caddy"
+  }
+}
+```
+
+- Default bind/port: `127.0.0.1:9009`
+- If the port is busy, Spool auto-increments to the next available port.
+- If `serve.bind` is non-loopback, Spool serves under a tokenized path prefix (`/t/<token>/`) and rejects requests without it.
 
 ## Test Plan
 

@@ -20,6 +20,12 @@ The user preference is to lean on Caddy as the external server process.
 
 ## Proposed Architecture
 
+### Decision: Use stock Caddy + pre-rendered HTML
+
+- Caddy runs as an external dependency (`caddy run`) and serves only a generated site tree under `.spool/.state/docs-server/site/`.
+- Spool generates this site tree on `spool serve start` by copying only allowlisted directories into the site tree and rendering Markdown (`*.md`) to HTML (`*.md.html`) alongside directory `index.html` listings.
+- This avoids requiring any Caddy Markdown plugins and keeps behavior deterministic.
+
 ## Code organization
 
 `spool-cli` has grown large enough that adding a server feature directly into the top-level CLI file would be hard to maintain. This change should keep files comfortably under ~1000 SLOC by splitting the `serve` implementation into focused modules.
@@ -27,16 +33,10 @@ The user preference is to lean on Caddy as the external server process.
 Proposed placement:
 
 - `spool-rs/crates/spool-cli/src/commands/serve/`
-  - `mod.rs` (subcommand wiring)
-  - `start.rs` (start logic + output URL)
-  - `stop.rs` (stop logic)
-  - `status.rs` (optional)
+  - `serve.rs` (subcommand wiring)
 - `spool-rs/crates/spool-core/src/docs_server/`
-  - `config.rs` (load/validate `serve.*`)
-  - `state.rs` (read/write `.spool/.state/docs-server/state.json`)
-  - `ports.rs` (port probing)
-  - `caddy.rs` (Caddyfile generation + process spawn args)
-  - `manifest.rs` (file discovery + manifest generation)
+  - `mod.rs` (config + lifecycle + Caddyfile generation)
+  - `site.rs` (site generation: copying allowlisted dirs + Markdown rendering)
 
 The CLI layer should remain a thin wrapper around `spool-core` behavior.
 
@@ -45,16 +45,14 @@ The CLI layer should remain a thin wrapper around `spool-core` behavior.
 - `spool serve start` generates a project-specific Caddy configuration and starts `caddy run` in the background.
 - Spool stores server state under `.spool/.state/docs-server/`:
   - `Caddyfile`
-  - `pid` (or a JSON state file including pid/port/bind/token)
-  - generated UI assets (single-page app) and a file manifest
+  - `state.json` (pid/port/bind/token)
+  - generated site tree under `site/` (HTML + directory indexes)
 
 ### Serving and navigation
 
-- Serve a small static web app (SPA) from `.spool/.state/docs-server/site/`.
-- At server start, Spool generates a `manifest.json` describing available Markdown files under the allowed roots.
-- The SPA renders navigation from the manifest and renders Markdown to HTML client-side.
-
-This avoids needing a Caddy Markdown plugin and keeps behavior deterministic.
+- Serve pre-rendered HTML and directory indexes from `.spool/.state/docs-server/site/`.
+- The site includes an `index.html` landing page with quick links to the allowlisted roots.
+- Markdown files are rendered to `*.md.html` so direct navigation works.
 
 ### Path allowlist
 
@@ -80,14 +78,12 @@ Proposed keys (project-level):
 
 ## Token gating
 
-Token gating should be enforced by the server (not only the UI).
+Token gating MUST be enforced by the server (not only the UI).
 
-Pragmatic approach:
+Pragmatic approach (stock Caddy):
 - Use a path-based token prefix that Caddy can enforce reliably (e.g. `/t/<token>/...`).
-- Print the tokenized URL and ensure the SPA uses relative paths under the token prefix.
-- Optionally also accept `?token=<token>` by redirecting into the path prefix (nice-to-have).
-
-If token enforcement is not feasible with stock Caddy, default to loopback-only binding and refuse non-loopback binding without an explicit override.
+- When binding to a non-loopback address, Spool generates a token (if not configured) and prints the tokenized URL.
+- Caddy rejects all requests that do not include the token path prefix.
 
 ## Port selection
 
@@ -95,5 +91,4 @@ If the configured port is busy, attempt ports by incrementing until a free port 
 
 ## Open Questions
 
-- Should we store state as a single JSON file instead of ad-hoc files?
 - Should `spool serve` (no subcommand) be an alias for `spool serve start`?
