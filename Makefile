@@ -4,7 +4,7 @@ MAX_RUST_FILE_LINES ?= 1000
 BUMP ?= none
 
 .PHONY: \
-	build test test-watch test-coverage lint check-max-lines clean help \
+	build test test-watch test-coverage lint check check-max-lines clean help \
 	version-bump version-bump-patch version-bump-minor version-bump-major \
 	rust-build rust-build-release rust-test rust-test-coverage rust-lint rust-install install
 
@@ -34,8 +34,18 @@ test-coverage: ## Run coverage (requires cargo-llvm-cov)
 		exit 1; \
 	fi
 
-lint: check-max-lines ## Run linter
+lint: ## Run linter
 	$(MAKE) rust-lint
+
+check: ## Run pre-commit hooks via prek
+	@set -e; \
+	if prek --version >/dev/null 2>&1; then \
+		prek run --all-files; \
+	else \
+		echo "prek is not installed."; \
+		echo "Install: cargo install prek"; \
+		exit 1; \
+	fi
 
 check-max-lines: ## Fail if Rust files exceed 1000 lines (override MAX_RUST_FILE_LINES=...)
 	python3 "spool-rs/tools/check_max_lines.py" --max-lines "$(MAX_RUST_FILE_LINES)" --root "spool-rs"

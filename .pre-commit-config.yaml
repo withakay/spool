@@ -81,3 +81,11 @@ repos:
         pass_filenames: false
         files: ^spool-rs/.*\.(rs|toml)$
         stages: [pre-push]
+
+      - id: check-max-lines
+        name: check max lines (spool-rs)
+        entry: python3
+        language: system
+        args: [spool-rs/tools/check_max_lines.py, --max-lines, "1000", --root, spool-rs]
+        pass_filenames: false
+        files: ^spool-rs/.*\.rs$
