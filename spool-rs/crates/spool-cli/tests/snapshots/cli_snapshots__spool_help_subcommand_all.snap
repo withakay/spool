@@ -240,6 +240,9 @@ implementation (have proposal, specs, tasks, and pending work).
 Examples:
   spool list
   spool list --ready
+  spool list --pending
+  spool list --partial
+  spool list --completed
   spool list --specs
   spool list --modules --json
 
@@ -260,6 +263,12 @@ Options:
 
       --completed
           Filter to completed changes (all tasks done)
+
+      --partial
+          Filter to partially complete changes (some but not all tasks done)
+
+      --pending
+          Filter to pending changes (no tasks started yet)
 
       --sort <SORT>
           Sort order

@@ -35,6 +35,14 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let want_json = args.iter().any(|a| a == "--json");
     let want_ready = args.iter().any(|a| a == "--ready");
     let want_completed = args.iter().any(|a| a == "--completed");
+    let want_partial = args.iter().any(|a| a == "--partial");
+    let want_pending = args.iter().any(|a| a == "--pending");
+
+    let progress_filter_count =
+        u8::from(want_completed) + u8::from(want_partial) + u8::from(want_pending);
+    if progress_filter_count > 1 {
+        return fail("Flags --completed, --partial, and --pending are mutually exclusive.");
+    }
 
     let sort = parse_sort_order(args).unwrap_or("recent");
     let mode = if want_specs {
@@ -136,7 +144,17 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
             // Filter to completed changes if requested
             if want_completed {
-                summaries.retain(|s| s.completed_tasks == s.total_tasks && s.total_tasks > 0);
+                summaries.retain(|s| is_completed(s.total_tasks, s.completed_tasks));
+            }
+
+            // Filter to partially complete changes if requested
+            if want_partial {
+                summaries.retain(|s| is_partial(s.total_tasks, s.completed_tasks));
+            }
+
+            // Filter to pending changes if requested
+            if want_pending {
+                summaries.retain(|s| is_pending(s.total_tasks, s.completed_tasks));
             }
 
             if summaries.is_empty() {
@@ -147,6 +165,12 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                     println!("{rendered}");
                 } else if want_completed {
                     println!("No completed changes found.");
+                    println!("Run `spool list` to see all changes.");
+                } else if want_partial {
+                    println!("No partially complete changes found.");
+                    println!("Run `spool list` to see all changes.");
+                } else if want_pending {
+                    println!("No pending changes found.");
                     println!("Run `spool list` to see all changes.");
                 } else {
                     println!("No active changes found.");
@@ -176,7 +200,7 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                             total_tasks: s.total_tasks,
                             last_modified: spool_core::list::to_iso_millis(s.last_modified),
                             status: status.to_string(),
-                            completed: s.completed_tasks == s.total_tasks && s.total_tasks > 0,
+                            completed: is_completed(s.total_tasks, s.completed_tasks),
                         }
                     })
                     .collect();
@@ -218,6 +242,12 @@ pub(crate) fn handle_list_clap(rt: &Runtime, args: &ListArgs) -> CliResult<()> {
     if args.completed {
         argv.push("--completed".to_string());
     }
+    if args.partial {
+        argv.push("--partial".to_string());
+    }
+    if args.pending {
+        argv.push("--pending".to_string());
+    }
     if args.json {
         argv.push("--json".to_string());
     }
@@ -255,6 +285,18 @@ fn format_task_status(total: u32, completed: u32) -> String {
     format!("{completed}/{total} tasks")
 }
 
+fn is_completed(total: u32, completed: u32) -> bool {
+    total > 0 && total == completed
+}
+
+fn is_partial(total: u32, completed: u32) -> bool {
+    total > 0 && completed > 0 && completed < total
+}
+
+fn is_pending(total: u32, completed: u32) -> bool {
+    total > 0 && completed == 0
+}
+
 fn format_relative_time(then: DateTime<Utc>) -> String {
     let now = Utc::now();
     let diff = now.signed_duration_since(then);
@@ -285,7 +327,10 @@ fn format_relative_time(then: DateTime<Utc>) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{format_relative_time, format_task_status, parse_sort_order};
+    use super::{
+        format_relative_time, format_task_status, is_completed, is_partial, is_pending,
+        parse_sort_order,
+    };
     use chrono::{Duration, Utc};
 
     #[test]
@@ -302,6 +347,19 @@ mod tests {
         assert_eq!(format_task_status(0, 0), "No tasks");
         assert_eq!(format_task_status(3, 3), "\u{2713} Complete");
         assert_eq!(format_task_status(3, 1), "1/3 tasks");
+    }
+
+    #[test]
+    fn progress_predicates_exclude_no_tasks_and_match_expected_buckets() {
+        assert!(!is_completed(0, 0));
+        assert!(!is_partial(0, 0));
+        assert!(!is_pending(0, 0));
+
+        assert!(is_pending(3, 0));
+        assert!(is_partial(3, 1));
+        assert!(!is_partial(3, 0));
+        assert!(!is_partial(3, 3));
+        assert!(is_completed(3, 3));
     }
 
     #[test]

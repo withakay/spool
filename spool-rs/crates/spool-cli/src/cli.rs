@@ -59,6 +59,9 @@ pub enum Commands {
     /// Examples:
     ///   spool list
     ///   spool list --ready
+    ///   spool list --pending
+    ///   spool list --partial
+    ///   spool list --completed
     ///   spool list --specs
     ///   spool list --modules --json
     #[command(verbatim_doc_comment)]
@@ -707,8 +710,16 @@ pub struct ListArgs {
     pub ready: bool,
 
     /// Filter to completed changes (all tasks done)
-    #[arg(long)]
+    #[arg(long, conflicts_with_all = ["partial", "pending"])]
     pub completed: bool,
+
+    /// Filter to partially complete changes (some but not all tasks done)
+    #[arg(long, conflicts_with_all = ["completed", "pending"])]
+    pub partial: bool,
+
+    /// Filter to pending changes (no tasks started yet)
+    #[arg(long, conflicts_with_all = ["completed", "partial"])]
+    pub pending: bool,
 
     /// Sort order
     #[arg(long, value_enum, default_value_t = ListSortOrder::Recent)]
