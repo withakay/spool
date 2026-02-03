@@ -1,8 +1,12 @@
 #[path = "support/mod.rs"]
 mod fixtures;
 
-use spool_test_support::pty::run_pty_interactive;
 use spool_test_support::run_rust_candidate;
+
+// PTY-based interactive tests are skipped on Windows due to platform differences
+// in terminal handling that can cause hangs.
+#[cfg(unix)]
+use spool_test_support::pty::run_pty_interactive;
 
 #[test]
 fn init_requires_tools_when_non_interactive() {
