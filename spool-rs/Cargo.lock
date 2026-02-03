@@ -1709,7 +1709,7 @@ dependencies = [
 
 [[package]]
 name = "spool-cli"
-version = "0.20.9"
+version = "0.21.1"
 dependencies = [
  "assert_cmd",
  "chrono",

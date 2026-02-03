@@ -128,63 +128,98 @@ jobs:
           : "${LINUX_X64_SHA256:?missing linux x64 sha256}"
           : "${LINUX_ARM64_SHA256:?missing linux arm64 sha256}"
 
-          cat > "${FORMULA_PATH}" <<EOF
-# typed: false
-# frozen_string_literal: true
+          export VERSION
+          export MAC_X64_URL MAC_X64_SHA256
+          export MAC_ARM64_URL MAC_ARM64_SHA256
+          export LINUX_X64_URL LINUX_X64_SHA256
+          export LINUX_ARM64_URL LINUX_ARM64_SHA256
 
-class Spool < Formula
-  desc "Spec-driven workflow management for AI-assisted development"
-  homepage "https://github.com/withakay/spool"
-  license "MIT"
-  version "${VERSION}"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
 
-  on_macos do
-    if Hardware::CPU.intel?
-      url "${MAC_X64_URL}"
-      sha256 "${MAC_X64_SHA256}"
-    else
-      url "${MAC_ARM64_URL}"
-      sha256 "${MAC_ARM64_SHA256}"
-    end
-  end
+          p = Path(os.environ["FORMULA_PATH"])
 
-  on_linux do
-    if Hardware::CPU.intel?
-      url "${LINUX_X64_URL}"
-      sha256 "${LINUX_X64_SHA256}"
-    else
-      url "${LINUX_ARM64_URL}"
-      sha256 "${LINUX_ARM64_SHA256}"
-    end
-  end
+          version = os.environ["VERSION"]
+          mac_x64_url = os.environ["MAC_X64_URL"]
+          mac_x64_sha256 = os.environ["MAC_X64_SHA256"]
+          mac_arm64_url = os.environ["MAC_ARM64_URL"]
+          mac_arm64_sha256 = os.environ["MAC_ARM64_SHA256"]
+          linux_x64_url = os.environ["LINUX_X64_URL"]
+          linux_x64_sha256 = os.environ["LINUX_X64_SHA256"]
+          linux_arm64_url = os.environ["LINUX_ARM64_URL"]
+          linux_arm64_sha256 = os.environ["LINUX_ARM64_SHA256"]
 
-  head "https://github.com/withakay/spool.git", branch: "main"
+          p.write_text(
+              """# typed: false
+          # frozen_string_literal: true
 
-  livecheck do
-    url :stable
-    strategy :github_latest
-  end
+          class Spool < Formula
+            desc \"Spec-driven workflow management for AI-assisted development\"
+            homepage \"https://github.com/withakay/spool\"
+            license \"MIT\"
+            version \"{version}\"
 
-  head do
-    depends_on "rust" => :build
-  end
+            on_macos do
+              if Hardware::CPU.intel?
+                url \"{mac_x64_url}\"
+                sha256 \"{mac_x64_sha256}\"
+              else
+                url \"{mac_arm64_url}\"
+                sha256 \"{mac_arm64_sha256}\"
+              end
+            end
 
-  def install
-    if build.head?
-      cd "spool-rs" do
-        system "cargo", "install", *std_cargo_args(path: "crates/spool-cli")
-      end
-    else
-      bin.install "spool"
-    end
-  end
+            on_linux do
+              if Hardware::CPU.intel?
+                url \"{linux_x64_url}\"
+                sha256 \"{linux_x64_sha256}\"
+              else
+                url \"{linux_arm64_url}\"
+                sha256 \"{linux_arm64_sha256}\"
+              end
+            end
 
-  test do
-    output = shell_output("#{bin}/spool --version")
-    assert_match(/^\d+\.\d+\.\d+/, output)
-  end
-end
-EOF
+            head \"https://github.com/withakay/spool.git\", branch: \"main\"
+
+            livecheck do
+              url :stable
+              strategy :github_latest
+            end
+
+            head do
+              depends_on \"rust\" => :build
+            end
+
+            def install
+              if build.head?
+                cd \"spool-rs\" do
+                  system \"cargo\", \"install\", *std_cargo_args(path: \"crates/spool-cli\")
+                end
+              else
+                bin.install \"spool\"
+              end
+            end
+
+            test do
+              output = shell_output(\"#{bin}/spool --version\")
+              assert_match(/^\\d+\\.\\d+\\.\\d+/, output)
+            end
+          end
+          """.format(
+                  version=version,
+                  mac_x64_url=mac_x64_url,
+                  mac_x64_sha256=mac_x64_sha256,
+                  mac_arm64_url=mac_arm64_url,
+                  mac_arm64_sha256=mac_arm64_sha256,
+                  linux_x64_url=linux_x64_url,
+                  linux_x64_sha256=linux_x64_sha256,
+                  linux_arm64_url=linux_arm64_url,
+                  linux_arm64_sha256=linux_arm64_sha256,
+              ),
+              encoding="utf-8",
+          )
+          PY
 
           ruby -c "${FORMULA_PATH}"
           grep -En '^\s*(url|sha256|version)\s*"' "${FORMULA_PATH}"
