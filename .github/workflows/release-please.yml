@@ -24,4 +24,3 @@ jobs:
           # Prefer a PAT (or fine-grained token) if the repo forbids GITHUB_TOKEN
           # from creating PRs.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
-          draft: false
