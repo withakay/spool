@@ -15,6 +15,7 @@
 ## Formula Implementation
 
 Create `Formula/spool.rb`:
+
 - [x] Use `brew create <tarball-url> --tap withakay/homebrew-spool --set-name spool` as starting point
 - [x] Reference source tarball URL: `https://github.com/withakay/spool/archive/refs/tags/vX.Y.Z.tar.gz`
 - [ ] Compute SHA256 of tarball for formula (will be auto-updated on first release)
@@ -26,8 +27,9 @@ Create `Formula/spool.rb`:
 ## Release Automation
 
 Create `.github/workflows/update-homebrew.yml` in **main spool repo**:
-- [ ] Create GitHub PAT with `Content: Write` permission on `withakay/homebrew-spool`
-- [ ] Add PAT as `HOMEBREW_TAP_TOKEN` secret in spool repository
+
+- [x] Create GitHub PAT with `Content: Write` permission on `withakay/homebrew-spool`
+- [x] Add PAT as `HOMEBREW_TAP_TOKEN` secret in spool repository
 - [x] Create workflow triggered on release publish (not tag push)
 - [x] Workflow steps: checkout tap, download tarball, compute SHA256, update formula, commit to main
 - [x] Configure git user for commits (use GitHub Actions bot or custom bot account)
