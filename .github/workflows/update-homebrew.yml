@@ -78,22 +78,32 @@ jobs:
           LINUX_X64_URL="$BASE/spool-${TAG}-x86_64-unknown-linux-gnu.tar.gz"
           LINUX_ARM64_URL="$BASE/spool-${TAG}-aarch64-unknown-linux-gnu.tar.gz"
 
-          sha() {
-            local url="$1"
-            local attempt=1
-            local max_attempts=40
-            local sleep_seconds=15
+           sha() {
+             local url="$1"
+             local attempt=1
+             local max_attempts=40
+             local sleep_seconds=15
+             local tmp
 
-            while [ "$attempt" -le "$max_attempts" ]; do
-              if hash="$(curl --fail --location --silent --show-error "$url" | sha256sum | cut -d' ' -f1)"; then
-                printf '%s\n' "$hash"
-                return 0
-              fi
+             while [ "$attempt" -le "$max_attempts" ]; do
+               tmp="$(mktemp)"
+               if curl --fail --location --silent --show-error --output "$tmp" "$url"; then
+                 if [ ! -s "$tmp" ]; then
+                   echo "Downloaded 0 bytes; waiting for asset: $url"
+                   rm -f "$tmp"
+                 else
+                   sha256sum "$tmp" | awk '{print $1}'
+                   rm -f "$tmp"
+                   return 0
+                 fi
+               else
+                 rm -f "$tmp" || true
+               fi
 
-              echo "Waiting for release asset to become available ($attempt/$max_attempts): $url"
-              sleep "$sleep_seconds"
-              attempt=$((attempt + 1))
-            done
+               echo "Waiting for release asset to become available ($attempt/$max_attempts): $url"
+               sleep "$sleep_seconds"
+               attempt=$((attempt + 1))
+             done
 
             echo "Asset did not become available after $max_attempts attempts: $url"
             return 1
@@ -149,97 +159,90 @@ jobs:
           export LINUX_X64_URL LINUX_X64_SHA256
           export LINUX_ARM64_URL LINUX_ARM64_SHA256
 
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
+           python3 - <<'PY'
+           import os
+           from pathlib import Path
+           from string import Template
 
-          p = Path(os.environ["FORMULA_PATH"])
+           p = Path(os.environ["FORMULA_PATH"])
 
-          version = os.environ["VERSION"]
-          mac_x64_url = os.environ["MAC_X64_URL"]
-          mac_x64_sha256 = os.environ["MAC_X64_SHA256"]
-          mac_arm64_url = os.environ["MAC_ARM64_URL"]
-          mac_arm64_sha256 = os.environ["MAC_ARM64_SHA256"]
-          linux_x64_url = os.environ["LINUX_X64_URL"]
-          linux_x64_sha256 = os.environ["LINUX_X64_SHA256"]
-          linux_arm64_url = os.environ["LINUX_ARM64_URL"]
-          linux_arm64_sha256 = os.environ["LINUX_ARM64_SHA256"]
+           template = Template(
+               """# typed: false
+           # frozen_string_literal: true
 
-          p.write_text(
-              """# typed: false
-          # frozen_string_literal: true
+           class Spool < Formula
+             desc "Spec-driven workflow management for AI-assisted development"
+             homepage "https://github.com/withakay/spool"
+             license "MIT"
+             version "$version"
 
-          class Spool < Formula
-            desc \"Spec-driven workflow management for AI-assisted development\"
-            homepage \"https://github.com/withakay/spool\"
-            version \"{version}\"
+             on_macos do
+               if Hardware::CPU.intel?
+                 url "$mac_x64_url"
+                 sha256 "$mac_x64_sha256"
+               else
+                 url "$mac_arm64_url"
+                 sha256 "$mac_arm64_sha256"
+               end
+             end
 
-            on_macos do
-              if Hardware::CPU.intel?
-                url \"{mac_x64_url}\"
-                sha256 \"{mac_x64_sha256}\"
-              else
-                url \"{mac_arm64_url}\"
-                sha256 \"{mac_arm64_sha256}\"
-              end
-            end
+             on_linux do
+               if Hardware::CPU.intel?
+                 url "$linux_x64_url"
+                 sha256 "$linux_x64_sha256"
+               else
+                 url "$linux_arm64_url"
+                 sha256 "$linux_arm64_sha256"
+               end
+             end
 
-            on_linux do
-              if Hardware::CPU.intel?
-                url \"{linux_x64_url}\"
-                sha256 \"{linux_x64_sha256}\"
-              else
-                url \"{linux_arm64_url}\"
-                sha256 \"{linux_arm64_sha256}\"
-              end
-            end
+             head "https://github.com/withakay/spool.git", branch: "main"
 
-            license \"MIT\"
+             livecheck do
+               url :stable
+               strategy :github_latest
+             end
 
-            head \"https://github.com/withakay/spool.git\", branch: \"main\"
+             head do
+               depends_on "rust" => :build
+             end
 
-            livecheck do
-              url :stable
-              strategy :github_latest
-            end
+             def install
+               if build.head?
+                 cd "spool-rs" do
+                   system "cargo", "install", *std_cargo_args(path: "crates/spool-cli")
+                 end
+               else
+                 bin.install "spool"
+               end
+             end
 
-            head do
-              depends_on \"rust\" => :build
-            end
+             test do
+               output = shell_output("#{bin}/spool --version").strip
+               if build.head?
+                 assert_match(/^\d+\.\d+\.\d+/, output)
+               else
+                 assert_match(/^#{Regexp.escape(version.to_s)}$/, output)
+               end
+             end
+           end
+           """
+           )
 
-            def install
-              if build.head?
-                cd \"spool-rs\" do
-                  system \"cargo\", \"install\", *std_cargo_args(path: \"crates/spool-cli\")
-                end
-              else
-                bin.install \"spool\"
-              end
-            end
+           mapping = {
+               "version": os.environ["VERSION"],
+               "mac_x64_url": os.environ["MAC_X64_URL"],
+               "mac_x64_sha256": os.environ["MAC_X64_SHA256"],
+               "mac_arm64_url": os.environ["MAC_ARM64_URL"],
+               "mac_arm64_sha256": os.environ["MAC_ARM64_SHA256"],
+               "linux_x64_url": os.environ["LINUX_X64_URL"],
+               "linux_x64_sha256": os.environ["LINUX_X64_SHA256"],
+               "linux_arm64_url": os.environ["LINUX_ARM64_URL"],
+               "linux_arm64_sha256": os.environ["LINUX_ARM64_SHA256"],
+           }
 
-            test do
-              output = shell_output(\"#{bin}/spool --version\").strip
-              if build.head?
-                assert_match(/^\\d+\\.\\d+\\.\\d+/, output)
-              else
-                assert_match(/^#{Regexp.escape(version.to_s)}$/, output)
-              end
-            end
-          end
-          """.format(
-                  version=version,
-                  mac_x64_url=mac_x64_url,
-                  mac_x64_sha256=mac_x64_sha256,
-                  mac_arm64_url=mac_arm64_url,
-                  mac_arm64_sha256=mac_arm64_sha256,
-                  linux_x64_url=linux_x64_url,
-                  linux_x64_sha256=linux_x64_sha256,
-                  linux_arm64_url=linux_arm64_url,
-                  linux_arm64_sha256=linux_arm64_sha256,
-              ),
-              encoding="utf-8",
-          )
-          PY
+           p.write_text(template.substitute(mapping), encoding="utf-8")
+           PY
 
           ruby -c "${FORMULA_PATH}"
           grep -En '^\s*(url|sha256|version)\s*"' "${FORMULA_PATH}"
