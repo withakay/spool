@@ -1,1 +1,28 @@
+# Changelog
+
+## [0.20.9](https://github.com/withakay/spool/compare/spool-cli-v0.20.8...spool-cli-v0.20.9) (2026-02-03)
+
+
+### Features
+
+* **013-04:** implement bootstrap artifact CLI for tool-specific instructions ([6c54171](https://github.com/withakay/spool/commit/6c541715351d19e03df2e0b6a2ddcb4f19c87837))
+* add user guidance infrastructure and new change proposals ([31f4a5d](https://github.com/withakay/spool/commit/31f4a5d56c1f086aa4bc0d1a6e1f91676e5a6872))
+* **cli:** add pending/partial filters to spool list ([05173f6](https://github.com/withakay/spool/commit/05173f694037f5f1bc69ff07f83f2fdaad3dc272))
+* **cli:** add ready work commands for discovering actionable items ([5392a1f](https://github.com/withakay/spool/commit/5392a1fb410b57341f983ceb330e790d5712a893))
+* **spool-cli:** add execution logging, config, and stats ([c5861b2](https://github.com/withakay/spool/commit/c5861b2f8210212fba2670c69586abd0030bd3e8))
+* **spool-cli:** add planning and workflow commands ([2190c4b](https://github.com/withakay/spool/commit/2190c4b1f5be043fcbd221e8634a3a41e8c387af))
+* **spool-cli:** add workflow command integration and agent instruction support ([44b5cf7](https://github.com/withakay/spool/commit/44b5cf72ac81f121da733074b276b5489b3f77ad))
+* **spool-cli:** implement improved help system with help --all support ([e1da399](https://github.com/withakay/spool/commit/e1da3998ae8ac96f81c211ea1e9afe53bd5d8477))
+* **spool-cli:** migrate to use spool-domain repositories ([69d83dc](https://github.com/withakay/spool/commit/69d83dcbcce981e1d714c1908718652e2e1afa94))
+* **spool-fs:** implement marker-based file editing system for managed content blocks ([2195fc1](https://github.com/withakay/spool/commit/2195fc1df763bdcd5b2d7c2e9c59b0791ec97ed0))
+* **spool-rs-cli:** expand main CLI with additional subcommands and parity tests ([ae1cd32](https://github.com/withakay/spool/commit/ae1cd323b44fbaa7c4a5c5e9c8fc870be509499e))
+* **spool-web:** add modern file browser, editor, and terminal ([f0815f5](https://github.com/withakay/spool/commit/f0815f59b87ca3dd29b91681384bbae7edc0653a))
+
+
+### Bug Fixes
+
+* **ci:** skip PTY-based interactive tests on Windows ([0b49efa](https://github.com/withakay/spool/commit/0b49efadeb47f40ca9b7cde60ad2c61decec22fd))
+* snapshots ([fa59066](https://github.com/withakay/spool/commit/fa59066a5e79d32be0df44fd9ffca73fd05e4eef))
+* **spool-cli:** support agent instruction apply ([e144129](https://github.com/withakay/spool/commit/e144129eedbaedffe4dbe7fc62bc51b0a17a861e))
+
 ../../../CHANGELOG.md
