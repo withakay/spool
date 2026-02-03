@@ -70,7 +70,7 @@ repos:
         language: system
         args: [test-coverage]
         pass_filenames: false
-        files: ^spool-rs/.*\.(rs|toml)$
+        files: ^spool-rs/.*\.rs$
         stages: [pre-commit, pre-push]
 
       - id: cargo-test
