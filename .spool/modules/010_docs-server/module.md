@@ -10,4 +10,4 @@ Serve Spool artifacts and project documentation in a local web UI for fast brows
 
 ## Changes
 
-- [ ] 010-01_add-local-docs-server
+- [x] 010-01_add-local-docs-server
