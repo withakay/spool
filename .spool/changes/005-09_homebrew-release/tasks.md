@@ -18,11 +18,13 @@ Create `Formula/spool.rb`:
 
 - [x] Use `brew create <tarball-url> --tap withakay/homebrew-spool --set-name spool` as starting point
 - [x] Reference source tarball URL: `https://github.com/withakay/spool/archive/refs/tags/vX.Y.Z.tar.gz`
-- [ ] Compute SHA256 of tarball for formula (will be auto-updated on first release)
+- [x] Switch stable formula to use GitHub Release archives (not source builds)
+- [x] Include per-arch URLs + SHA256 for macOS arm64/x86_64
 - [x] Add `livecheck` block for automatic version discovery
 - [x] Add test block with HEAD/stable build detection
-- [x] Run `brew style withakay/spool` to verify formula syntax (passes except placeholder SHA256)
-- [x] Test local install: `brew install --HEAD spool` works, `brew test spool` passes
+- [x] Run `brew style withakay/spool` to verify formula syntax
+- [x] Test local stable install: `brew tap withakay/spool && brew install spool` works
+- [x] Verify `brew test spool` passes
 
 ## Release Automation
 
@@ -30,8 +32,10 @@ Create `.github/workflows/update-homebrew.yml` in **main spool repo**:
 
 - [x] Create GitHub PAT with `Content: Write` permission on `withakay/homebrew-spool`
 - [x] Add PAT as `HOMEBREW_TAP_TOKEN` secret in spool repository
-- [x] Create workflow triggered on release publish (not tag push)
-- [x] Workflow steps: checkout tap, download tarball, compute SHA256, update formula, commit to main
+- [x] Create workflow triggered on release publish / Release workflow completion
+- [x] Support manual runs (`workflow_dispatch`)
+- [x] Support tag-push trigger (`v*`)
+- [x] Workflow steps: checkout tap, download release archives, compute SHA256, rewrite formula, commit to main
 - [x] Configure git user for commits (use GitHub Actions bot or custom bot account)
 - [ ] Test workflow with a test release
 
@@ -44,11 +48,11 @@ Reference implementation: [searlsco/imsg workflow](https://github.com/searlsco/i
   brew tap withakay/spool
   brew install spool
   ```
-- [ ] Add Homebrew section to any existing install docs
+- [x] Add Homebrew section to any existing install docs
 
 ## Validation
 
-- [ ] Test `brew tap withakay/spool && brew install spool` on Apple Silicon
+- [x] Test `brew tap withakay/spool && brew install spool` on Apple Silicon
 - [ ] Test `brew tap withakay/spool && brew install spool` on Intel Mac (or CI)
 - [ ] Test `brew update && brew upgrade spool` after a version bump
-- [ ] Verify `brew test spool` passes
+- [x] Verify `brew test spool` passes

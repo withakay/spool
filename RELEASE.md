@@ -77,14 +77,18 @@ Notes:
 Triggers:
 
 - GitHub release event: `published`
+- Tag push event: `v*`
 - Manual run (`workflow_dispatch`) with an explicit `tag` input
 
 What it does:
 
-- Computes `sha256` of the source tarball for the tag:
-  - `https://github.com/withakay/spool/archive/refs/tags/<TAG>.tar.gz`
+- Computes `sha256` checksums for the platform release archives (macOS + Linux):
+  - `https://github.com/withakay/spool/releases/download/<TAG>/spool-<TAG>-x86_64-apple-darwin.tar.gz`
+  - `https://github.com/withakay/spool/releases/download/<TAG>/spool-<TAG>-aarch64-apple-darwin.tar.gz`
+  - `https://github.com/withakay/spool/releases/download/<TAG>/spool-<TAG>-x86_64-unknown-linux-gnu.tar.gz`
+  - `https://github.com/withakay/spool/releases/download/<TAG>/spool-<TAG>-aarch64-unknown-linux-gnu.tar.gz`
 - Checks out the tap repo `withakay/homebrew-spool`.
-- Updates `Formula/spool.rb` `url` and `sha256`.
+- Rewrites `Formula/spool.rb` with the new `version` + per-arch `url`/`sha256` blocks.
 - Commits and pushes to the tap repo’s `main`.
 
 Notes:
