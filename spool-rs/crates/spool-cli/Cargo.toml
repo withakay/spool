@@ -1,6 +1,6 @@
 [package]
 name = "spool-cli"
-version = "0.21.0-local.202602031650"
+version = "0.20.9"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
