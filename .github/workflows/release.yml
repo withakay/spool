@@ -163,6 +163,9 @@ jobs:
     needs: [meta, check_assets, validate_version]
     if: needs.meta.outputs.skip != 'true' && needs.check_assets.outputs.present != 'true'
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
