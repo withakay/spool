@@ -74,9 +74,28 @@ release: ## Trigger Release Please workflow (creates/updates release PR)
 		echo "Wait for CI to finish, or rerun CI, then retry."; \
 		exit 1; \
 	fi; \
-	gh workflow run release-please.yml --ref main; \
+	WORKFLOW=release-please.yml; \
+	gh workflow run "$$WORKFLOW" --ref main; \
 	echo "Triggered Release Please."; \
-	echo "View runs: gh run list --workflow release-please.yml --branch main --limit 5"
+	echo "Waiting for Release Please PR..."; \
+	SLEEP_SECS=2; \
+	MAX_TRIES=30; \
+	TRY=0; \
+	while [ "$$TRY" -lt "$$MAX_TRIES" ]; do \
+		PR_URL=$$(gh pr list --state open --head release-please--branches--main --json url -q '.[0].url' 2>/dev/null || true); \
+		if [ -z "$$PR_URL" ]; then \
+			PR_URL=$$(gh pr list --state open --label "autorelease: pending" --json url -q '.[0].url' 2>/dev/null || true); \
+		fi; \
+		if [ -n "$$PR_URL" ]; then \
+			echo "Release Please PR: $$PR_URL"; \
+			exit 0; \
+		fi; \
+		TRY=$$((TRY + 1)); \
+		sleep "$$SLEEP_SECS"; \
+	done; \
+	echo "Could not find Release Please PR yet."; \
+	echo "View runs: gh run list --workflow $$WORKFLOW --branch main --limit 5"; \
+	exit 1
 
 version-bump: ## Bump workspace version (BUMP=none|patch|minor|major)
 	@set -e; \
