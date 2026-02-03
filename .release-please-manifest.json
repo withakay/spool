@@ -1,4 +1,4 @@
 {
-  ".": "0.20.9",
-  "spool-rs/crates/spool-cli": "0.1.0"
+  ".": "0.21.0",
+  "spool-rs/crates/spool-cli": "0.21.0"
 }
