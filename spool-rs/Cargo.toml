@@ -1,5 +1,16 @@
 [workspace]
-members = ["crates/*"]
+members = [
+  "crates/spool-cli",
+  "crates/spool-core",
+  "crates/spool-domain",
+  "crates/spool-fs",
+  "crates/spool-harness",
+  "crates/spool-logging",
+  "crates/spool-schemas",
+  "crates/spool-templates",
+  "crates/spool-test-support",
+  "crates/spool-web",
+]
 resolver = "3"
 
 [workspace.package]
