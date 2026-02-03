@@ -283,25 +283,29 @@ pub enum Commands {
     New(NewArgs),
 }
 
-/// Local docs server.
+/// Local docs server with file browser and editor.
 #[derive(Args, Debug, Clone)]
-#[command(subcommand_required = true, arg_required_else_help = true)]
-#[command(disable_help_subcommand = true)]
 pub struct ServeArgs {
     #[command(subcommand)]
     pub action: Option<ServeAction>,
+
+    /// Port to listen on (default: 9009)
+    #[arg(short, long, global = true)]
+    pub port: Option<u16>,
+
+    /// Address to bind to (default: 127.0.0.1)
+    #[arg(short, long, global = true, conflicts_with = "tailscale")]
+    pub bind: Option<String>,
+
+    /// Bind to the Tailscale IP address (requires tailscale CLI)
+    #[arg(short, long, global = true)]
+    pub tailscale: bool,
 }
 
 #[derive(Subcommand, Debug, Clone)]
 pub enum ServeAction {
-    /// Start the server for the current project
+    /// Start the server (default if no subcommand)
     Start,
-
-    /// Stop the server for the current project
-    Stop,
-
-    /// Show status (URL) for the current project
-    Status,
 }
 
 /// Deprecated alias for `create change`.

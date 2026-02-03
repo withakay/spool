@@ -26,7 +26,9 @@ spool-core = { path = "../spool-core" }
 spool-logging = { path = "../spool-logging" }
 spool-fs = { path = "../spool-fs" }
 spool-templates = { path = "../spool-templates" }
+spool-web = { path = "../spool-web" }
 chrono = { workspace = true }
+tokio = { version = "1", features = ["rt-multi-thread"] }
 spool-domain = { path = "../spool-domain" }
 spool-schemas = { path = "../spool-schemas" }
 spool-harness = { path = "../spool-harness" }
