@@ -1,6 +1,6 @@
 # spool-rs
 
-Rust port of Spool.
+Rust implementation of Spool.
 
 ## Development
 
