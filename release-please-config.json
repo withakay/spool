@@ -1,13 +1,23 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "packages": {
-    "spool-rs/crates/spool-cli": {
-      "release-type": "rust",
-      "package-name": "spool-cli",
-      "changelog-path": "CHANGELOG.md",
+    ".": {
+      "release-type": "simple",
+      "package-name": "spool",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
-      "extra-files": []
+      "extra-files": [
+        "spool-rs/crates/spool-cli/Cargo.toml",
+        "spool-rs/crates/spool-core/Cargo.toml",
+        "spool-rs/crates/spool-domain/Cargo.toml",
+        "spool-rs/crates/spool-fs/Cargo.toml",
+        "spool-rs/crates/spool-harness/Cargo.toml",
+        "spool-rs/crates/spool-logging/Cargo.toml",
+        "spool-rs/crates/spool-schemas/Cargo.toml",
+        "spool-rs/crates/spool-templates/Cargo.toml",
+        "spool-rs/crates/spool-test-support/Cargo.toml",
+        "spool-rs/crates/spool-web/Cargo.toml"
+      ]
     }
   },
   "changelog-sections": [
