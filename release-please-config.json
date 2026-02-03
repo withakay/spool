@@ -1,8 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-component-in-tag": false,
   "packages": {
     "spool-rs/crates/spool-cli": {
       "release-type": "rust",
+      "component": "spool",
       "package-name": "spool-cli",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,

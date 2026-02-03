@@ -3,9 +3,9 @@ name: Update Homebrew Formula
 on:
   # `release` events created by `GITHUB_TOKEN` (e.g. from release-please)
   # may not trigger downstream workflows. Instead, run after the
-  # Release Please workflow completes and derive the latest published tag.
+  # Release workflow completes and derive the latest published tag.
   workflow_run:
-    workflows: ["Release Please"]
+    workflows: ["Release"]
     types: [completed]
     branches: [main]
   release:
@@ -23,7 +23,7 @@ jobs:
   update-formula:
     if: |
       github.event_name != 'workflow_run' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     env:
       TAP_REPO: withakay/homebrew-spool
@@ -56,18 +56,41 @@ jobs:
             echo "Could not determine release tag; skipping."
             exit 0
           fi
-          echo "version=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "tar_url=https://github.com/${OWNER_REPO}/archive/refs/tags/${TAG}.tar.gz" >> "$GITHUB_OUTPUT"
 
-      - name: Compute sha256
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "Latest release tag ($TAG) is not a vX.Y.Z tag; skipping."
+            exit 0
+          fi
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Compute sha256 (release assets)
         id: sha
         run: |
           set -euo pipefail
-          SHA256="$(
-            curl --fail --location --silent --show-error "${{ steps.meta.outputs.tar_url }}" \
-            | sha256sum | cut -d' ' -f1
-          )"
-          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+
+          TAG="${{ steps.meta.outputs.tag }}"
+          BASE="https://github.com/${OWNER_REPO}/releases/download/${TAG}"
+
+          MAC_X64_URL="$BASE/spool-${TAG}-x86_64-apple-darwin.tar.gz"
+          MAC_ARM64_URL="$BASE/spool-${TAG}-aarch64-apple-darwin.tar.gz"
+          LINUX_X64_URL="$BASE/spool-${TAG}-x86_64-unknown-linux-gnu.tar.gz"
+          LINUX_ARM64_URL="$BASE/spool-${TAG}-aarch64-unknown-linux-gnu.tar.gz"
+
+          sha() {
+            curl --fail --location --silent --show-error "$1" | sha256sum | cut -d' ' -f1
+          }
+
+          echo "mac_x64_url=$MAC_X64_URL" >> "$GITHUB_OUTPUT"
+          echo "mac_arm64_url=$MAC_ARM64_URL" >> "$GITHUB_OUTPUT"
+          echo "linux_x64_url=$LINUX_X64_URL" >> "$GITHUB_OUTPUT"
+          echo "linux_arm64_url=$LINUX_ARM64_URL" >> "$GITHUB_OUTPUT"
+
+          echo "mac_x64_sha256=$(sha "$MAC_X64_URL")" >> "$GITHUB_OUTPUT"
+          echo "mac_arm64_sha256=$(sha "$MAC_ARM64_URL")" >> "$GITHUB_OUTPUT"
+          echo "linux_x64_sha256=$(sha "$LINUX_X64_URL")" >> "$GITHUB_OUTPUT"
+          echo "linux_arm64_sha256=$(sha "$LINUX_ARM64_URL")" >> "$GITHUB_OUTPUT"
 
       - name: Checkout tap (write-enabled)
         uses: actions/checkout@v4
@@ -80,24 +103,91 @@ jobs:
       - name: Update formula url/sha256
         run: |
           set -euo pipefail
-          TAR_URL="${{ steps.meta.outputs.tar_url }}"
-          SHA256="${{ steps.sha.outputs.sha256 }}"
-          : "${TAR_URL:?missing TAR_URL from meta}"
-          : "${SHA256:?missing SHA256 from sha}"
 
-          # Check if url line exists (not commented)
-          if grep -qE '^\s*url\s*"' "${FORMULA_PATH}"; then
-            # Update existing url and sha256
-            sed -i.bak -E "s|^(\s*url\s*\").*(\")|\1${TAR_URL}\2|" "${FORMULA_PATH}"
-            sed -i.bak -E "s|^(\s*sha256\s*\").*(\")|\1${SHA256}\2|" "${FORMULA_PATH}"
-          else
-            # Add url and sha256 after license line (first release)
-            sed -i.bak -E "/^\s*license\s/a\\
-          url \"${TAR_URL}\"\\
-          sha256 \"${SHA256}\"" "${FORMULA_PATH}"
-          fi
-          rm -f "${FORMULA_PATH}.bak"
-          grep -En '^\s*(url|sha256)\s*"' "${FORMULA_PATH}"
+          TAG="${{ steps.meta.outputs.tag }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+
+          MAC_X64_URL="${{ steps.sha.outputs.mac_x64_url }}"
+          MAC_ARM64_URL="${{ steps.sha.outputs.mac_arm64_url }}"
+          LINUX_X64_URL="${{ steps.sha.outputs.linux_x64_url }}"
+          LINUX_ARM64_URL="${{ steps.sha.outputs.linux_arm64_url }}"
+
+          MAC_X64_SHA256="${{ steps.sha.outputs.mac_x64_sha256 }}"
+          MAC_ARM64_SHA256="${{ steps.sha.outputs.mac_arm64_sha256 }}"
+          LINUX_X64_SHA256="${{ steps.sha.outputs.linux_x64_sha256 }}"
+          LINUX_ARM64_SHA256="${{ steps.sha.outputs.linux_arm64_sha256 }}"
+
+          : "${TAG:?missing tag}"
+          : "${VERSION:?missing version}"
+          : "${MAC_X64_URL:?missing mac x64 url}"
+          : "${MAC_ARM64_URL:?missing mac arm64 url}"
+          : "${LINUX_X64_URL:?missing linux x64 url}"
+          : "${LINUX_ARM64_URL:?missing linux arm64 url}"
+          : "${MAC_X64_SHA256:?missing mac x64 sha256}"
+          : "${MAC_ARM64_SHA256:?missing mac arm64 sha256}"
+          : "${LINUX_X64_SHA256:?missing linux x64 sha256}"
+          : "${LINUX_ARM64_SHA256:?missing linux arm64 sha256}"
+
+          cat > "${FORMULA_PATH}" <<EOF
+# typed: false
+# frozen_string_literal: true
+
+class Spool < Formula
+  desc "Spec-driven workflow management for AI-assisted development"
+  homepage "https://github.com/withakay/spool"
+  license "MIT"
+  version "${VERSION}"
+
+  on_macos do
+    if Hardware::CPU.intel?
+      url "${MAC_X64_URL}"
+      sha256 "${MAC_X64_SHA256}"
+    else
+      url "${MAC_ARM64_URL}"
+      sha256 "${MAC_ARM64_SHA256}"
+    end
+  end
+
+  on_linux do
+    if Hardware::CPU.intel?
+      url "${LINUX_X64_URL}"
+      sha256 "${LINUX_X64_SHA256}"
+    else
+      url "${LINUX_ARM64_URL}"
+      sha256 "${LINUX_ARM64_SHA256}"
+    end
+  end
+
+  head "https://github.com/withakay/spool.git", branch: "main"
+
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
+
+  head do
+    depends_on "rust" => :build
+  end
+
+  def install
+    if build.head?
+      cd "spool-rs" do
+        system "cargo", "install", *std_cargo_args(path: "crates/spool-cli")
+      end
+    else
+      bin.install "spool"
+    end
+  end
+
+  test do
+    output = shell_output("#{bin}/spool --version")
+    assert_match(/^\d+\.\d+\.\d+/, output)
+  end
+end
+EOF
+
+          ruby -c "${FORMULA_PATH}"
+          grep -En '^\s*(url|sha256|version)\s*"' "${FORMULA_PATH}"
 
       - name: Commit & push to main
         env:
