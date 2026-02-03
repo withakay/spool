@@ -13,6 +13,7 @@ Some project files are installed/updated by Spool (`spool init`, `spool update`)
 ## TL;DR Quick Checklist
 
 - Search existing work: `spool list --specs`, `spool list`, `spool list --modules`
+- Filter by progress: `spool list --pending`, `spool list --partial`, `spool list --completed`
 - Choose a module by semantic fit; create a new module if none fit (avoid dumping unrelated work into an arbitrary existing module)
 - Decide scope: new capability vs modify existing capability
 - For large features (epics): Create a module to group related changes
@@ -104,6 +105,7 @@ After deployment, create separate PR to:
 
 - Enumerate specs: `spool list --specs` (or `--json` for scripts)
 - Enumerate changes: `spool list` (or `--json` for scripts)
+- Filter changes by progress: `spool list --pending`, `spool list --partial`, `spool list --completed`
 - Show details:
   - Spec: `spool show <spec-id> --type spec` (use `--json` for filters)
   - Change: `spool show <change-id> --json --deltas-only`
@@ -116,6 +118,9 @@ After deployment, create separate PR to:
 ```bash
 # Essential commands
 spool list                  # List active changes
+spool list --pending         # List changes with 0/N tasks complete
+spool list --partial         # List changes with 1..N-1/N tasks complete
+spool list --completed       # List completed changes
 spool list --specs          # List specifications
 spool show [item]           # Display change or spec
 spool validate [item]       # Validate changes or specs
@@ -151,6 +156,9 @@ spool validate --modules    # Validate all modules
 ### Command Flags
 
 - `--json` - Machine-readable output
+- `--pending` - List changes with 0/N tasks complete
+- `--partial` - List changes with 1..N-1/N tasks complete
+- `--completed` - List changes with N/N tasks complete
 - `--type change|spec` - Disambiguate items
 - `--strict` - Comprehensive validation
 - `--no-interactive` - Disable prompts
