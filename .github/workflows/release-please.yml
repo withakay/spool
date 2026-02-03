@@ -1,6 +1,21 @@
 name: Release Please
 
 on:
+  push:
+    branches:
+      - main
+    # Avoid running on every push: only run on pushes that touch files
+    # that release-please itself manages (typically the merge commit of the
+    # release PR).
+    paths:
+      - .release-please-manifest.json
+      - release-please-config.json
+      - spool-rs/Cargo.toml
+      - spool-rs/crates/**/Cargo.toml
+      - spool-rs/crates/**/CHANGELOG.md
+  schedule:
+    # Still keep the release PR up to date without tying it to every push.
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:

@@ -7,7 +7,19 @@
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
-      "extra-files": []
+      "extra-files": [
+        {
+          "type": "toml",
+          "path": "spool-rs/Cargo.toml",
+          "jsonpath": "$.workspace.package.version"
+        },
+        {
+          "type": "toml",
+          "path": "spool-rs/crates/**/Cargo.toml",
+          "glob": true,
+          "jsonpath": "$.package.version"
+        }
+      ]
     }
   },
   "changelog-sections": [
