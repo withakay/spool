@@ -1709,7 +1709,7 @@ dependencies = [
 
 [[package]]
 name = "spool-cli"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "assert_cmd",
  "chrono",
@@ -1742,7 +1742,7 @@ dependencies = [
 
 [[package]]
 name = "spool-core"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "chrono",
  "miette",
@@ -1762,7 +1762,7 @@ dependencies = [
 
 [[package]]
 name = "spool-domain"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "chrono",
  "miette",
@@ -1779,7 +1779,7 @@ dependencies = [
 
 [[package]]
 name = "spool-fs"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "tempfile",
  "thiserror 2.0.18",
@@ -1787,7 +1787,7 @@ dependencies = [
 
 [[package]]
 name = "spool-harness"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "miette",
  "serde",
@@ -1798,7 +1798,7 @@ dependencies = [
 
 [[package]]
 name = "spool-logging"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "chrono",
  "hex",
@@ -1813,7 +1813,7 @@ dependencies = [
 
 [[package]]
 name = "spool-schemas"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "serde",
  "serde_json",
@@ -1822,14 +1822,14 @@ dependencies = [
 
 [[package]]
 name = "spool-templates"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "include_dir",
 ]
 
 [[package]]
 name = "spool-test-support"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "insta",
  "portable-pty",
@@ -1839,7 +1839,7 @@ dependencies = [
 
 [[package]]
 name = "spool-web"
-version = "0.20.10-local.202602031427"
+version = "0.21.0-local.202602031650"
 dependencies = [
  "axum",
  "axum-extra",
