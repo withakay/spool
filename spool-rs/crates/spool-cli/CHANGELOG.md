@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.2](https://github.com/withakay/spool/compare/v0.22.1...v0.22.2) (2026-02-04)
+
+
+### Bug Fixes
+
+* trigger manual release ([4348680](https://github.com/withakay/spool/commit/43486804f702e8b8d888d00f46033cde60e5dc57))
+
 ## [0.22.1](https://github.com/withakay/spool/compare/v0.22.0...v0.22.1) (2026-02-04)
 
 
