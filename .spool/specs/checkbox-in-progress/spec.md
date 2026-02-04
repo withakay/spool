@@ -1,12 +1,24 @@
-## ADDED Requirements
+
+# Checkbox In-Progress Specification
+
+## Purpose
+
+Define the `checkbox-in-progress` capability: how checkbox-format `tasks.md` represents and transitions in-progress tasks.
+
+## Requirements
 
 ### Requirement: Checkbox format supports in-progress marker
 
-The system SHALL recognize `- [~]` as an in-progress task marker in checkbox-format tasks.md files.
+The system SHALL recognize `- [~]` as an in-progress task marker in checkbox-format tasks.md files. The system SHALL also recognize `- [>]` as an alias for in-progress.
 
 #### Scenario: Parse in-progress checkbox marker
 
 - **WHEN** a tasks.md file contains `- [~] Task description`
+- **THEN** the parser SHALL identify this task as having status "in-progress"
+
+#### Scenario: Parse right-arrow in-progress checkbox marker
+
+- **WHEN** a tasks.md file contains `- [>] Task description`
 - **THEN** the parser SHALL identify this task as having status "in-progress"
 
 #### Scenario: Parse mixed checkbox statuses

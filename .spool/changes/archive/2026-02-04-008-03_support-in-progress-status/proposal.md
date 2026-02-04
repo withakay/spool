@@ -21,7 +21,7 @@ The checkbox-only task format (`- [ ]`/`- [x]`) currently only supports two stat
 
 ## Impact
 
-- **Code**: `spool-workflow` crate (task parsing) and `spool-cli` crate (tasks command)
+- **Code**: `spool-domain` crate (task parsing/updating) and `spool-cli` crate (tasks command)
 - **Tests**: Task parsing tests need new test cases for in-progress checkbox marker
 - **Docs**: Update task format documentation to describe the new marker
 - **User Experience**: Users with checkbox-format tasks.md can now use `spool tasks start`

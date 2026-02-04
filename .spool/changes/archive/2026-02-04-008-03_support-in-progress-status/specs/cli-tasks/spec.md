@@ -74,6 +74,6 @@ The CLI SHALL provide commands to start, complete, and move to the next task, wi
 - **AND** identify the first task with status "pending" (`- [ ]`)
 - **AND** verify no task is currently in-progress (`- [~]`)
 - **AND** display the next pending task
-- **AND** if exactly one pending task and no in-progress task, automatically start it
+- **AND** print guidance to start it with `spool tasks start <change-id> <task-id>`
 - **AND** if a task is already in-progress, display it as the current task
 - **AND** if no pending tasks remain, display a completion message

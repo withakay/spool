@@ -16,84 +16,86 @@ spool tasks complete 008-03_support-in-progress-status 1.1
 
 ______________________________________________________________________
 
-## Wave 1: Parser Changes
+## Wave 1
+
+Parser Changes
 
 - **Depends On**: None
 
 ### Task 1.1: Add in-progress checkbox constant and parsing
 
-- **Files**: `spool-rs/crates/spool-workflow/src/tasks.rs`
+- **Files**: `spool-rs/crates/spool-domain/src/tasks/parse.rs`
 - **Dependencies**: None
 - **Action**:
-  - Add constant for in-progress marker: `const CHECKBOX_IN_PROGRESS: &str = "- [~]";`
-  - Update `TaskStatus` enum (if not already present) to include `InProgress` variant
-  - Modify the checkbox parsing logic to recognize `- [~]` as `TaskStatus::InProgress`
-  - Update `parse_checkbox_line()` or equivalent function to handle the tilde marker
-- **Verify**: `cargo test -p spool-workflow`
+  - Ensure checkbox parsing recognizes `- [~]` as `TaskStatus::InProgress`
+- **Verify**: `cargo test -p spool-domain`
 - **Done When**: Parser correctly identifies `- [~]` as in-progress status
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 1.2: Add checkbox format serialization for in-progress
 
-- **Files**: `spool-rs/crates/spool-workflow/src/tasks.rs`
+- **Files**: `spool-rs/crates/spool-domain/src/tasks/update.rs`
 - **Dependencies**: Task 1.1
 - **Action**:
-  - Update the checkbox format writer to serialize `TaskStatus::InProgress` as `- [~]`
-  - Ensure round-trip consistency: parse → modify → write preserves the format
-- **Verify**: `cargo test -p spool-workflow`
+  - Ensure `update_checkbox_task_status(...)` writes `- [~]` when setting `InProgress`
+- **Verify**: `cargo test -p spool-domain`
 - **Done When**: Writing a task with in-progress status produces `- [~]` marker
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
-## Wave 2: Unit Tests for Parser
+## Wave 2
+
+Unit Tests for Parser
 
 - **Depends On**: Wave 1
 
 ### Task 2.1: Write failing test for in-progress checkbox parsing
 
-- **Files**: `spool-rs/crates/spool-workflow/tests/tasks_parsing.rs`
+- **Files**: `spool-rs/crates/spool-domain/tests/tasks_parsing.rs`
 - **Dependencies**: None
 - **Action**:
   - Write test case: `test_parse_checkbox_in_progress`
   - Input: `- [~] Task in progress`
   - Expected: Task with status `InProgress` and description "Task in progress"
-- **Verify**: `cargo test -p spool-workflow test_parse_checkbox_in_progress`
+- **Verify**: `cargo test -p spool-domain test_parse_checkbox`
 - **Done When**: Test passes after Wave 1 implementation
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 2.2: Write test for mixed checkbox status parsing
 
-- **Files**: `spool-rs/crates/spool-workflow/tests/tasks_parsing.rs`
+- **Files**: `spool-rs/crates/spool-domain/tests/tasks_parsing.rs`
 - **Dependencies**: Task 2.1
 - **Action**:
   - Write test case: `test_parse_checkbox_mixed_statuses`
   - Input: Multi-line with `- [ ]`, `- [~]`, `- [x]` tasks
   - Expected: Correct status for each task
-- **Verify**: `cargo test -p spool-workflow test_parse_checkbox_mixed`
+- **Verify**: `cargo test -p spool-domain test_parse_checkbox`
 - **Done When**: Test passes with all three statuses correctly identified
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 2.3: Write test for checkbox serialization round-trip
 
-- **Files**: `spool-rs/crates/spool-workflow/tests/tasks_parsing.rs`
+- **Files**: `spool-rs/crates/spool-domain/tests/tasks_parsing.rs`
 - **Dependencies**: Task 2.1
 - **Action**:
   - Write test case: `test_checkbox_roundtrip_in_progress`
   - Parse tasks, modify one to in-progress, serialize, re-parse
   - Verify status is preserved through round-trip
-- **Verify**: `cargo test -p spool-workflow test_checkbox_roundtrip`
+- **Verify**: `cargo test -p spool-domain test_checkbox`
 - **Done When**: Round-trip preserves in-progress status
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
-## Wave 3: CLI Command Updates
+## Wave 3
+
+CLI Command Updates
 
 - **Depends On**: Wave 2
 
@@ -107,8 +109,8 @@ ______________________________________________________________________
   - Allow the start command to proceed for checkbox format
 - **Verify**: `cargo build -p spool-cli`
 - **Done When**: `spool tasks start` no longer errors on checkbox format
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 3.2: Implement single in-progress validation for checkbox
 
@@ -120,8 +122,8 @@ ______________________________________________________________________
   - Include the in-progress task's description in the error message
 - **Verify**: `cargo test -p spool-cli`
 - **Done When**: Starting a task when another is in-progress returns clear error
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 3.3: Update start command to write in-progress marker
 
@@ -133,8 +135,8 @@ ______________________________________________________________________
   - Print confirmation: "Started task N: <description>"
 - **Verify**: `spool tasks start <change-id> <task-id>` on a test checkbox file
 - **Done When**: Task marker changes from `- [ ]` to `- [~]` in file
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 3.4: Update next command for checkbox in-progress awareness
 
@@ -146,32 +148,34 @@ ______________________________________________________________________
   - If no in-progress, find first pending and offer to start it
 - **Verify**: `spool tasks next <change-id>` on checkbox file with in-progress task
 - **Done When**: Next command shows current in-progress task or offers to start next pending
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
-## Wave 4: Integration Tests
+## Wave 4
+
+Integration Tests
 
 - **Depends On**: Wave 3
 
 ### Task 4.1: Write integration test for checkbox start workflow
 
-- **Files**: `spool-rs/crates/spool-cli/tests/tasks_integration.rs` (create if needed)
+- **Files**: `spool-rs/crates/spool-cli/tests/tasks_more.rs`
 - **Dependencies**: None
 - **Action**:
   - Create a test checkbox tasks.md file
   - Run `spool tasks start` via CLI
   - Verify file is updated with `- [~]` marker
   - Verify output message
-- **Verify**: `cargo test -p spool-cli tasks_integration`
+- **Verify**: `cargo test -p spool-cli tasks_more`
 - **Done When**: Integration test passes for start workflow
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 4.2: Write integration test for single in-progress constraint
 
-- **Files**: `spool-rs/crates/spool-cli/tests/tasks_integration.rs`
+- **Files**: `spool-rs/crates/spool-cli/tests/tasks_more.rs`
 - **Dependencies**: Task 4.1
 - **Action**:
   - Create checkbox file with one `- [~]` task
@@ -179,12 +183,14 @@ ______________________________________________________________________
   - Verify error is returned
 - **Verify**: `cargo test -p spool-cli`
 - **Done When**: Test confirms constraint is enforced
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
-## Wave 5: Final Verification
+## Wave 5
+
+Final Verification
 
 - **Depends On**: Wave 4
 
@@ -198,8 +204,8 @@ ______________________________________________________________________
   - Ensure no regressions
 - **Verify**: `cargo test --workspace && cargo clippy --workspace`
 - **Done When**: All tests pass, no clippy warnings
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 5.2: Manual end-to-end verification
 
@@ -213,8 +219,8 @@ ______________________________________________________________________
   - Try starting another task while one is in-progress - verify error
 - **Verify**: Manual verification
 - **Done When**: All manual test scenarios pass
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 

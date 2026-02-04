@@ -39,6 +39,8 @@ This limitation forces users who prefer the simpler checkbox format to either:
 - Single character maintains alignment with `[ ]` and `[x]`
 - Not commonly used in existing markdown checkbox variants
 
+Note: The parser also accepts `- [>]` as an in-progress alias for compatibility.
+
 **Alternatives considered**:
 - `- [>]` (arrow): Could suggest "next" rather than "current", more ambiguous
 - `- [*]` (asterisk): Often used for bullet points, could cause parsing conflicts
@@ -56,7 +58,7 @@ This limitation forces users who prefer the simpler checkbox format to either:
 
 **Implementation**: Check for existing `- [~]` before updating. Return error if found.
 
-### Decision 3: Parsing changes isolated to spool-workflow crate
+### Decision 3: Parsing changes isolated to spool-domain crate
 
 **Choice**: Add `- [~]` recognition in the existing `TasksFormat::Checkbox` parser
 
@@ -66,8 +68,9 @@ This limitation forces users who prefer the simpler checkbox format to either:
 - Easier to test in isolation
 
 **Files affected**:
-- `spool-rs/crates/spool-workflow/src/tasks.rs` (or similar parser module)
-- `spool-rs/crates/spool-cli/src/commands/tasks.rs` (remove error, delegate to parser)
+- `spool-rs/crates/spool-domain/src/tasks/parse.rs` (checkbox parsing + format detection)
+- `spool-rs/crates/spool-domain/src/tasks/update.rs` (checkbox status updates)
+- `spool-rs/crates/spool-cli/src/commands/tasks.rs` (checkbox compat paths for start/complete/next)
 
 ## Risks / Trade-offs
 
