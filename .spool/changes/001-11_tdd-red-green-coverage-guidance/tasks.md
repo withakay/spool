@@ -94,5 +94,5 @@ ______________________________________________________________________
 - **Dependencies**: Task 2.1, Task 2.2
 - **Action**: Review that guidance is clear, non-noisy, and the defaults (RED/GREEN/REFACTOR + 80%) are appropriate.
 - **Done When**: Reviewer approves phrasing and key naming.
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
