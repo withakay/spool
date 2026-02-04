@@ -300,3 +300,12 @@ jobs:
         run: |
           set -eu
           gh release upload "$TAG" out/* --clobber --repo "$GH_REPO"
+
+  update_homebrew:
+    name: Update Homebrew Formula
+    needs: [meta, check_assets, upload_assets]
+    if: needs.meta.outputs.skip != 'true'
+    uses: ./.github/workflows/update-homebrew.yml
+    with:
+      tag: ${{ needs.meta.outputs.tag }}
+    secrets: inherit

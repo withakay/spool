@@ -1,18 +1,12 @@
 name: Update Homebrew Formula
 
 on:
-  # `release` events created by `GITHUB_TOKEN` (e.g. from release-please)
-  # may not trigger downstream workflows. Instead, run after the
-  # Release workflow completes and derive the latest published tag.
-  workflow_run:
-    workflows: ["Release"]
-    types: [completed]
-    branches: [main]
-  release:
-    types: [published]
-  push:
-    tags:
-      - "v*"
+  workflow_call:
+    inputs:
+      tag:
+        description: "Version tag (e.g., v0.20.8)"
+        required: false
+        type: string
   workflow_dispatch:
     inputs:
       tag:
@@ -41,12 +35,8 @@ jobs:
       - name: Derive tag + version
         id: meta
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            TAG="${{ github.ref_name }}"
-          elif [ "${{ github.event_name }}" = "release" ]; then
-            TAG="${{ github.event.release.tag_name }}"
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
           else
             TAG="$(
               curl --fail --location --silent --show-error \
