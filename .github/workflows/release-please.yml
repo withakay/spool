@@ -1,3 +1,5 @@
+
+
 name: Release Please
 
 on:
@@ -16,25 +18,10 @@ jobs:
       version: ${{ steps.release.outputs.version }}
     steps:
       - name: Checkout repository
-        if: github.event_name == 'workflow_dispatch'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
-
-      - name: Create release trigger commit
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Create a conventional commit that triggers a patch release
-          # This allows release-please to process any existing commits
-          # and bump the version accordingly (defaulting to patch if no other commits)
-          git commit --allow-empty -m "fix: trigger manual release"
-          
-          # Push to the default branch
-          git push origin HEAD:${{ github.event.repository.default_branch }}
 
       - name: Run release-please
         id: release
