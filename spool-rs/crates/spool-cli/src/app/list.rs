@@ -144,17 +144,17 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
             // Filter to completed changes if requested
             if want_completed {
-                summaries.retain(|s| is_completed(s.total_tasks, s.completed_tasks));
+                summaries.retain(is_completed);
             }
 
             // Filter to partially complete changes if requested
             if want_partial {
-                summaries.retain(|s| is_partial(s.total_tasks, s.completed_tasks));
+                summaries.retain(is_partial);
             }
 
             // Filter to pending changes if requested
             if want_pending {
-                summaries.retain(|s| is_pending(s.total_tasks, s.completed_tasks));
+                summaries.retain(is_pending);
             }
 
             if summaries.is_empty() {
@@ -197,10 +197,14 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
                         spool_core::list::ChangeListItem {
                             name: s.id.clone(),
                             completed_tasks: s.completed_tasks,
+                            shelved_tasks: s.shelved_tasks,
+                            in_progress_tasks: s.in_progress_tasks,
+                            pending_tasks: s.pending_tasks,
                             total_tasks: s.total_tasks,
                             last_modified: spool_core::list::to_iso_millis(s.last_modified),
                             status: status.to_string(),
-                            completed: is_completed(s.total_tasks, s.completed_tasks),
+                            work_status: s.work_status().to_string(),
+                            completed: is_completed(s),
                         }
                     })
                     .collect();
@@ -213,11 +217,11 @@ pub(crate) fn handle_list(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
             println!("Changes:");
             let name_width = summaries.iter().map(|s| s.id.len()).max().unwrap_or(0);
-            for s in summaries {
-                let status = format_task_status(s.total_tasks, s.completed_tasks);
+            for s in &summaries {
+                let status = format_task_status(s);
                 let time_ago = format_relative_time(s.last_modified);
                 let padded = format!("{: <width$}", s.id, width = name_width);
-                println!("  {padded}     {: <12}  {time_ago}", status);
+                println!("  {padded}     {: <20}  {time_ago}", status);
             }
         }
     }
@@ -275,26 +279,62 @@ fn parse_sort_order(args: &[String]) -> Option<&str> {
     None
 }
 
-fn format_task_status(total: u32, completed: u32) -> String {
-    if total == 0 {
+fn format_task_status(s: &spool_domain::changes::ChangeSummary) -> String {
+    if s.total_tasks == 0 {
         return "No tasks".to_string();
     }
-    if total == completed {
-        return "\u{2713} Complete".to_string();
+
+    // Build status string showing all relevant states
+    let mut parts = Vec::new();
+
+    if s.completed_tasks > 0 {
+        parts.push(format!("{}c", s.completed_tasks));
     }
-    format!("{completed}/{total} tasks")
+    if s.shelved_tasks > 0 {
+        parts.push(format!("{}s", s.shelved_tasks));
+    }
+    if s.in_progress_tasks > 0 {
+        parts.push(format!("{}i", s.in_progress_tasks));
+    }
+    if s.pending_tasks > 0 {
+        parts.push(format!("{}p", s.pending_tasks));
+    }
+
+    let counts = parts.join("/");
+
+    // Add work status indicator
+    use spool_domain::changes::ChangeWorkStatus;
+    match s.work_status() {
+        ChangeWorkStatus::Complete => format!("\u{2713} Complete ({})", counts),
+        ChangeWorkStatus::Paused => format!("\u{2016} Paused ({})", counts),
+        ChangeWorkStatus::InProgress => format!("\u{25B6} Active ({})", counts),
+        ChangeWorkStatus::Ready => counts,
+        ChangeWorkStatus::Draft => format!("{} (draft)", counts),
+    }
 }
 
-fn is_completed(total: u32, completed: u32) -> bool {
-    total > 0 && total == completed
+fn is_completed(s: &spool_domain::changes::ChangeSummary) -> bool {
+    use spool_domain::changes::ChangeWorkStatus;
+    matches!(
+        s.work_status(),
+        ChangeWorkStatus::Complete | ChangeWorkStatus::Paused
+    )
 }
 
-fn is_partial(total: u32, completed: u32) -> bool {
-    total > 0 && completed > 0 && completed < total
+fn is_partial(s: &spool_domain::changes::ChangeSummary) -> bool {
+    use spool_domain::changes::ChangeWorkStatus;
+    matches!(
+        s.work_status(),
+        ChangeWorkStatus::Ready | ChangeWorkStatus::InProgress
+    ) && s.completed_tasks > 0
 }
 
-fn is_pending(total: u32, completed: u32) -> bool {
-    total > 0 && completed == 0
+fn is_pending(s: &spool_domain::changes::ChangeSummary) -> bool {
+    use spool_domain::changes::ChangeWorkStatus;
+    matches!(
+        s.work_status(),
+        ChangeWorkStatus::Ready | ChangeWorkStatus::InProgress
+    ) && s.completed_tasks == 0
 }
 
 fn format_relative_time(then: DateTime<Utc>) -> String {
@@ -343,23 +383,101 @@ mod tests {
     }
 
     #[test]
-    fn format_task_status_handles_no_tasks_complete_and_in_progress() {
-        assert_eq!(format_task_status(0, 0), "No tasks");
-        assert_eq!(format_task_status(3, 3), "\u{2713} Complete");
-        assert_eq!(format_task_status(3, 1), "1/3 tasks");
+    fn format_task_status_handles_various_states() {
+        use chrono::Utc;
+        use spool_domain::changes::ChangeSummary;
+
+        let make_summary = |completed, shelved, in_progress, pending, total| ChangeSummary {
+            id: "test".to_string(),
+            module_id: None,
+            completed_tasks: completed,
+            shelved_tasks: shelved,
+            in_progress_tasks: in_progress,
+            pending_tasks: pending,
+            total_tasks: total,
+            last_modified: Utc::now(),
+            has_proposal: true,
+            has_design: false,
+            has_specs: true,
+            has_tasks: true,
+        };
+
+        // No tasks
+        let s = make_summary(0, 0, 0, 0, 0);
+        assert_eq!(format_task_status(&s), "No tasks");
+
+        // All complete
+        let s = make_summary(3, 0, 0, 0, 3);
+        assert!(format_task_status(&s).contains("Complete"));
+        assert!(format_task_status(&s).contains("3c"));
+
+        // Paused (complete + shelved = total, shelved > 0)
+        let s = make_summary(2, 1, 0, 0, 3);
+        assert!(format_task_status(&s).contains("Paused"));
+        assert!(format_task_status(&s).contains("2c"));
+        assert!(format_task_status(&s).contains("1s"));
+
+        // In progress
+        let s = make_summary(1, 0, 1, 1, 3);
+        assert!(format_task_status(&s).contains("Active"));
+        assert!(format_task_status(&s).contains("1i"));
+
+        // Ready (pending work, nothing in progress)
+        let s = make_summary(1, 0, 0, 2, 3);
+        let status = format_task_status(&s);
+        assert!(status.contains("1c"));
+        assert!(status.contains("2p"));
     }
 
     #[test]
-    fn progress_predicates_exclude_no_tasks_and_match_expected_buckets() {
-        assert!(!is_completed(0, 0));
-        assert!(!is_partial(0, 0));
-        assert!(!is_pending(0, 0));
+    fn progress_predicates_work_with_change_summary() {
+        use chrono::Utc;
+        use spool_domain::changes::ChangeSummary;
 
-        assert!(is_pending(3, 0));
-        assert!(is_partial(3, 1));
-        assert!(!is_partial(3, 0));
-        assert!(!is_partial(3, 3));
-        assert!(is_completed(3, 3));
+        let make_summary = |completed, shelved, in_progress, pending, total| ChangeSummary {
+            id: "test".to_string(),
+            module_id: None,
+            completed_tasks: completed,
+            shelved_tasks: shelved,
+            in_progress_tasks: in_progress,
+            pending_tasks: pending,
+            total_tasks: total,
+            last_modified: Utc::now(),
+            has_proposal: true,
+            has_design: false,
+            has_specs: true,
+            has_tasks: total > 0,
+        };
+
+        // No tasks - none of the predicates match
+        let s = make_summary(0, 0, 0, 0, 0);
+        assert!(!is_completed(&s));
+        assert!(!is_partial(&s));
+        assert!(!is_pending(&s));
+
+        // All pending (ready state, no completed)
+        let s = make_summary(0, 0, 0, 3, 3);
+        assert!(is_pending(&s));
+        assert!(!is_partial(&s));
+        assert!(!is_completed(&s));
+
+        // Partial (some completed, some pending)
+        let s = make_summary(1, 0, 0, 2, 3);
+        assert!(is_partial(&s));
+        assert!(!is_pending(&s));
+        assert!(!is_completed(&s));
+
+        // All completed
+        let s = make_summary(3, 0, 0, 0, 3);
+        assert!(is_completed(&s));
+        assert!(!is_partial(&s));
+        assert!(!is_pending(&s));
+
+        // Paused (completed + shelved = total) should count as completed
+        let s = make_summary(2, 1, 0, 0, 3);
+        assert!(is_completed(&s)); // Paused counts as "completed" for filtering
+        assert!(!is_partial(&s));
+        assert!(!is_pending(&s));
     }
 
     #[test]

@@ -18,12 +18,22 @@ pub struct ChangeListItem {
     pub name: String,
     #[serde(rename = "completedTasks")]
     pub completed_tasks: u32,
+    #[serde(rename = "shelvedTasks")]
+    pub shelved_tasks: u32,
+    #[serde(rename = "inProgressTasks")]
+    pub in_progress_tasks: u32,
+    #[serde(rename = "pendingTasks")]
+    pub pending_tasks: u32,
     #[serde(rename = "totalTasks")]
     pub total_tasks: u32,
     #[serde(rename = "lastModified")]
     pub last_modified: String,
+    /// Legacy status field for backward compatibility
     pub status: String,
-    /// True when all tasks are complete (completed_tasks == total_tasks && total_tasks > 0)
+    /// Work status: draft, ready, in-progress, paused, complete
+    #[serde(rename = "workStatus")]
+    pub work_status: String,
+    /// True when no remaining work (complete or paused)
     pub completed: bool,
 }
 
