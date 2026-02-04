@@ -17,20 +17,6 @@ on:
     # Still keep the release PR up to date without tying it to every push.
     - cron: "0 * * * *"
   workflow_dispatch:
-    inputs:
-      bump-type:
-        description: 'Type of version bump (patch, minor, major)'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-      custom-version:
-        description: 'Custom version (optional, overrides bump-type if set)'
-        required: false
-        type: string
 
 permissions:
   contents: write
@@ -51,89 +37,18 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
 
-      - name: Calculate next version for manual release
-        if: github.event_name == 'workflow_dispatch'
-        id: calc-version
-        run: |
-          # Get current version from manifest
-          # Note: This assumes a single package 'spool-rs/crates/spool-cli' in the manifest.
-          # If multiple packages are added, this logic would need to be updated.
-          CURRENT_VERSION=$(jq -r '.["spool-rs/crates/spool-cli"]' .release-please-manifest.json)
-          echo "Current version: $CURRENT_VERSION"
-          
-          # Validate version format (basic semver X.Y.Z only)
-          # Rejects pre-release versions (e.g., 1.0.0-alpha) and build metadata (e.g., 1.0.0+build)
-          if ! [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Current version '$CURRENT_VERSION' is not in basic semver format"
-            echo "Expected format: X.Y.Z (e.g., 1.2.3)"
-            echo "Pre-release versions and build metadata are not supported for manual bumps."
-            exit 1
-          fi
-          
-          # Store bump-type input in environment variable for safety
-          BUMP_TYPE="${{ github.event.inputs.bump-type }}"
-          
-          # If custom version is provided, use it (store in env var for safety)
-          CUSTOM_VERSION_INPUT="${{ github.event.inputs.custom-version }}"
-          if [ -n "$CUSTOM_VERSION_INPUT" ]; then
-            # Validate custom version format before using
-            if ! [[ "$CUSTOM_VERSION_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "Error: Custom version '$CUSTOM_VERSION_INPUT' is not valid"
-              echo "Expected format: X.Y.Z (e.g., 1.2.3)"
-              echo "Only basic semver format is supported (no pre-release or build metadata)"
-              exit 1
-            fi
-            NEXT_VERSION="$CUSTOM_VERSION_INPUT"
-            echo "Using custom version: $NEXT_VERSION"
-          else
-            # Parse version and bump according to bump-type
-            IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
-            
-            case "$BUMP_TYPE" in
-              major)
-                major=$((major + 1))
-                minor=0
-                patch=0
-                ;;
-              minor)
-                minor=$((minor + 1))
-                patch=0
-                ;;
-              patch)
-                patch=$((patch + 1))
-                ;;
-              *)
-                echo "Error: Invalid bump type '$BUMP_TYPE'"
-                exit 1
-                ;;
-            esac
-            
-            NEXT_VERSION="$major.$minor.$patch"
-            echo "Calculated next version: $NEXT_VERSION"
-          fi
-          
-          # Final validation before output (safety net)
-          if ! [[ "$NEXT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Final version '$NEXT_VERSION' failed validation"
-            exit 1
-          fi
-          
-          echo "next-version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-          # Also set as environment variable for safe use in subsequent steps
-          echo "RELEASE_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
-
       - name: Create release trigger commit
         if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Use environment variable for safety (set in previous step)
-          # Create an empty commit with Release-As footer
-          # The version in the Release-As footer is what release-please uses
-          git commit --allow-empty -m "chore: trigger manual release" -m "Release-As: ${RELEASE_VERSION}"
+          # Create a conventional commit that triggers a patch release
+          # This allows release-please to process any existing commits
+          # and bump the version accordingly (defaulting to patch if no other commits)
+          git commit --allow-empty -m "fix: trigger manual release"
           
-          # Push to the default branch (dynamically determined)
+          # Push to the default branch
           git push origin HEAD:${{ github.event.repository.default_branch }}
 
       - name: Run release-please
