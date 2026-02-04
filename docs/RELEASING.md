@@ -26,9 +26,34 @@ Use conventional commits to control version bumps:
 
 Other prefixes (`docs:`, `chore:`, `refactor:`, `test:`, `ci:`) don't trigger releases but are included in the changelog.
 
-## Manual Release (Emergency)
+## Manual Release Trigger
 
-If you need to release without release-please:
+The release-please workflow can be triggered manually from the GitHub Actions UI to force a version bump and create a release PR.
+
+### Using workflow_dispatch
+
+1. Go to **Actions** → **Release Please** in the GitHub repository
+2. Click **Run workflow**
+3. Select the type of version bump:
+   - **patch** (0.0.X) - for bug fixes and minor changes
+   - **minor** (0.X.0) - for new features
+   - **major** (X.0.0) - for breaking changes
+4. Optionally, specify a **custom version** (e.g., `1.0.0`) to override the automatic bump
+5. Click **Run workflow**
+
+The workflow will:
+1. Calculate the next version based on your selection
+2. Create an empty commit with a `Release-As:` footer
+3. Run release-please to create/update the release PR
+
+This is useful when you need to:
+- Force a release without conventional commits
+- Bump to a specific version
+- Create a release on-demand
+
+### Emergency Manual Release
+
+If you need to release without any automation:
 
 ```bash
 # Update version in spool-rs/Cargo.toml
