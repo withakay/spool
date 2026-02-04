@@ -130,7 +130,8 @@ jobs:
           
           # Use environment variable for safety (set in previous step)
           # Create an empty commit with Release-As footer
-          git commit --allow-empty -m "chore: trigger release ${RELEASE_VERSION}" -m "Release-As: ${RELEASE_VERSION}"
+          # The version in the Release-As footer is what release-please uses
+          git commit --allow-empty -m "chore: trigger manual release" -m "Release-As: ${RELEASE_VERSION}"
           
           # Push to the default branch (dynamically determined)
           git push origin HEAD:${{ github.event.repository.default_branch }}
