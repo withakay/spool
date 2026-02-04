@@ -84,6 +84,21 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
         return Ok(());
     }
 
+    if artifact == "project-setup" {
+        let instruction = generate_project_setup_instruction();
+        if want_json {
+            let response = core_workflow::AgentInstructionResponse {
+                artifact_id: "project-setup".to_string(),
+                instruction,
+            };
+            let rendered = serde_json::to_string_pretty(&response).expect("json should serialize");
+            println!("{rendered}");
+            return Ok(());
+        }
+        print!("{instruction}");
+        return Ok(());
+    }
+
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
         // Special case: proposal without --change outputs creation guide
@@ -271,6 +286,14 @@ fn generate_bootstrap_instruction(tool: &str) -> String {
         &Ctx { tool },
     )
     .expect("bootstrap instruction template should render")
+}
+
+fn generate_project_setup_instruction() -> String {
+    #[derive(serde::Serialize)]
+    struct Ctx {}
+
+    spool_templates::instructions::render_instruction_template("agent/project-setup.md.j2", &Ctx {})
+        .expect("project-setup instruction template should render")
 }
 
 fn handle_new_proposal_guide(rt: &Runtime, want_json: bool) -> CliResult<()> {

@@ -1,0 +1,55 @@
+# Project Setup Guide
+
+You are helping set up a new Spool-managed project. Walk the user through configuring their project files.
+
+## Step 1: Analyze the Codebase
+
+First, explore the codebase to understand:
+- Programming language(s) and frameworks
+- Project structure and architecture
+- Build tools and package managers
+- Existing conventions and patterns
+
+## Step 2: Update .spool/project.md
+
+Read `.spool/project.md` and help fill it out with:
+
+1. **Project name and description** - What does this project do?
+2. **Tech stack** - Languages, frameworks, key dependencies
+3. **Architecture overview** - High-level structure, key components
+4. **Build and run commands** - How to build, test, run the project
+5. **Key directories** - What lives where
+
+Be concise but comprehensive. This file helps AI assistants understand the project quickly.
+
+## Step 3: Update .spool/user-guidance.md
+
+Read `.spool/user-guidance.md` and help document:
+
+1. **Coding conventions** - Naming, formatting, patterns used in this codebase
+2. **Testing approach** - Unit tests, integration tests, coverage expectations
+3. **Error handling** - How errors are handled and reported
+4. **Logging** - Logging conventions and levels
+5. **Any project-specific rules** - Things AI assistants should know
+
+Look at existing code to infer conventions rather than inventing new ones.
+
+## Step 4: Review .spool/config.json
+
+Check `.spool/config.json` and adjust defaults if needed:
+- Coverage targets (default: 100% target, 80% minimum)
+- TDD workflow preferences
+- Tool-specific settings
+
+## Step 5: Verify Setup
+
+After updating the files:
+1. Run `spool list` to verify Spool is working
+2. Suggest creating a first change to test the workflow
+
+## Tips
+
+- Keep documentation minimal but useful - avoid boilerplate
+- Prefer inferring conventions from code over asking the user
+- Focus on what's unique or important about this project
+- Don't over-document obvious things

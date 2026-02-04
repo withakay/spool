@@ -156,17 +156,16 @@ fn print_post_init_guidance(target_path: &std::path::Path) {
 
     println!(
         r#"
-✓ Spool initialized in {target_display}
+Spool initialized in {target_display}
 
-Files to customize:
+Next step: Run /spool-project-setup in your AI assistant to configure the project.
 
+Or manually edit:
   .spool/project.md        Project overview, tech stack, architecture
   .spool/user-guidance.md  Your coding standards and preferences
   .spool/config.json       Tool settings and defaults
 
-Quick start prompts are in .spool/prompts.md - copy & paste to your AI assistant.
-
-Learn more: spool --help | spool list --help | spool agent --help
+Learn more: spool --help | spool agent instruction --help
 "#
     );
 }

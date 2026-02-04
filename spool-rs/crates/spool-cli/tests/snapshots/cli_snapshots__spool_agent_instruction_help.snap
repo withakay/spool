@@ -19,15 +19,17 @@ Options:
   -h, --help             Print help
 
 Artifacts:
-  bootstrap  Generate a tool bootstrap preamble
-  proposal    Show the change proposal
-  specs       Show the specification deltas
-  tasks       Show the implementation task list
-  apply       Show implementation instructions
-  review      Show review instructions
-  archive     Show archive instructions
+  bootstrap      Generate a tool bootstrap preamble
+  project-setup  Guide for setting up a new project
+  proposal       Show the change proposal
+  specs          Show the specification deltas
+  tasks          Show the implementation task list
+  apply          Show implementation instructions
+  review         Show review instructions
+  archive        Show archive instructions
 
 Examples:
   spool agent instruction bootstrap --tool opencode
+  spool agent instruction project-setup
   spool agent instruction proposal --change 005-08_migrate-cli-to-clap
   spool agent instruction apply --change 005-08_migrate-cli-to-clap
