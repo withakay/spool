@@ -56,13 +56,28 @@ jobs:
         id: calc-version
         run: |
           # Get current version from manifest
+          # Note: This assumes a single package 'spool-rs/crates/spool-cli' in the manifest.
+          # If multiple packages are added, this logic would need to be updated.
           CURRENT_VERSION=$(jq -r '.["spool-rs/crates/spool-cli"]' .release-please-manifest.json)
           echo "Current version: $CURRENT_VERSION"
+          
+          # Validate version format (basic semver without pre-release/build metadata)
+          if ! [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Current version '$CURRENT_VERSION' is not in basic semver format (X.Y.Z)"
+            echo "Pre-release versions and build metadata are not supported for manual bumps."
+            exit 1
+          fi
           
           # If custom version is provided, use it
           if [ -n "${{ github.event.inputs.custom-version }}" ]; then
             NEXT_VERSION="${{ github.event.inputs.custom-version }}"
             echo "Using custom version: $NEXT_VERSION"
+            
+            # Validate custom version format
+            if ! [[ "$NEXT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Error: Custom version '$NEXT_VERSION' is not in basic semver format (X.Y.Z)"
+              exit 1
+            fi
           else
             # Parse version and bump according to bump-type
             IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
@@ -96,7 +111,9 @@ jobs:
           
           # Create an empty commit with Release-As footer
           git commit --allow-empty -m "chore: trigger release ${{ steps.calc-version.outputs.next-version }}" -m "Release-As: ${{ steps.calc-version.outputs.next-version }}"
-          git push origin main
+          
+          # Push to the default branch (dynamically determined)
+          git push origin HEAD:${{ github.event.repository.default_branch }}
 
       - name: Run release-please
         id: release
