@@ -5,6 +5,7 @@ use crate::util::parse_string_flag;
 use spool_core::config::load_cascading_project_config;
 use spool_core::workflow as core_workflow;
 use spool_domain::changes::ChangeRepository;
+use spool_domain::modules::ModuleRepository;
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -85,6 +86,11 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
 
     let change = parse_string_flag(args, "--change");
     if change.as_deref().unwrap_or("").is_empty() {
+        // Special case: proposal without --change outputs creation guide
+        if artifact == "proposal" {
+            return handle_new_proposal_guide(rt, want_json);
+        }
+
         let change_repo = ChangeRepository::new(rt.spool_path());
         let changes = change_repo.list().unwrap_or_default();
         let mut msg = "Missing required option --change".to_string();
@@ -265,6 +271,50 @@ fn generate_bootstrap_instruction(tool: &str) -> String {
         &Ctx { tool },
     )
     .expect("bootstrap instruction template should render")
+}
+
+fn handle_new_proposal_guide(rt: &Runtime, want_json: bool) -> CliResult<()> {
+    #[derive(serde::Serialize)]
+    struct ModuleEntry {
+        id: String,
+        name: String,
+    }
+
+    #[derive(serde::Serialize)]
+    struct Ctx {
+        modules: Vec<ModuleEntry>,
+    }
+
+    let module_repo = ModuleRepository::new(rt.spool_path());
+    let modules = module_repo.list().unwrap_or_default();
+    let modules: Vec<ModuleEntry> = modules
+        .into_iter()
+        .map(|m| ModuleEntry {
+            id: m.id,
+            name: m.name,
+        })
+        .collect();
+
+    let ctx = Ctx { modules };
+
+    let instruction = spool_templates::instructions::render_instruction_template(
+        "agent/new-proposal.md.j2",
+        &ctx,
+    )
+    .expect("new-proposal instruction template should render");
+
+    if want_json {
+        let response = core_workflow::AgentInstructionResponse {
+            artifact_id: "new-proposal".to_string(),
+            instruction,
+        };
+        let rendered = serde_json::to_string_pretty(&response).expect("json should serialize");
+        println!("{rendered}");
+        return Ok(());
+    }
+
+    print!("{instruction}");
+    Ok(())
 }
 
 fn print_artifact_instructions_text(
