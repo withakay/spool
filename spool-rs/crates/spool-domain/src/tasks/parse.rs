@@ -153,7 +153,7 @@ pub fn detect_tasks_format(contents: &str) -> TasksFormat {
     if enhanced_heading.is_match(contents) && has_status {
         return TasksFormat::Enhanced;
     }
-    let checkbox = Regex::new(r"(?m)^\s*[-*]\s+\[[ xX]\]").unwrap();
+    let checkbox = Regex::new(r"(?m)^\s*[-*]\s+\[[ xX~>]\]").unwrap();
     if checkbox.is_match(contents) {
         return TasksFormat::Checkbox;
     }
@@ -170,32 +170,32 @@ pub fn parse_tasks_tracking_file(contents: &str) -> TasksParseResult {
 fn parse_checkbox_tasks(contents: &str) -> TasksParseResult {
     // Minimal compat: tasks are numbered 1..N.
     let mut tasks: Vec<TaskItem> = Vec::new();
-    for line in contents.lines() {
+    for (line_idx, line) in contents.lines().enumerate() {
         let l = line.trim_start();
-        let (done, rest) = if let Some(r) = l.strip_prefix("- [x] ") {
-            (true, r)
-        } else if let Some(r) = l.strip_prefix("- [X] ") {
-            (true, r)
-        } else if let Some(r) = l.strip_prefix("- [ ] ") {
-            (false, r)
-        } else if let Some(r) = l.strip_prefix("* [x] ") {
-            (true, r)
-        } else if let Some(r) = l.strip_prefix("* [X] ") {
-            (true, r)
-        } else if let Some(r) = l.strip_prefix("* [ ] ") {
-            (false, r)
-        } else {
+        let bytes = l.as_bytes();
+        if bytes.len() < 6 {
             continue;
+        }
+        let bullet = bytes[0] as char;
+        if bullet != '-' && bullet != '*' {
+            continue;
+        }
+        if bytes[1] != b' ' || bytes[2] != b'[' || bytes[4] != b']' || bytes[5] != b' ' {
+            continue;
+        }
+        let marker = bytes[3] as char;
+        let status = match marker {
+            'x' | 'X' => TaskStatus::Complete,
+            ' ' => TaskStatus::Pending,
+            '~' | '>' => TaskStatus::InProgress,
+            _ => continue,
         };
+        let rest = &l[6..];
         tasks.push(TaskItem {
             id: (tasks.len() + 1).to_string(),
             name: rest.trim().to_string(),
             wave: None,
-            status: if done {
-                TaskStatus::Complete
-            } else {
-                TaskStatus::Pending
-            },
+            status,
             updated_at: None,
             dependencies: Vec::new(),
             files: Vec::new(),
@@ -203,7 +203,7 @@ fn parse_checkbox_tasks(contents: &str) -> TasksParseResult {
             verify: None,
             done_when: None,
             kind: TaskKind::Normal,
-            header_line_index: tasks.len(),
+            header_line_index: line_idx,
         });
     }
     let progress = compute_progress(&tasks);

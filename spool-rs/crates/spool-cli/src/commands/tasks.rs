@@ -169,8 +169,11 @@ pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                 }
                 wf_tasks::TasksFormat::Checkbox => {
                     println!(
-                        "Progress (compat): {}/{} complete",
-                        parsed.progress.complete, parsed.progress.total
+                        "Progress (compat): {}/{} complete, {} in-progress, {} pending",
+                        parsed.progress.complete,
+                        parsed.progress.total,
+                        parsed.progress.in_progress,
+                        parsed.progress.pending
                     );
                 }
             }
@@ -208,6 +211,21 @@ pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
             match parsed.format {
                 wf_tasks::TasksFormat::Checkbox => {
+                    let current = parsed
+                        .tasks
+                        .iter()
+                        .find(|t| t.status == wf_tasks::TaskStatus::InProgress);
+                    if let Some(t) = current {
+                        println!("Current Task (compat)");
+                        println!("──────────────────────────────────────────────────");
+                        println!("Task {}: {}", t.id, t.name);
+                        println!(
+                            "Run \"spool tasks complete {change_id} {}\" when done",
+                            t.id
+                        );
+                        return Ok(());
+                    }
+
                     let next = parsed
                         .tasks
                         .iter()
@@ -216,13 +234,15 @@ pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
                         println!("Next Task (compat)");
                         println!("──────────────────────────────────────────────────");
                         println!("Task {}: {}", t.id, t.name);
+                        println!("Run \"spool tasks start {change_id} {}\" to begin", t.id);
                         println!(
                             "Run \"spool tasks complete {change_id} {}\" when done",
                             t.id
                         );
-                    } else {
-                        println!("All tasks complete!");
+                        return Ok(());
                     }
+
+                    println!("All tasks complete!");
                     Ok(())
                 }
                 wf_tasks::TasksFormat::Enhanced => {
@@ -280,9 +300,42 @@ pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
             })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
             if parsed.format == wf_tasks::TasksFormat::Checkbox {
-                return fail(
-                    "Checkbox-only tasks.md does not support in-progress. Use \"spool tasks complete\" when done.",
-                );
+                let Some(current) = parsed
+                    .tasks
+                    .iter()
+                    .find(|t| t.status == wf_tasks::TaskStatus::InProgress)
+                else {
+                    let Some(task) = parsed.tasks.iter().find(|t| t.id == task_id) else {
+                        return fail(format!("Task \"{task_id}\" not found"));
+                    };
+                    match task.status {
+                        wf_tasks::TaskStatus::Pending => {}
+                        wf_tasks::TaskStatus::InProgress => {
+                            return fail(format!("Task \"{task_id}\" is already in-progress"));
+                        }
+                        wf_tasks::TaskStatus::Complete => {
+                            return fail(format!("Task \"{task_id}\" is already complete"));
+                        }
+                        wf_tasks::TaskStatus::Shelved => {
+                            return fail("Checkbox-only tasks.md does not support shelving.");
+                        }
+                    }
+
+                    let updated = wf_tasks::update_checkbox_task_status(
+                        &contents,
+                        task_id,
+                        wf_tasks::TaskStatus::InProgress,
+                    )
+                    .map_err(CliError::msg)?;
+                    spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
+                    eprintln!("✔ Task \"{task_id}\" marked as in-progress");
+                    return Ok(());
+                };
+
+                return fail(format!(
+                    "Task \"{}\" is already in-progress (complete it before starting another task)",
+                    current.id
+                ));
             }
 
             if let Some(msg) = diagnostics::blocking_task_error_message(&path, &parsed.diagnostics)
@@ -341,33 +394,13 @@ pub(crate) fn handle_tasks(rt: &Runtime, args: &[String]) -> CliResult<()> {
             })?;
             let parsed = wf_tasks::parse_tasks_tracking_file(&contents);
             if parsed.format == wf_tasks::TasksFormat::Checkbox {
-                // 1-based index
-                let Ok(idx) = task_id.parse::<usize>() else {
-                    return fail(format!("Task \"{task_id}\" not found"));
-                };
-                let mut count = 0usize;
-                let mut lines: Vec<String> = contents.lines().map(|l| l.to_string()).collect();
-                for line in &mut lines {
-                    let t = line.trim_start();
-                    let is_box = t.starts_with("- [") || t.starts_with("* [");
-                    if !is_box {
-                        continue;
-                    }
-                    count += 1;
-                    if count == idx {
-                        if let Some((_, rest)) = t.split_once(']') {
-                            let prefix = if t.starts_with('*') { "* [x]" } else { "- [x]" };
-                            *line = format!("{}{}", prefix, rest);
-                        }
-                        break;
-                    }
-                }
-                if count < idx {
-                    return fail(format!("Task \"{task_id}\" not found"));
-                }
-                let mut out = lines.join("\n");
-                out.push('\n');
-                spool_core::io::write(&path, out.as_bytes()).map_err(to_cli_error)?;
+                let updated = wf_tasks::update_checkbox_task_status(
+                    &contents,
+                    task_id,
+                    wf_tasks::TaskStatus::Complete,
+                )
+                .map_err(CliError::msg)?;
+                spool_core::io::write(&path, updated.as_bytes()).map_err(to_cli_error)?;
                 eprintln!("✔ Task \"{task_id}\" marked as complete");
                 return Ok(());
             }

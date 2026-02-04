@@ -136,7 +136,7 @@ fn tasks_error_paths_cover_more_branches() {
     assert_ne!(out.code, 0);
     assert!(out.stderr.contains("not shelved"));
 
-    // checkbox-only: add/start not supported
+    // checkbox-only: add not supported; start uses 1-based index
     let change_dir = repo.path().join(".spool/changes/compat");
     std::fs::create_dir_all(&change_dir).unwrap();
     fixtures::write(
@@ -160,5 +160,40 @@ fn tasks_error_paths_cover_more_branches() {
         home.path(),
     );
     assert_ne!(out.code, 0);
-    assert!(out.stderr.contains("does not support"));
+    assert!(out.stderr.contains("not found"));
+}
+
+#[test]
+fn tasks_start_supports_checkbox_compat_mode_and_enforces_single_in_progress() {
+    let base = fixtures::make_empty_repo();
+    let repo = tempfile::tempdir().expect("work");
+    let home = tempfile::tempdir().expect("home");
+    let rust_path = assert_cmd::cargo::cargo_bin!("spool");
+
+    fixtures::reset_repo(repo.path(), base.path());
+    let change_dir = repo.path().join(".spool/changes/compat");
+    std::fs::create_dir_all(&change_dir).unwrap();
+    fixtures::write(
+        change_dir.join("tasks.md"),
+        "## Tasks\n- [ ] first\n- [ ] second\n",
+    );
+
+    let out = run_rust_candidate(
+        rust_path,
+        &["tasks", "start", "compat", "1"],
+        repo.path(),
+        home.path(),
+    );
+    assert_eq!(out.code, 0);
+    let md = std::fs::read_to_string(change_dir.join("tasks.md")).expect("tasks.md");
+    assert!(md.contains("- [~] first"));
+
+    let out = run_rust_candidate(
+        rust_path,
+        &["tasks", "start", "compat", "2"],
+        repo.path(),
+        home.path(),
+    );
+    assert_ne!(out.code, 0);
+    assert!(out.stderr.contains("in-progress"));
 }

@@ -3,6 +3,65 @@ use regex::Regex;
 
 use super::TaskStatus;
 
+pub fn update_checkbox_task_status(
+    contents: &str,
+    task_id: &str,
+    new_status: TaskStatus,
+) -> Result<String, String> {
+    let new_marker = match new_status {
+        TaskStatus::Pending => ' ',
+        TaskStatus::InProgress => '~',
+        TaskStatus::Complete => 'x',
+        TaskStatus::Shelved => {
+            return Err("Checkbox-only tasks.md does not support shelving".into());
+        }
+    };
+
+    let Ok(idx) = task_id.parse::<usize>() else {
+        return Err(format!("Task \"{task_id}\" not found"));
+    };
+    if idx == 0 {
+        return Err(format!("Task \"{task_id}\" not found"));
+    }
+
+    let mut count = 0usize;
+    let mut lines: Vec<String> = contents.lines().map(|l| l.to_string()).collect();
+
+    for line in &mut lines {
+        let indent_len = line.len().saturating_sub(line.trim_start().len());
+        let indent = &line[..indent_len];
+        let t = &line[indent_len..];
+        let bytes = t.as_bytes();
+        if bytes.len() < 5 {
+            continue;
+        }
+        let bullet = bytes[0] as char;
+        if bullet != '-' && bullet != '*' {
+            continue;
+        }
+        if bytes[1] != b' ' || bytes[2] != b'[' || bytes[4] != b']' {
+            continue;
+        }
+
+        count += 1;
+        if count != idx {
+            continue;
+        }
+
+        let after = &t[5..];
+        *line = format!("{indent}{bullet} [{new_marker}]{after}");
+        break;
+    }
+
+    if count < idx {
+        return Err(format!("Task \"{task_id}\" not found"));
+    }
+
+    let mut out = lines.join("\n");
+    out.push('\n');
+    Ok(out)
+}
+
 pub fn update_enhanced_task_status(
     contents: &str,
     task_id: &str,

@@ -9,7 +9,7 @@ Use the `spool tasks` CLI to track and update implementation tasks for a change.
 
 - Prefer `spool tasks ...` over manual editing of `tasks.md`.
 - Enhanced tasks.md supports `start`, `shelve`, `unshelve`, and `add`.
-- Checkbox-only tasks.md is supported in compat mode (no in-progress or shelving); complete tasks by 1-based index.
+- Checkbox-only tasks.md is supported in compat mode (supports in-progress via `[~]` / `spool tasks start`, but no shelving); start/complete tasks by 1-based index.
 
 **Common Commands**
 
@@ -41,4 +41,5 @@ spool tasks show <change-id>
 **Guardrails**
 
 - If a task is blocked, run `spool tasks status <change-id>` and either resolve blockers or shelve the task (enhanced only).
-- If `spool tasks start` or `shelve` fails because the file is checkbox-only, explain the limitation and use `spool tasks complete` when done.
+- If `spool tasks shelve` fails because the file is checkbox-only, explain that checkbox compat mode does not support shelving.
+- If `spool tasks start` fails in compat mode, it is usually because the task id is not a 1-based index, or another task is already in-progress.

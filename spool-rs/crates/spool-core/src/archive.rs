@@ -15,19 +15,32 @@ pub enum TaskStatus {
 
 pub fn check_task_completion(contents: &str) -> TaskStatus {
     // Support both:
-    // - checkbox tasks: "- [ ]" / "- [x]"
+    // - checkbox tasks: "- [ ]" / "- [x]" / "- [~]" / "- [>]"
     // - enhanced tasks: "- **Status**: [ ] pending" / "- **Status**: [x] completed"
     let mut total = 0usize;
     let mut pending = 0usize;
 
     for raw in contents.lines() {
         let line = raw.trim();
-        if line.starts_with("- [ ]") {
+        if line.starts_with("- [ ]") || line.starts_with("* [ ]") {
             total += 1;
             pending += 1;
             continue;
         }
-        if line.starts_with("- [x]") || line.starts_with("- [X]") {
+        if line.starts_with("- [~]")
+            || line.starts_with("- [>]")
+            || line.starts_with("* [~]")
+            || line.starts_with("* [>]")
+        {
+            total += 1;
+            pending += 1;
+            continue;
+        }
+        if line.starts_with("- [x]")
+            || line.starts_with("- [X]")
+            || line.starts_with("* [x]")
+            || line.starts_with("* [X]")
+        {
             total += 1;
             continue;
         }

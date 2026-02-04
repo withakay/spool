@@ -11,6 +11,7 @@ pub use parse::enhanced_tasks_template;
 pub use parse::parse_tasks_tracking_file;
 pub use parse::tasks_path;
 pub use repository::TaskRepository;
+pub use update::update_checkbox_task_status;
 pub use update::update_enhanced_task_status;
 
 pub use parse::TasksParseResult;

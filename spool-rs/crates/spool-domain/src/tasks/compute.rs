@@ -8,6 +8,10 @@ pub fn compute_ready_and_blocked(
     let tasks = &parsed.tasks;
 
     if parsed.format == TasksFormat::Checkbox {
+        let has_in_progress = tasks.iter().any(|t| t.status == TaskStatus::InProgress);
+        if has_in_progress {
+            return (Vec::new(), Vec::new());
+        }
         let mut ready: Vec<TaskItem> = tasks
             .iter()
             .filter(|t| t.status == TaskStatus::Pending)

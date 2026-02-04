@@ -15,6 +15,12 @@ fn detect_tasks_format_enhanced_vs_checkbox() {
         tasks::TasksFormat::Checkbox
     );
 
+    let checkbox_in_progress = "- [~] one\n";
+    assert_eq!(
+        tasks::detect_tasks_format(checkbox_in_progress),
+        tasks::TasksFormat::Checkbox
+    );
+
     let unknown = "# Just text\n";
     assert_eq!(
         tasks::detect_tasks_format(unknown),
@@ -24,17 +30,35 @@ fn detect_tasks_format_enhanced_vs_checkbox() {
 
 #[test]
 fn parse_checkbox_tasks_supports_dash_and_star() {
-    let md = "- [x] done\n* [ ] todo\n";
+    let md = "- [x] done\n* [~] doing\n* [ ] todo\n";
     let parsed = tasks::parse_tasks_tracking_file(md);
     assert_eq!(parsed.format, tasks::TasksFormat::Checkbox);
-    assert_eq!(parsed.tasks.len(), 2);
+    assert_eq!(parsed.tasks.len(), 3);
     assert_eq!(parsed.tasks[0].status, tasks::TaskStatus::Complete);
-    assert_eq!(parsed.tasks[1].status, tasks::TaskStatus::Pending);
+    assert_eq!(parsed.tasks[1].status, tasks::TaskStatus::InProgress);
+    assert_eq!(parsed.tasks[2].status, tasks::TaskStatus::Pending);
 
     let (ready, blocked) = tasks::compute_ready_and_blocked(&parsed);
     assert_eq!(blocked.len(), 0);
-    assert_eq!(ready.len(), 1);
-    assert_eq!(ready[0].name, "todo");
+    assert_eq!(ready.len(), 0);
+}
+
+#[test]
+fn parse_checkbox_tasks_accepts_right_arrow_in_progress_marker() {
+    let md = "- [>] doing\n- [ ] todo\n";
+    let parsed = tasks::parse_tasks_tracking_file(md);
+    assert_eq!(parsed.format, tasks::TasksFormat::Checkbox);
+    assert_eq!(parsed.tasks.len(), 2);
+    assert_eq!(parsed.tasks[0].status, tasks::TaskStatus::InProgress);
+    assert_eq!(parsed.tasks[1].status, tasks::TaskStatus::Pending);
+}
+
+#[test]
+fn update_checkbox_task_status_sets_marker_and_preserves_text() {
+    let md = "## Tasks\n- [ ] first\n- [x] done\n";
+    let out = tasks::update_checkbox_task_status(md, "1", tasks::TaskStatus::InProgress).unwrap();
+    assert!(out.contains("- [~] first"));
+    assert!(out.contains("- [x] done"));
 }
 
 #[test]

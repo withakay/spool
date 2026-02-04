@@ -623,6 +623,19 @@ pub fn compute_apply_instructions(
         in_progress = Some(in_progress_count);
         pending = Some(pending_count);
     }
+    if tracks_format.as_deref() == Some("checkbox") {
+        let mut in_progress_count = 0;
+        for task in &tasks {
+            let Some(status) = task.status.as_deref() else {
+                continue;
+            };
+            if status.trim() == "in-progress" {
+                in_progress_count += 1;
+            }
+        }
+        in_progress = Some(in_progress_count);
+        pending = Some(total.saturating_sub(complete + in_progress_count));
+    }
     let progress = ProgressInfo {
         total,
         complete,
@@ -717,20 +730,30 @@ fn parse_checkbox_tasks(contents: &str) -> Vec<TaskItem> {
     let mut tasks: Vec<TaskItem> = Vec::new();
     for line in contents.lines() {
         let l = line.trim_start();
-        let (done, rest) = if let Some(r) = l.strip_prefix("- [x] ") {
-            (true, r)
-        } else if let Some(r) = l.strip_prefix("- [X] ") {
-            (true, r)
-        } else if let Some(r) = l.strip_prefix("- [ ] ") {
-            (false, r)
-        } else {
+        let bytes = l.as_bytes();
+        if bytes.len() < 6 {
             continue;
+        }
+        let bullet = bytes[0] as char;
+        if bullet != '-' && bullet != '*' {
+            continue;
+        }
+        if bytes[1] != b' ' || bytes[2] != b'[' || bytes[4] != b']' || bytes[5] != b' ' {
+            continue;
+        }
+
+        let marker = bytes[3] as char;
+        let (done, rest, status) = match marker {
+            'x' | 'X' => (true, &l[6..], None),
+            ' ' => (false, &l[6..], None),
+            '~' | '>' => (false, &l[6..], Some("in-progress".to_string())),
+            _ => continue,
         };
         tasks.push(TaskItem {
             id: (tasks.len() + 1).to_string(),
             description: rest.trim().to_string(),
             done,
-            status: None,
+            status,
         });
     }
     tasks
