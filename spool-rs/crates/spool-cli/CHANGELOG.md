@@ -1,13 +1,13 @@
 # Changelog
 
-## [0.21.2](https://github.com/withakay/spool/compare/v0.21.1...v0.21.2) (2026-02-04)
+## [0.21.2](https://github.com/withakay/spool/compare/v0.21.1...v0.22.0) (2026-02-04)
 
 
 ### Bug Fixes
 
 * trigger manual release ([af63dbb](https://github.com/withakay/spool/commit/af63dbbade4e00cf252366dc3d151847b294a79d))
 
-## [0.21.1](https://github.com/withakay/spool/compare/spool-cli-v0.21.0...spool-cli-v0.21.1) (2026-02-03)
+## [0.21.1](https://github.com/withakay/spool/compare/spool-cli-v0.21.0...spool-cli-v0.22.0) (2026-02-03)
 
 
 ### Features
