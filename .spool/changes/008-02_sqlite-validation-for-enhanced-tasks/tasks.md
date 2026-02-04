@@ -77,8 +77,8 @@ ______________________________________________________________________
   - Return diagnostics with source locations from the markdown parser
 - **Verify**: cargo test -p spool-workflow
 - **Done When**: Invalid tasks.md structures are rejected with actionable, line-addressable errors
-- **Updated At**: 2026-02-03
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -110,8 +110,8 @@ ______________________________________________________________________
   - Ensure JSON output includes the new issues with stable fields
 - **Verify**: cargo test -p spool-cli
 - **Done When**: `spool validate` reports new validations in both text and JSON modes
-- **Updated At**: 2026-02-03
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -128,8 +128,8 @@ ______________________________________________________________________
   - Ensure any TypeScript parity work is explicitly deferred
 - **Verify**: spool validate "008-02_sqlite-validation-for-enhanced-tasks" --strict
 - **Done When**: Proposal artifacts reflect Rust-first implementation strategy
-- **Updated At**: 2026-02-03
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -147,5 +147,5 @@ ______________________________________________________________________
   - Validate that error messages are actionable and point to exact locations
   - Confirm the wave/task dependency scoping matches the intended mental model
 - **Done When**: Human reviewer approves format and validator UX
-- **Updated At**: 2026-02-03
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [-] shelved
