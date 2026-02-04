@@ -1,6 +1,7 @@
 mod compute;
 mod cycle;
 mod parse;
+mod relational;
 mod repository;
 mod update;
 

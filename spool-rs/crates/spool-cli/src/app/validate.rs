@@ -5,7 +5,20 @@ use crate::util::parse_string_flag;
 use spool_core::paths as core_paths;
 use spool_core::{r#match::nearest_matches, validate as core_validate};
 use spool_domain::changes::ChangeRepository;
+use spool_domain::tasks as domain_tasks;
 use std::path::Path;
+
+fn format_issue_loc(i: &core_validate::ValidationIssue) -> String {
+    let mut out = i.path.clone();
+    if let Some(line) = i.line {
+        if let Some(col) = i.column {
+            out.push_str(&format!(":{line}:{col}"));
+        } else {
+            out.push_str(&format!(":{line}"));
+        }
+    }
+    out
+}
 
 pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.iter().any(|a| a == "--help" || a == "-h") {
@@ -62,66 +75,19 @@ pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
 
             let change_dirs = repo_index.change_dir_names.clone();
 
-            let mut parsed: std::collections::BTreeMap<String, spool_core::id::ParsedChangeId> =
-                std::collections::BTreeMap::new();
-            let mut numeric_to_dirs: std::collections::BTreeMap<String, Vec<String>> =
-                std::collections::BTreeMap::new();
-
-            for dir_name in &change_dirs {
-                match spool_core::id::parse_change_id(dir_name) {
-                    Ok(p) => {
-                        let numeric = format!("{}-{}", p.module_id, p.change_num);
-                        numeric_to_dirs
-                            .entry(numeric)
-                            .or_default()
-                            .push(dir_name.clone());
-                        parsed.insert(dir_name.clone(), p);
-                    }
-                    Err(_) => {
-                        // handled per-item below
-                    }
-                }
-            }
-
-            let mut duplicate_by_dir: std::collections::BTreeMap<String, Vec<String>> =
-                std::collections::BTreeMap::new();
-            for (numeric, dirs) in &numeric_to_dirs {
-                if dirs.len() <= 1 {
-                    continue;
-                }
-                for d in dirs {
-                    let others: Vec<String> = dirs.iter().filter(|x| *x != d).cloned().collect();
-                    duplicate_by_dir
-                        .entry(d.clone())
-                        .or_default()
-                        .extend(others);
-                    // also attach numeric id context as a message later
-                    let _ = numeric;
-                }
-            }
+            let repo_integrity =
+                core_validate::validate_change_dirs_repo_integrity(spool_path).unwrap_or_default();
 
             for dir_name in change_dirs {
                 let mut issues: Vec<core_validate::ValidationIssue> = Vec::new();
 
-                // Directory naming / parsing
-                let parsed_change = match spool_core::id::parse_change_id(&dir_name) {
-                    Ok(p) => Some(p),
-                    Err(e) => {
-                        let msg = if let Some(hint) = e.hint.as_deref() {
-                            format!(
-                                "Invalid change directory name '{dir_name}': {} (hint: {hint})",
-                                e.error
-                            )
-                        } else {
-                            format!("Invalid change directory name '{dir_name}': {}", e.error)
-                        };
-                        issues.push(core_validate::error("id", msg));
-                        None
-                    }
-                };
+                // Repo integrity checks (naming/module/duplicate numeric ids)
+                if let Some(extra) = repo_integrity.get(&dir_name) {
+                    issues.extend(extra.clone());
+                }
 
-                // Module existence
-                if let Some(p) = &parsed_change
+                // Preserve the legacy module existence check for dirs that might not be parsed.
+                if let Ok(p) = spool_core::id::parse_change_id(&dir_name)
                     && !module_ids.contains(p.module_id.as_str())
                 {
                     issues.push(core_validate::error(
@@ -133,36 +99,20 @@ pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
                     ));
                 }
 
-                // Duplicate numeric change IDs
-                if let Some(p) = parsed.get(&dir_name) {
-                    let numeric = format!("{}-{}", p.module_id, p.change_num);
-                    if let Some(others) = duplicate_by_dir.get(&dir_name) {
-                        issues.push(core_validate::error(
-                            "id",
-                            format!(
-                                "Duplicate numeric change id {numeric}: also found at {}",
-                                others.join(", ")
-                            ),
-                        ));
-                    }
-                }
-
                 // Existing delta validation (if we can)
-                let report = if parsed_change.is_some() {
-                    core_validate::validate_change(spool_path, &dir_name, strict).unwrap_or_else(
-                        |e| {
-                            core_validate::ValidationReport::new(
-                                vec![core_validate::error(
-                                    "validate",
-                                    format!("Validation failed: {e}"),
-                                )],
-                                strict,
-                            )
-                        },
-                    )
-                } else {
-                    core_validate::ValidationReport::new(vec![], strict)
-                };
+                let report = core_validate::validate_change(spool_path, &dir_name, strict)
+                    .unwrap_or_else(|e| {
+                        core_validate::ValidationReport::new(
+                            vec![core_validate::error(
+                                "validate",
+                                format!("Validation failed: {e}"),
+                            )],
+                            strict,
+                        )
+                    });
+
+                // tasks.md validation (enhanced + checkbox)
+                issues.extend(validate_tasks_file(spool_path, &dir_name));
 
                 let mut merged = report.issues.clone();
                 merged.extend(issues);
@@ -305,7 +255,12 @@ pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
             }
             eprintln!("- {} {} has issues", it.typ, it.id);
             for issue in &it.issues {
-                eprintln!("  - [{}] {}: {}", issue.level, issue.path, issue.message);
+                eprintln!(
+                    "  - [{}] {}: {}",
+                    issue.level,
+                    format_issue_loc(issue),
+                    issue.message
+                );
             }
         }
         return silent_fail();
@@ -369,8 +324,26 @@ pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
                     &suggestions,
                 ));
             }
-            let report =
-                core_validate::validate_change(spool_path, &item, strict).map_err(to_cli_error)?;
+
+            // Resolve flexible IDs (e.g. "005-01") to the actual directory name.
+            let summary = change_repo.get_summary(&item).map_err(to_cli_error)?;
+            let actual = summary.id;
+
+            let mut issues = Vec::new();
+            let repo_integrity =
+                core_validate::validate_change_dirs_repo_integrity(spool_path).unwrap_or_default();
+            if let Some(extra) = repo_integrity.get(&actual) {
+                issues.extend(extra.clone());
+            }
+
+            let report = core_validate::validate_change(spool_path, &actual, strict)
+                .map_err(to_cli_error)?;
+            let mut merged = report.issues.clone();
+            merged.extend(issues);
+
+            // tasks.md validation (enhanced + checkbox)
+            merged.extend(validate_tasks_file(spool_path, &actual));
+            let report = core_validate::ValidationReport::new(merged, strict);
             let ok = render_validate_result("change", &item, report, want_json);
             if !ok {
                 return silent_fail();
@@ -388,6 +361,51 @@ pub(crate) fn handle_validate(rt: &Runtime, args: &[String]) -> CliResult<()> {
             ))
         }
     }
+}
+
+fn validate_tasks_file(spool_path: &Path, change_id: &str) -> Vec<core_validate::ValidationIssue> {
+    let path = domain_tasks::tasks_path(spool_path, change_id);
+    if !path.exists() {
+        return Vec::new();
+    }
+
+    let report_path = format!(".spool/changes/{change_id}/tasks.md");
+
+    let contents = match spool_core::io::read_to_string(&path) {
+        Ok(c) => c,
+        Err(e) => {
+            return vec![core_validate::error(
+                &report_path,
+                format!("Failed to read {report_path}: {e}"),
+            )];
+        }
+    };
+
+    let parsed = domain_tasks::parse_tasks_tracking_file(&contents);
+    let mut issues = Vec::new();
+    for d in parsed.diagnostics {
+        let mut issue = match d.level {
+            domain_tasks::DiagnosticLevel::Error => core_validate::error(&report_path, d.message),
+            domain_tasks::DiagnosticLevel::Warning => {
+                core_validate::warning(&report_path, d.message)
+            }
+        };
+        if let Some(line) = d.line {
+            issue = core_validate::with_line(issue, line as u32);
+        }
+
+        if let Some(task_id) = d.task_id {
+            issue = core_validate::with_metadata(
+                issue,
+                serde_json::json!({
+                    "taskId": task_id,
+                }),
+            );
+        }
+
+        issues.push(issue);
+    }
+    issues
 }
 
 pub(crate) fn handle_validate_clap(rt: &Runtime, args: &ValidateArgs) -> CliResult<()> {
@@ -570,7 +588,12 @@ fn render_validate_result(
 
     eprintln!("{label} '{id}' has issues");
     for issue in &report.issues {
-        eprintln!("✗ [{}] {}: {}", issue.level, issue.path, issue.message);
+        eprintln!(
+            "✗ [{}] {}: {}",
+            issue.level,
+            format_issue_loc(issue),
+            issue.message
+        );
     }
 
     // Minimal next steps matching TS for spec validation.

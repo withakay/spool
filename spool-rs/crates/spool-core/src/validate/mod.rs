@@ -8,9 +8,11 @@ use crate::show::{
 };
 
 mod issue;
+mod repo_integrity;
 mod report;
 
 pub use issue::{error, info, issue, warning, with_line, with_loc, with_metadata};
+pub use repo_integrity::validate_change_dirs_repo_integrity;
 pub use report::{ReportBuilder, report};
 
 pub type ValidationLevel = &'static str;

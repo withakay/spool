@@ -39,7 +39,15 @@ pub fn blocking_task_error_message(path: &Path, diagnostics: &[TaskDiagnostic]) 
 pub fn render_validation_issues(issues: &[ValidationIssue]) -> String {
     let mut out = String::new();
     for i in issues {
-        out.push_str(&format!("- [{}] {}: {}\n", i.level, i.path, i.message));
+        let mut loc = i.path.clone();
+        if let Some(line) = i.line {
+            if let Some(col) = i.column {
+                loc.push_str(&format!(":{line}:{col}"));
+            } else {
+                loc.push_str(&format!(":{line}"));
+            }
+        }
+        out.push_str(&format!("- [{}] {loc}: {}\n", i.level, i.message));
     }
     out
 }
@@ -130,7 +138,7 @@ mod tests {
 
         assert_eq!(
             super::render_validation_issues(&issues),
-            "- [ERROR] specs/foo.md: missing purpose\n"
+            "- [ERROR] specs/foo.md:10:2: missing purpose\n"
         );
     }
 }

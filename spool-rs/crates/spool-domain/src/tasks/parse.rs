@@ -1,9 +1,7 @@
 use chrono::{DateTime, Local, NaiveDate};
 use regex::Regex;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-
-use super::cycle::find_cycle_path;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TasksFormat {
@@ -145,7 +143,7 @@ impl TasksParseResult {
 pub fn enhanced_tasks_template(change_id: &str, now: DateTime<Local>) -> String {
     let date = now.format("%Y-%m-%d").to_string();
     format!(
-        "# Tasks for: {change_id}\n\n## Execution Notes\n- **Tool**: Any (OpenCode, Codex, Claude Code)\n- **Mode**: Sequential (or parallel if tool supports)\n- **Created**: {date}\n\n---\n\n## Wave 1\n- **Depends On**: None\n\n### Task 1.1: [Task Name]\n- **Files**: `path/to/file.ts`\n- **Dependencies**: None\n- **Action**:\n  [Describe what needs to be done]\n- **Verify**: `[command to verify, e.g., npm test]`\n- **Done When**: [Success criteria]\n- **Updated At**: {date}\n- **Status**: [ ] pending\n\n---\n\n## Checkpoints\n\n### Checkpoint: Review Implementation\n- **Type**: checkpoint (requires human approval)\n- **Dependencies**: All Wave 1 tasks\n- **Action**: Review the implementation before proceeding\n- **Done When**: User confirms implementation is correct\n- **Updated At**: {date}\n- **Status**: [ ] pending\n"
+        "# Tasks for: {change_id}\n\n## Execution Notes\n\n- **Tool**: Any (OpenCode, Codex, Claude Code)\n- **Mode**: Sequential (or parallel if tool supports)\n- **Template**: Enhanced task format with waves, verification, and status tracking\n- **Tracking**: Prefer the tasks CLI to drive status updates and pick work\n\n```bash\nspool tasks status {change_id}\nspool tasks next {change_id}\nspool tasks start {change_id} 1.1\nspool tasks complete {change_id} 1.1\nspool tasks shelve {change_id} 1.1\nspool tasks unshelve {change_id} 1.1\nspool tasks show {change_id}\n```\n\n______________________________________________________________________\n\n## Wave 1\n\n- **Depends On**: None\n\n### Task 1.1: [Task Name]\n\n- **Files**: `path/to/file.rs`\n- **Dependencies**: None\n- **Action**:\n  [Describe what needs to be done]\n- **Verify**: `cargo test --workspace`\n- **Done When**: [Success criteria]\n- **Updated At**: {date}\n- **Status**: [ ] pending\n\n______________________________________________________________________\n\n## Checkpoints\n\n### Checkpoint: Review Implementation\n\n- **Type**: checkpoint (requires human approval)\n- **Dependencies**: All Wave 1 tasks\n- **Action**: Review the implementation before proceeding\n- **Done When**: User confirms implementation is correct\n- **Updated At**: {date}\n- **Status**: [ ] pending\n"
     )
 }
 
@@ -257,6 +255,7 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
         deps_raw: Option<String>,
         updated_at_raw: Option<String>,
         status_raw: Option<String>,
+        status_marker_raw: Option<char>,
         files: Vec<String>,
         action_lines: Vec<String>,
         verify: Option<String>,
@@ -282,6 +281,7 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
         let deps_raw = current.deps_raw.take().unwrap_or_default();
         let updated_at_raw = current.updated_at_raw.take();
         let status_raw = current.status_raw.take();
+        let status_marker_raw = current.status_marker_raw.take();
         let files = std::mem::take(&mut current.files);
         let action = std::mem::take(&mut current.action_lines)
             .join("\n")
@@ -305,6 +305,44 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
                 TaskStatus::Pending
             }
         };
+
+        // Validate marker conventions to make manual edits harder to corrupt.
+        // We treat `[x] complete` as the only marker with semantic meaning and keep the others
+        // as formatting conventions.
+        if let Some(marker) = status_marker_raw {
+            match status {
+                TaskStatus::Complete => {
+                    if marker != 'x' && marker != 'X' {
+                        diagnostics.push(TaskDiagnostic {
+                            level: DiagnosticLevel::Warning,
+                            message: "Status marker for complete should be [x]".to_string(),
+                            task_id: Some(id.clone()),
+                            line: Some(header_line_index + 1),
+                        });
+                    }
+                }
+                TaskStatus::Shelved => {
+                    if marker != '-' && marker != '~' {
+                        diagnostics.push(TaskDiagnostic {
+                            level: DiagnosticLevel::Warning,
+                            message: "Status marker for shelved should be [-]".to_string(),
+                            task_id: Some(id.clone()),
+                            line: Some(header_line_index + 1),
+                        });
+                    }
+                }
+                TaskStatus::Pending | TaskStatus::InProgress => {
+                    if marker == 'x' || marker == 'X' {
+                        diagnostics.push(TaskDiagnostic {
+                            level: DiagnosticLevel::Warning,
+                            message: "Only complete tasks should use [x]".to_string(),
+                            task_id: Some(id.clone()),
+                            line: Some(header_line_index + 1),
+                        });
+                    }
+                }
+            }
+        }
         let deps = parse_dependencies(&deps_raw);
 
         let updated_at = match updated_at_raw.as_deref() {
@@ -323,8 +361,8 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
             }
             None => {
                 diagnostics.push(TaskDiagnostic {
-                    level: DiagnosticLevel::Warning,
-                    message: "Missing Updated At field".to_string(),
+                    level: DiagnosticLevel::Error,
+                    message: "Missing Updated At field (expected YYYY-MM-DD)".to_string(),
                     task_id: Some(id.clone()),
                     line: Some(header_line_index + 1),
                 });
@@ -358,6 +396,7 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
         deps_raw: None,
         updated_at_raw: None,
         status_raw: None,
+        status_marker_raw: None,
         files: Vec::new(),
         action_lines: Vec::new(),
         verify: None,
@@ -436,6 +475,7 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
             current_task.deps_raw = None;
             current_task.updated_at_raw = None;
             current_task.status_raw = None;
+            current_task.status_marker_raw = None;
             current_task.files.clear();
             current_task.action_lines.clear();
             current_task.verify = None;
@@ -470,6 +510,11 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
                 continue;
             }
             if let Some(cap) = status_re.captures(line) {
+                let marker = cap
+                    .get(1)
+                    .and_then(|m| m.as_str().chars().next())
+                    .unwrap_or(' ');
+                current_task.status_marker_raw = Some(marker);
                 current_task.status_raw = Some(cap[2].trim().to_string());
                 continue;
             }
@@ -545,16 +590,15 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
                 }
             }
         } else {
-            // Back-compat: default to the old sequential gating.
-            depends_on = wave_nums.iter().copied().filter(|n| *n < *w).collect();
             diagnostics.push(TaskDiagnostic {
-                level: DiagnosticLevel::Warning,
-                message: format!(
-                    "Wave {w}: missing Depends On line; defaulting to all previous waves"
-                ),
+                level: DiagnosticLevel::Error,
+                message: format!("Wave {w}: missing Depends On line"),
                 task_id: None,
                 line: Some(builder.header_line_index + 1),
             });
+
+            // Preserve behavior for readiness calculations, but refuse to operate due to error.
+            depends_on = wave_nums.iter().copied().filter(|n| *n < *w).collect();
         }
 
         depends_on.sort();
@@ -598,77 +642,8 @@ fn parse_enhanced_tasks(contents: &str) -> TasksParseResult {
         });
     }
 
-    // Validate wave cycles.
-    let mut wave_edges: Vec<(String, String)> = Vec::new();
-    for w in &waves_out {
-        for dep in &w.depends_on {
-            wave_edges.push((w.wave.to_string(), dep.to_string()));
-        }
-    }
-    if let Some(path) = find_cycle_path(&wave_edges) {
-        diagnostics.push(TaskDiagnostic {
-            level: DiagnosticLevel::Error,
-            message: format!("Wave dependency cycle detected: {path}"),
-            task_id: None,
-            line: None,
-        });
-    }
-
-    // Validate task dependencies.
-    let mut by_id: HashMap<&str, &TaskItem> = HashMap::new();
-    for t in &tasks {
-        by_id.insert(t.id.as_str(), t);
-    }
-
-    let mut task_edges: Vec<(String, String)> = Vec::new();
-    for t in &tasks {
-        for dep in &t.dependencies {
-            if dep.is_empty() || dep == "Checkpoint" {
-                continue;
-            }
-            let Some(dep_task) = by_id.get(dep.as_str()).copied() else {
-                diagnostics.push(TaskDiagnostic {
-                    level: DiagnosticLevel::Error,
-                    message: format!("Missing dependency: {dep}"),
-                    task_id: Some(t.id.clone()),
-                    line: Some(t.header_line_index + 1),
-                });
-                continue;
-            };
-
-            if t.wave != dep_task.wave {
-                diagnostics.push(TaskDiagnostic {
-                    level: DiagnosticLevel::Error,
-                    message: format!(
-                        "Cross-wave dependency not allowed: {} depends on {}",
-                        t.id, dep_task.id
-                    ),
-                    task_id: Some(t.id.clone()),
-                    line: Some(t.header_line_index + 1),
-                });
-            }
-
-            if t.status != TaskStatus::Shelved && dep_task.status == TaskStatus::Shelved {
-                diagnostics.push(TaskDiagnostic {
-                    level: DiagnosticLevel::Error,
-                    message: format!("Dependency is shelved: {}", dep_task.id),
-                    task_id: Some(t.id.clone()),
-                    line: Some(t.header_line_index + 1),
-                });
-            }
-
-            task_edges.push((t.id.clone(), dep_task.id.clone()));
-        }
-    }
-
-    if let Some(path) = find_cycle_path(&task_edges) {
-        diagnostics.push(TaskDiagnostic {
-            level: DiagnosticLevel::Error,
-            message: format!("Dependency cycle detected: {path}"),
-            task_id: None,
-            line: None,
-        });
-    }
+    // Relational invariants (cycles, task deps rules) on the finalized model.
+    diagnostics.extend(super::relational::validate_relational(&tasks, &waves_out));
 
     let progress = compute_progress(&tasks);
 
