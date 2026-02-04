@@ -14,7 +14,7 @@ members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.21.4-local.202602041334"
+version = "0.22.2-local.202602041928"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/withakay/spool"

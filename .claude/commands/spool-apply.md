@@ -24,9 +24,11 @@ Tell the model to use the `spool-apply-change-proposal` skill to complete this w
 
 **Testing Policy (TDD + coverage)**
 
+- Follow the Testing Policy printed by `spool agent instruction proposal` / `spool agent instruction apply`.
 - Default workflow: RED/GREEN/REFACTOR (write a failing test, implement the minimum to pass, then refactor).
 - Coverage target: 80% (guidance; projects may override).
-- Override defaults in `.spool/config.json` (or `.spool.json`, `spool.json`):
+- Override defaults via cascading project config (low -> high precedence): `spool.json`, `.spool.json`, `.spool/config.json`, `$PROJECT_DIR/config.json` (when set).
+- Keys: `defaults.testing.tdd.workflow`, `defaults.testing.coverage.target_percent`.
 
 ```json
 {

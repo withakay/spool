@@ -8,7 +8,8 @@ Create or continue a change, then generate proposal/spec/design/tasks using the 
 **Testing Policy (TDD + coverage)**
 
 - Default workflow: RED/GREEN/REFACTOR (write a failing test, implement the minimum to pass, then refactor).
-- Coverage target: 80% (guidance; projects may override in `.spool/config.json`).
+- Coverage target: 80% (guidance; projects may override).
+- Override keys (cascading config): `defaults.testing.tdd.workflow`, `defaults.testing.coverage.target_percent`
 - When available, follow the "Testing Policy" section emitted by `spool agent instruction proposal|apply`; it reflects project configuration.
 
 **Steps**

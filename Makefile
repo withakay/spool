@@ -8,6 +8,7 @@ RUST_WARNINGS_AS_ERRORS ?= -D warnings
 	build test test-watch test-coverage lint check check-max-lines clean help \
 	release \
 	version-bump version-bump-patch version-bump-minor version-bump-major \
+	version-sync \
 	rust-build rust-build-release rust-test rust-test-coverage rust-lint rust-install install
 
 build: ## Build the project
@@ -104,6 +105,12 @@ version-bump: ## Bump workspace version (BUMP=none|patch|minor|major)
 	NEW_VERSION=$$(python3 "spool-rs/tools/version_bump.py" --manifest "$$MANIFEST" --stamp "$$STAMP" --bump "$(BUMP)"); \
 	echo "Bumped workspace version to $$NEW_VERSION"
 
+version-sync: ## Sync workspace/crate versions to Release Please + stamp
+	@set -e; \
+	STAMP=$$(date +%Y%m%d%H%M); \
+	NEW_VERSION=$$(python3 "spool-rs/tools/sync_versions.py" --stamp "$$STAMP"); \
+	echo "Synced workspace/crate versions to $$NEW_VERSION"
+
 version-bump-patch: ## Bump patch version (x.y.z -> x.y.(z+1)) + stamp
 	$(MAKE) version-bump BUMP=patch
 
@@ -149,7 +156,7 @@ rust-install: ## Install Rust spool as 'spool' into ~/.local/bin (override INSTA
 	chmod +x "$$INSTALL_DIR/spool"; \
 	"$$INSTALL_DIR/spool" --version
 
-install: version-bump rust-install ## Bump version date + install Rust spool as 'spool'
+install: version-sync rust-install ## Sync version date + install Rust spool as 'spool'
 
 clean: ## Remove build artifacts
 	rm -rf spool-rs/target
