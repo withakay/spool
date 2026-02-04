@@ -61,23 +61,27 @@ jobs:
           CURRENT_VERSION=$(jq -r '.["spool-rs/crates/spool-cli"]' .release-please-manifest.json)
           echo "Current version: $CURRENT_VERSION"
           
-          # Validate version format (basic semver without pre-release/build metadata)
+          # Validate version format (basic semver X.Y.Z only)
+          # Rejects pre-release versions (e.g., 1.0.0-alpha) and build metadata (e.g., 1.0.0+build)
           if ! [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Current version '$CURRENT_VERSION' is not in basic semver format (X.Y.Z)"
+            echo "Error: Current version '$CURRENT_VERSION' is not in basic semver format"
+            echo "Expected format: X.Y.Z (e.g., 1.2.3)"
             echo "Pre-release versions and build metadata are not supported for manual bumps."
             exit 1
           fi
           
-          # If custom version is provided, use it
-          if [ -n "${{ github.event.inputs.custom-version }}" ]; then
-            NEXT_VERSION="${{ github.event.inputs.custom-version }}"
-            echo "Using custom version: $NEXT_VERSION"
-            
-            # Validate custom version format
-            if ! [[ "$NEXT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "Error: Custom version '$NEXT_VERSION' is not in basic semver format (X.Y.Z)"
+          # If custom version is provided, use it (store in env var for safety)
+          CUSTOM_VERSION_INPUT="${{ github.event.inputs.custom-version }}"
+          if [ -n "$CUSTOM_VERSION_INPUT" ]; then
+            # Validate custom version format before using
+            if ! [[ "$CUSTOM_VERSION_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Error: Custom version '$CUSTOM_VERSION_INPUT' is not valid"
+              echo "Expected format: X.Y.Z (e.g., 1.2.3)"
+              echo "Only basic semver format is supported (no pre-release or build metadata)"
               exit 1
             fi
+            NEXT_VERSION="$CUSTOM_VERSION_INPUT"
+            echo "Using custom version: $NEXT_VERSION"
           else
             # Parse version and bump according to bump-type
             IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
