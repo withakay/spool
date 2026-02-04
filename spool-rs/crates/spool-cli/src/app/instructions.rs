@@ -5,7 +5,14 @@ use crate::util::parse_string_flag;
 use spool_core::config::load_cascading_project_config;
 use spool_core::workflow as core_workflow;
 use spool_domain::changes::ChangeRepository;
+use std::collections::BTreeMap;
 use std::path::Path;
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct ContextFileEntry {
+    id: String,
+    path: String,
+}
 
 pub(crate) fn handle_agent(rt: &Runtime, args: &[String]) -> CliResult<()> {
     // Check for subcommand first - subcommand handlers have their own help checks
@@ -137,8 +144,7 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
             return Ok(());
         }
 
-        print_apply_instructions_text(&apply, &testing_policy);
-        print_user_guidance_markdown(user_guidance.as_deref());
+        print_apply_instructions_text(&apply, &testing_policy, user_guidance.as_deref());
         return Ok(());
     }
 
@@ -163,7 +169,7 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
     Ok(())
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 struct TestingPolicy {
     tdd_workflow: String,
     coverage_target_percent: u64,
@@ -249,111 +255,16 @@ fn handle_agent_instruction_clap(rt: &Runtime, args: &AgentInstructionArgs) -> C
 }
 
 fn generate_bootstrap_instruction(tool: &str) -> String {
-    let tool_notes = match tool {
-        "opencode" => {
-            r#"## Tool-Specific Notes: OpenCode
+    #[derive(serde::Serialize)]
+    struct Ctx<'a> {
+        tool: &'a str,
+    }
 
-OpenCode provides MCP (Model Context Protocol) tools for file operations and task delegation:
-
-- **File Operations**: Use Read, Write, Edit, Glob, Grep tools for file manipulation
-- **Shell Commands**: Use Bash tool for git, npm, docker, etc.
-- **Task Delegation**: Use Task tool to launch specialized agents for complex subtasks
-- **Parallel Invocation**: You can call multiple independent tools in a single response for optimal performance
-
-When working with Spool changes, always prefer the dedicated tools over shell commands for file operations."#
-        }
-        "claude" => {
-            r#"## Tool-Specific Notes: Claude Code
-
-Claude Code provides a comprehensive toolkit for development workflows:
-
-- **File Operations**: Use Read, Write, Edit tools for file manipulation
-- **Search**: Use Glob (file patterns) and Grep (content search) instead of shell commands
-- **Task Delegation**: Use Task tool to launch specialized agents for complex, multi-step work
-- **Shell Commands**: Use Bash tool for git, npm, docker, and other CLI operations
-- **Tool Routing**: Prefer specialized tools (Read/Write/Edit/Grep/Glob) over generic shell commands
-
-When implementing Spool changes, use the Task tool for independent subtasks and the dedicated file tools for code modifications."#
-        }
-        "codex" => {
-            r#"## Tool-Specific Notes: Codex
-
-Codex is a shell-first environment with command execution as the primary interface:
-
-- **Shell Commands**: All operations are performed via shell commands
-- **File Operations**: Use standard Unix tools (cat, grep, find, sed, awk)
-- **Git Operations**: Direct git commands for version control
-- **Available Commands**: Standard Unix utilities, git, npm, make, and project-specific tools
-- **Bootstrap**: This bootstrap snippet is always included in your system prompt
-
-When working with Spool changes, use shell commands and standard Unix tools for all operations."#
-        }
-        _ => "",
-    };
-
-    format!(
-        r#"# Spool Bootstrap Instructions
-
-This is a minimal bootstrap preamble for {tool}. For complete workflow instructions, use the artifact-specific commands below.
-
-{tool_notes}
-
-## Retrieving Workflow Instructions
-
-To get detailed instructions for working with a Spool change, use these commands:
-
-### View Change Proposal
-```bash
-spool agent instruction proposal --change <change-id>
-```
-Shows the change proposal (why, what, impact).
-
-### View Specifications
-```bash
-spool agent instruction specs --change <change-id>
-```
-Shows the specification deltas for the change.
-
-### View Tasks
-```bash
-spool agent instruction tasks --change <change-id>
-```
-Shows the implementation task list.
-
-### Apply Instructions
-```bash
-spool agent instruction apply --change <change-id>
-```
-Shows comprehensive instructions for implementing the change, including:
-- Context files to read
-- Task progress tracking
-- Implementation guidance
-- Completion criteria
-
-### Review Instructions
-```bash
-spool agent instruction review --change <change-id>
-```
-Shows instructions for reviewing a completed change.
-
-### Archive Instructions
-```bash
-spool agent instruction archive --change <change-id>
-```
-Shows instructions for archiving a completed change and updating main specs.
-
-## Workflow Overview
-
-1. **Proposal Phase**: Read proposal.md to understand the change
-2. **Planning Phase**: Review specs/ deltas and tasks.md
-3. **Implementation Phase**: Use `apply` instructions to execute tasks
-4. **Review Phase**: Validate implementation against specs
-5. **Archive Phase**: Integrate changes into main specs
-
-All workflow content is centralized in the Spool CLI. Adapters should remain thin and delegate to these instruction artifacts.
-"#,
-        tool = tool
+    spool_templates::instructions::render_instruction_template(
+        "agent/bootstrap.md.j2",
+        &Ctx { tool },
     )
+    .expect("bootstrap instruction template should render")
 }
 
 fn print_artifact_instructions_text(
@@ -361,229 +272,141 @@ fn print_artifact_instructions_text(
     user_guidance: Option<&str>,
     testing_policy: &TestingPolicy,
 ) {
-    let missing: Vec<String> = instructions
-        .dependencies
-        .iter()
-        .filter(|d| !d.done)
-        .map(|d| d.id.clone())
-        .collect();
-
-    println!(
-        "<artifact id=\"{}\" change=\"{}\" schema=\"{}\">",
-        instructions.artifact_id, instructions.change_name, instructions.schema_name
-    );
-    println!();
-
-    if !missing.is_empty() {
-        println!("<warning>");
-        println!(
-            "This artifact has unmet dependencies. Complete them first or proceed with caution."
-        );
-        println!("Missing: {}", missing.join(", "));
-        println!("</warning>");
-        println!();
+    #[derive(Debug, Clone, serde::Serialize)]
+    struct TemplateDependency {
+        id: String,
+        status: String,
+        path: String,
+        description: String,
     }
 
-    println!("<task>");
-    println!(
-        "Create the {} artifact for change \"{}\".",
-        instructions.artifact_id, instructions.change_name
-    );
-    println!("{}", instructions.description);
-    println!("</task>");
-    println!();
-
-    if !instructions.dependencies.is_empty() {
-        println!("<context>");
-        println!("Read these files for context before creating this artifact:");
-        println!();
-        for dep in &instructions.dependencies {
-            println!(
-                "<dependency id=\"{}\" status=\"{}\">",
-                dep.id,
-                if dep.done { "done" } else { "missing" }
-            );
-            let p = std::path::Path::new(&instructions.change_dir).join(&dep.path);
-            println!("  <path>{}</path>", p.to_string_lossy());
-            println!("  <description>{}</description>", dep.description);
-            println!("</dependency>");
-        }
-        println!("</context>");
-        println!();
+    #[derive(serde::Serialize)]
+    struct Ctx {
+        instructions: core_workflow::InstructionsResponse,
+        missing: Vec<String>,
+        dependencies: Vec<TemplateDependency>,
+        out_path: String,
+        testing_policy: TestingPolicy,
+        user_guidance: Option<String>,
     }
 
-    if let Some(user_guidance) = user_guidance {
-        let t = user_guidance.trim();
-        if !t.is_empty() {
-            println!("<user_guidance>");
-            println!("{t}");
-            println!("</user_guidance>");
-            println!();
-        }
+    let missing = collect_missing_dependencies(instructions);
+
+    let mut dependencies = Vec::new();
+    for dep in &instructions.dependencies {
+        let p = Path::new(&instructions.change_dir).join(&dep.path);
+        dependencies.push(TemplateDependency {
+            id: dep.id.clone(),
+            status: if dep.done {
+                "done".to_string()
+            } else {
+                "missing".to_string()
+            },
+            path: p.to_string_lossy().to_string(),
+            description: dep.description.clone(),
+        });
     }
 
-    if instructions.artifact_id == "proposal" {
-        print_testing_policy_xml(testing_policy);
-        println!();
-    }
+    let out_path = Path::new(&instructions.change_dir).join(&instructions.output_path);
 
-    println!("<output>");
-    let out_path = std::path::Path::new(&instructions.change_dir).join(&instructions.output_path);
-    println!("Write to: {}", out_path.to_string_lossy());
-    println!("</output>");
-    println!();
+    let user_guidance = user_guidance
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
 
-    if let Some(instr) = &instructions.instruction {
-        let t = instr.trim();
-        if !t.is_empty() {
-            println!("<instruction>");
-            println!("{t}");
-            println!("</instruction>");
-            println!();
-        }
-    }
-
-    println!("<template>");
-    println!("{}", instructions.template.trim());
-    println!("</template>");
-    println!();
-
-    println!("<success_criteria>");
-    println!("<!-- To be defined in schema validation rules -->");
-    println!("</success_criteria>");
-    println!();
-
-    if !instructions.unlocks.is_empty() {
-        println!("<unlocks>");
-        println!(
-            "Completing this artifact enables: {}",
-            instructions.unlocks.join(", ")
-        );
-        println!("</unlocks>");
-        println!();
-    }
-
-    println!("</artifact>");
-}
-
-fn print_testing_policy_xml(policy: &TestingPolicy) {
-    println!("<testing_policy>");
-    println!("- tdd.workflow: {}", policy.tdd_workflow);
-    println!(
-        "- coverage.target_percent: {}",
-        policy.coverage_target_percent
-    );
-    println!(
-        "- override: set defaults.testing.* in .spool/config.json (or spool.json/.spool.json)"
-    );
-    println!("</testing_policy>");
-}
-
-fn print_user_guidance_markdown(user_guidance: Option<&str>) {
-    let Some(user_guidance) = user_guidance else {
-        return;
+    let ctx = Ctx {
+        instructions: instructions.clone(),
+        missing,
+        dependencies,
+        out_path: out_path.to_string_lossy().to_string(),
+        testing_policy: testing_policy.clone(),
+        user_guidance,
     };
-    let t = user_guidance.trim();
-    if t.is_empty() {
-        return;
-    }
 
-    println!("### User Guidance");
-    println!();
-    println!("{t}");
-    println!();
+    let out =
+        spool_templates::instructions::render_instruction_template("agent/artifact.md.j2", &ctx)
+            .expect("artifact instruction template should render");
+
+    print!("{out}");
 }
 
 fn print_apply_instructions_text(
     instructions: &core_workflow::ApplyInstructionsResponse,
     testing_policy: &TestingPolicy,
+    user_guidance: Option<&str>,
 ) {
-    println!("## Apply: {}", instructions.change_name);
-    println!("Schema: {}", instructions.schema_name);
-    println!();
-
-    if instructions.state == "blocked"
-        && let Some(missing) = &instructions.missing_artifacts
-    {
-        println!("### ⚠️ Blocked");
-        println!();
-        println!("Missing artifacts: {}", missing.join(", "));
-        println!("Use the spool-continue-change skill to create these first.");
-        println!();
+    #[derive(serde::Serialize)]
+    struct Ctx {
+        instructions: core_workflow::ApplyInstructionsResponse,
+        testing_policy: TestingPolicy,
+        context_files: Vec<ContextFileEntry>,
+        tracking_errors: Option<usize>,
+        tracking_warnings: Option<usize>,
+        user_guidance: Option<String>,
     }
 
-    let entries: Vec<(&String, &String)> = instructions.context_files.iter().collect();
-    if !entries.is_empty() {
-        println!("### Context Files");
-        for (id, path) in entries {
-            println!("- {id}: {path}");
+    let context_files = collect_context_files(&instructions.context_files);
+    let (tracking_errors, tracking_warnings) =
+        collect_tracking_diagnostic_counts(instructions.tracks_diagnostics.as_deref());
+
+    let user_guidance = user_guidance
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+
+    let ctx = Ctx {
+        instructions: instructions.clone(),
+        testing_policy: testing_policy.clone(),
+        context_files,
+        tracking_errors,
+        tracking_warnings,
+        user_guidance,
+    };
+
+    let out = spool_templates::instructions::render_instruction_template("agent/apply.md.j2", &ctx)
+        .expect("apply instruction template should render");
+
+    print!("{out}");
+}
+
+fn collect_missing_dependencies(instructions: &core_workflow::InstructionsResponse) -> Vec<String> {
+    let mut out = Vec::new();
+    for dep in &instructions.dependencies {
+        if dep.done {
+            continue;
         }
-        println!();
+        out.push(dep.id.clone());
+    }
+    out
+}
+
+fn collect_context_files(map: &BTreeMap<String, String>) -> Vec<ContextFileEntry> {
+    let mut out = Vec::new();
+    for (id, path) in map {
+        out.push(ContextFileEntry {
+            id: id.clone(),
+            path: path.clone(),
+        });
+    }
+    out
+}
+
+fn collect_tracking_diagnostic_counts(
+    diagnostics: Option<&[core_workflow::TaskDiagnostic]>,
+) -> (Option<usize>, Option<usize>) {
+    let Some(diagnostics) = diagnostics else {
+        return (None, None);
+    };
+
+    let mut errors = 0;
+    let mut warnings = 0;
+    for d in diagnostics {
+        match d.level.as_str() {
+            "error" => errors += 1,
+            "warning" => warnings += 1,
+            _ => {}
+        }
     }
 
-    if let (Some(tracks_file), Some(tracks_path)) =
-        (&instructions.tracks_file, &instructions.tracks_path)
-    {
-        println!("### Task Tracking");
-        println!("- file: {tracks_file}");
-        if let Some(fmt) = &instructions.tracks_format {
-            println!("- format: {fmt}");
-        }
-        println!("- path: {tracks_path}");
-        if let Some(diags) = &instructions.tracks_diagnostics
-            && !diags.is_empty()
-        {
-            let errors = diags.iter().filter(|d| d.level == "error").count();
-            let warnings = diags.iter().filter(|d| d.level == "warning").count();
-            if errors > 0 {
-                println!("- errors: {errors}");
-            }
-            if warnings > 0 {
-                println!("- warnings: {warnings}");
-            }
-        }
-        println!();
-    }
-
-    println!("### Testing Policy");
-    println!(
-        "- TDD workflow: {} (RED -> GREEN -> REFACTOR)",
-        testing_policy.tdd_workflow
-    );
-    println!(
-        "- Coverage target: {}% (guidance; override per project)",
-        testing_policy.coverage_target_percent
-    );
-    println!(
-        "- Override keys: defaults.testing.tdd.workflow, defaults.testing.coverage.target_percent"
-    );
-    println!();
-
-    if instructions.progress.total > 0 || !instructions.tasks.is_empty() {
-        println!("### Progress");
-        if instructions.state == "all_done" {
-            println!(
-                "{}/{} complete ✓",
-                instructions.progress.complete, instructions.progress.total
-            );
-        } else {
-            println!(
-                "{}/{} complete",
-                instructions.progress.complete, instructions.progress.total
-            );
-        }
-        println!();
-    }
-
-    if !instructions.tasks.is_empty() {
-        println!("### Tasks");
-        for task in &instructions.tasks {
-            let checkbox = if task.done { "[x]" } else { "[ ]" };
-            println!("- {checkbox} {}", task.description);
-        }
-        println!();
-    }
-
-    println!("### Instruction");
-    println!("{}", instructions.instruction);
+    let errors = if errors > 0 { Some(errors) } else { None };
+    let warnings = if warnings > 0 { Some(warnings) } else { None };
+    (errors, warnings)
 }
