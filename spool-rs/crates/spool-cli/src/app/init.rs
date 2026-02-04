@@ -142,7 +142,33 @@ pub(super) fn handle_init(rt: &Runtime, args: &[String]) -> CliResult<()> {
     let opts = InitOptions::new(tools, force);
     install_default_templates(target_path, ctx, InstallMode::Init, &opts).map_err(to_cli_error)?;
 
+    print_post_init_guidance(target_path);
+
     Ok(())
+}
+
+fn print_post_init_guidance(target_path: &std::path::Path) {
+    let target_display = if target_path == std::path::Path::new(".") {
+        "current directory".to_string()
+    } else {
+        format!("{}", target_path.display())
+    };
+
+    println!(
+        r#"
+✓ Spool initialized in {target_display}
+
+Files to customize:
+
+  .spool/project.md        Project overview, tech stack, architecture
+  .spool/user-guidance.md  Your coding standards and preferences
+  .spool/config.json       Tool settings and defaults
+
+Quick start prompts are in .spool/prompts.md - copy & paste to your AI assistant.
+
+Learn more: spool --help | spool list --help | spool agent --help
+"#
+    );
 }
 
 pub(crate) fn handle_init_clap(rt: &Runtime, args: &InitArgs) -> CliResult<()> {
