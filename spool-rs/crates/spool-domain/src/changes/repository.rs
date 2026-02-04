@@ -170,7 +170,12 @@ impl<'a> ChangeRepository<'a> {
             .find_change_dir(id)
             .ok_or_else(|| miette!("Change not found: {}", id))?;
 
-        let (completed_tasks, total_tasks) = self.task_repo.get_task_counts(&actual_id)?;
+        let progress = self.task_repo.get_progress(&actual_id)?;
+        let completed_tasks = progress.complete as u32;
+        let shelved_tasks = progress.shelved as u32;
+        let in_progress_tasks = progress.in_progress as u32;
+        let pending_tasks = progress.pending as u32;
+        let total_tasks = progress.total as u32;
         let last_modified = self.get_last_modified(&path)?;
 
         let has_proposal = path.join("proposal.md").is_file();
@@ -182,6 +187,9 @@ impl<'a> ChangeRepository<'a> {
             id: actual_id,
             module_id: extract_module_id(id),
             completed_tasks,
+            shelved_tasks,
+            in_progress_tasks,
+            pending_tasks,
             total_tasks,
             last_modified,
             has_proposal,

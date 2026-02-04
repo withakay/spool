@@ -711,7 +711,8 @@ fn compute_progress(tasks: &[TaskItem]) -> ProgressInfo {
         .iter()
         .filter(|t| t.status == TaskStatus::Pending)
         .count();
-    let remaining = total.saturating_sub(complete + shelved);
+    let done = tasks.iter().filter(|t| t.status.is_done()).count();
+    let remaining = total.saturating_sub(done);
     ProgressInfo {
         total,
         complete,

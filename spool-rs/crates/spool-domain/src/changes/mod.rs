@@ -32,6 +32,47 @@ pub enum ChangeStatus {
     Complete,
 }
 
+/// Work status of a change.
+///
+/// This is a derived status intended for UX and filtering. It is NOT a persisted
+/// lifecycle state.
+///
+/// Semantics:
+/// - `Draft`: missing required planning artifacts (proposal + specs + tasks)
+/// - `Ready`: planning artifacts exist and there is remaining work, with no in-progress tasks
+/// - `InProgress`: at least one task is in-progress
+/// - `Paused`: no remaining work, but at least one task is shelved (i.e. all tasks are done or shelved)
+/// - `Complete`: all tasks are complete (shelved tasks do NOT count as complete)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChangeWorkStatus {
+    /// Missing required planning artifacts (proposal + specs + tasks).
+    Draft,
+    /// Ready to start work (planning artifacts exist, remaining work, nothing in-progress).
+    Ready,
+    /// At least one task is in-progress.
+    InProgress,
+    /// No remaining work, but at least one task is shelved.
+    ///
+    /// This distinguishes "we're finished but chose to shelve something" from `Complete`.
+    Paused,
+    /// All tasks complete.
+    ///
+    /// Note: shelved tasks do NOT count as complete.
+    Complete,
+}
+
+impl std::fmt::Display for ChangeWorkStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChangeWorkStatus::Draft => write!(f, "draft"),
+            ChangeWorkStatus::Ready => write!(f, "ready"),
+            ChangeWorkStatus::InProgress => write!(f, "in-progress"),
+            ChangeWorkStatus::Paused => write!(f, "paused"),
+            ChangeWorkStatus::Complete => write!(f, "complete"),
+        }
+    }
+}
+
 impl std::fmt::Display for ChangeStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -76,6 +117,38 @@ impl Change {
         }
     }
 
+    /// Derived work status for UX and filtering.
+    pub fn work_status(&self) -> ChangeWorkStatus {
+        let ProgressInfo {
+            total,
+            complete,
+            shelved,
+            in_progress,
+            pending,
+            remaining: _,
+        } = self.tasks.progress;
+
+        // Planning artifacts required to start work.
+        let has_planning_artifacts = self.proposal.is_some() && !self.specs.is_empty() && total > 0;
+        if !has_planning_artifacts {
+            return ChangeWorkStatus::Draft;
+        }
+
+        if complete == total {
+            return ChangeWorkStatus::Complete;
+        }
+        if in_progress > 0 {
+            return ChangeWorkStatus::InProgress;
+        }
+
+        let done_or_shelved = complete + shelved;
+        if pending == 0 && shelved > 0 && done_or_shelved == total {
+            return ChangeWorkStatus::Paused;
+        }
+
+        ChangeWorkStatus::Ready
+    }
+
     /// Check if all required artifacts are present.
     pub fn artifacts_complete(&self) -> bool {
         self.proposal.is_some()
@@ -107,6 +180,12 @@ pub struct ChangeSummary {
     pub module_id: Option<String>,
     /// Number of completed tasks
     pub completed_tasks: u32,
+    /// Number of shelved tasks (enhanced tasks only)
+    pub shelved_tasks: u32,
+    /// Number of in-progress tasks
+    pub in_progress_tasks: u32,
+    /// Number of pending tasks
+    pub pending_tasks: u32,
     /// Total number of tasks
     pub total_tasks: u32,
     /// Last modification time
@@ -133,15 +212,35 @@ impl ChangeSummary {
         }
     }
 
+    /// Derived work status for UX and filtering.
+    pub fn work_status(&self) -> ChangeWorkStatus {
+        let has_planning_artifacts = self.has_proposal && self.has_specs && self.has_tasks;
+        if !has_planning_artifacts {
+            return ChangeWorkStatus::Draft;
+        }
+
+        if self.total_tasks > 0 && self.completed_tasks == self.total_tasks {
+            return ChangeWorkStatus::Complete;
+        }
+        if self.in_progress_tasks > 0 {
+            return ChangeWorkStatus::InProgress;
+        }
+
+        let done_or_shelved = self.completed_tasks + self.shelved_tasks;
+        if self.pending_tasks == 0 && self.shelved_tasks > 0 && done_or_shelved == self.total_tasks
+        {
+            return ChangeWorkStatus::Paused;
+        }
+
+        ChangeWorkStatus::Ready
+    }
+
     /// Check if this change is ready for implementation.
     ///
-    /// A change is "ready" when it has all required artifacts (proposal, specs, tasks)
-    /// and has pending work remaining (status is InProgress).
+    /// A change is "ready" when it has all required planning artifacts and has remaining work
+    /// with no in-progress tasks.
     pub fn is_ready(&self) -> bool {
-        self.has_proposal
-            && self.has_specs
-            && self.has_tasks
-            && self.status() == ChangeStatus::InProgress
+        self.work_status() == ChangeWorkStatus::Ready
     }
 }
 
@@ -274,6 +373,9 @@ mod tests {
             id: "test".to_string(),
             module_id: None,
             completed_tasks: 0,
+            shelved_tasks: 0,
+            in_progress_tasks: 0,
+            pending_tasks: 0,
             total_tasks: 0,
             last_modified: Utc::now(),
             has_proposal: false,
@@ -290,5 +392,47 @@ mod tests {
 
         summary.completed_tasks = 5;
         assert_eq!(summary.status(), ChangeStatus::Complete);
+    }
+
+    #[test]
+    fn test_change_work_status() {
+        let mut summary = ChangeSummary {
+            id: "test".to_string(),
+            module_id: None,
+            completed_tasks: 0,
+            shelved_tasks: 0,
+            in_progress_tasks: 0,
+            pending_tasks: 0,
+            total_tasks: 0,
+            last_modified: Utc::now(),
+            has_proposal: false,
+            has_design: false,
+            has_specs: false,
+            has_tasks: false,
+        };
+
+        assert_eq!(summary.work_status(), ChangeWorkStatus::Draft);
+
+        summary.has_proposal = true;
+        summary.has_specs = true;
+        summary.has_tasks = true;
+        summary.total_tasks = 3;
+        summary.pending_tasks = 3;
+
+        assert_eq!(summary.work_status(), ChangeWorkStatus::Ready);
+
+        summary.in_progress_tasks = 1;
+        summary.pending_tasks = 2;
+        assert_eq!(summary.work_status(), ChangeWorkStatus::InProgress);
+
+        summary.in_progress_tasks = 0;
+        summary.pending_tasks = 0;
+        summary.shelved_tasks = 1;
+        summary.completed_tasks = 2;
+        assert_eq!(summary.work_status(), ChangeWorkStatus::Paused);
+
+        summary.shelved_tasks = 0;
+        summary.completed_tasks = 3;
+        assert_eq!(summary.work_status(), ChangeWorkStatus::Complete);
     }
 }
