@@ -32,8 +32,10 @@ Use the spool-continue-change skill to create these first.
 {% endif %}
 ### Testing Policy
 - TDD workflow: {{ testing_policy.tdd_workflow }} (RED -> GREEN -> REFACTOR)
+- TDD loop: write a failing test (RED), implement the minimum to pass (GREEN), then refactor (REFACTOR)
 - Coverage target: {{ testing_policy.coverage_target_percent }}% (guidance; override per project)
 - Override keys: defaults.testing.tdd.workflow, defaults.testing.coverage.target_percent
+- Override files (low -> high): spool.json, .spool.json, .spool/config.json, $PROJECT_DIR/config.json
 
 {% if instructions.progress.total > 0 or (instructions.tasks and instructions.tasks|length > 0) %}
 ### Progress

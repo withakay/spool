@@ -30,6 +30,7 @@ fn agent_instruction_text_output_renders_artifact_envelope() {
     assert!(out.stdout.contains("Write to:"));
     assert!(out.stdout.contains("<testing_policy>"));
     assert!(out.stdout.contains("- tdd.workflow: red-green-refactor"));
+    assert!(out.stdout.contains("RED -> GREEN -> REFACTOR"));
     assert!(out.stdout.contains("- coverage.target_percent: 80"));
 }
 

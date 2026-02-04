@@ -36,9 +36,10 @@ Read these files for context before creating this artifact:
 
 {% if instructions.artifactId == "proposal" %}
 <testing_policy>
-- tdd.workflow: {{ testing_policy.tdd_workflow }}
+- tdd.workflow: {{ testing_policy.tdd_workflow }} (RED -> GREEN -> REFACTOR)
 - coverage.target_percent: {{ testing_policy.coverage_target_percent }}
-- override: set defaults.testing.* in .spool/config.json (or spool.json/.spool.json)
+- override_keys: defaults.testing.tdd.workflow, defaults.testing.coverage.target_percent
+- override_files (low -> high): spool.json, .spool.json, .spool/config.json, $PROJECT_DIR/config.json
 </testing_policy>
 
 {% endif %}
