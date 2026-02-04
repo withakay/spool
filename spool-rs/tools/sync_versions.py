@@ -54,6 +54,7 @@ def _read_release_please_version(manifest_path: Path, component: str) -> str:
     candidates = [
         component,
         component.rstrip("/"),
+        f"{component.rstrip('/')}/",  # with trailing slash
         f"{component.rstrip('/')}".lstrip("./"),
     ]
     for key in candidates:
