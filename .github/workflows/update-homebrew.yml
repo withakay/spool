@@ -229,9 +229,9 @@ jobs:
             test do
               output = shell_output("#{bin}/spool --version").strip
               if build.head?
-                assert_match(/^\d+\.\d+\.\d+/, output)
+                assert_match(/^\\d+\\.\\d+\\.\\d+/, output)
               else
-                assert_match(/^#{Regexp.escape(version.to_s)}$/, output)
+                assert_match(/^#{Regexp.escape(version.to_s)}$$/, output)
               end
             end
           end
