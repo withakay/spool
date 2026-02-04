@@ -154,6 +154,12 @@ Spool supports an "enhanced tasks.md" format that is optimized for long-running 
 - `Done When` acceptance criteria
 - task status tracking (pending / in-progress / complete)
 
+Spool also supports a lightweight checkbox-only `tasks.md` format in a compatibility mode:
+
+- `- [ ]` pending
+- `- [~]` in-progress (current task)
+- `- [x]` complete
+
 ```bash
 spool tasks init <change-id>
 spool tasks status <change-id>
