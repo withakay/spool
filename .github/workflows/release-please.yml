@@ -105,7 +105,15 @@ jobs:
             echo "Calculated next version: $NEXT_VERSION"
           fi
           
+          # Final validation before output (safety net)
+          if ! [[ "$NEXT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Final version '$NEXT_VERSION' failed validation"
+            exit 1
+          fi
+          
           echo "next-version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          # Also set as environment variable for safe use in subsequent steps
+          echo "RELEASE_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
 
       - name: Create release trigger commit
         if: github.event_name == 'workflow_dispatch'
@@ -113,8 +121,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
+          # Use environment variable for safety (set in previous step)
           # Create an empty commit with Release-As footer
-          git commit --allow-empty -m "chore: trigger release ${{ steps.calc-version.outputs.next-version }}" -m "Release-As: ${{ steps.calc-version.outputs.next-version }}"
+          git commit --allow-empty -m "chore: trigger release ${RELEASE_VERSION}" -m "Release-As: ${RELEASE_VERSION}"
           
           # Push to the default branch (dynamically determined)
           git push origin HEAD:${{ github.event.repository.default_branch }}
