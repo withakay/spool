@@ -307,6 +307,14 @@ prek install -f
 
 ## Contributing
 
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
+- Setting up your development environment
+- Commit message format (Conventional Commits)
+- Pre-commit hooks
+- Pull request process
+
+Quick start:
+
 ```bash
 make build
 make test
