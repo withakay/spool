@@ -17,6 +17,20 @@ on:
     # Still keep the release PR up to date without tying it to every push.
     - cron: "0 * * * *"
   workflow_dispatch:
+    inputs:
+      bump-type:
+        description: 'Type of version bump (patch, minor, major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      custom-version:
+        description: 'Custom version (optional, overrides bump-type if set)'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -30,6 +44,60 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
     steps:
+      - name: Checkout repository
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+
+      - name: Calculate next version for manual release
+        if: github.event_name == 'workflow_dispatch'
+        id: calc-version
+        run: |
+          # Get current version from manifest
+          CURRENT_VERSION=$(jq -r '.["spool-rs/crates/spool-cli"]' .release-please-manifest.json)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # If custom version is provided, use it
+          if [ -n "${{ github.event.inputs.custom-version }}" ]; then
+            NEXT_VERSION="${{ github.event.inputs.custom-version }}"
+            echo "Using custom version: $NEXT_VERSION"
+          else
+            # Parse version and bump according to bump-type
+            IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+            
+            case "${{ github.event.inputs.bump-type }}" in
+              major)
+                major=$((major + 1))
+                minor=0
+                patch=0
+                ;;
+              minor)
+                minor=$((minor + 1))
+                patch=0
+                ;;
+              patch)
+                patch=$((patch + 1))
+                ;;
+            esac
+            
+            NEXT_VERSION="$major.$minor.$patch"
+            echo "Calculated next version: $NEXT_VERSION"
+          fi
+          
+          echo "next-version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create release trigger commit
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create an empty commit with Release-As footer
+          git commit --allow-empty -m "chore: trigger release ${{ steps.calc-version.outputs.next-version }}" -m "Release-As: ${{ steps.calc-version.outputs.next-version }}"
+          git push origin main
+
       - name: Run release-please
         id: release
         uses: googleapis/release-please-action@v4
