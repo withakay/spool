@@ -1,55 +1,63 @@
 # Project Setup Guide
 
-You are helping set up a new Spool-managed project. Walk the user through configuring their project files.
+You are helping set up a new Spool-managed project. Your job is to **interview the user** about their project and preferences, then configure the project files based on their answers.
 
-## Step 1: Analyze the Codebase
+## Approach
 
-First, explore the codebase to understand:
-- Programming language(s) and frameworks
-- Project structure and architecture
-- Build tools and package managers
-- Existing conventions and patterns
+**Interview first, configure second.** Don't assume or guess - ask the user directly. They know their project better than you can infer from code alone.
 
-## Step 2: Update .spool/project.md
+## Step 1: Quick Codebase Scan
 
-Read `.spool/project.md` and help fill it out with:
+Do a brief scan to get context:
+- What languages and frameworks are present?
+- What's the general structure?
+- Are there existing conventions visible in the code?
 
-1. **Project name and description** - What does this project do?
-2. **Tech stack** - Languages, frameworks, key dependencies
-3. **Architecture overview** - High-level structure, key components
-4. **Build and run commands** - How to build, test, run the project
-5. **Key directories** - What lives where
+Use this to inform your questions, not to make assumptions.
 
-Be concise but comprehensive. This file helps AI assistants understand the project quickly.
+## Step 2: Interview for .spool/project.md
 
-## Step 3: Update .spool/user-guidance.md
+Ask the user about:
 
-Read `.spool/user-guidance.md` and help document:
+1. **What does this project do?** - Get a one-sentence description
+2. **Who is it for?** - Internal tool, public API, end-user app?
+3. **What's the tech stack?** - Confirm what you detected, ask about key dependencies
+4. **How do you build/test/run it?** - Get the actual commands they use
+5. **What should AI assistants know first?** - The "if you remember one thing" summary
 
-1. **Coding conventions** - Naming, formatting, patterns used in this codebase
-2. **Testing approach** - Unit tests, integration tests, coverage expectations
-3. **Error handling** - How errors are handled and reported
-4. **Logging** - Logging conventions and levels
-5. **Any project-specific rules** - Things AI assistants should know
+Then read `.spool/project.md` and update it with their answers.
 
-Look at existing code to infer conventions rather than inventing new ones.
+## Step 3: Interview for .spool/user-guidance.md
+
+Ask about their preferences and conventions:
+
+1. **Coding style** - Any strong preferences? (naming, formatting, patterns)
+2. **Testing philosophy** - Unit tests? Integration tests? TDD? Coverage goals?
+3. **What do you NOT want AI to do?** - Anti-patterns, forbidden approaches, pet peeves
+4. **Error handling** - How should errors be handled and reported?
+5. **Anything that's bitten you before?** - Past mistakes to avoid
+
+Then read `.spool/user-guidance.md` and update it based on their answers.
 
 ## Step 4: Review .spool/config.json
 
-Check `.spool/config.json` and adjust defaults if needed:
+Ask if they want to adjust defaults:
 - Coverage targets (default: 100% target, 80% minimum)
 - TDD workflow preferences
-- Tool-specific settings
+- Any tool-specific settings
 
-## Step 5: Verify Setup
+Most users can skip this - defaults are sensible.
+
+## Step 5: Verify and Next Steps
 
 After updating the files:
 1. Run `spool list` to verify Spool is working
-2. Suggest creating a first change to test the workflow
+2. Ask if they'd like to create their first change proposal
 
-## Tips
+## Interview Tips
 
-- Keep documentation minimal but useful - avoid boilerplate
-- Prefer inferring conventions from code over asking the user
-- Focus on what's unique or important about this project
-- Don't over-document obvious things
+- Ask one topic at a time, don't overwhelm
+- Offer sensible defaults they can accept or modify
+- Keep it conversational, not like a form
+- If they say "I don't know" or "whatever", use good defaults
+- Document what's unique, skip the obvious
