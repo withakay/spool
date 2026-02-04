@@ -13,8 +13,13 @@ fn make_fixture_repo() -> tempfile::TempDir {
 }
 
 fn normalize_version(text: String) -> String {
-    let ver = env!("CARGO_PKG_VERSION");
-    text.replace(ver, "<VERSION>")
+    // The CLI prints the workspace version (via build.rs) when available.
+    // Snapshot tests should normalize either source.
+    let mut out = text;
+    if let Some(ver) = option_env!("SPOOL_WORKSPACE_VERSION") {
+        out = out.replace(ver, "<VERSION>");
+    }
+    out.replace(env!("CARGO_PKG_VERSION"), "<VERSION>")
 }
 
 fn normalize_trailing_whitespace(text: String) -> String {

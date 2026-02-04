@@ -90,6 +90,34 @@ For each task in tasks.md:
   5. Mark task complete
 ```
 
+### Testing Policy (TDD + coverage)
+
+Spool guidance assumes a disciplined TDD loop:
+
+- RED: write a failing test first
+- GREEN: implement the minimum to pass
+- REFACTOR: clean up while tests stay green
+
+Default coverage guidance is 80% (not enforced by Spool; treat as a team policy target).
+
+You can override the defaults via the cascading project config:
+
+- Keys: `defaults.testing.tdd.workflow`, `defaults.testing.coverage.target_percent`
+- Sources (low -> high): `spool.json`, `.spool.json`, `.spool/config.json`, `$PROJECT_DIR/config.json`
+
+Example `.spool/config.json` override:
+
+```json
+{
+  "defaults": {
+    "testing": {
+      "tdd": { "workflow": "red-green-refactor" },
+      "coverage": { "target_percent": 90 }
+    }
+  }
+}
+```
+
 ### 4. Review (`/spool-review`)
 
 Validates changes, specs, or implementations.

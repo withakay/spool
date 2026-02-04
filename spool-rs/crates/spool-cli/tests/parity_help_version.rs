@@ -27,7 +27,7 @@ fn version_prints_workspace_version() {
     assert_eq!(rs.code, 0);
     assert!(rs.stderr.is_empty());
 
-    let ver = env!("CARGO_PKG_VERSION");
+    let ver = option_env!("SPOOL_WORKSPACE_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"));
     let out = rs.stdout.trim();
     assert!(
         out == ver || out == format!("spool {ver}"),

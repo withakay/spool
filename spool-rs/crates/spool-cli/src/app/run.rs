@@ -29,7 +29,8 @@ pub(super) fn run(args: &[String]) -> CliResult<()> {
             }
             ErrorKind::DisplayVersion => {
                 // Match Commander.js behavior: `spool --version` prints the version only.
-                println!("{}", env!("CARGO_PKG_VERSION"));
+                let v = option_env!("SPOOL_WORKSPACE_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"));
+                println!("{v}");
                 return Ok(());
             }
             _ => {

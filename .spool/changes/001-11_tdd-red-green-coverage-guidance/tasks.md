@@ -38,8 +38,8 @@ ______________________________________________________________________
   - Include a short snippet showing where the project can override the defaults.
 - **Verify**: `make test`
 - **Done When**: A fresh `spool init --force --tools all` installs templates that include the new guidance.
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 1.2: Extend template config to include testing defaults
 
@@ -48,8 +48,8 @@ ______________________________________________________________________
 - **Action**: Add default keys for testing policy (TDD workflow + coverage target).
 - **Verify**: `make test`
 - **Done When**: Installed `.spool/config.json` contains the default testing policy keys.
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -60,26 +60,24 @@ ______________________________________________________________________
 ### Task 2.1: Plumb testing policy config into instruction generation
 
 - **Files**: `spool-rs/` (instruction generation + config loading)
-- **Dependencies**: Task 1.1, Task 1.2
 - **Action**:
   - Read config via existing cascading config system.
   - Render testing policy guidance into `spool agent instruction proposal|apply` outputs, using configured values.
 - **Verify**: `make test`
 - **Done When**: A unit/integration test demonstrates that instruction output changes with config overrides.
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ### Task 2.2: Update docs to describe TDD + coverage guidance and overrides
 
 - **Files**:
   - `.spool/AGENTS.md` (project docs)
   - `docs/agent-workflow.md` (if present)
-- **Dependencies**: Task 2.1
 - **Action**: Add a short section documenting RED/GREEN/REFACTOR and the default coverage target, with config override examples.
 - **Verify**: `spool validate 001-11_tdd-red-green-coverage-guidance --strict`
 - **Done When**: Documentation clearly explains defaults and how to override them.
-- **Updated At**: 2026-02-01
-- **Status**: [ ] pending
+- **Updated At**: 2026-02-04
+- **Status**: [x] complete
 
 ______________________________________________________________________
 

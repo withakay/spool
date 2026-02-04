@@ -5,6 +5,13 @@ description: Use when implementing, executing, applying, building, coding, or de
 
 Run the CLI-generated apply instructions for a specific change.
 
+**Testing Policy (TDD + coverage)**
+
+- Default workflow: RED/GREEN/REFACTOR (write a failing test, implement the minimum to pass, then refactor).
+- Coverage target: 80% (guidance; projects may override).
+- Override keys (cascading config): `defaults.testing.tdd.workflow`, `defaults.testing.coverage.target_percent`
+- Follow the "Testing Policy" section printed by `spool agent instruction apply`; it should reflect project configuration.
+
 **Steps**
 
 1. Determine the target change ID.

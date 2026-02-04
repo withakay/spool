@@ -25,6 +25,10 @@ artifacts:
       implementation details belong in design.md.
 
       This is the foundation - specs, design, and tasks all build on this.
+
+      Testing Policy:
+      - Follow the Testing Policy (TDD + coverage) printed by `spool agent instruction proposal|apply`.
+      - Default is RED/GREEN/REFACTOR with a coverage target (configurable per project).
     requires: []
 
   - id: specs
@@ -144,6 +148,11 @@ apply:
   tracks: tasks.md
   instruction: |
     Read context files and work through pending tasks.
+
+    Testing Policy:
+    - Follow a disciplined RED/GREEN/REFACTOR loop while implementing each task.
+    - Aim to meet or exceed the configured coverage target.
+    - See the Testing Policy section printed by `spool agent instruction apply`.
 
     Prefer driving execution via the tasks CLI:
     - `spool tasks next <change-id>`

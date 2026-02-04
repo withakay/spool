@@ -146,6 +146,9 @@ vite.config.ts.timestamp-*
 # Spool local state (do not track)
 .spool/.state/
 
+# Avoid accidental nested Spool projects
+spool-rs/.spool/
+
 # Pnpm
 .pnpm-store/
 

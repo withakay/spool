@@ -67,6 +67,15 @@ Skip proposal for:
 
 Track these steps as TODOs and complete them one by one.
 
+## Testing Policy (TDD + coverage)
+
+- Default workflow: RED/GREEN/REFACTOR (write a failing test, implement the minimum to pass, then refactor).
+- Coverage target: 80% (guidance).
+- Override per project (cascading config):
+  - `defaults.testing.tdd.workflow` (e.g., `red-green-refactor`)
+  - `defaults.testing.coverage.target_percent` (e.g., `80`)
+- `spool agent instruction proposal|apply` should reflect the configured policy.
+
 1. **Read proposal.md** - Understand what's being built
 1. **Read design.md** (if exists) - Review technical decisions
 1. **Read tasks.md** - Get implementation checklist

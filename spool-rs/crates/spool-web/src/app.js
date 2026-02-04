@@ -1,5 +1,7 @@
 // State
 let editor = null, currentPath = null, originalContent = null, currentLanguage = null, previewMode = false;
+let viewMode = 'files';
+let currentTemplatePath = null, currentTemplateSource = null;
 let term = null, termSocket = null, fitAddon = null;
 
 const langToMode = {
@@ -17,6 +19,28 @@ function getIcon(name, isDir) {
 
 async function listDir(path = '') {
   const res = await fetch(path ? `/api/list/${path}` : '/api/list');
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function listTemplates() {
+  const res = await fetch('/api/templates/list');
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function readTemplateSource(path) {
+  const res = await fetch(`/api/templates/source?path=${encodeURIComponent(path)}`);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function renderTemplate(path, ctx) {
+  const res = await fetch(`/api/templates/render?path=${encodeURIComponent(path)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(ctx)
+  });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
@@ -48,6 +72,17 @@ async function navigateDir(path) {
   catch (e) { console.error('Failed to navigate:', e); }
 }
 
+async function navigateTemplates() {
+  try {
+    const data = await listTemplates();
+    renderTemplatesTree(data.templates);
+    const bc = document.getElementById('breadcrumb');
+    bc.innerHTML = '<span data-path="">Templates</span>';
+  } catch (e) {
+    console.error('Failed to list templates:', e);
+  }
+}
+
 function renderTree(entries, parentPath) {
   const tree = document.getElementById('file-tree');
   tree.innerHTML = '';
@@ -68,8 +103,22 @@ function renderTree(entries, parentPath) {
   }
 }
 
+function renderTemplatesTree(templates) {
+  const tree = document.getElementById('file-tree');
+  tree.innerHTML = '';
+  for (const t of templates) {
+    const item = document.createElement('div');
+    item.className = 'tree-item';
+    if (t.path === currentTemplatePath) item.classList.add('active');
+    item.innerHTML = `<span class="icon"></span><span class="name">${escapeHtml(t.path)}</span>`;
+    item.onclick = () => openTemplate(t.path);
+    tree.appendChild(item);
+  }
+}
+
 async function openFile(path) {
   try {
+    if (viewMode !== 'files') return;
     if (editor && hasChanges() && !confirm('Discard unsaved changes?')) return;
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('visible');
@@ -93,6 +142,85 @@ async function openFile(path) {
     editor.on('change', updateSaveState);
     updateSaveState();
   } catch (e) { console.error('Failed to open:', e); setStatus('error', e.message); }
+}
+
+async function openTemplate(path) {
+  try {
+    if (viewMode !== 'templates') return;
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('visible');
+
+    const src = await readTemplateSource(path);
+    currentTemplatePath = path;
+    currentTemplateSource = src.content;
+
+    document.getElementById('toolbar').style.display = 'none';
+    const container = document.getElementById('editor-container');
+    container.innerHTML = `
+      <div class="template-view">
+        <div class="template-header">
+          <div class="template-title">Template: ${escapeHtml(path)}</div>
+          <button class="btn btn-secondary" id="template-back">Back</button>
+          <button class="btn btn-secondary" id="template-md-toggle" title="Toggle Markdown preview">MD</button>
+          <button class="btn btn-primary" id="template-render">Render</button>
+        </div>
+        <div class="template-grid">
+          <div class="template-panel">
+            <h3>Context (JSON)</h3>
+            <textarea id="template-context" spellcheck="false">{\n  "name": "world"\n}</textarea>
+          </div>
+          <div class="template-panel">
+            <h3>Template Source</h3>
+            <pre id="template-source"></pre>
+          </div>
+          <div class="template-panel" id="template-output-panel">
+            <h3>Rendered Output</h3>
+            <pre id="template-output"></pre>
+            <div class="template-output-md" id="template-output-md"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('template-source').textContent = currentTemplateSource;
+    document.getElementById('template-back').onclick = () => { currentTemplatePath = null; currentTemplateSource = null; container.innerHTML = ''; navigateTemplates(); };
+
+    const mdToggle = document.getElementById('template-md-toggle');
+    mdToggle.onclick = () => {
+      const md = document.getElementById('template-output-md');
+      const pre = document.getElementById('template-output');
+      const on = md.classList.toggle('visible');
+      pre.style.display = on ? 'none' : 'block';
+      if (on) md.innerHTML = marked.parse(pre.textContent || '');
+    };
+
+    document.getElementById('template-render').onclick = async () => {
+      const ctxText = document.getElementById('template-context').value;
+      let ctx;
+      try {
+        ctx = JSON.parse(ctxText);
+      } catch (e) {
+        setStatus('error', `Invalid JSON: ${e.message}`);
+        return;
+      }
+
+      try {
+        setStatus('', '');
+        const out = await renderTemplate(path, ctx);
+        const pre = document.getElementById('template-output');
+        pre.textContent = out.output;
+        const md = document.getElementById('template-output-md');
+        if (md.classList.contains('visible')) md.innerHTML = marked.parse(out.output);
+      } catch (e) {
+        setStatus('error', e.message);
+      }
+    };
+
+    document.querySelectorAll('.tree-item').forEach(el => el.classList.toggle('active', el.querySelector('.name')?.textContent === path));
+  } catch (e) {
+    console.error('Failed to open template:', e);
+    setStatus('error', e.message);
+  }
 }
 
 function hasChanges() { return editor && editor.getValue() !== originalContent; }
@@ -179,6 +307,18 @@ function initMobile() {
   document.getElementById('sidebar-overlay').onclick = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('visible'); };
 }
 
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('mode-files').classList.toggle('active', mode === 'files');
+  document.getElementById('mode-templates').classList.toggle('active', mode === 'templates');
+  currentTemplatePath = null;
+  currentTemplateSource = null;
+  document.getElementById('toolbar').style.display = 'none';
+  document.getElementById('editor-container').innerHTML = '<div class="empty-state"><div class="icon">DIR</div><p>Select a file to edit</p><p><kbd>⌘S</kbd> Save <kbd>⌘P</kbd> Preview <kbd>⌘`</kbd> Terminal</p></div>';
+  if (mode === 'files') navigateDir('');
+  else navigateTemplates();
+}
+
 function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
 document.addEventListener('keydown', (e) => {
@@ -191,6 +331,8 @@ window.onbeforeunload = () => hasChanges() ? 'Unsaved changes' : undefined;
 
 document.getElementById('save-btn').onclick = doSave;
 document.getElementById('preview-btn').onclick = togglePreview;
+document.getElementById('mode-files').onclick = () => setViewMode('files');
+document.getElementById('mode-templates').onclick = () => setViewMode('templates');
 navigateDir('');
 initTerminal();
 initTerminalResize();

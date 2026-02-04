@@ -1,5 +1,14 @@
 {
   "tools": {},
   "agents": {},
-  "defaults": {}
+  "defaults": {
+    "testing": {
+      "tdd": {
+        "workflow": "red-green-refactor"
+      },
+      "coverage": {
+        "target_percent": 80
+      }
+    }
+  }
 }

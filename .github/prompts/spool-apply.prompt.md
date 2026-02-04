@@ -22,6 +22,23 @@ Use the Spool agent skill `spool-apply-change-proposal` (alias: `spool-apply`) a
 
 Tell the model to use the `spool-apply-change-proposal` skill to complete this workflow, using any supplied arguments or context from the prompt.
 
+**Testing Policy (TDD + coverage)**
+
+- Default workflow: RED/GREEN/REFACTOR (write a failing test, implement the minimum to pass, then refactor).
+- Coverage target: 80% (guidance; projects may override).
+- Override defaults in `.spool/config.json` (or `.spool.json`, `spool.json`):
+
+```json
+{
+  "defaults": {
+    "testing": {
+      "tdd": { "workflow": "red-green-refactor" },
+      "coverage": { "target_percent": 80 }
+    }
+  }
+}
+```
+
 **Guardrails**
 
 - If the `spool-apply-change-proposal` skill is missing or unavailable, ask the user to run `spool init` (or `spool update` if the project is already initialized), then stop.

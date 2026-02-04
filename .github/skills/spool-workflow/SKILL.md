@@ -15,6 +15,9 @@ This skill delegates workflow operations to the Spool CLI.
 spool create change "<name>" --module <module-id>
 spool list [--json]
 spool list --ready                    # Show only changes ready for implementation
+spool list --pending                  # Show changes with 0/N tasks complete
+spool list --partial                  # Show changes with 1..N-1/N tasks complete
+spool list --completed                # Show changes with N/N tasks complete
 spool status --change "<change-id>"
 ```
 

@@ -28,4 +28,37 @@ fn agent_instruction_text_output_renders_artifact_envelope() {
     assert_eq!(out.code, 0);
     assert!(out.stdout.contains("<artifact id=\"proposal\""));
     assert!(out.stdout.contains("Write to:"));
+    assert!(out.stdout.contains("<testing_policy>"));
+    assert!(out.stdout.contains("- tdd.workflow: red-green-refactor"));
+    assert!(out.stdout.contains("- coverage.target_percent: 80"));
+}
+
+#[test]
+fn agent_instruction_proposal_honors_testing_policy_override() {
+    let base = fixtures::make_repo_with_spec_change_fixture();
+    let repo = tempfile::tempdir().expect("work");
+    let home = tempfile::tempdir().expect("home");
+    let rust_path = assert_cmd::cargo::cargo_bin!("spool");
+
+    fixtures::reset_repo(repo.path(), base.path());
+    fixtures::write(
+        repo.path().join(".spool/config.json"),
+        "{\"defaults\":{\"testing\":{\"coverage\":{\"target_percent\":93}}}}\n",
+    );
+
+    let out = run_rust_candidate(
+        rust_path,
+        &[
+            "agent",
+            "instruction",
+            "proposal",
+            "--change",
+            "000-01_test-change",
+        ],
+        repo.path(),
+        home.path(),
+    );
+
+    assert_eq!(out.code, 0);
+    assert!(out.stdout.contains("- coverage.target_percent: 93"));
 }

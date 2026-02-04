@@ -26,3 +26,4 @@ portable-pty = { workspace = true }
 sha2 = "0.10"
 hex = "0.4"
 gethostname = "0.5"
+spool-templates = { path = "../spool-templates" }

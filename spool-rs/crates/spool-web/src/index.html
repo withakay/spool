@@ -38,7 +38,8 @@
     html, body { height: 100%; width: 100%; overflow: hidden; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; -webkit-font-smoothing: antialiased; position: fixed; inset: 0; }
     .app { display: flex; height: 100%; width: 100%; overflow: hidden; position: absolute; inset: 0; }
     .sidebar { width: 260px; min-width: 260px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-    .sidebar-header { padding: 16px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+     .sidebar-header { padding: 16px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+     .sidebar-actions { margin-left: auto; display: flex; gap: 8px; }
     .logo { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--magenta)); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: white; box-shadow: 0 2px 8px var(--accent-glow); }
     .sidebar-title { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
     .breadcrumb { padding: 10px 16px; font-size: 12px; color: var(--text-muted); background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -128,7 +129,14 @@
   <div class="app">
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
     <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header"><div class="logo">S</div><span class="sidebar-title">Spool</span></div>
+       <div class="sidebar-header">
+         <div class="logo">S</div>
+         <span class="sidebar-title">Spool</span>
+         <div class="sidebar-actions">
+           <button class="btn btn-secondary btn-icon active" id="mode-files" title="Browse files">Files</button>
+           <button class="btn btn-secondary btn-icon" id="mode-templates" title="View templates">Templates</button>
+         </div>
+       </div>
       <div class="breadcrumb" id="breadcrumb"></div>
       <div class="file-tree" id="file-tree"></div>
     </aside>
@@ -180,3 +188,18 @@
   <script src="/app.js"></script>
 </body>
 </html>
+     .template-view { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+     .template-header { padding: 12px 20px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+     .template-title { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+     .template-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 20px; overflow: hidden; }
+     .template-panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+     .template-panel h3 { padding: 10px 12px; font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
+     .template-panel textarea { flex: 1; min-height: 0; width: 100%; padding: 12px; background: transparent; color: var(--text); border: none; outline: none; resize: none; font-family: 'MesloLGS NF', 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; }
+     .template-panel pre { flex: 1; min-height: 0; margin: 0; padding: 12px; overflow: auto; white-space: pre; font-family: 'MesloLGS NF', 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; color: var(--text); }
+     .template-output-md { flex: 1; min-height: 0; margin: 0; padding: 12px; overflow: auto; display: none; }
+     .template-output-md.visible { display: block; }
+     .template-output-md h1, .template-output-md h2, .template-output-md h3, .template-output-md h4 { margin: 1em 0 0.5em; }
+     .template-output-md code { background: var(--surface); padding: 2px 6px; border-radius: var(--radius-sm); }
+     .template-output-md pre { white-space: pre; }
+     .template-output-md pre code { background: none; padding: 0; }
+     @media (max-width: 1000px) { .template-grid { grid-template-columns: 1fr; } }

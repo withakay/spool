@@ -2,8 +2,10 @@ use crate::cli::{AgentArgs, AgentCommand, AgentInstructionArgs};
 use crate::cli_error::{CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
 use crate::util::parse_string_flag;
+use spool_core::config::load_cascading_project_config;
 use spool_core::workflow as core_workflow;
 use spool_domain::changes::ChangeRepository;
+use std::path::Path;
 
 pub(crate) fn handle_agent(rt: &Runtime, args: &[String]) -> CliResult<()> {
     // Check for subcommand first - subcommand handlers have their own help checks
@@ -92,6 +94,8 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
 
     let ctx = rt.ctx();
     let spool_path = rt.spool_path();
+    let project_root = spool_path.parent().unwrap_or(spool_path);
+    let testing_policy = load_testing_policy(project_root, spool_path, ctx);
 
     let user_guidance = match core_workflow::load_user_guidance(spool_path) {
         Ok(v) => v,
@@ -133,7 +137,7 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
             return Ok(());
         }
 
-        print_apply_instructions_text(&apply);
+        print_apply_instructions_text(&apply, &testing_policy);
         print_user_guidance_markdown(user_guidance.as_deref());
         return Ok(());
     }
@@ -154,9 +158,65 @@ pub(crate) fn handle_agent_instruction(rt: &Runtime, args: &[String]) -> CliResu
         println!("{rendered}");
         return Ok(());
     }
-    print_artifact_instructions_text(&resolved, user_guidance.as_deref());
+    print_artifact_instructions_text(&resolved, user_guidance.as_deref(), &testing_policy);
 
     Ok(())
+}
+
+#[derive(Debug, Clone)]
+struct TestingPolicy {
+    tdd_workflow: String,
+    coverage_target_percent: u64,
+}
+
+fn load_testing_policy(
+    project_root: &Path,
+    spool_path: &Path,
+    ctx: &spool_core::config::ConfigContext,
+) -> TestingPolicy {
+    let mut out = TestingPolicy {
+        tdd_workflow: "red-green-refactor".to_string(),
+        coverage_target_percent: 80,
+    };
+
+    let cfg = load_cascading_project_config(project_root, spool_path, ctx);
+    let merged = cfg.merged;
+
+    if let Some(v) = json_get(&merged, &["defaults", "testing", "tdd", "workflow"])
+        && let Some(s) = v.as_str()
+    {
+        let s = s.trim();
+        if !s.is_empty() {
+            out.tdd_workflow = s.to_string();
+        }
+    }
+
+    if let Some(v) = json_get(
+        &merged,
+        &["defaults", "testing", "coverage", "target_percent"],
+    ) {
+        if let Some(n) = v.as_u64() {
+            out.coverage_target_percent = n;
+        } else if let Some(n) = v.as_f64()
+            && n.is_finite()
+            && n >= 0.0
+        {
+            out.coverage_target_percent = n.round() as u64;
+        }
+    }
+
+    out
+}
+
+fn json_get<'a>(root: &'a serde_json::Value, keys: &[&str]) -> Option<&'a serde_json::Value> {
+    let mut cur = root;
+    for k in keys {
+        let serde_json::Value::Object(map) = cur else {
+            return None;
+        };
+        cur = map.get(*k)?;
+    }
+    Some(cur)
 }
 
 pub(crate) fn handle_agent_clap(rt: &Runtime, args: &AgentArgs) -> CliResult<()> {
@@ -299,6 +359,7 @@ All workflow content is centralized in the Spool CLI. Adapters should remain thi
 fn print_artifact_instructions_text(
     instructions: &core_workflow::InstructionsResponse,
     user_guidance: Option<&str>,
+    testing_policy: &TestingPolicy,
 ) {
     let missing: Vec<String> = instructions
         .dependencies
@@ -361,6 +422,11 @@ fn print_artifact_instructions_text(
         }
     }
 
+    if instructions.artifact_id == "proposal" {
+        print_testing_policy_xml(testing_policy);
+        println!();
+    }
+
     println!("<output>");
     let out_path = std::path::Path::new(&instructions.change_dir).join(&instructions.output_path);
     println!("Write to: {}", out_path.to_string_lossy());
@@ -400,6 +466,19 @@ fn print_artifact_instructions_text(
     println!("</artifact>");
 }
 
+fn print_testing_policy_xml(policy: &TestingPolicy) {
+    println!("<testing_policy>");
+    println!("- tdd.workflow: {}", policy.tdd_workflow);
+    println!(
+        "- coverage.target_percent: {}",
+        policy.coverage_target_percent
+    );
+    println!(
+        "- override: set defaults.testing.* in .spool/config.json (or spool.json/.spool.json)"
+    );
+    println!("</testing_policy>");
+}
+
 fn print_user_guidance_markdown(user_guidance: Option<&str>) {
     let Some(user_guidance) = user_guidance else {
         return;
@@ -415,7 +494,10 @@ fn print_user_guidance_markdown(user_guidance: Option<&str>) {
     println!();
 }
 
-fn print_apply_instructions_text(instructions: &core_workflow::ApplyInstructionsResponse) {
+fn print_apply_instructions_text(
+    instructions: &core_workflow::ApplyInstructionsResponse,
+    testing_policy: &TestingPolicy,
+) {
     println!("## Apply: {}", instructions.change_name);
     println!("Schema: {}", instructions.schema_name);
     println!();
@@ -462,6 +544,20 @@ fn print_apply_instructions_text(instructions: &core_workflow::ApplyInstructions
         }
         println!();
     }
+
+    println!("### Testing Policy");
+    println!(
+        "- TDD workflow: {} (RED -> GREEN -> REFACTOR)",
+        testing_policy.tdd_workflow
+    );
+    println!(
+        "- Coverage target: {}% (guidance; override per project)",
+        testing_policy.coverage_target_percent
+    );
+    println!(
+        "- Override keys: defaults.testing.tdd.workflow, defaults.testing.coverage.target_percent"
+    );
+    println!();
 
     if instructions.progress.total > 0 || !instructions.tasks.is_empty() {
         println!("### Progress");

@@ -1,5 +1,6 @@
 //! File system API endpoints.
 
+use axum::extract::Query;
 use axum::{
     Router,
     extract::{Path, State},
@@ -54,7 +55,108 @@ pub fn router(root: PathBuf) -> Router {
         .route("/list/{*path}", get(list_dir))
         .route("/list", get(list_root))
         .route("/file/{*path}", get(read_file).post(save_file))
+        .route("/templates/list", get(list_templates))
+        .route("/templates/source", get(get_template_source))
+        .route("/templates/render", axum::routing::post(render_template))
         .with_state(state)
+}
+
+#[derive(Debug, Serialize)]
+pub struct TemplateEntry {
+    path: String,
+    size: usize,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TemplateListResponse {
+    templates: Vec<TemplateEntry>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TemplateSourceResponse {
+    path: String,
+    content: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TemplateRenderResponse {
+    path: String,
+    output: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TemplatePathQuery {
+    path: String,
+}
+
+fn is_safe_embedded_template_path(path: &str) -> bool {
+    if path.is_empty() {
+        return false;
+    }
+    if path.starts_with('/') {
+        return false;
+    }
+    // Avoid any surprising path traversal patterns even though include_dir
+    // won't access the filesystem.
+    if path.contains("..") {
+        return false;
+    }
+    true
+}
+
+async fn list_templates() -> Result<Json<TemplateListResponse>, (StatusCode, String)> {
+    let templates = spool_templates::instructions::list_instruction_templates()
+        .into_iter()
+        .filter(|p| p.ends_with(".j2"))
+        .filter_map(|p| {
+            let bytes = spool_templates::instructions::get_instruction_template_bytes(p)?;
+            Some(TemplateEntry {
+                path: p.to_string(),
+                size: bytes.len(),
+            })
+        })
+        .collect();
+
+    Ok(Json(TemplateListResponse { templates }))
+}
+
+async fn get_template_source(
+    Query(q): Query<TemplatePathQuery>,
+) -> Result<Json<TemplateSourceResponse>, (StatusCode, String)> {
+    if !is_safe_embedded_template_path(&q.path) {
+        return Err((StatusCode::BAD_REQUEST, "invalid template path".to_string()));
+    }
+
+    let bytes = spool_templates::instructions::get_instruction_template_bytes(&q.path)
+        .ok_or((StatusCode::NOT_FOUND, "template not found".to_string()))?;
+    let content = std::str::from_utf8(bytes).map_err(|_| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "template is not utf-8".to_string(),
+        )
+    })?;
+
+    Ok(Json(TemplateSourceResponse {
+        path: q.path,
+        content: content.to_string(),
+    }))
+}
+
+async fn render_template(
+    Query(q): Query<TemplatePathQuery>,
+    Json(ctx): Json<serde_json::Value>,
+) -> Result<Json<TemplateRenderResponse>, (StatusCode, String)> {
+    if !is_safe_embedded_template_path(&q.path) {
+        return Err((StatusCode::BAD_REQUEST, "invalid template path".to_string()));
+    }
+
+    let output = spool_templates::instructions::render_instruction_template(&q.path, &ctx)
+        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+
+    Ok(Json(TemplateRenderResponse {
+        path: q.path,
+        output,
+    }))
 }
 
 /// List root directory.
