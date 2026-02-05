@@ -1,6 +1,6 @@
 [package]
 name = "spool-web"
-version = "0.22.3-local.202602050906"
+version = "0.24.0-local.202602051036"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

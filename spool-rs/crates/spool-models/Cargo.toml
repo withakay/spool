@@ -1,6 +1,6 @@
 [package]
 name = "spool-models"
-version = "0.22.3-local.202602050906"
+version = "0.24.0-local.202602051036"
 edition = "2021"
 description = "Model registry and agent management for Spool"
 
