@@ -53,6 +53,7 @@ pub fn install_default_templates(
     }
 
     install_adapter_files(project_root, mode, opts)?;
+    install_agent_templates(project_root, mode, opts)?;
     Ok(())
 }
 
@@ -229,6 +230,157 @@ fn install_adapter_files(
     }
 
     Ok(())
+}
+
+/// Install Spool agent templates (spool-quick, spool-general, spool-thinking)
+fn install_agent_templates(
+    project_root: &Path,
+    mode: InstallMode,
+    opts: &InitOptions,
+) -> Result<()> {
+    use spool_templates::agents::{
+        AgentTier, Harness, default_agent_configs, get_agent_files, render_agent_template,
+    };
+
+    let configs = default_agent_configs();
+
+    // Map tool names to harnesses
+    let tool_harness_map = [
+        (TOOL_OPENCODE, Harness::OpenCode),
+        (TOOL_CLAUDE, Harness::ClaudeCode),
+        (TOOL_CODEX, Harness::Codex),
+        (TOOL_GITHUB_COPILOT, Harness::GitHubCopilot),
+    ];
+
+    for (tool_id, harness) in tool_harness_map {
+        if !opts.tools.contains(tool_id) {
+            continue;
+        }
+
+        let agent_dir = project_root.join(harness.project_agent_path());
+
+        // Get agent template files for this harness
+        let files = get_agent_files(harness);
+
+        for (rel_path, contents) in files {
+            let target = agent_dir.join(rel_path);
+
+            // Parse the template and determine which tier it is
+            let tier = if rel_path.contains("spool-quick") || rel_path.contains("quick") {
+                Some(AgentTier::Quick)
+            } else if rel_path.contains("spool-general") || rel_path.contains("general") {
+                Some(AgentTier::General)
+            } else if rel_path.contains("spool-thinking") || rel_path.contains("thinking") {
+                Some(AgentTier::Thinking)
+            } else {
+                None
+            };
+
+            // Get config for this tier
+            let config = tier.and_then(|t| configs.get(&(harness, t)));
+
+            match mode {
+                InstallMode::Init => {
+                    // During init: skip if exists and not forced
+                    if target.exists() && !opts.force {
+                        continue;
+                    }
+
+                    // Render full template
+                    let rendered = if let Some(cfg) = config {
+                        if let Ok(template_str) = std::str::from_utf8(contents) {
+                            render_agent_template(template_str, cfg).into_bytes()
+                        } else {
+                            contents.to_vec()
+                        }
+                    } else {
+                        contents.to_vec()
+                    };
+
+                    // Ensure parent directory exists
+                    if let Some(parent) = target.parent() {
+                        crate::io::create_dir_all(parent)?;
+                    }
+
+                    crate::io::write(&target, rendered)?;
+                }
+                InstallMode::Update => {
+                    // During update: only update model in existing spool agent files
+                    if !target.exists() {
+                        // File doesn't exist, create it
+                        let rendered = if let Some(cfg) = config {
+                            if let Ok(template_str) = std::str::from_utf8(contents) {
+                                render_agent_template(template_str, cfg).into_bytes()
+                            } else {
+                                contents.to_vec()
+                            }
+                        } else {
+                            contents.to_vec()
+                        };
+
+                        if let Some(parent) = target.parent() {
+                            crate::io::create_dir_all(parent)?;
+                        }
+                        crate::io::write(&target, rendered)?;
+                    } else if let Some(cfg) = config {
+                        // File exists, only update model field in frontmatter
+                        update_agent_model_field(&target, &cfg.model)?;
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Update only the model field in an existing agent file's frontmatter
+fn update_agent_model_field(path: &Path, new_model: &str) -> Result<()> {
+    let content = crate::io::read_to_string_or_default(path);
+
+    // Only update files with frontmatter
+    if !content.starts_with("---") {
+        return Ok(());
+    }
+
+    // Find frontmatter boundaries
+    let rest = &content[3..];
+    let Some(end_idx) = rest.find("\n---") else {
+        return Ok(());
+    };
+
+    let frontmatter = &rest[..end_idx];
+    let body = &rest[end_idx + 4..]; // Skip "\n---"
+
+    // Update model field in frontmatter using simple string replacement
+    let updated_frontmatter = update_model_in_yaml(frontmatter, new_model);
+
+    // Reconstruct file
+    let updated = format!("---{}\n---{}", updated_frontmatter, body);
+    crate::io::write(path, updated)?;
+
+    Ok(())
+}
+
+/// Update the model field in YAML frontmatter string
+fn update_model_in_yaml(yaml: &str, new_model: &str) -> String {
+    let mut lines: Vec<String> = yaml.lines().map(|l| l.to_string()).collect();
+    let mut found = false;
+
+    for line in &mut lines {
+        if line.trim_start().starts_with("model:") {
+            *line = format!("model: \"{}\"", new_model);
+            found = true;
+            break;
+        }
+    }
+
+    // If no model field found, add it
+    if !found {
+        lines.push(format!("model: \"{}\"", new_model));
+    }
+
+    lines.join("\n")
 }
 
 #[cfg(test)]

@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use include_dir::{Dir, include_dir};
 
+pub mod agents;
 pub mod instructions;
 
 static DEFAULT_PROJECT_DIR: Dir<'static> =
@@ -10,6 +11,7 @@ static DEFAULT_HOME_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets
 static SKILLS_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/skills");
 static ADAPTERS_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/adapters");
 static COMMANDS_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/commands");
+static AGENTS_DIR: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/assets/agents");
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EmbeddedFile {
