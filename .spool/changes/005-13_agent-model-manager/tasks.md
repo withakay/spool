@@ -330,7 +330,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-core`
 - **Done When**: Config accepts harnesses
 - **Updated At**: 2026-02-05
-- **Status**: [-] shelved
+- **Status**: [x] complete
 
 ### Task 6.5: Generate JSON schema for config
 
@@ -340,7 +340,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-core`
 - **Done When**: Schema generates correctly
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 6.6: Add config schema CLI command
 
@@ -350,7 +350,7 @@ ______________________________________________________________________
 - **Verify**: `spool config schema | jq .`
 - **Done When**: Outputs valid JSON schema
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -366,7 +366,7 @@ ______________________________________________________________________
 - **Verify**: Skill references spool agents
 - **Done When**: Skill updated
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 7.2: Update dispatching-parallel-agents skill
 
@@ -376,7 +376,7 @@ ______________________________________________________________________
 - **Verify**: Skill includes guidance
 - **Done When**: Skill updated
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 7.3: Update requesting-code-review skill
 
@@ -386,7 +386,7 @@ ______________________________________________________________________
 - **Verify**: Skill references agents
 - **Done When**: Skill updated
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 7.4: Update brainstorming skill
 
@@ -396,7 +396,7 @@ ______________________________________________________________________
 - **Verify**: Skill references spool-thinking
 - **Done When**: Skill updated
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -413,7 +413,7 @@ ______________________________________________________________________
 - **Verify**: All tests pass
 - **Done When**: Human confirms complete
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 

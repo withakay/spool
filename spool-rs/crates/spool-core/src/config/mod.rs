@@ -3,6 +3,10 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+pub mod defaults;
+pub mod schema;
+pub mod types;
+
 const REPO_CONFIG_FILE_NAME: &str = "spool.json";
 const REPO_DOT_CONFIG_FILE_NAME: &str = ".spool.json";
 const SPOOL_DIR_CONFIG_FILE_NAME: &str = "config.json";
@@ -80,7 +84,11 @@ fn load_json_object(path: &Path) -> Option<Value> {
     };
 
     match v {
-        Value::Object(_) => Some(v),
+        Value::Object(mut obj) => {
+            // Ignore JSON schema references in config.
+            obj.remove("$schema");
+            Some(Value::Object(obj))
+        }
         _ => {
             eprintln!(
                 "Warning: Expected JSON object in {}, ignoring",
@@ -182,7 +190,7 @@ pub fn load_cascading_project_config(
     spool_path: &Path,
     ctx: &ConfigContext,
 ) -> CascadingProjectConfig {
-    let mut merged = Value::Object(serde_json::Map::new());
+    let mut merged = defaults::default_config_json();
     let mut loaded_from: Vec<PathBuf> = Vec::new();
 
     let paths = project_config_paths(project_root, spool_path, ctx);
@@ -291,15 +299,20 @@ mod tests {
         let r = load_cascading_project_config(repo.path(), &spool_path, &ctx);
 
         assert_eq!(
-            r.merged,
-            serde_json::json!({
-                "obj": {"a": 9, "b": 2, "c": 3},
-                "arr": [2],
-                "x": "project_dir",
-                "y": "dot",
-                "z": "spool_dir"
-            })
+            r.merged.get("obj").unwrap(),
+            &serde_json::json!({"a": 9, "b": 2, "c": 3})
         );
+        assert_eq!(r.merged.get("arr").unwrap(), &serde_json::json!([2]));
+        assert_eq!(
+            r.merged.get("x").unwrap(),
+            &serde_json::json!("project_dir")
+        );
+        assert_eq!(r.merged.get("y").unwrap(), &serde_json::json!("dot"));
+        assert_eq!(r.merged.get("z").unwrap(), &serde_json::json!("spool_dir"));
+
+        // Defaults are present.
+        assert!(r.merged.get("cache").is_some());
+        assert!(r.merged.get("harnesses").is_some());
 
         assert_eq!(
             r.loaded_from,
@@ -323,9 +336,27 @@ mod tests {
         let spool_path = crate::spool_dir::get_spool_path(repo.path(), &ctx);
 
         let r = load_cascading_project_config(repo.path(), &spool_path, &ctx);
-        assert_eq!(r.merged, serde_json::json!({"a": 1}));
+        assert_eq!(r.merged.get("a").unwrap(), &serde_json::json!(1));
+        assert!(r.merged.get("cache").is_some());
 
         assert_eq!(r.loaded_from, vec![repo.path().join("spool.json")]);
+    }
+
+    #[test]
+    fn cascading_project_config_ignores_schema_ref_key() {
+        let repo = tempfile::tempdir().unwrap();
+        crate::io::write_std(
+            &repo.path().join("spool.json"),
+            "{\"$schema\":\"./config.schema.json\",\"a\":1}",
+        )
+        .unwrap();
+
+        let ctx = ConfigContext::default();
+        let spool_path = crate::spool_dir::get_spool_path(repo.path(), &ctx);
+
+        let r = load_cascading_project_config(repo.path(), &spool_path, &ctx);
+        assert_eq!(r.merged.get("a").unwrap(), &serde_json::json!(1));
+        assert!(r.merged.get("$schema").is_none());
     }
 
     #[test]

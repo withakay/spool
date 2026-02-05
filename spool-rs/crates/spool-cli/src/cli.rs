@@ -566,6 +566,13 @@ pub enum ConfigCommand {
         common: ConfigCommonArgs,
     },
 
+    /// Print JSON schema for Spool config
+    Schema {
+        /// Write schema to file instead of stdout
+        #[arg(long, value_name = "PATH")]
+        output: Option<std::path::PathBuf>,
+    },
+
     /// Forward unknown subcommands to legacy handler
     #[command(external_subcommand)]
     External(Vec<String>),

@@ -65,9 +65,10 @@ Each agent gets:
 
 ```typescript
 // In Claude Code / AI environment
-Task("Fix agent-tool-abort.test.ts failures")
-Task("Fix batch-completion-behavior.test.ts failures")
-Task("Fix tool-approval-race-conditions.test.ts failures")
+// Use spool tiers to match effort to task complexity.
+Task("Fix agent-tool-abort.test.ts failures", { agent: "spool-general" })
+Task("Fix batch-completion-behavior.test.ts failures", { agent: "spool-general" })
+Task("Fix tool-approval-race-conditions.test.ts failures", { agent: "spool-thinking" })
 // All three run concurrently
 ```
 

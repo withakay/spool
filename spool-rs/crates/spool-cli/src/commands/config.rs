@@ -1,7 +1,7 @@
 use crate::cli::{ConfigArgs, ConfigCommand};
 use crate::cli_error::{CliError, CliResult, fail, to_cli_error};
 use crate::runtime::Runtime;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub(crate) fn handle_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
     if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h") {
@@ -13,6 +13,16 @@ pub(crate) fn handle_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
     }
 
     let sub = args.first().map(|s| s.as_str()).unwrap_or("");
+
+    if sub == "schema" {
+        let output = args
+            .iter()
+            .position(|a| a == "--output")
+            .and_then(|i| args.get(i + 1))
+            .map(PathBuf::from);
+
+        return handle_config_schema(output.as_deref());
+    }
 
     let Some(path) = spool_core::config::global_config_path(rt.ctx()) else {
         return fail("No Spool config directory found");
@@ -84,51 +94,71 @@ pub(crate) fn handle_config(rt: &Runtime, args: &[String]) -> CliResult<()> {
 }
 
 pub(crate) fn handle_config_clap(rt: &Runtime, args: &ConfigArgs) -> CliResult<()> {
-    let mut argv: Vec<String> = Vec::new();
-
     match &args.command {
-        None => {}
+        None => {
+            let argv: Vec<String> = Vec::new();
+            handle_config(rt, &argv)
+        }
         Some(ConfigCommand::Path(common)) => {
-            argv.push("path".to_string());
+            let mut argv: Vec<String> = vec!["path".to_string()];
             if common.string {
                 argv.push("--string".to_string());
             }
+            handle_config(rt, &argv)
         }
         Some(ConfigCommand::List(common)) => {
-            argv.push("list".to_string());
+            let mut argv: Vec<String> = vec!["list".to_string()];
             if common.string {
                 argv.push("--string".to_string());
             }
+            handle_config(rt, &argv)
         }
         Some(ConfigCommand::Get { key, common }) => {
-            argv.push("get".to_string());
-            argv.push(key.clone());
+            let mut argv: Vec<String> = vec!["get".to_string(), key.clone()];
             if common.string {
                 argv.push("--string".to_string());
             }
+            handle_config(rt, &argv)
         }
         Some(ConfigCommand::Set { key, value, common }) => {
-            argv.push("set".to_string());
-            argv.push(key.clone());
-            argv.push(value.clone());
+            let mut argv: Vec<String> = vec!["set".to_string(), key.clone(), value.clone()];
             if common.string {
                 argv.push("--string".to_string());
             }
+            handle_config(rt, &argv)
         }
         Some(ConfigCommand::Unset { key, common }) => {
-            argv.push("unset".to_string());
-            argv.push(key.clone());
+            let mut argv: Vec<String> = vec!["unset".to_string(), key.clone()];
             if common.string {
                 argv.push("--string".to_string());
             }
+            handle_config(rt, &argv)
         }
+        Some(ConfigCommand::Schema { output }) => handle_config_schema(output.as_deref()),
         Some(ConfigCommand::External(v)) => {
             let sub = v.first().map(|s| s.as_str()).unwrap_or("");
-            argv.push(sub.to_string());
+            let argv: Vec<String> = vec![sub.to_string()];
+            handle_config(rt, &argv)
         }
     }
+}
 
-    handle_config(rt, &argv)
+fn handle_config_schema(output: Option<&Path>) -> CliResult<()> {
+    let schema = spool_core::config::schema::config_schema_pretty_json();
+
+    let Some(output) = output else {
+        println!("{schema}");
+        return Ok(());
+    };
+
+    if let Some(parent) = output.parent() {
+        spool_core::io::create_dir_all_std(parent).map_err(to_cli_error)?;
+    }
+
+    let mut bytes = schema.into_bytes();
+    bytes.push(b'\n');
+    spool_core::io::write_atomic_std(output, bytes).map_err(to_cli_error)?;
+    Ok(())
 }
 
 fn read_json_object_or_empty(path: &Path) -> CliResult<serde_json::Value> {
