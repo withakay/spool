@@ -7,7 +7,11 @@
         "workflow": "red-green-refactor"
       },
       "coverage": {
-        "target_percent": 80
+        "target_percent": 100,
+        "minimum_percent": 80
+      },
+      "mocking": {
+        "policy": "avoid"
       }
     }
   }

@@ -1,7 +1,9 @@
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use spool_common::fs::{FileSystem, StdFs};
 
 pub mod defaults;
 pub mod schema;
@@ -56,9 +58,21 @@ impl ConfigContext {
     }
 }
 
+fn read_to_string_optional_fs<F: FileSystem>(fs: &F, path: &Path) -> Option<String> {
+    match fs.read_to_string(path) {
+        Ok(s) => Some(s),
+        Err(e) if e.kind() == ErrorKind::NotFound => None,
+        Err(_) => None,
+    }
+}
+
 pub fn load_project_config(project_root: &Path) -> Option<ProjectConfig> {
+    load_project_config_fs(&StdFs, project_root)
+}
+
+pub fn load_project_config_fs<F: FileSystem>(fs: &F, project_root: &Path) -> Option<ProjectConfig> {
     let path = project_root.join(REPO_CONFIG_FILE_NAME);
-    let contents = crate::io::read_to_string_optional(&path).ok().flatten()?;
+    let contents = read_to_string_optional_fs(fs, &path)?;
 
     match serde_json::from_str(&contents) {
         Ok(v) => Some(v),
@@ -72,8 +86,8 @@ pub fn load_project_config(project_root: &Path) -> Option<ProjectConfig> {
     }
 }
 
-fn load_json_object(path: &Path) -> Option<Value> {
-    let contents = crate::io::read_to_string_optional(path).ok().flatten()?;
+fn load_json_object_fs<F: FileSystem>(fs: &F, path: &Path) -> Option<Value> {
+    let contents = read_to_string_optional_fs(fs, path)?;
 
     let v: Value = match serde_json::from_str(&contents) {
         Ok(v) => v,
@@ -136,17 +150,24 @@ fn project_path_from_json(v: &Value) -> Option<String> {
 ///
 /// NOTE: This does *not* consult `<spoolDir>/config.json` to avoid cycles.
 pub fn load_repo_project_path_override(project_root: &Path) -> Option<String> {
+    load_repo_project_path_override_fs(&StdFs, project_root)
+}
+
+pub fn load_repo_project_path_override_fs<F: FileSystem>(
+    fs: &F,
+    project_root: &Path,
+) -> Option<String> {
     let mut out = None;
 
     let repo = project_root.join(REPO_CONFIG_FILE_NAME);
-    if let Some(v) = load_json_object(&repo)
+    if let Some(v) = load_json_object_fs(fs, &repo)
         && let Some(p) = project_path_from_json(&v)
     {
         out = Some(p);
     }
 
     let repo = project_root.join(REPO_DOT_CONFIG_FILE_NAME);
-    if let Some(v) = load_json_object(&repo)
+    if let Some(v) = load_json_object_fs(fs, &repo)
         && let Some(p) = project_path_from_json(&v)
     {
         out = Some(p);
@@ -160,6 +181,8 @@ pub struct CascadingProjectConfig {
     pub merged: Value,
     pub loaded_from: Vec<PathBuf>,
 }
+
+pub type ResolvedConfig = CascadingProjectConfig;
 
 pub fn project_config_paths(
     project_root: &Path,
@@ -190,12 +213,21 @@ pub fn load_cascading_project_config(
     spool_path: &Path,
     ctx: &ConfigContext,
 ) -> CascadingProjectConfig {
+    load_cascading_project_config_fs(&StdFs, project_root, spool_path, ctx)
+}
+
+pub fn load_cascading_project_config_fs<F: FileSystem>(
+    fs: &F,
+    project_root: &Path,
+    spool_path: &Path,
+    ctx: &ConfigContext,
+) -> CascadingProjectConfig {
     let mut merged = defaults::default_config_json();
     let mut loaded_from: Vec<PathBuf> = Vec::new();
 
     let paths = project_config_paths(project_root, spool_path, ctx);
     for path in paths {
-        let Some(v) = load_json_object(&path) else {
+        let Some(v) = load_json_object_fs(fs, &path) else {
             continue;
         };
         merge_json(&mut merged, v);
@@ -238,11 +270,15 @@ pub fn spool_config_dir(ctx: &ConfigContext) -> Option<PathBuf> {
 }
 
 pub fn load_global_config(ctx: &ConfigContext) -> GlobalConfig {
+    load_global_config_fs(&StdFs, ctx)
+}
+
+pub fn load_global_config_fs<F: FileSystem>(fs: &F, ctx: &ConfigContext) -> GlobalConfig {
     let Some(path) = global_config_path(ctx) else {
         return GlobalConfig::default();
     };
 
-    let Some(contents) = crate::io::read_to_string_optional(&path).ok().flatten() else {
+    let Some(contents) = read_to_string_optional_fs(fs, &path) else {
         return GlobalConfig::default();
     };
 
@@ -257,6 +293,7 @@ pub fn load_global_config(ctx: &ConfigContext) -> GlobalConfig {
         }
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,20 +302,20 @@ mod tests {
     fn cascading_project_config_merges_sources_in_order_with_scalar_override() {
         let repo = tempfile::tempdir().unwrap();
 
-        crate::io::write_std(
-            &repo.path().join("spool.json"),
+        std::fs::write(
+            repo.path().join("spool.json"),
             "{\"obj\":{\"a\":1},\"arr\":[1],\"x\":\"repo\"}",
         )
         .unwrap();
-        crate::io::write_std(
-            &repo.path().join(".spool.json"),
+        std::fs::write(
+            repo.path().join(".spool.json"),
             "{\"obj\":{\"b\":2},\"arr\":[2],\"y\":\"dot\"}",
         )
         .unwrap();
 
         let project_dir = tempfile::tempdir().unwrap();
-        crate::io::write_std(
-            &project_dir.path().join("config.json"),
+        std::fs::write(
+            project_dir.path().join("config.json"),
             "{\"obj\":{\"c\":3},\"x\":\"project_dir\"}",
         )
         .unwrap();
@@ -289,9 +326,9 @@ mod tests {
             project_dir: Some(project_dir.path().to_path_buf()),
         };
         let spool_path = crate::spool_dir::get_spool_path(repo.path(), &ctx);
-        crate::io::create_dir_all_std(&spool_path).unwrap();
-        crate::io::write_std(
-            &spool_path.join("config.json"),
+        std::fs::create_dir_all(&spool_path).unwrap();
+        std::fs::write(
+            spool_path.join("config.json"),
             "{\"obj\":{\"a\":9},\"z\":\"spool_dir\"}",
         )
         .unwrap();
@@ -329,8 +366,8 @@ mod tests {
     fn cascading_project_config_ignores_invalid_json_sources() {
         let repo = tempfile::tempdir().unwrap();
 
-        crate::io::write_std(&repo.path().join("spool.json"), "{\"a\":1}").unwrap();
-        crate::io::write_std(&repo.path().join(".spool.json"), "not-json").unwrap();
+        std::fs::write(repo.path().join("spool.json"), "{\"a\":1}").unwrap();
+        std::fs::write(repo.path().join(".spool.json"), "not-json").unwrap();
 
         let ctx = ConfigContext::default();
         let spool_path = crate::spool_dir::get_spool_path(repo.path(), &ctx);
@@ -345,8 +382,8 @@ mod tests {
     #[test]
     fn cascading_project_config_ignores_schema_ref_key() {
         let repo = tempfile::tempdir().unwrap();
-        crate::io::write_std(
-            &repo.path().join("spool.json"),
+        std::fs::write(
+            repo.path().join("spool.json"),
             "{\"$schema\":\"./config.schema.json\",\"a\":1}",
         )
         .unwrap();

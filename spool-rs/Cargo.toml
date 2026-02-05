@@ -1,9 +1,10 @@
 [workspace]
 members = [
   "crates/spool-cli",
+  "crates/spool-common",
+  "crates/spool-config",
   "crates/spool-core",
   "crates/spool-domain",
-  "crates/spool-fs",
   "crates/spool-harness",
   "crates/spool-logging",
   "crates/spool-models",

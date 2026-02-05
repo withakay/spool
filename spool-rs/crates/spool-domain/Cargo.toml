@@ -6,6 +6,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+spool-common = { path = "../spool-common" }
 spool-schemas = { path = "../spool-schemas" }
 
 chrono.workspace = true

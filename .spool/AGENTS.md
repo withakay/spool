@@ -67,14 +67,31 @@ Skip proposal for:
 
 Track these steps as TODOs and complete them one by one.
 
-## Testing Policy (TDD + coverage)
+## Testing Policy
 
-- Default workflow: RED/GREEN/REFACTOR (write a failing test, implement the minimum to pass, then refactor).
-- Coverage target: 80% (guidance).
-- Override per project (cascading config):
-  - `defaults.testing.tdd.workflow` (e.g., `red-green-refactor`)
-  - `defaults.testing.coverage.target_percent` (e.g., `80`)
-- `spool agent instruction proposal|apply` should reflect the configured policy.
+### TDD Workflow
+- Default: RED/GREEN/REFACTOR (write a failing test, implement the minimum to pass, then refactor).
+
+### Coverage Targets
+- **Target**: 100% (aim high, more coverage == less ick)
+- **Minimum**: 80% (hard floor, below this is unacceptable)
+
+### Mocking Policy
+- **Avoid mocks.** Mocking should give you the ick.
+- Only mock when the alternative is *more* icky (e.g., external APIs, time-dependent behavior, paid services).
+- Prefer real implementations, in-memory fakes, or test containers over mocks.
+- If you find yourself mocking extensively, reconsider the design—it may indicate tight coupling.
+
+### Integration Tests
+- Write integration tests alongside unit tests.
+- Integration tests catch issues that unit tests miss (wiring, configuration, real dependencies).
+- A good test suite has a healthy mix of both.
+
+### Configuration Overrides
+Override per project via cascading config:
+- `defaults.testing.tdd.workflow` (e.g., `red-green-refactor`)
+- `defaults.testing.coverage.target_percent` (e.g., `100`)
+- `defaults.testing.coverage.minimum_percent` (e.g., `80`)
 
 1. **Read proposal.md** - Understand what's being built
 1. **Read design.md** (if exists) - Review technical decisions

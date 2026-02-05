@@ -2063,7 +2063,6 @@ dependencies = [
  "serde_json",
  "spool-core",
  "spool-domain",
- "spool-fs",
  "spool-harness",
  "spool-logging",
  "spool-schemas",
@@ -2078,6 +2077,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "spool-common"
+version = "0.24.0-local.202602051036"
+dependencies = [
+ "miette",
+ "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "spool-config"
+version = "0.24.0-local.202602051036"
+dependencies = [
+ "schemars",
+ "serde",
+ "serde_json",
+ "spool-common",
+ "tempfile",
+]
+
+[[package]]
 name = "spool-core"
 version = "0.24.0-local.202602051036"
 dependencies = [
@@ -2089,7 +2108,9 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
- "spool-fs",
+ "spool-common",
+ "spool-config",
+ "spool-domain",
  "spool-harness",
  "spool-templates",
  "tempfile",
@@ -2109,18 +2130,11 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "spool-common",
  "spool-schemas",
  "tempfile",
  "thiserror 2.0.18",
  "walkdir",
-]
-
-[[package]]
-name = "spool-fs"
-version = "0.24.0-local.202602051036"
-dependencies = [
- "tempfile",
- "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -2145,7 +2159,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "spool-core",
  "uuid",
 ]
 

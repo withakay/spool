@@ -29,7 +29,7 @@ ______________________________________________________________________
 - **Verify**: `cargo check -p spool-common`
 - **Done When**: Crate compiles with no spool-* dependencies
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.2: Move id module to spool-common
 
@@ -40,7 +40,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-common`
 - **Done When**: id module tests pass in spool-common
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.3: Move paths module to spool-common
 
@@ -51,7 +51,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-common`
 - **Done When**: paths module compiles in spool-common
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.4: Move io module to spool-common
 
@@ -62,7 +62,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-common`
 - **Done When**: io module compiles in spool-common
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.5: Move match module to spool-common
 
@@ -73,7 +73,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-common`
 - **Done When**: match_ module compiles in spool-common
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 1.6: Add FileSystem trait to spool-common
 
@@ -84,7 +84,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-common`
 - **Done When**: FileSystem trait and StdFs compile, StdFs is zero-sized
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -101,7 +101,7 @@ ______________________________________________________________________
 - **Verify**: `cargo check -p spool-config`
 - **Done When**: Crate compiles with only spool-common dependency
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.2: Move config module to spool-config
 
@@ -112,7 +112,7 @@ ______________________________________________________________________
 - **Verify**: `cargo check -p spool-config`
 - **Done When**: config module compiles in spool-config
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.3: Move spool_dir module to spool-config
 
@@ -123,7 +123,7 @@ ______________________________________________________________________
 - **Verify**: `cargo check -p spool-config`
 - **Done When**: spool_dir module compiles in spool-config
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.4: Move output module to spool-config
 
@@ -134,7 +134,7 @@ ______________________________________________________________________
 - **Verify**: `cargo check -p spool-config`
 - **Done When**: output module compiles in spool-config
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 2.5: Create SpoolContext struct
 
@@ -145,7 +145,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-config`
 - **Done When**: SpoolContext compiles and has resolve method
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 
@@ -162,7 +162,7 @@ ______________________________________________________________________
 - **Verify**: `cargo check -p spool-domain`
 - **Done When**: spool-domain compiles with new dependency
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.2: Move discovery module to spool-domain
 
@@ -173,7 +173,7 @@ ______________________________________________________________________
 - **Verify**: `cargo test -p spool-domain`
 - **Done When**: discovery module compiles and tests pass in spool-domain
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ### Task 3.3: Refactor spool-logging to be a leaf crate
 
@@ -184,7 +184,7 @@ ______________________________________________________________________
 - **Verify**: `cargo check -p spool-logging`
 - **Done When**: spool-logging has no spool-* dependencies
 - **Updated At**: 2026-02-05
-- **Status**: [ ] pending
+- **Status**: [x] complete
 
 ______________________________________________________________________
 

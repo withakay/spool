@@ -63,7 +63,13 @@ Provide:
 - Relevant file paths
 - Expected outcome
 
-Subagent implements using TDD:
+Pick an implementer agent tier based on task complexity:
+
+- `spool-quick`: small, localized changes
+- `spool-general`: most tasks (default)
+- `spool-thinking`: complex refactors, tricky bugs, high-risk edits
+
+Implementer uses TDD:
 1. Write failing test
 2. Run to confirm failure
 3. Implement

@@ -7,8 +7,6 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use spool_core::config::{ConfigContext, spool_config_dir};
-
 const EVENT_VERSION: u32 = 1;
 const SALT_FILE_NAME: &str = "telemetry_salt";
 
@@ -39,7 +37,7 @@ pub struct Logger {
 
 impl Logger {
     pub fn new(
-        ctx: &ConfigContext,
+        config_dir: Option<PathBuf>,
         project_root: &Path,
         spool_path: Option<&Path>,
         command_id: &str,
@@ -50,7 +48,7 @@ impl Logger {
             return None;
         }
 
-        let config_dir = spool_config_dir(ctx)?;
+        let config_dir = config_dir?;
         let salt_path = config_dir.join(SALT_FILE_NAME);
         let salt = load_or_create_salt(&salt_path)?;
         let project_id = compute_project_id(&salt, project_root);

@@ -24,7 +24,6 @@ crossterm = { workspace = true }
 indicatif = { workspace = true }
 spool-core = { path = "../spool-core" }
 spool-logging = { path = "../spool-logging" }
-spool-fs = { path = "../spool-fs" }
 spool-templates = { path = "../spool-templates" }
 spool-web = { path = "../spool-web" }
 chrono = { workspace = true }

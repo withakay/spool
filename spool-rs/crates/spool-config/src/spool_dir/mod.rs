@@ -1,18 +1,28 @@
 use std::path::{Path, PathBuf};
 
-use crate::config::{ConfigContext, load_global_config, load_repo_project_path_override};
+use spool_common::fs::{FileSystem, StdFs};
+
+use crate::{ConfigContext, load_global_config_fs, load_repo_project_path_override_fs};
 
 pub fn get_spool_dir_name(project_root: &Path, ctx: &ConfigContext) -> String {
+    get_spool_dir_name_fs(&StdFs, project_root, ctx)
+}
+
+pub fn get_spool_dir_name_fs<F: FileSystem>(
+    fs: &F,
+    project_root: &Path,
+    ctx: &ConfigContext,
+) -> String {
     // Priority order matches TS:
     // 1. Repo-level spool.json projectPath
     // 2. Repo-level .spool.json projectPath
     // 3. Global config (~/.config/spool/config.json) projectPath
     // 4. Default: '.spool'
-    if let Some(project_path) = load_repo_project_path_override(project_root) {
+    if let Some(project_path) = load_repo_project_path_override_fs(fs, project_root) {
         return project_path;
     }
 
-    if let Some(project_path) = load_global_config(ctx)
+    if let Some(project_path) = load_global_config_fs(fs, ctx)
         .project_path
         .filter(|s| !s.trim().is_empty())
     {
@@ -23,8 +33,16 @@ pub fn get_spool_dir_name(project_root: &Path, ctx: &ConfigContext) -> String {
 }
 
 pub fn get_spool_path(project_root: &Path, ctx: &ConfigContext) -> PathBuf {
+    get_spool_path_fs(&StdFs, project_root, ctx)
+}
+
+pub fn get_spool_path_fs<F: FileSystem>(
+    fs: &F,
+    project_root: &Path,
+    ctx: &ConfigContext,
+) -> PathBuf {
     let root = absolutize_and_normalize(project_root);
-    root.join(get_spool_dir_name(&root, ctx))
+    root.join(get_spool_dir_name_fs(fs, &root, ctx))
 }
 
 fn absolutize_and_normalize(input: &Path) -> PathBuf {
@@ -96,17 +114,17 @@ mod tests {
     #[test]
     fn repo_config_overrides_global_config() {
         let td = tempfile::tempdir().unwrap();
-        crate::io::write_std(
-            &td.path().join("spool.json"),
+        std::fs::write(
+            td.path().join("spool.json"),
             "{\"projectPath\":\".repo-spool\"}",
         )
         .unwrap();
 
         let home = tempfile::tempdir().unwrap();
         let cfg_dir = home.path().join(".config/spool");
-        crate::io::create_dir_all_std(&cfg_dir).unwrap();
-        crate::io::write_std(
-            &cfg_dir.join("config.json"),
+        std::fs::create_dir_all(&cfg_dir).unwrap();
+        std::fs::write(
+            cfg_dir.join("config.json"),
             "{\"projectPath\":\".global-spool\"}",
         )
         .unwrap();
@@ -123,13 +141,13 @@ mod tests {
     #[test]
     fn dot_repo_config_overrides_repo_config() {
         let td = tempfile::tempdir().unwrap();
-        crate::io::write_std(
-            &td.path().join("spool.json"),
+        std::fs::write(
+            td.path().join("spool.json"),
             "{\"projectPath\":\".repo-spool\"}",
         )
         .unwrap();
-        crate::io::write_std(
-            &td.path().join(".spool.json"),
+        std::fs::write(
+            td.path().join(".spool.json"),
             "{\"projectPath\":\".dot-spool\"}",
         )
         .unwrap();
@@ -142,8 +160,8 @@ mod tests {
     fn get_spool_path_normalizes_dotdot_segments() {
         let td = tempfile::tempdir().unwrap();
         let repo = td.path();
-        crate::io::create_dir_all_std(&repo.join("a")).unwrap();
-        crate::io::create_dir_all_std(&repo.join("b")).unwrap();
+        std::fs::create_dir_all(repo.join("a")).unwrap();
+        std::fs::create_dir_all(repo.join("b")).unwrap();
 
         let ctx = ConfigContext::default();
         let p = repo.join("a/../b");

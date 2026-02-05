@@ -9,6 +9,8 @@ description: "You MUST use this before any creative work - creating features, pr
 
 Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
 
+Use `spool-thinking` for brainstorming and design work by default.
+
 Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design in small sections (200-300 words), checking after each section whether it looks right so far.
 
 ## The Process

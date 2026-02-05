@@ -3,7 +3,10 @@ use std::path::Path;
 
 use chrono::Utc;
 use miette::{Result, miette};
-use spool_fs::update_file_with_markers;
+
+use markers::update_file_with_markers;
+
+mod markers;
 
 use crate::config::ConfigContext;
 use crate::spool_dir::get_spool_dir_name;

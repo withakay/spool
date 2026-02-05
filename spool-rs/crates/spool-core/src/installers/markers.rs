@@ -177,11 +177,7 @@ mod tests {
 
     #[test]
     fn replaces_existing_block_preserving_unmanaged_content() {
-        let existing = format!(
-            "line1\n{START}\nold\n{END}\nline2\n",
-            START = START,
-            END = END
-        );
+        let existing = format!("line1\n{START}\nold\n{END}\nline2\n");
         let out = update_content_with_markers(&p("f"), Some(&existing), "new", START, END).unwrap();
         assert_eq!(out, format!("line1\n{START}\nnew\n{END}\nline2\n"));
     }

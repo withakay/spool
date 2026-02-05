@@ -17,7 +17,9 @@ uuid = { workspace = true }
 walkdir = { workspace = true }
 pulldown-cmark = { workspace = true }
 schemars = { workspace = true }
-spool-fs = { path = "../spool-fs" }
+spool-common = { path = "../spool-common" }
+spool-config = { path = "../spool-config" }
+spool-domain = { path = "../spool-domain" }
 spool-templates = { path = "../spool-templates" }
 spool-harness = { path = "../spool-harness" }
 

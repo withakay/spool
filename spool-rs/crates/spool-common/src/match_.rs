@@ -6,19 +6,23 @@ pub struct ScoredCandidate {
 }
 
 pub fn nearest_matches(input: &str, candidates: &[String], max: usize) -> Vec<String> {
-    let mut scored: Vec<ScoredCandidate> = candidates
-        .iter()
-        .enumerate()
-        .map(|(idx, c)| ScoredCandidate {
+    let mut scored = Vec::new();
+    for (idx, c) in candidates.iter().enumerate() {
+        scored.push(ScoredCandidate {
             candidate: c.clone(),
             distance: levenshtein(input, c),
             index: idx,
-        })
-        .collect();
+        });
+    }
 
     // Match JS behavior: sort by distance, stable on original order.
     scored.sort_by(|a, b| a.distance.cmp(&b.distance).then(a.index.cmp(&b.index)));
-    scored.into_iter().take(max).map(|s| s.candidate).collect()
+
+    let mut out = Vec::new();
+    for s in scored.into_iter().take(max) {
+        out.push(s.candidate);
+    }
+    out
 }
 
 pub fn levenshtein(a: &str, b: &str) -> usize {

@@ -35,8 +35,9 @@ pub(crate) fn with_logging<F>(
 where
     F: FnOnce() -> CliResult<()>,
 {
+    let config_dir = spool_core::config::spool_config_dir(rt.ctx());
     let logger = ExecLogger::new(
-        rt.ctx(),
+        config_dir,
         project_root,
         Some(spool_path_for_logging),
         command_id,

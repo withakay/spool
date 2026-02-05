@@ -5,7 +5,7 @@ description: Use when completing tasks, implementing major features, or before m
 
 # Requesting Code Review
 
-Dispatch spool-code-reviewer subagent to catch issues before they cascade.
+Dispatch a review agent to catch issues before they cascade.
 
 **Core principle:** Review early, review often.
 
@@ -29,9 +29,13 @@ BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
 HEAD_SHA=$(git rev-parse HEAD)
 ```
 
-**2. Dispatch code-reviewer subagent:**
+**2. Dispatch a review agent (use spool tiers):**
 
-Use Task tool with spool-code-reviewer type, fill template at `code-reviewer.md`
+- Prefer `spool-general` for routine reviews.
+- Prefer `spool-thinking` for large diffs, risky changes, or architecture decisions.
+- Prefer `spool-quick` for fast sanity checks (still review properly before merging).
+
+Use the Task tool with an appropriate reviewer agent, and fill the template at `code-reviewer.md`.
 
 **Placeholders:**
 - `{WHAT_WAS_IMPLEMENTED}` - What you just built
