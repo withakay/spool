@@ -6,6 +6,7 @@ members = [
   "crates/spool-fs",
   "crates/spool-harness",
   "crates/spool-logging",
+  "crates/spool-models",
   "crates/spool-schemas",
   "crates/spool-templates",
   "crates/spool-test-support",

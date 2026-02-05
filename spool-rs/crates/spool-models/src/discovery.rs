@@ -21,8 +21,7 @@ pub struct DiscoveryOptions {
 pub fn discover_agents(options: &DiscoveryOptions) -> Vec<AgentFile> {
     let harnesses = options
         .harnesses
-        .as_ref()
-        .map(|h| h.as_slice())
+        .as_deref()
         .unwrap_or_else(|| Harness::all());
 
     let mut agents = Vec::new();
@@ -79,7 +78,7 @@ fn discover_in_directory(dir: &Path, harness: Harness, scope: AgentScope) -> Vec
             continue;
         }
 
-        if !path.extension().is_some_and(|e| e == "md") {
+        if path.extension().is_none_or(|e| e != "md") {
             continue;
         }
 
@@ -147,6 +146,7 @@ pub fn filter_by_harness(agents: &[AgentFile], harness: Harness) -> Vec<&AgentFi
 }
 
 /// Find agents with outdated models (compared to a target model)
+#[allow(dead_code)]
 pub fn find_outdated_agents<'a>(agents: &'a [AgentFile], target_model: &str) -> Vec<&'a AgentFile> {
     agents
         .iter()
