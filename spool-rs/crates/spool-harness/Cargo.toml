@@ -1,6 +1,6 @@
 [package]
 name = "spool-harness"
-version = "0.22.2-local.202602041928"
+version = "0.22.3-local.202602050906"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
