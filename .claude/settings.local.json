@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:release-plz.dev)"
+      "WebFetch(domain:release-plz.dev)",
+      "Bash(git -C /Users/jack/Code/withakay/spool/main ls-tree:*)",
+      "Bash(git -C /Users/jack/Code/withakay/spool/main status --short .github/workflows/)",
+      "Bash(git -C /Users/jack/Code/withakay/spool/main diff --cached --name-status)",
+      "Bash(git -C /Users/jack/Code/withakay/spool/main ls-files:*)",
+      "Bash(git -C /Users/jack/Code/withakay/spool/main diff .github/workflows/release-plz.yml)",
+      "Bash(git -C /Users/jack/Code/withakay/spool/main show HEAD:.github/workflows/release-plz.yml)",
+      "Bash(git -C /Users/jack/Code/withakay/spool/main commit -m \"$\\(cat <<''EOF''\nchore: fix release-plz config and remove temp files from git\n\n- Add git_only=true to use git tags instead of crates.io \\(avoids\n  conflict with unrelated spool-cli package on crates.io\\)\n- Add allow_dirty=true to handle uncommitted files\n- Disable semver_check \\(requires crates.io baseline\\)\n- Remove accidentally committed temp/demo-5 files from git tracking\nEOF\n\\)\")"
     ]
   }
 }
